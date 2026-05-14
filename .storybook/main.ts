@@ -17,6 +17,12 @@ const config: StorybookConfig = {
       ...(cfg.resolve.alias as Record<string, string> | undefined),
       '@': fileURLToPath(new URL('../src', import.meta.url)),
     }
+    // Allow the deployed Storybook to be served under a subpath
+    // (e.g. https://maksnaga.myasustor.com/mrxgrid/). Default to '/'
+    // so local `storybook dev` keeps working at the root.
+    if (process.env.STORYBOOK_BASE_PATH) {
+      cfg.base = process.env.STORYBOOK_BASE_PATH
+    }
     return cfg
   },
 }

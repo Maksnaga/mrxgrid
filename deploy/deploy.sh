@@ -22,8 +22,8 @@ fi
 echo "[DEPLOY] Installing dependencies..."
 npm ci
 
-echo "[DEPLOY] Building Storybook..."
-npm run build-storybook
+echo "[DEPLOY] Building Storybook (base=/mrxgrid/)..."
+STORYBOOK_BASE_PATH=/mrxgrid/ npm run build-storybook
 
 echo "[DEPLOY] Copying to output..."
 rm -rf "$OUTPUT_DIR"/*
