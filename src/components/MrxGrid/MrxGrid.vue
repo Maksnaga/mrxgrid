@@ -2270,9 +2270,8 @@ function onColumnFilterReorder(movedId: string, targetId: string | null) {
   const conditions = gridState.filterModel.value.conditions
   const fromIndex = conditions.findIndex((c) => c.id === movedId)
   if (fromIndex < 0) return
-  let toIndex = targetId == null
-    ? conditions.length - 1
-    : conditions.findIndex((c) => c.id === targetId)
+  let toIndex =
+    targetId == null ? conditions.length - 1 : conditions.findIndex((c) => c.id === targetId)
   if (toIndex < 0) toIndex = conditions.length - 1
   // After splicing the moved condition out, the target index needs to
   // shift left by one if it was past the source.
@@ -2912,7 +2911,7 @@ defineExpose({
 .mrx-grid-sticky-header {
   position: sticky;
   top: 0;
-  z-index: 4;
+  z-index: 3;
 }
 
 .mrx-grid-body {
