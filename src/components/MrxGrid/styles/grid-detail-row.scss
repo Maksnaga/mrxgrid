@@ -1,0 +1,27 @@
+/* Ported from Angular `components/detail-row/grid-detail-row.scss`.
+ * Translation: :host → .grid-detail-row-root */
+
+@layer mrx-grid {
+  .grid-detail-row-root {
+    display: block;
+    position: sticky;
+    left: 0;
+    overflow: hidden;
+    box-sizing: border-box;
+  }
+
+  .grid-detail-row {
+    padding: var(--spacing-m, 16px);
+    background: var(--color-background-secondary, #f8f9fa);
+    border-bottom: 1px solid var(--color-border-primary);
+    border-top: 1px solid var(--color-border-primary);
+  }
+
+  .grid-detail-row__default {
+    margin: 0;
+    font-size: var(--font-size-xs, 12px);
+    color: var(--color-text-secondary);
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+}

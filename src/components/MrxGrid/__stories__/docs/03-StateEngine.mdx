@@ -1,0 +1,258 @@
+import { Meta } from '@storybook/addon-docs/blocks'
+import './_styles.css'
+
+<Meta title="Documentation/4. State & Engine" />
+
+<div className="mrx-doc">
+
+# State & Engine
+
+> Comment l'état est centralisé, qui peut le lire, qui peut l'écrire, et
+> pourquoi cette séparation est essentielle.
+
+## Le pattern central
+
+L'idée : **un seul `useGridState()` par grid**, partagé via `provide()`. Toutes
+les features lisent / écrivent à travers cet état. Aucune ne possède son propre
+état global. Ça permet :
+
+- L'undo/redo cohérent (un seul state à snapshotter)
+- La persistance localStorage en un seul tour
+- Les plugins lisent l'état sans drilling
+- Les tests unitaires : on stub `useGridState` et on teste les engines isolément
+
+<div className="ascii">
+{`             ┌────────────────────────────────────────┐
+             │   useGridState<T>()                    │
+             │   = source de vérité (Refs + Computeds)│
+             └─┬──────────────────────────────────────┘
+               │
+       ┌───────┴───────┬───────┬───────┬─────────┬──────────┐
+       ▼               ▼       ▼       ▼         ▼          ▼
+   useGridEngine   provide()   tests   plugins  drawers   composables
+       │
+       └─→ .sort .filter .group .formula .selection
+           .cellValidation .tree .clipboard .history`}
+</div>
+
+## `useGridState<T>()` — la map du state
+
+Chaque clé est un `Ref<…>` ou un `ComputedRef<…>`. Voici les principales :
+
+<table>
+  <thead>
+    <tr><th>Clé</th><th>Type</th><th>Quoi</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>sourceData</code></td>
+      <td><code>Ref&lt;T[]&gt;</code></td>
+      <td>Données brutes en entrée (avant tri/group/filter)</td>
+    </tr>
+    <tr>
+      <td><code>columnStates</code></td>
+      <td><code>Ref&lt;ColumnState[]&gt;</code></td>
+      <td>Par colonne : sort, sortIndex, hidden, pinned, visible, width</td>
+    </tr>
+    <tr>
+      <td><code>visibleColumns</code></td>
+      <td><code>ComputedRef&lt;ColumnDef[]&gt;</code></td>
+      <td>Colonnes filtrées par visibilité, ordonnées</td>
+    </tr>
+    <tr>
+      <td><code>columnDefMap</code></td>
+      <td><code>ComputedRef&lt;Map&lt;string, ColumnDef&gt;&gt;</code></td>
+      <td>Lookup O(1) par <code>field</code></td>
+    </tr>
+    <tr>
+      <td><code>activeSorts</code></td>
+      <td><code>Ref&lt;SortDef[]&gt;</code></td>
+      <td>Multi-sort stack (premier = primaire)</td>
+    </tr>
+    <tr>
+      <td><code>filterModel</code></td>
+      <td><code>Ref&lt;FilterModel&gt;</code></td>
+      <td>Conditions du builder (drawer)</td>
+    </tr>
+    <tr>
+      <td><code>quickFilters</code></td>
+      <td><code>Ref&lt;Record&lt;string, unknown&gt;&gt;</code></td>
+      <td>Inputs de la ligne de filtres header</td>
+    </tr>
+    <tr>
+      <td><code>groupFields</code></td>
+      <td><code>Ref&lt;string[]&gt;</code></td>
+      <td>Champs de groupement (ordre = profondeur)</td>
+    </tr>
+    <tr>
+      <td><code>cellEditState</code></td>
+      <td><code>Ref&lt;CellEditState&gt;</code></td>
+      <td><code>{`{ editingCell, originalValue, draftValue, validationError }`}</code></td>
+    </tr>
+    <tr>
+      <td><code>cutSource</code></td>
+      <td><code>Ref&lt;CellRange | null&gt;</code></td>
+      <td>Plage Ctrl+X en attente (marching ants)</td>
+    </tr>
+    <tr>
+      <td><code>density</code></td>
+      <td><code>Ref&lt;GridDensity&gt;</code></td>
+      <td><code>'small' | 'default' | 'large'</code></td>
+    </tr>
+    <tr>
+      <td><code>rowIdField</code> / <code>rowIdResolver</code></td>
+      <td>—</td>
+      <td>Identifiant stable par ligne (formules, sélection cross-sort)</td>
+    </tr>
+  </tbody>
+</table>
+
+## `useGridEngine<T>(state)` — les opérations
+
+L'engine **n'a pas de state** propre — il prend le state en paramètre et expose
+des fonctions qui le lisent/écrivent. Tu peux donc instancier autant d'engines
+que tu veux sur le même state.
+
+```ts
+const state  = useGridState<Product>()
+const engine = useGridEngine<Product>(state)
+
+engine.sort.toggleSort('price', /* multi: */ false)   // single-sort par prix
+engine.sort.clearSort()
+engine.filter.setModel({ conditions: [...] }, 'replace')
+engine.group.addField('category')
+engine.formula.set({ rowId: '42', field: 'total' }, '=[qty]*[price]')
+engine.selection.selectAll()
+engine.clipboard.copy()      // copie la sélection courante
+engine.history.undo()
+```
+
+## API exposée par l'engine
+
+<table>
+  <thead>
+    <tr><th>Sous-engine</th><th>Méthodes principales</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>engine.sort</code></td>
+      <td><code>toggleSort(field, multi)</code>, <code>setSort(field, dir | null)</code>, <code>clearSort()</code>, <code>sortData(rows)</code>, <code>getSortDirection(field)</code></td>
+    </tr>
+    <tr>
+      <td><code>engine.filter</code></td>
+      <td><code>setQuick(field, value)</code>, <code>setModel(model, mode)</code>, <code>clear()</code>, <code>filterData(rows)</code>, <code>activeCount</code></td>
+    </tr>
+    <tr>
+      <td><code>engine.group</code></td>
+      <td><code>addField(f)</code>, <code>removeField(f)</code>, <code>toggleGroup(key)</code>, <code>buildFlatList(rows)</code></td>
+    </tr>
+    <tr>
+      <td><code>engine.formula</code></td>
+      <td><code>set(addr, formula)</code>, <code>remove(addr)</code>, <code>valueAt(addr)</code>, <code>invalidate(addr)</code>, <code>registerFunction(name, impl)</code></td>
+    </tr>
+    <tr>
+      <td><code>engine.cellValidation</code></td>
+      <td><code>validateAll()</code>, <code>getCellError(rowIndex, field)</code>, <code>hasCellError(rowIndex, field)</code></td>
+    </tr>
+    <tr>
+      <td><code>engine.selection</code></td>
+      <td><code>selectRow(id)</code>, <code>toggleRow(id)</code>, <code>selectAll()</code>, <code>clear()</code></td>
+    </tr>
+    <tr>
+      <td><code>engine.clipboard</code></td>
+      <td><code>copy()</code>, <code>cut()</code>, <code>paste(htmlOrTsv)</code></td>
+    </tr>
+    <tr>
+      <td><code>engine.history</code></td>
+      <td><code>record(label, ops)</code>, <code>undo()</code>, <code>redo()</code>, <code>clear()</code></td>
+    </tr>
+    <tr>
+      <td><code>engine.tree</code></td>
+      <td><code>toggleNode(id)</code>, <code>expandAll()</code>, <code>collapseAll()</code></td>
+    </tr>
+  </tbody>
+</table>
+
+## Edition de cellule — cycle de vie complet
+
+<div className="ascii">
+{`                    ┌─────────────────────────────────────────┐
+   user dblclick ─→ │ engine.editing.startEdit(row, col)      │
+   user F2          │  state.cellEditState = {                │
+   user types       │     editingCell, originalValue,         │
+                    │     draftValue: originalValue           │
+                    │  }                                      │
+                    └────────────────────┬────────────────────┘
+                                         │
+                  user types in <input>  │
+                  ────────────────────→  ▼
+                    ┌─────────────────────────────────────────┐
+                    │ engine.editing.updateDraft(value)       │
+                    │  state.cellEditState.draftValue = value │
+                    └────────────────────┬────────────────────┘
+                                         │
+                user Enter/Tab/Click-out │
+                  ────────────────────→  ▼
+                    ┌─────────────────────────────────────────┐
+                    │ engine.editing.commitEdit()             │
+                    │  ▸ run cellEditorValidator si défini    │
+                    │  ▸ state.sourceData[idx][field] = draft │
+                    │  ▸ history.record('edit', [op])         │
+                    │  ▸ return CellEditEvent                 │
+                    └────────────────────┬────────────────────┘
+                                         │
+                                         ▼
+                    ┌─────────────────────────────────────────┐
+                    │ <MrxGrid> emits 'cellEdit' (CellEditEvent│
+                    │ to consumer who writes back to row data)│
+                    └─────────────────────────────────────────┘`}
+</div>
+
+## Persistance
+
+Avec `:persist-key="catalogue-v1"`, le grid sauve **automatiquement** dans
+`localStorage["catalogue-v1"]` à chaque changement de :
+
+- largeur de colonne
+- ordre des colonnes
+- visibilité (hidden / shown)
+- pinning (left / right / null)
+- multi-sort stack
+- filter model du builder
+
+Et restaure tout au prochain mount. Aucun appel impératif requis. Si tu veux
+piloter à la main, le grid expose `persistView()` / `restoreView()` via
+`defineExpose`.
+
+## Plugins
+
+Un plugin reçoit `{ state, engine }` à `init()` et peut renvoyer un cleanup.
+Idéal pour : audit log, telemetry, keybindings custom, intégration analytics —
+tout ce qui ne concerne pas le rendu.
+
+```ts
+import type { MrxGridPlugin } from '@/components/MrxGrid'
+
+const auditPlugin: MrxGridPlugin = {
+  id: 'audit',
+  init({ engine }) {
+    const off = engine.events?.on('cellEditCommit', (e) => {
+      myTelemetry.send('cell-edit', { field: e.field, row: e.rowIndex })
+    })
+    return () => off?.()
+  },
+}
+
+// usage
+<MrxGrid :columns="cols" :rows="rows" :plugins="[auditPlugin]" />
+```
+
+## Pourquoi pas Pinia ?
+
+Pinia est installé dans le projet mais n'est pas utilisé par le grid : un grid
+est une feature **locale** par instance (chaque grid a son propre état). Pinia
+sert pour le state global de l'app, pas pour les composants composables. Le
+pattern `useGridState()` + `provide/inject` est plus naturel et n'introduit
+aucune dépendance forte côté consommateur.
+
+</div>

@@ -1,0 +1,263 @@
+import { Meta } from '@storybook/addon-docs/blocks'
+import './_styles.css'
+
+<Meta title="Documentation/3. Architecture" />
+
+<div className="mrx-doc">
+
+# Architecture
+
+> Comment les morceaux sont branchés. Si tu lis ce doc avant de plonger dans le
+> code, tu gagneras quelques heures.
+
+## Vue d'ensemble — les 3 couches
+
+<div className="ascii">
+{`┌─────────────────────────────────────────────────────────────────────────┐
+│ COUCHE PUBLIQUE   <MrxGrid />                                           │
+│  - Surface API (props, événements, slots, defineExpose)                 │
+│  - Orchestration uniquement, pas de logique métier                      │
+└────────────────────────────┬────────────────────────────────────────────┘
+                             │
+                             ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│ COUCHE STATE + ENGINE                                                   │
+│   useGridState<T>()         ── refs + computeds (source de vérité)      │
+│      activeSorts, columnStates, cellEditState, filterModel,             │
+│      cutSource, sourceData, visibleColumns, …                           │
+│                                                                         │
+│   useGridEngine<T>(state)   ── pure functions qui lisent / écrivent     │
+│      .sort   .filter   .group   .formula   .cellValidation              │
+│      .tree   .selection   .clipboard   .history (undo/redo)             │
+└────────────────────────────┬────────────────────────────────────────────┘
+                             │
+                             ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│ COUCHE COMPOSANTS DE PRÉSENTATION                                       │
+│   Header   Filter row   Body (sticky / virtual)   Footer / Pagination   │
+│   Drawers (toolbar / groupage / filtres / settings)   Overlays (menu)   │
+│   MrxColumn (déclaratif), Slots #toolbar / #cell-{field} / #expand-row  │
+└─────────────────────────────────────────────────────────────────────────┘`}
+</div>
+
+## Hiérarchie des composants
+
+<div className="ascii">
+{`<MrxGrid />
+├── <slot name="toolbar" />                  ← MrxGridToolbar (optionnel)
+├── <MrxGridTagBar />                        ← HIDDEN / GROUPED / FILTERED tags
+├── <MrxFormulaBar />                        ← optionnelle, pour =A1*B2
+├── <div class="mrx-grid-wrapper">           ← scrollable, overflow:auto
+│   ├── <div class="mrx-grid-sticky-header">
+│   │   ├── <MrxGridHeader />                ← columns + checkbox + expand
+│   │   │   └── <MrxGridHeaderCell />        ← sort indicator + kebab + resize
+│   │   └── <MrxGridFilterRow />             ← filter inputs (optional)
+│   └── <MrxGridBody>                        ← virtual or non-virtual
+│       └── <MrxGridRow> (×N)
+│           └── <MrxGridCell> (×cols)        ← editor / renderer / slot
+│       └── <MrxGridGroupRow> (×groups)      ← when grouping is active
+│       └── <MrxGridDetailRow> (×expanded)   ← #expand-row slot host
+└── <MrxGridFooter>
+    ├── <MrxGridPagination />                ← when pagination is enabled
+    ├── <MrxGridSelectionBar />              ← floats when rows selected
+    └── <MrxGridLoadingIndicator />          ← infinite scroll spinner
+
+— Drawers vivent en dehors du wrapper (Teleport ou siblings) :
+   <MrxTableMenuDrawer />   ← settings (densité / colonnes cachées / ordre)
+   <MrxGroupingDrawer />    ← drag-n-drop des champs de groupement
+   <MrxGridFilterDrawer />  ← multi-condition builder
+   <MrxKeyboardShortcutsDrawer />
+   <MrxFormulaReferenceDrawer />`}
+</div>
+
+## Flot de données
+
+Le pipeline est **unidirectionnel** : `props.rows` traverse une chaîne
+d'opérations pures et arrive aux cellules sous forme de slice virtualisée.
+
+<div className="ascii">
+{`props.rows  (input — N rows arbitraires)
+     │
+     ▼
+┌────────────────┐
+│ useSorting     │  multi-column sort stack
+│  (engine.sort) │  → stable sort, comparator par colonne
+└────────┬───────┘
+         ▼
+┌────────────────┐
+│ useFiltering   │  ColumnDef.filter (legacy) + FilterModel (builder)
+│ engine.filter  │  AND between conditions, OR within set ops
+└────────┬───────┘
+         ▼
+┌────────────────┐
+│ useGrouping    │  group fields → flat list with __mrx-prefixed metadata
+│ engine.group   │  (group rows + data rows in one Array)
+└────────┬───────┘
+         ▼
+┌────────────────┐
+│ usePagination  │  page slicing OR infinite scroll markers
+│ engine.paging  │
+└────────┬───────┘
+         ▼
+┌────────────────┐
+│ useVirtualGrid │  visible row range + visible column range
+│ (vScroll +     │  → DOM minimaliste : 80 lignes max × 30 colonnes max
+│  vColumns)     │
+└────────┬───────┘
+         ▼
+   <MrxGridRow> × visibleRange
+       <MrxGridCell> × visibleCols`}
+</div>
+
+## File structure
+
+<div className="ascii">
+{`src/components/MrxGrid/
+├── MrxGrid.vue                       ← orchestrateur principal (~2200 LOC)
+├── MrxColumn.vue                     ← API déclarative <MrxColumn field=…/>
+├── index.ts                          ← barrel public (export MrxGrid + types)
+├── types.ts                          ← ColumnDef, RowData, CellFlags, …
+│
+├── components/                       ← composants de présentation
+│   ├── header/
+│   │   ├── MrxGridHeader.vue
+│   │   ├── MrxGridHeaderCell.vue
+│   │   ├── MrxGridHeaderMenu.vue     ← kebab popup (sort / pin / hide…)
+│   │   ├── MrxGridFilterRow.vue
+│   │   └── MrxColumnFilterOverlay.vue
+│   ├── body/
+│   │   ├── MrxGridBody.vue
+│   │   ├── MrxGridRow.vue
+│   │   ├── MrxGridCell.vue
+│   │   ├── MrxGridGroupRow.vue
+│   │   └── MrxGridDetailRow.vue
+│   ├── footer/
+│   │   ├── MrxGridFooter.vue
+│   │   ├── MrxGridPagination.vue
+│   │   └── MrxGridLoadingIndicator.vue
+│   └── overlays/
+│       ├── MrxGridToolbar.vue
+│       ├── MrxTableMenuDrawer.vue
+│       ├── MrxGroupingDrawer.vue
+│       ├── MrxGridFilterDrawer.vue
+│       ├── MrxGridFilterBuilder.vue
+│       └── MrxFormulaBar.vue
+│
+├── state/                            ← state central (Phase 1)
+│   ├── useGridState.ts               ← refs + computeds, source de vérité
+│   ├── GridContext.ts                ← provide/inject key
+│   ├── MrxColumnRegistry.ts          ← <MrxColumn> register/unregister
+│   ├── MrxGridSlots.ts               ← per-field slot resolution
+│   └── defaults.ts                   ← magic numbers (row height, density…)
+│
+├── engine/                           ← engines pure-functions
+│   └── useGridEngine.ts              ← hub : sort / filter / group / formula / …
+│
+├── features/                         ← features composables (engine targets)
+│   ├── useSortEngine.ts
+│   ├── useFilterEngine.ts
+│   ├── useGroupEngine.ts
+│   ├── useVariableHeightVirtualScroll.ts
+│   ├── useInlineEditEngine.ts
+│   ├── useCellValidationEngine.ts
+│   ├── formula/
+│   │   ├── useFormulaEngine.ts
+│   │   ├── formula-functions.default.ts
+│   │   └── useRefHighlight.ts
+│   └── renderers/
+│       ├── builtin.ts                ← 'tag' renderer
+│       └── defineStatusRenderer.ts
+│
+├── models/                           ← types Angular-parity (additif)
+│   ├── cell.model.ts
+│   ├── column.model.ts
+│   ├── filter.model.ts
+│   ├── sort.model.ts
+│   ├── pagination.model.ts
+│   ├── grid-events.model.ts
+│   ├── grid-options.model.ts
+│   └── plugin.model.ts
+│
+├── styles/                           ← SCSS partagés
+│   ├── grid-body.scss
+│   └── grid-settings-drawer.scss
+│
+└── __stories__/                      ← stories Storybook + docs MDX
+    ├── _fixtures.ts                  ← datasets LM / Adeo / Bricocenter
+    ├── docs/                         ← documentation MDX (← tu es ici)
+    └── MrxGrid.*.stories.ts          ← 15 stories de démo`}
+</div>
+
+<h2>Inventaire des composables</h2>
+
+`src/composables/` contient **22 composables** ciblés. Chacun est une unité
+testée, composable, indépendante.
+
+<table>
+  <thead>
+    <tr><th>Composable</th><th>Responsabilité</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>useGridData</code></td><td>Pipeline colonnes (passthrough actuel)</td></tr>
+    <tr><td><code>useColumns</code></td><td>Visibilité, pin overrides, filter toggles</td></tr>
+    <tr><td><code>useSorting</code></td><td>Multi-column sort stack</td></tr>
+    <tr><td><code>useGrouping</code></td><td>Row grouping → flat list <code>__mrx*</code></td></tr>
+    <tr><td><code>usePinnedColumns</code></td><td>Layout left/right pinned + offsets</td></tr>
+    <tr><td><code>useColumnResize</code></td><td>Drag-to-resize widths</td></tr>
+    <tr><td><code>useColumnDnD</code></td><td>Drag-n-drop reorder</td></tr>
+    <tr><td><code>useVirtualScroll</code></td><td>Vertical virtualization (index-based)</td></tr>
+    <tr><td><code>useVirtualColumns</code></td><td>Horizontal virtualization</td></tr>
+    <tr><td><code>useVirtualGrid</code></td><td>Combine vScroll + vCols</td></tr>
+    <tr><td><code>useDataSource</code></td><td>Page-based lazy fetch</td></tr>
+    <tr><td><code>useLazyRows</code></td><td>Infinite scroll markers</td></tr>
+    <tr><td><code>useRowSelection</code></td><td>Checkbox model (none/some/all)</td></tr>
+    <tr><td><code>useRowExpansion</code></td><td>Expandable rows toggle</td></tr>
+    <tr><td><code>useActiveCell</code></td><td>Single active cell tracking</td></tr>
+    <tr><td><code>useCellSelection</code></td><td>Range selection (rectangulaire)</td></tr>
+    <tr><td><code>useCellEditing</code></td><td>Inline edit lifecycle (legacy)</td></tr>
+    <tr><td><code>useFillHandle</code></td><td>Excel fill handle drag</td></tr>
+    <tr><td><code>useKeyboard</code></td><td>Navigation + raccourcis</td></tr>
+    <tr><td><code>useMouseSelection</code></td><td>Click + Shift + Ctrl multi-range</td></tr>
+    <tr><td><code>usePagination</code></td><td>Page slicing</td></tr>
+    <tr><td><code>useFiltering</code></td><td>Filter row state (legacy)</td></tr>
+    <tr><td><code>useClipboard</code></td><td>Copy / cut / paste (Excel-style)</td></tr>
+    <tr><td><code>useServerGrouping</code></td><td>Async group fetch</td></tr>
+    <tr><td><code>useTeleportListbox</code></td><td>Portail dropdown menus</td></tr>
+  </tbody>
+</table>
+
+## Conventions de design
+
+<table>
+  <thead>
+    <tr><th>Choix</th><th>Pourquoi</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>State central via <code>provide/inject</code></td>
+      <td>Évite le prop-drilling sur 5 niveaux ; chaque feature lit/écrit la même source.</td>
+    </tr>
+    <tr>
+      <td>Métadonnées <code>__mrx</code></td>
+      <td>Préfixées pour ne jamais collisionner avec les champs utilisateur (groupement, expansion).</td>
+    </tr>
+    <tr>
+      <td>Pas de transform pour le scroll</td>
+      <td><code>translateY</code> crée un containing block qui casse <code>position: sticky</code> sur les colonnes pinned. On utilise un spacer top-height à la place.</td>
+    </tr>
+    <tr>
+      <td>Cap visible à 80 lignes</td>
+      <td>Au-delà, le rendu d'une frame coûte plus que le scroll lui-même.</td>
+    </tr>
+    <tr>
+      <td>RowHeight reactif (Ref ou number)</td>
+      <td>La densité change la hauteur de ligne sans recréer le scroll machine.</td>
+    </tr>
+    <tr>
+      <td>Style scoped systématique</td>
+      <td>Isolation Vue scoped CSS + classes BEM pour les overrides via <code>:deep()</code>.</td>
+    </tr>
+  </tbody>
+</table>
+
+</div>

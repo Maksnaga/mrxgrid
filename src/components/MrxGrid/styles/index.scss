@@ -1,0 +1,30 @@
+/* Public stylesheet — consumers `@use` this once.
+ * Mirrors the file inventory from MIGRATION-PLAN.md §13.1. All 19 SCSS
+ * files from the Angular grid have been ported with the four translations
+ * applied (`:host` → `.<bem-root>`, `::ng-deep` → descendant, CDK class
+ * names → Vue equivalents, custom-element selectors → BEM root classes).
+ */
+
+@use './layers';
+@use './animations';
+
+/* Component styles — ordered by paint order. */
+@use './grid-body';
+@use './grid-cell';
+@use './grid-row';
+@use './grid-group-row';
+@use './grid-detail-row';
+@use './grid-empty-state';
+@use './grid-header';
+@use './grid-header-cell';
+@use './grid-header-menu';
+@use './grid-footer';
+@use './grid-selection-bar';
+@use './grid-filter-builder';
+@use './grid-filter-drawer';
+@use './grid-group-drawer';
+@use './grid-settings-drawer';
+@use './grid-column-visibility-panel';
+@use './grid-formula-editor';
+@use './grid-formula-reference-drawer';
+@use './grid-keyboard-shortcuts-drawer';

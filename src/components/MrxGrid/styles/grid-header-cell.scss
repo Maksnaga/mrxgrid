@@ -1,0 +1,166 @@
+/* Ported from Angular `components/header/grid-header-cell.scss`.
+ * Translation: :host → .grid-header-cell-root */
+
+@use '@mozaic-ds/styles/tools/t.font' as *;
+
+@layer mrx-grid {
+  .grid-header-cell-root {
+    display: block;
+    height: 100%;
+    background: inherit;
+  }
+
+  .grid-header-cell-root.grid-header-cell-host--pinned {
+    background: var(--color-background-primary, #fff);
+  }
+
+  .grid-header-cell-root.grid-header-cell-host--pinned-left-edge {
+    box-shadow: 4px 0 8px -2px rgba(0, 0, 0, 0.1);
+  }
+
+  .grid-header-cell-root.grid-header-cell-host--pinned-right-edge {
+    box-shadow: -4px 0 8px -2px rgba(0, 0, 0, 0.1);
+  }
+
+  .grid-header-cell {
+    display: flex;
+    align-items: center;
+    position: relative;
+    height: 100%;
+    padding: 0 var(--spacing-s, 8px);
+    border-right: 1px solid var(--color-border-primary);
+    user-select: none;
+    box-sizing: border-box;
+    min-width: 0;
+    background: inherit;
+  }
+
+  .grid-header-cell--pinned-end {
+    border-right: none;
+    border-left: 1px solid var(--color-border-primary);
+  }
+
+  .grid-header-cell-root:first-child .grid-header-cell--pinned-end {
+    border-left: none;
+  }
+
+  .grid-header-cell--last {
+    border-right: none;
+  }
+
+  /*
+    Spreadsheet-style column letter shown only while the user is editing a
+    cell that accepts formulas. The badge sits at the start of the header
+    in a soft chip so it's discoverable yet doesn't compete with the
+    business label. Tinted background lights up the whole header for
+    symmetry with Excel's selection highlight.
+   */
+  .grid-header-cell--formula-mode {
+    background: var(--color-state-info-subtle, #eef6ff);
+    transition: background-color 120ms ease-out;
+  }
+
+  .grid-header-cell__col-letter {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 4px;
+    margin-right: var(--spacing-xs, 4px);
+    border-radius: 3px;
+    background: var(--color-state-info-strong, #2374b9);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+
+  .grid-header-cell__content {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs, 4px);
+    flex: 1;
+    min-width: 0;
+    cursor: pointer;
+  }
+
+  .grid-header-cell__label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--color-text-secondary);
+    @include set-font-family();
+    font-size: var(--font-size-50);
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .grid-header-cell__sort-icon {
+    flex-shrink: 0;
+    color: var(--color-text-primary);
+  }
+
+  .grid-header-cell__menu-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: none;
+    border-radius: var(--border-radius-s, 4px);
+    background: transparent;
+    cursor: pointer;
+    color: var(--color-text-secondary);
+    opacity: 0;
+    transition: opacity 150ms ease;
+  }
+
+  .grid-header-cell__menu-trigger:hover {
+    background: var(--color-background-tertiary, rgba(0, 0, 0, 0.06));
+    color: var(--color-text-primary);
+  }
+
+  .grid-header-cell:hover .grid-header-cell__menu-trigger {
+    opacity: 1;
+  }
+
+  .grid-header-cell__menu-trigger--filtered {
+    opacity: 1;
+    color: var(--Status-Standalone-element-Primary, #0071ce);
+  }
+
+  .grid-header-cell__resize-handle {
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    cursor: col-resize;
+    z-index: 1;
+  }
+
+  .grid-header-cell__resize-handle:hover {
+    background: var(--color-background-accent-inverse);
+  }
+
+  .grid-header-cell__resize-handle--left {
+    right: auto;
+    left: 0;
+  }
+
+  .grid-header-cell-root.grid-header-cell-host--reorderable .grid-header-cell__content {
+    cursor: grab;
+  }
+
+  .grid-header-cell-root.grid-header-cell-host--dragging {
+    outline: 2px solid var(--color-background-accent-inverse);
+    outline-offset: -2px;
+    opacity: 0.85;
+    z-index: 1;
+  }
+}

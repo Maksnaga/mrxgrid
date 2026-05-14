@@ -1,0 +1,141 @@
+/* Ported from Angular `components/filter-builder/grid-filter-builder.scss`.
+ * Translation: :host → .grid-filter-builder-root */
+
+@layer mrx-grid {
+  .grid-filter-builder-root {
+    display: block;
+    background: var(--Background-Primary, #fff);
+    border: 1px solid var(--Border-Primary, #cdd4d8);
+    border-radius: 6px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  }
+
+  .filter-builder {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px;
+
+    &__subtitle {
+      margin: 0;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--Text-Secondary, #555);
+    }
+
+    &__rows {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    &__row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 8px;
+      border: 1px solid var(--Border-Primary, #e0e0e0);
+      border-radius: 6px;
+      background: var(--Background-Primary, #fff);
+
+      &.cdk-drag-preview {
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+      }
+
+      &.cdk-drag-placeholder {
+        opacity: 0.3;
+      }
+    }
+
+    &__combinator {
+      min-width: 64px;
+      flex: 0 0 64px;
+    }
+
+    &__combinator-label {
+      display: inline-block;
+      width: 100%;
+      padding: 6px 8px;
+      font-weight: 600;
+      color: var(--Text-Secondary, #555);
+    }
+
+    &__select,
+    &__input {
+      font: inherit;
+      padding: 6px 8px;
+      border: 1px solid var(--Border-Primary, #ccc);
+      border-radius: 4px;
+      background: #fff;
+      min-height: 32px;
+      box-sizing: border-box;
+    }
+
+    &__select--combinator {
+      width: 100%;
+    }
+
+    &__select--column,
+    &__select--operator {
+      flex: 1 1 120px;
+      min-width: 0;
+    }
+
+    &__select--set {
+      min-width: 160px;
+      height: auto;
+    }
+
+    &__value {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex: 1 1 160px;
+      min-width: 0;
+    }
+
+    &__input {
+      flex: 1 1 0;
+      min-width: 0;
+    }
+
+    &__range-sep {
+      color: var(--Text-Secondary, #777);
+    }
+
+    &__drag {
+      display: inline-flex;
+      cursor: grab;
+      color: var(--Text-Secondary, #777);
+
+      &:active {
+        cursor: grabbing;
+      }
+    }
+
+    &__add {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      align-self: flex-start;
+      padding: 6px 10px;
+      background: transparent;
+      border: none;
+      color: var(--Status-Standalone-element-Primary, #0071ce);
+      font: inherit;
+      cursor: pointer;
+      border-radius: 4px;
+
+      &:hover:not([disabled]) {
+        background: var(--Background-Secondary, #f4f4f4);
+      }
+
+      &[disabled] {
+        cursor: not-allowed;
+        opacity: 0.5;
+      }
+    }
+  }
+}

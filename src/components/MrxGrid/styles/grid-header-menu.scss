@@ -1,0 +1,17 @@
+/* Ported from Angular `components/header-menu/grid-header-menu.scss`.
+ * Translation: :host → .grid-header-menu-root */
+
+@layer mrx-grid {
+  .grid-header-menu-root {
+    position: absolute;
+    z-index: 200;
+  }
+
+  .grid-header-menu {
+    min-width: 220px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border-radius: var(--border-radius-m, 8px);
+    background: var(--color-background-primary);
+    border: 1px solid var(--color-border-primary);
+  }
+}

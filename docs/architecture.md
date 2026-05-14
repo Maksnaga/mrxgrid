@@ -1,0 +1,7 @@
+- Grid system inspired by AG Grid
+- Columns define rendering
+- Rows are reactive
+- Features:
+  - selection
+  - expandable rows
+  - column resize

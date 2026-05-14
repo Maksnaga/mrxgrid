@@ -1,0 +1,16 @@
+/* Ported from Angular `components/filter-drawer/grid-filter-drawer.scss` (no `:host`). */
+
+@layer mrx-grid {
+  .filter-drawer {
+    padding-bottom: 16px;
+
+    &__subtitle {
+      margin: 0 16px 8px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--Text-Secondary, #555);
+    }
+  }
+}

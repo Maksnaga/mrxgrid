@@ -1,0 +1,226 @@
+import { Meta } from '@storybook/addon-docs/blocks'
+import './_styles.css'
+
+<Meta title="Documentation/6. Data Pipeline" />
+
+<div className="mrx-doc">
+
+# Data Pipeline
+
+> De `props.rows` aux pixels : chaque transformation, dans l'ordre.
+
+## Le pipeline en une vue
+
+<div className="ascii">
+{`  ┌────────────┐
+  │ props.rows │   ← input du consommateur
+  └─────┬──────┘
+        │
+        ▼
+   ╭────────────╮     activeSorts: [{field, direction, priority}]
+   │ ① SORT     │     comparator par colonne (ColumnDef.sortComparator)
+   ╰─────┬──────╯     stable, multi-key, server-side via :sort-server
+         ▼
+   ╭────────────╮     filterModel.conditions (drawer)
+   │ ② FILTER   │     +  quickFilters (filter row)
+   ╰─────┬──────╯     AND entre conditions, OR dans 'set' / 'in'
+         ▼            short-circuit dès qu'une row est rejetée
+   ╭────────────╮     groupFields[] → produit un FLAT LIST mixé :
+   │ ③ GROUP    │       [groupRow_lv0, dataRow, dataRow, groupRow_lv0, …]
+   ╰─────┬──────╯     metadata __mrx{Type,Key,Field,Value,Depth,Count}
+         ▼            collapse state via collapsedGroupKeys
+   ╭────────────╮     pageSize, currentPage → slice [start..end]
+   │ ④ PAGINATE │     OR : infinite scroll via :on-visible-range-change
+   ╰─────┬──────╯
+         ▼
+   ╭────────────╮     visibleRange = [start..end] int
+   │ ⑤ VIRTUAL  │     visibleCols  = [colStart..colEnd] int
+   ╰─────┬──────╯     overscan + cap 80
+         ▼
+   ╭────────────╮     <MrxGridRow v-for="i in visibleRange">
+   │ ⑥ RENDER   │       <MrxGridCell v-for="col in visibleCols">
+   ╰────────────╯     <slot name="cell-{field}" /> | renderer | text`}
+</div>
+
+## ① Tri (sort)
+
+<table>
+  <thead><tr><th>État</th><th>Source de vérité</th><th>API utilisateur</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>Stack actif</td>
+      <td><code>state.activeSorts</code> (Ref)</td>
+      <td>Click header (single), Shift+click (multi), kebab menu</td>
+    </tr>
+    <tr>
+      <td>Direction par champ</td>
+      <td><code>engine.sort.getSortDirection(field)</code></td>
+      <td>Pour le binding du chevron dans le header</td>
+    </tr>
+  </tbody>
+</table>
+
+```ts
+// Tri principal par catégorie ASC, puis par prix DESC
+// (stack manuel via setSort + setSort multi)
+engine.sort.setSort('category', 'asc')
+// Shift+click sur "price" → toggleSort('price', /*multi*/ true)
+```
+
+Pour un comparator custom (ex : grades énergie A → G dans l'ordre logique
+plutôt qu'alphabétique) :
+
+```ts
+const cols = [{
+  field: 'energyClass',
+  sortable: true,
+  sortComparator: (a, b) => {
+    const order = ['A','B','C','D','E','F','G']
+    return order.indexOf(a.energyClass) - order.indexOf(b.energyClass)
+  },
+}]
+```
+
+## ② Filtres
+
+Deux **surfaces indépendantes** :
+
+<table>
+  <thead><tr><th>Surface</th><th>État</th><th>UI</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><strong>Quick filters</strong></td>
+      <td><code>state.quickFilters: Record&lt;field, value&gt;</code></td>
+      <td><code>&lt;MrxGridFilterRow&gt;</code> sous le header</td>
+    </tr>
+    <tr>
+      <td><strong>Filter model</strong></td>
+      <td><code>state.filterModel.conditions[]</code></td>
+      <td><code>&lt;MrxGridFilterDrawer&gt;</code> + tag bar « Filtered by »</td>
+    </tr>
+  </tbody>
+</table>
+
+Les deux s'appliquent en série : une row doit passer **les deux** pour être visible.
+
+### Types de filtres
+
+<table>
+  <thead><tr><th>filterType</th><th>Opérateurs par défaut</th></tr></thead>
+  <tbody>
+    <tr><td><code>'text'</code></td><td>contains, equals, starts, ends, blank, notBlank</td></tr>
+    <tr><td><code>'number'</code></td><td>=, ≠, &gt;, ≥, &lt;, ≤, between</td></tr>
+    <tr><td><code>'date'</code></td><td>=, ≠, before, after, between</td></tr>
+    <tr><td><code>'set'</code></td><td>in (multi-checkbox)</td></tr>
+    <tr><td><code>'boolean'</code></td><td>true / false / blank</td></tr>
+  </tbody>
+</table>
+
+Tu peux limiter les opérateurs autorisés via `column.filterOperators`.
+
+### Server-side
+
+```vue
+<MrxGrid :rows="serverRows" server-filter @filter-change="onFilters" />
+```
+
+Le grid ne filtre rien lui-même : il émet `filterChange` avec le payload, à toi
+de fetch les bonnes lignes et de repasser `:rows`.
+
+## ③ Groupement
+
+`groupFields = ['category', 'brand']` produit un **flat list** que le pipeline
+de virtualisation peut traiter comme un array de rows classique :
+
+<div className="ascii">
+{`Input rows :
+  [{cat:'A', brand:'X', …}, {cat:'A', brand:'Y', …}, {cat:'B', brand:'X', …}, …]
+
+Flat list après groupage [category, brand] :
+
+  __mrxType  __mrxKey                         __mrxDepth __mrxCount
+  ─────────  ───────                          ────────── ──────────
+  group      "category::A"                       0          14
+  group      "category::A|brand::X"              1           5
+  row        (data row #3)                       2
+  row        (data row #7)                       2
+  …
+  group      "category::A|brand::Y"              1           9
+  …
+  group      "category::B"                       0          22
+  …`}
+</div>
+
+Le composant `MrxGridGroupRow` détecte les rows groupes via `isGroupRow(row)`
+(type guard sur `__mrxType === 'group'`).
+
+## ④ Pagination
+
+Deux modes mutuellement exclusifs :
+
+```vue
+<!-- Pagination : footer avec [First, Prev, Next, Last] + select page size -->
+<MrxGrid :pagination="{ pageSizeOptions: [25,50,100], defaultPageSize: 50 }" />
+
+<!-- Lazy infinite scroll : pas de footer, fetch au scroll -->
+<MrxGrid :total-count="50000" :on-visible-range-change="onVisibleRange" />
+```
+
+## ⑤ Virtualisation
+
+Voir le doc dédié → **5. Virtualization**.
+
+## ⑥ Rendu (cellules)
+
+Pour chaque cellule, l'ordre de résolution est (le plus spécifique gagne) :
+
+<div className="ascii">
+{`1. Slot local de <MrxGridRow> (transmis explicitement par le row)
+2. <MrxColumn field="x" #cell="…"> child slot
+3. <MrxGrid #cell-{field}="…"> root slot per-field
+4. <MrxGrid #cell="…"> root slot générique
+5. column.renderer (Component | 'tag' | 'text')
+6. column.valueFormatter(value, row) → string
+7. String(value) — fallback final`}
+</div>
+
+```vue
+<!-- Slot par champ (le plus utilisé) -->
+<MrxGrid :columns="cols" :rows="rows">
+  <template #cell-promo="{ value }">
+    <span :class="value ? 'badge badge--hot' : ''">
+      {{ value ? '🔥 PROMO' : '—' }}
+    </span>
+  </template>
+</MrxGrid>
+```
+
+## Performance — court-circuits importants
+
+<table>
+  <thead><tr><th>Optimisation</th><th>Où</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>Identité référentielle préservée si <code>activeSorts.length === 0</code></td>
+      <td><code>useSortEngine.sortData()</code> retourne <code>data</code> tel quel (pas de spread)</td>
+    </tr>
+    <tr>
+      <td>Filter short-circuit sur la 1re condition échouée</td>
+      <td><code>useFilterEngine.filterData()</code></td>
+    </tr>
+    <tr>
+      <td>Group flat list mémoizé tant que <code>groupFields</code> + <code>rows</code> sont stables</td>
+      <td><code>useGrouping</code></td>
+    </tr>
+    <tr>
+      <td>Virtualisation ne ré-allocate pas d'array</td>
+      <td><code>useVirtualScroll</code> expose <code>getRow(i)</code></td>
+    </tr>
+    <tr>
+      <td>Cellule ne re-render que si ses props changent</td>
+      <td>Vue diffe automatiquement ; pas de v-if conditionnels lourds</td>
+    </tr>
+  </tbody>
+</table>
+
+</div>

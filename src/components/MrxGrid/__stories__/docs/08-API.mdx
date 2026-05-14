@@ -1,0 +1,222 @@
+import { Meta } from '@storybook/addon-docs/blocks'
+import './_styles.css'
+
+<Meta title="Documentation/9. API Reference" />
+
+<div className="mrx-doc">
+
+# API Reference
+
+> Référence complète des props, événements, slots et méthodes exposées de
+> `<MrxGrid>`.
+
+## Props
+
+<table>
+  <thead>
+    <tr><th>Prop</th><th>Type</th><th>Default</th><th>Description</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>columns</code></td><td><code>ColumnDef[]?</code></td><td>—</td><td>Colonnes impératives. Optionnel si tu utilises <code>&lt;MrxColumn&gt;</code> en children.</td></tr>
+    <tr><td><code>rows</code></td><td><code>RowData[]</code></td><td><strong>required</strong></td><td>Tableau des lignes en input.</td></tr>
+    <tr><td><code>selectable</code></td><td><code>boolean</code></td><td><code>false</code></td><td>Active la colonne checkbox de sélection.</td></tr>
+    <tr><td><code>expandable</code></td><td><code>boolean</code></td><td><code>false</code></td><td>Active la colonne chevron + le slot <code>#expand-row</code>.</td></tr>
+    <tr><td><code>rowId</code></td><td><code>(row, idx) =&gt; string</code></td><td>fallback à l'index</td><td>Identifiant stable d'une ligne.</td></tr>
+    <tr><td><code>virtualScroll</code></td><td><code>boolean</code></td><td><code>false</code></td><td>Virtualisation verticale.</td></tr>
+    <tr><td><code>virtualColumns</code></td><td><code>boolean</code></td><td><code>false</code></td><td>Virtualisation horizontale (colonnes).</td></tr>
+    <tr><td><code>containerHeight</code></td><td><code>number</code></td><td><code>600</code></td><td>Hauteur du wrapper en px (mode virtualScroll / pagination).</td></tr>
+    <tr><td><code>overscan</code></td><td><code>number</code></td><td><code>5</code></td><td>Lignes rendues au-dessus / en-dessous du viewport.</td></tr>
+    <tr><td><code>columnOverscan</code></td><td><code>number</code></td><td><code>2</code></td><td>Colonnes rendues à gauche / droite du viewport.</td></tr>
+    <tr><td><code>onVisibleRangeChange</code></td><td><code>(start, end) =&gt; void</code></td><td>—</td><td>Callback quand le range visible change. Utile pour lazy fetch.</td></tr>
+    <tr><td><code>totalCount</code></td><td><code>number</code></td><td>—</td><td>Total des lignes côté serveur. Stabilise la scrollbar en lazy.</td></tr>
+    <tr><td><code>hiddenFields</code></td><td><code>string[]</code></td><td><code>[]</code></td><td>Champs cachés (synchro avec les drawers).</td></tr>
+    <tr><td><code>groupFields</code></td><td><code>string[]</code></td><td><code>[]</code></td><td>Champs de groupement, dans l'ordre.</td></tr>
+    <tr><td><code>density</code></td><td><code>'compact' | 'default' | 'comfortable'</code></td><td><code>'default'</code></td><td>Densité visuelle des lignes (le header reste constant).</td></tr>
+    <tr><td><code>fullscreen</code></td><td><code>boolean</code></td><td><code>false</code></td><td>Le grid couvre tout le viewport.</td></tr>
+    <tr><td><code>columnOrder</code></td><td><code>string[]?</code></td><td>—</td><td>Ordre des colonnes (override).</td></tr>
+    <tr><td><code>serverFilter</code></td><td><code>boolean</code></td><td><code>false</code></td><td>Le grid n'applique pas les filtres ; il les émet.</td></tr>
+    <tr><td><code>serverGrouping</code></td><td><code>ServerGroupingOptions</code></td><td>—</td><td>Fetch async des groupes (voir story <em>Server-side</em>).</td></tr>
+    <tr><td><code>pagination</code></td><td><code>boolean | PaginationConfig</code></td><td><code>false</code></td><td><code>true</code> = défauts ; objet pour customiser.</td></tr>
+    <tr><td><code>loading</code></td><td><code>boolean</code></td><td><code>false</code></td><td>Affiche l'overlay <code>#loading</code>.</td></tr>
+    <tr><td><code>error</code></td><td><code>Error | null</code></td><td>—</td><td>Affiche le slot <code>#error</code> à la place du body.</td></tr>
+    <tr><td><code>persistKey</code></td><td><code>string?</code></td><td>—</td><td>Clé de persistance localStorage (layout + sort + filtres).</td></tr>
+    <tr><td><code>historyId</code></td><td><code>string?</code></td><td>—</td><td>ID pour persister undo/redo entre reloads.</td></tr>
+    <tr><td><code>plugins</code></td><td><code>MrxGridPlugin[]</code></td><td><code>[]</code></td><td>Plugins à monter (voir <em>State &amp; Engine</em>).</td></tr>
+  </tbody>
+</table>
+
+## Événements
+
+<table>
+  <thead><tr><th>Event</th><th>Payload</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td><code>update:selection</code></td><td><code>SelectionModel</code></td><td>Modèle de sélection des rows (v-model:selection).</td></tr>
+    <tr><td><code>update:hiddenFields</code></td><td><code>string[]</code></td><td>Synchronisation des colonnes cachées avec les drawers.</td></tr>
+    <tr><td><code>columnMenuAction</code></td><td><code>ColumnMenuAction</code></td><td>Sort/pin/hide/group depuis le kebab.</td></tr>
+    <tr><td><code>cellEdit</code></td><td><code>CellEditEvent</code></td><td>Émis au commit d'une édition. <strong>À écouter pour persister la valeur côté consommateur.</strong></td></tr>
+    <tr><td><code>fill</code></td><td><code>FillEvent</code></td><td>Émis quand l'utilisateur termine un drag de fill handle.</td></tr>
+    <tr><td><code>pageChange</code></td><td><code>{`{ page, pageSize, startIndex, endIndex }`}</code></td><td>Pagination — utile pour le fetch côté serveur.</td></tr>
+    <tr><td><code>filterChange</code></td><td><code>Record&lt;string, unknown&gt;</code></td><td>Émis quand un filtre change. À utiliser avec <code>:server-filter</code>.</td></tr>
+    <tr><td><code>bulkDelete</code></td><td><code>{`{ selection, fills }`}</code></td><td>Émis sur Delete avec une sélection multi-cell.</td></tr>
+    <tr><td><code>retry</code></td><td>—</td><td>Émis quand l'utilisateur clique « Retry » dans le slot d'erreur.</td></tr>
+  </tbody>
+</table>
+
+## Slots
+
+<table>
+  <thead><tr><th>Slot</th><th>Props (scope)</th><th>Quand</th></tr></thead>
+  <tbody>
+    <tr><td><code>#toolbar</code></td><td>—</td><td>Place ta toolbar à l'intérieur du grid (pour qu'elle reste visible en fullscreen).</td></tr>
+    <tr><td><code>#cell</code></td><td><code>CellSlotProps</code></td><td>Slot générique appliqué à toutes les cellules.</td></tr>
+    <tr><td><code>#cell-{`{field}`}</code></td><td><code>CellSlotProps</code></td><td>Renderer custom pour une colonne précise.</td></tr>
+    <tr><td><code>#header</code></td><td><code>{`{ column, sortDirection }`}</code></td><td>Render générique de header.</td></tr>
+    <tr><td><code>#header-{`{field}`}</code></td><td><code>{`{ column, sortDirection }`}</code></td><td>Header custom par colonne.</td></tr>
+    <tr><td><code>#filter</code></td><td><code>{`{ column, value, setValue }`}</code></td><td>Cellule custom dans la ligne de filtres.</td></tr>
+    <tr><td><code>#filter-{`{field}`}</code></td><td>idem</td><td>Filtre custom par colonne.</td></tr>
+    <tr><td><code>#edit</code></td><td><code>{`{ value, editValue, updateValue, commit, cancel }`}</code></td><td>Éditeur custom pour toutes les cellules.</td></tr>
+    <tr><td><code>#edit-{`{field}`}</code></td><td>idem</td><td>Éditeur custom par colonne.</td></tr>
+    <tr><td><code>#expand-row</code></td><td><code>{`{ row, index }`}</code></td><td>Contenu de la row de détail (avec <code>:expandable</code>).</td></tr>
+    <tr><td><code>#empty</code></td><td>—</td><td>État vide (rows.length === 0).</td></tr>
+    <tr><td><code>#loading</code></td><td>—</td><td>Overlay de chargement (avec <code>:loading</code>).</td></tr>
+    <tr><td><code>#error</code></td><td><code>{`{ error, retry }`}</code></td><td>Affichage d'erreur (avec <code>:error</code>).</td></tr>
+    <tr><td><code>#selection-actions</code></td><td><code>{`{ selection, count }`}</code></td><td>Boutons custom de la barre de sélection.</td></tr>
+  </tbody>
+</table>
+
+## Méthodes exposées (`ref`)
+
+```ts
+const gridRef = ref<InstanceType<typeof MrxGrid>>()
+// gridRef.value!.exportCsv({ filename: 'export.csv' })
+```
+
+<table>
+  <thead><tr><th>Méthode</th><th>Quoi</th></tr></thead>
+  <tbody>
+    <tr><td><code>exportCsv(opts?)</code></td><td>Export CSV des rows visibles.</td></tr>
+    <tr><td><code>exportJson(opts?)</code></td><td>Export JSON.</td></tr>
+    <tr><td><code>setFilter(field, value)</code></td><td>Force un quick filter.</td></tr>
+    <tr><td><code>setFilterModel(model)</code></td><td>Remplace le filter model du builder.</td></tr>
+    <tr><td><code>clearFilters()</code></td><td>Wipe les deux surfaces de filtres.</td></tr>
+    <tr><td><code>clearQuickFilters()</code></td><td>Wipe la ligne de filtres seulement.</td></tr>
+    <tr><td><code>clearFilterModel()</code></td><td>Wipe le builder seulement.</td></tr>
+    <tr><td><code>getFilterModel()</code></td><td>Snapshot du filter model courant.</td></tr>
+    <tr><td><code>selectAll()</code></td><td>Sélectionne toutes les rows.</td></tr>
+    <tr><td><code>clearSelection()</code></td><td>Vide la sélection.</td></tr>
+    <tr><td><code>getSelectedRows()</code></td><td>Renvoie les rows sélectionnées.</td></tr>
+    <tr><td><code>getSortModel()</code> / <code>clearSort()</code></td><td>Pilote le multi-sort stack.</td></tr>
+    <tr><td><code>getGroupModel()</code> / <code>clearGroups()</code></td><td>Pilote les groupes.</td></tr>
+    <tr><td><code>undo()</code> / <code>redo()</code> / <code>clearHistory()</code></td><td>Pilote l'historique.</td></tr>
+    <tr><td><code>validateAll()</code></td><td>Force la revalidation de toutes les cellules.</td></tr>
+    <tr><td><code>getCellError(row, field)</code></td><td>Erreur sur une cellule.</td></tr>
+    <tr><td><code>setFormula(addr, str)</code> / <code>getFormula(addr)</code> / <code>getFormulaValue(addr)</code></td><td>Formula engine.</td></tr>
+    <tr><td><code>persistView()</code> / <code>restoreView()</code></td><td>Persist localStorage manuel.</td></tr>
+  </tbody>
+</table>
+
+## Types principaux
+
+```ts
+interface ColumnDef<T = RowData> {
+  field: string
+  headerName: string
+  width?: string
+  minWidth?: string
+  maxWidth?: string
+  flex?: number
+  resizable?: boolean
+  reorderable?: boolean
+  sortable?: boolean
+  sortComparator?: (a: T, b: T) => number
+  groupable?: boolean
+  filterable?: boolean
+  filterType?: 'text' | 'number' | 'date' | 'set' | 'boolean'
+  filterOperators?: FilterOperator[]
+  defaultFilterOperator?: FilterOperator
+  filterOptions?: { value: unknown; label: string }[]
+  pinned?: 'start' | 'end' | 'left' | 'right' | null
+  visible?: boolean
+  hideable?: boolean
+  freezable?: boolean
+  searchVisible?: boolean
+  headerMenuDisabled?: boolean
+  valueGetter?: (row: T) => unknown
+  valueFormatter?: (value: unknown, row: T) => string
+  cellClass?: string | ((row: T) => string)
+  headerClass?: string
+  editable?: boolean
+  cellEditor?: 'text' | 'number' | 'select' | 'date'
+  cellEditorOptions?: { value: unknown; label: string }[]
+  cellEditorValidator?: (value, row) => true | false | string
+  cellValidator?: (value, row) => true | string
+  renderer?: 'text' | 'tag' | Component
+  rendererProps?: Record<string, unknown>
+  filterRenderer?: Component
+  filter?: FilterDef                // legacy
+  valueValidator?: (value) => boolean
+  allowFormula?: boolean
+}
+
+interface CellEditEvent<T = RowData> {
+  row: T
+  rowIndex: number
+  field: string
+  oldValue: unknown
+  newValue: unknown
+}
+
+interface FillEvent {
+  sourceRange: SelectionRange
+  targetRange: SelectionRange
+  direction: 'down' | 'up' | 'right' | 'left'
+  fills: Array<{ rowIndex: number; field: string; value: unknown }>
+}
+
+interface SelectionModel {
+  allSelected: boolean
+  selectedIds: Set<string>
+  deselectedIds: Set<string>
+}
+
+interface SelectionRange {
+  r1: number; c1: number   // top-left
+  r2: number; c2: number   // bottom-right (inclusive)
+}
+```
+
+## Exports utiles
+
+```ts
+import {
+  // composant racine
+  MrxGrid, MrxColumn,
+
+  // toolbar / drawers
+  MrxGridToolbar, MrxTableMenuDrawer, MrxGroupingDrawer,
+  MrxGridFilterDrawer, MrxKeyboardShortcutsDrawer,
+  MrxFormulaBar, MrxFormulaReferenceDrawer,
+
+  // helpers
+  defineStatusRenderer,
+  BUILTIN_RENDERERS,
+  useVariableHeightVirtualScroll,
+  useFormulaEngine,
+  DEFAULT_FORMULA_FUNCTIONS,
+
+  // state + engine (avancé)
+  useGridState, useGridEngine, useGridContext,
+  GRID_STATE_KEY,
+
+  // defaults
+  DEFAULT_COLUMN_WIDTH, DEFAULT_ROW_HEIGHT, DEFAULT_PAGE_SIZE,
+  DENSITY_ROW_HEIGHT, MIN_COLUMN_RESIZE_WIDTH,
+
+  // types (sélection)
+  type ColumnDef, type RowData, type CellEditEvent, type FillEvent,
+  type SelectionModel, type SelectionRange, type CellFlags,
+  type StatusAppearance, type DataDensity, type GroupingItem,
+} from '@/components/MrxGrid'
+```
+
+</div>

@@ -1,0 +1,82 @@
+/* Ported from Angular `components/body/grid-body.scss`.
+ * Translations applied:
+ *   :host                                    → .grid-body
+ *   ::ng-deep .cdk-virtual-scrollable        → .mrx-virtual-viewport
+ *   ::ng-deep .cdk-virtual-scroll-content-wrapper → .mrx-virtual-viewport__content
+ *   ::ng-deep moz-grid-row moz-grid-cell:last-child → .grid-row .grid-cell-root:last-child
+ */
+
+@layer mrx-grid {
+  .grid-body {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .grid-body.grid-body--fit-content {
+    flex: 0 0 auto;
+  }
+
+  .grid-body__viewport {
+    flex: 1;
+    min-height: 0;
+    height: 0;
+  }
+
+  .grid-body .mrx-virtual-viewport {
+    overscroll-behavior: none;
+  }
+
+  /* Allow position:sticky for frozen columns inside rows */
+  .grid-body .mrx-virtual-viewport__content {
+    contain: none !important;
+  }
+
+  .grid-body__row-wrapper {
+    display: flex;
+    width: 100%;
+    min-width: fit-content;
+    border-bottom: 1px solid var(--color-border-primary);
+    background: var(--color-background-primary);
+  }
+
+  .grid-body__row-wrapper:hover {
+    background: var(--color-background-primary);
+  }
+
+  .grid-body__frozen-left {
+    position: sticky;
+    left: 0;
+    z-index: 3;
+    flex: 0 0 auto;
+    background: inherit;
+    box-shadow: 4px 0 8px -2px rgba(0, 0, 0, 0.1);
+    box-sizing: border-box;
+  }
+
+  .grid-body__center {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .grid-body__frozen-right {
+    position: sticky;
+    right: 0;
+    z-index: 3;
+    flex: 0 0 auto;
+    background: inherit;
+    box-shadow: -4px 0 8px -2px rgba(0, 0, 0, 0.1);
+    box-sizing: border-box;
+  }
+
+  /* Remove outer border on extremity cells in frozen sections */
+  .grid-body__frozen-left .grid-row .grid-cell-root:last-child .grid-cell {
+    border-right: none;
+  }
+
+  .grid-body__frozen-right .grid-row .grid-cell-root:first-child .grid-cell {
+    border-left: none;
+  }
+}

@@ -1,0 +1,100 @@
+/* Ported from Angular `components/header/grid-header.scss`.
+ * Translations: :host → .grid-header-root, ::ng-deep .checkbox → .checkbox */
+
+@layer mrx-grid {
+  .grid-header-root {
+    display: block;
+    flex-shrink: 0;
+    background: var(--color-background-primary, #fff);
+  }
+
+  .grid-header {
+    display: flex;
+    width: max-content;
+    min-width: 100%;
+    height: 48px;
+    border-bottom: 1px solid var(--color-border-primary);
+    background: inherit;
+  }
+
+  .grid-header--no-bottom-border {
+    border-bottom: none;
+  }
+
+  .grid-header__sticky-utility {
+    position: sticky;
+    z-index: 4;
+    background: var(--color-background-primary, #fff);
+    flex: 0 0 auto;
+    box-sizing: border-box;
+  }
+
+  .grid-header__expand-spacer {
+    width: 36px;
+    min-width: 36px;
+  }
+
+  .grid-header__checkbox {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    min-width: 48px;
+    cursor: pointer;
+  }
+
+  .grid-header__checkbox .checkbox {
+    margin: 0;
+  }
+
+  .grid-header__checkbox .checkbox__label {
+    display: none;
+  }
+
+  .grid-header__cell-spacer {
+    flex: 0 0 auto;
+    height: 100%;
+    background: inherit;
+    pointer-events: none;
+  }
+
+  .grid-header__filter-row {
+    display: flex;
+    width: max-content;
+    min-width: 100%;
+    height: 40px;
+    background: var(--color-background-primary);
+    border-bottom: 1px solid var(--color-border-primary);
+  }
+
+  .grid-header__filter-cell {
+    display: flex;
+    align-items: center;
+    padding: 0 var(--spacing-xs, 4px);
+    box-sizing: border-box;
+    overflow: hidden;
+    height: 100%;
+    border-right: 1px solid var(--color-border-primary);
+    flex: 0 0 auto;
+    background: inherit;
+  }
+
+  .grid-header__filter-cell--spacer {
+    flex-shrink: 0;
+    border-right: none;
+    pointer-events: none;
+  }
+
+  .grid-header__filter-cell--pinned-end {
+    border-right: none;
+    border-left: 1px solid var(--color-border-primary);
+  }
+
+  .grid-header__filter-cell--pinned-left-edge {
+    box-shadow: 4px 0 8px -2px rgba(0, 0, 0, 0.1);
+  }
+
+  .grid-header__filter-cell--pinned-right-edge {
+    box-shadow: -4px 0 8px -2px rgba(0, 0, 0, 0.1);
+  }
+}

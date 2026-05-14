@@ -1,0 +1,169 @@
+import { Meta } from '@storybook/addon-docs/blocks'
+import './_styles.css'
+
+<Meta title="Documentation/7. Theming" />
+
+<div className="mrx-doc">
+
+# Theming
+
+> 4 thèmes Mozaic prêts, 3 modes de densité, et l'API pour faire le tien.
+
+## Les 4 thèmes Mozaic
+
+Le grid lit ses couleurs depuis les CSS custom properties Mozaic. Chaque thème
+est un fichier `.css` qui pose les vars sur `:root`. Tu charges **un seul**
+thème à la fois.
+
+<div className="theme-grid">
+  <div className="theme-card">
+    <div className="theme-card__title"><span className="swatch" style={{ background: '#78BE20' }} /><strong>Leroy Merlin</strong></div>
+    <div><code>import '@mozaic-ds/tokens/theme'</code> (par défaut)</div>
+  </div>
+  <div className="theme-card">
+    <div className="theme-card__title"><span className="swatch" style={{ background: '#003DA5' }} /><strong>Adeo</strong></div>
+    <div><code>import '@mozaic-ds/tokens/adeo/theme'</code></div>
+  </div>
+  <div className="theme-card">
+    <div className="theme-card__title"><span className="swatch" style={{ background: '#E2231A' }} /><strong>Bricocenter</strong></div>
+    <div><code>import '@mozaic-ds/tokens/bricocenter/theme'</code></div>
+  </div>
+  <div className="theme-card">
+    <div className="theme-card__title"><span className="swatch" style={{ background: '#000000' }} /><strong>MBrand</strong></div>
+    <div><code>import '@mozaic-ds/tokens/mbrand/theme'</code></div>
+  </div>
+</div>
+
+## Switch dynamique de thème
+
+Les fichiers de thème ciblent tous `:root` — on ne peut pas tous les charger
+simultanément (le dernier gagne). Pour switcher au runtime, charge la CSS comme
+URL et bascule un `<link>` :
+
+```ts
+import lmCss     from '@mozaic-ds/tokens/theme?inline'
+import adeoCss   from '@mozaic-ds/tokens/adeo/theme?inline'
+import bricoCss  from '@mozaic-ds/tokens/bricocenter/theme?inline'
+import mbrandCss from '@mozaic-ds/tokens/mbrand/theme?inline'
+
+const THEMES = { lm: lmCss, adeo: adeoCss, brico: bricoCss, mbrand: mbrandCss }
+
+function applyTheme(id: keyof typeof THEMES) {
+  let style = document.getElementById('app-theme') as HTMLStyleElement | null
+  if (!style) {
+    style = document.createElement('style')
+    style.id = 'app-theme'
+    document.head.appendChild(style)
+  }
+  style.textContent = THEMES[id]
+  document.documentElement.dataset.theme = id
+}
+```
+
+C'est exactement ce que fait le toolbar Storybook (en haut à droite).
+
+## CSS variables consommées par le grid
+
+Le grid n'invente aucune couleur — tout passe par des variables Mozaic. Pour
+override, redéclare-les sur un ancêtre du grid (par ex. <code>.mrx-grid-root</code>
+ou plus haut).
+
+<table>
+  <thead><tr><th>Var</th><th>Usage</th></tr></thead>
+  <tbody>
+    <tr><td><code>--color-background-primary</code></td><td>fond cellules + header</td></tr>
+    <tr><td><code>--color-background-secondary</code></td><td>fond hover row, group rows</td></tr>
+    <tr><td><code>--color-background-accent</code></td><td>cellule sélectionnée, fill target</td></tr>
+    <tr><td><code>--color-text-primary</code></td><td>texte par défaut</td></tr>
+    <tr><td><code>--color-text-secondary</code></td><td>labels, helpers, count</td></tr>
+    <tr><td><code>--color-text-tertiary</code></td><td>icônes inactives, hint text</td></tr>
+    <tr><td><code>--color-text-accent</code></td><td>chevron tri, fill handle, accents</td></tr>
+    <tr><td><code>--color-border-primary</code></td><td>bordures cellules / wrapper</td></tr>
+    <tr><td><code>--color-border-secondary</code></td><td>resize handle hover</td></tr>
+    <tr><td><code>--color-status-border-error</code></td><td>cellule invalide outline</td></tr>
+    <tr><td><code>--color-status-background-error</code></td><td>cellule active+invalide</td></tr>
+    <tr><td><code>--font-family</code></td><td>police de la grid</td></tr>
+  </tbody>
+</table>
+
+## Densité des lignes
+
+Trois modes. Seules les **cellules body** (pas le header) changent de hauteur,
+pour garder les contrôles header (kebab, sort, filter) à une position stable.
+
+```vue
+<MrxGrid :density="'compact'" ... />        <!-- 25 px de ligne -->
+<MrxGrid :density="'default'" ... />        <!-- 37 px (par défaut) -->
+<MrxGrid :density="'comfortable'" ... />    <!-- 45 px -->
+```
+
+Implémentation : une classe sur `.mrx-grid-wrapper--compact|comfortable`
+applique des paddings ad-hoc sur `.mrx-grid-cell` via `:deep()`.
+
+## Customiser une feature visuelle
+
+### Couleur de la cellule active
+
+```scss
+.my-app .mrx-grid-cell--active::after {
+  border-color: hotpink;
+}
+```
+
+### Hauteur de header custom
+
+```scss
+.my-app .mrx-grid-header-cell {
+  padding-top: 14px;
+  padding-bottom: 14px;
+  background: #f9fafb;
+}
+```
+
+### Fill handle plus visible
+
+```scss
+.my-app .mrx-grid-cell__fill-handle {
+  width: 10px;
+  height: 10px;
+  bottom: -5px;
+  right: -5px;
+}
+```
+
+## Renderers Mozaic intégrés
+
+### `'tag'` — MTag pour catégorisation
+
+```ts
+{
+  field: 'status',
+  renderer: 'tag',
+  rendererProps: {
+    labelMap: {
+      'in-stock':  { label: 'En stock', appearance: 'success' },
+      'out':       { label: 'Rupture',  appearance: 'danger' },
+      'preorder':  { label: 'Précommande', appearance: 'neutral' },
+    },
+  },
+}
+```
+
+### `defineStatusRenderer<T>(map)` — version typée
+
+```ts
+import { defineStatusRenderer } from '@/components/MrxGrid'
+
+const StatusCell = defineStatusRenderer<'open' | 'closed'>({
+  open:   { label: 'Ouvert',  appearance: 'success' },
+  closed: { label: 'Fermé',   appearance: 'danger' },
+})
+
+// usage
+{ field: 'status', renderer: StatusCell }
+```
+
+Le helper appelle `markRaw()` automatiquement (le component ne doit pas être
+proxy-é) et utilise un palette de couleurs Mozaic cohérent.
+
+</div>

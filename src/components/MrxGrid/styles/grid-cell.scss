@@ -1,0 +1,339 @@
+/* Ported from Angular `components/cell/grid-cell.scss` (345 LOC).
+ * Translations applied:
+ *   :host                     → .grid-cell-root
+ *   :host(:first-child)       → .grid-cell-root:first-child
+ *   ::ng-deep                 → (removed — descendant selector kept)
+ *   moz-select / moz-datepicker → kept verbatim (Mozaic component selectors)
+ *
+ * The `@keyframes moz-grid-marching-ants-x/y` are in `_animations.scss`.
+ */
+
+@layer mrx-grid {
+  .grid-cell-root {
+    display: block;
+    height: 100%;
+    min-width: 0;
+  }
+
+  .grid-cell {
+    display: flex;
+    align-items: center;
+    position: relative;
+    padding: 0 var(--spacing-s, 8px);
+    height: 100%;
+    border-right: 1px solid var(--color-border-primary);
+    overflow: hidden;
+    box-sizing: border-box;
+    min-width: 0;
+    background: inherit;
+    cursor: pointer;
+  }
+
+  .grid-cell--last {
+    border-right: none;
+  }
+
+  .grid-cell--pinned-end {
+    border-right: none;
+    border-left: 1px solid var(--color-border-primary);
+  }
+
+  .grid-cell-root:first-child .grid-cell--pinned-end {
+    border-left: none;
+  }
+
+  .grid-cell__value {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--font-size-s, 14px);
+    color: var(--color-text-primary);
+    position: relative;
+    z-index: 1;
+  }
+
+  .grid-cell__editor {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    box-sizing: border-box;
+    position: relative;
+    z-index: 1;
+  }
+
+  .grid-cell__editor-custom {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .grid-cell__editor input,
+  .grid-cell__editor moz-select {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+
+  .grid-cell__input--plain {
+    border: none;
+    outline: none;
+    background: transparent;
+    font-family: inherit;
+    font-size: var(--font-size-s, 14px);
+    color: var(--color-text-primary);
+    padding: 0;
+    height: 100%;
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+
+  .grid-cell__input--plain:focus {
+    outline: none;
+  }
+
+  /* Hide number input spinners for cleaner look */
+  .grid-cell__input--plain[type='number']::-webkit-inner-spin-button,
+  .grid-cell__input--plain[type='number']::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  .grid-cell__input--plain[type='number'] {
+    -moz-appearance: textfield;
+  }
+
+  .grid-cell__editor .text-input {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+
+  .grid-cell__editor .select,
+  .grid-cell__editor .select__trigger {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .grid-cell__editor * {
+    max-width: 100%;
+  }
+
+  .grid-cell__editor moz-datepicker {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+
+  .grid-cell__editor .mc-datepicker,
+  .grid-cell__editor .mc-text-input {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    height: 28px;
+    font-size: var(--font-size-xs, 12px);
+  }
+
+  .grid-cell__editor moz-datepicker label {
+    display: none;
+  }
+
+  .grid-cell > *:not(.grid-cell__fill-handle) {
+    position: relative;
+    z-index: 1;
+  }
+
+  .grid-cell::before {
+    content: '';
+    position: absolute;
+    inset: 3px 3px 3px 3px;
+    border-radius: 4px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .grid-cell:hover::before {
+    background: #f1f3f4;
+  }
+
+  .grid-cell--focused:hover::before,
+  .grid-cell--in-range:hover::before,
+  .grid-cell--in-fill-range:hover::before,
+  .grid-cell--in-fill-reject-range:hover::before {
+    background: transparent;
+  }
+
+  .grid-cell--focused {
+    z-index: 2;
+  }
+
+  .grid-cell--focused::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border: 2px solid var(--color-background-accent-inverse);
+    border-radius: 4px;
+    pointer-events: none;
+  }
+
+  /* Coloured border painted on cells referenced by a formula being edited.
+     Uses a separate layer (`box-shadow` inset) so it stacks cleanly on top
+     of the hover/range backgrounds without disturbing layout. */
+  .grid-cell--ref-highlight {
+    z-index: 2;
+  }
+
+  .grid-cell--ref-highlight::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border: 2px solid var(--moz-grid-ref-color, transparent);
+    border-radius: 4px;
+    pointer-events: none;
+    z-index: 3;
+  }
+
+  .grid-cell--in-range {
+    background: var(--color-background-accent);
+  }
+
+  .grid-cell--readonly .grid-cell__value {
+    color: var(--color-text-secondary, #666);
+  }
+
+  .grid-cell--in-fill-range {
+    background: rgba(52, 168, 83, 0.08);
+  }
+
+  .grid-cell--in-fill-range::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border: 1px dashed var(--color-success, #34a853);
+    border-radius: 4px;
+    pointer-events: none;
+  }
+
+  .grid-cell--in-fill-reject-range {
+    background: rgba(234, 48, 45, 0.12);
+    cursor: not-allowed;
+    z-index: 2;
+  }
+
+  .grid-cell--in-fill-reject-range::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border: 2px dashed var(--Status-Standalone-element-Error, #ea302d);
+    border-radius: 4px;
+    pointer-events: none;
+    z-index: 3;
+  }
+
+  /* Excel-style "marching ants" for the cut (Ctrl+X) range. Each cell renders
+     only the edge strips that face outward — the union of cells in the range
+     forms the animated dashed rectangle around the cut region. */
+  .grid-cell--cut {
+    background: rgba(26, 115, 232, 0.06);
+  }
+
+  .grid-cell__cut-mark {
+    position: absolute;
+    pointer-events: none;
+    z-index: 5;
+    --cut-color: var(--color-background-accent-inverse, #1a73e8);
+  }
+
+  .grid-cell__cut-mark--top,
+  .grid-cell__cut-mark--bottom {
+    left: 0;
+    right: 0;
+    height: 2px;
+    background-image: linear-gradient(90deg, var(--cut-color) 50%, transparent 50%);
+    background-size: 8px 2px;
+    background-repeat: repeat-x;
+    animation: moz-grid-marching-ants-x 0.5s linear infinite;
+  }
+
+  .grid-cell__cut-mark--top {
+    top: 0;
+  }
+
+  .grid-cell__cut-mark--bottom {
+    bottom: 0;
+  }
+
+  .grid-cell__cut-mark--left,
+  .grid-cell__cut-mark--right {
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background-image: linear-gradient(180deg, var(--cut-color) 50%, transparent 50%);
+    background-size: 2px 8px;
+    background-repeat: repeat-y;
+    animation: moz-grid-marching-ants-y 0.5s linear infinite;
+  }
+
+  .grid-cell__cut-mark--left {
+    left: 0;
+  }
+
+  .grid-cell__cut-mark--right {
+    right: 0;
+  }
+
+  .grid-cell__fill-handle {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 8px;
+    height: 8px;
+    background: var(--color-background-accent-inverse);
+    cursor: crosshair;
+    z-index: 4;
+  }
+
+  .grid-cell--error {
+    outline: 1px solid var(--Status-Border-Error, #ef5f5c);
+    outline-offset: -2px;
+    z-index: 1;
+    border-radius: 4px;
+  }
+
+  .grid-cell--error:hover::before {
+    background: transparent;
+  }
+
+  /*
+    Formula errors use a softer visual than validation errors: the cell stays
+    readable and the error code (e.g. `#DIV/0!`) is rendered in-place by the
+    span. A subtle red tint keeps the affordance without competing with real
+    validation problems which use the filled icon + outline above.
+   */
+  .grid-cell--formula-error .grid-cell__value {
+    color: var(--Status-Text-Error, #d0021b);
+    font-style: italic;
+  }
+
+  .grid-cell__error-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-left: auto;
+    cursor: help;
+    position: relative;
+    z-index: 2;
+    fill: var(--Status-Standalone-element-Error, #ea302d);
+  }
+}

@@ -1,0 +1,439 @@
+.sb-mrx-root {
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  background: var(--color-grey-100, #f6f7f8);
+  min-height: 100vh;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+.sb-mrx-root[data-theme='adeo'] {
+  background: #f4f6fb;
+}
+.sb-mrx-root[data-theme='bricocenter'] {
+  background: #fcf3f2;
+}
+.sb-mrx-root[data-theme='mbrand'] {
+  background: #f2f2f2;
+}
+
+.sb-frame,
+.sb-shell {
+  background: transparent;
+}
+
+.sb-mrx-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sb-mrx-shell h2 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--color-grey-800, #2b313b);
+}
+
+.sb-mrx-shell p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--color-grey-700, #4a5364);
+  max-width: 720px;
+}
+
+.sb-mrx-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 10px;
+  background: #fff;
+  border: 1px solid #e3e6ea;
+  border-radius: 8px;
+  font-size: 12px;
+  color: #2b313b;
+}
+
+.sb-mrx-toolbar code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  background: #f3f4f6;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.sb-mrx-frame {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Demo buttons used in the Empty stories' #empty-actions slot. */
+.sb-empty-btn {
+  cursor: pointer;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  border: 1px solid #cdd4d8;
+  background: #fff;
+  color: #1f2937;
+  transition:
+    background-color 0.15s,
+    border-color 0.15s,
+    transform 0.1s;
+}
+.sb-empty-btn:hover {
+  background: #f3f4f6;
+  border-color: #94a3b8;
+}
+.sb-empty-btn:active {
+  transform: translateY(1px);
+}
+.sb-empty-btn--primary {
+  background: #0071ce;
+  border-color: #0071ce;
+  color: #fff;
+}
+.sb-empty-btn--primary:hover {
+  background: #005ea6;
+  border-color: #005ea6;
+}
+
+/* Default-ish input used in filter slots so each per-column slot fills
+   its cell with consistent padding / border / radius. Mirrors the look
+   of native inline filters. */
+.sb-filter-input {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  height: 28px;
+  padding: 4px 8px;
+  font-size: 13px;
+  font-family: inherit;
+  color: var(--color-text-primary, #1f2937);
+  background: #fff;
+  border: 1px solid var(--color-border-primary, #cbd5e1);
+  border-radius: 4px;
+  box-sizing: border-box;
+  outline: none;
+}
+.sb-filter-input:focus {
+  border-color: var(--color-background-accent-inverse, #2563eb);
+}
+.sb-filter-input::placeholder {
+  color: var(--color-text-secondary, #94a3b8);
+}
+
+/* DevTools-style event console (Stories/Devtools/Event console). */
+.sb-evlog {
+  --evlog-bg: #1e1e1e;
+  --evlog-bg-2: #181818;
+  --evlog-bg-3: #2a2a2a;
+  --evlog-border: #3c3c3c;
+  --evlog-text: #e8eaed;
+  --evlog-text-dim: #9aa0a6;
+  --evlog-text-faint: #5f6368;
+  --evlog-info: #8ab4f8;
+  --evlog-warn: #fdd663;
+  --evlog-error: #f28b82;
+  --evlog-debug: #c58af9;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--evlog-border);
+  border-radius: 6px;
+  background: var(--evlog-bg);
+  color: var(--evlog-text);
+  overflow: hidden;
+  font-family: 'SF Mono', Menlo, Consolas, 'Roboto Mono', monospace;
+  font-size: 12px;
+  line-height: 1.45;
+}
+.sb-evlog__bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  background: var(--evlog-bg-2);
+  border-bottom: 1px solid var(--evlog-border);
+}
+.sb-evlog__icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  background: transparent;
+  border: none;
+  border-radius: 3px;
+  color: var(--evlog-text-dim);
+  cursor: pointer;
+}
+.sb-evlog__icon-btn:hover {
+  background: #2d2d2d;
+  color: var(--evlog-text);
+}
+.sb-evlog__sep {
+  width: 1px;
+  height: 18px;
+  background: var(--evlog-border);
+}
+.sb-evlog__filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 8px;
+  height: 24px;
+  min-width: 220px;
+  background: var(--evlog-bg);
+  border: 1px solid var(--evlog-border);
+  border-radius: 3px;
+  color: var(--evlog-text-dim);
+}
+.sb-evlog__filter:focus-within {
+  border-color: var(--evlog-info);
+  color: var(--evlog-text);
+}
+.sb-evlog__filter-input {
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--evlog-text);
+  font: inherit;
+  padding: 0;
+}
+.sb-evlog__filter-input::placeholder {
+  color: var(--evlog-text-faint);
+}
+.sb-evlog__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 22px;
+  padding: 0 8px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 11px;
+  color: var(--evlog-text-faint);
+  cursor: pointer;
+  font: inherit;
+  font-size: 11px;
+  user-select: none;
+}
+.sb-evlog__chip:hover {
+  background: #2d2d2d;
+  color: var(--evlog-text-dim);
+}
+.sb-evlog__chip--on {
+  background: rgba(138, 180, 248, 0.12);
+  border-color: rgba(138, 180, 248, 0.35);
+  color: var(--evlog-text);
+}
+.sb-evlog__chip-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.sb-evlog__chip--info.sb-evlog__chip--on {
+  color: var(--evlog-info);
+  border-color: rgba(138, 180, 248, 0.45);
+  background: rgba(138, 180, 248, 0.08);
+}
+.sb-evlog__chip--warn.sb-evlog__chip--on {
+  color: var(--evlog-warn);
+  border-color: rgba(253, 214, 99, 0.45);
+  background: rgba(253, 214, 99, 0.08);
+}
+.sb-evlog__chip--error.sb-evlog__chip--on {
+  color: var(--evlog-error);
+  border-color: rgba(242, 139, 130, 0.45);
+  background: rgba(242, 139, 130, 0.08);
+}
+.sb-evlog__chip--debug.sb-evlog__chip--on {
+  color: var(--evlog-debug);
+  border-color: rgba(197, 138, 249, 0.45);
+  background: rgba(197, 138, 249, 0.08);
+}
+.sb-evlog__chip-count {
+  margin-left: 2px;
+  padding: 0 5px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  font-size: 10px;
+  color: inherit;
+}
+.sb-evlog__list {
+  max-height: 360px;
+  min-height: 160px;
+  overflow-y: auto;
+  padding: 2px 0;
+  scrollbar-color: #4a4a4a transparent;
+  scrollbar-width: thin;
+}
+.sb-evlog__list::-webkit-scrollbar {
+  width: 10px;
+}
+.sb-evlog__list::-webkit-scrollbar-track {
+  background: transparent;
+}
+.sb-evlog__list::-webkit-scrollbar-thumb {
+  background: #3c3c3c;
+  border-radius: 5px;
+}
+.sb-evlog__list::-webkit-scrollbar-thumb:hover {
+  background: #525252;
+}
+.sb-evlog__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 36px 16px;
+  color: var(--evlog-text-faint);
+  text-align: center;
+  font-style: italic;
+}
+.sb-evlog__row {
+  display: grid;
+  grid-template-columns: 14px 18px 70px auto auto 1fr auto;
+  gap: 8px;
+  align-items: baseline;
+  padding: 3px 10px 3px 6px;
+  border-bottom: 1px solid #252525;
+  cursor: pointer;
+}
+.sb-evlog__row:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+.sb-evlog__row--expanded {
+  background: rgba(138, 180, 248, 0.04);
+}
+.sb-evlog__row--warn {
+  background: rgba(253, 214, 99, 0.05);
+}
+.sb-evlog__row--error {
+  background: rgba(242, 139, 130, 0.07);
+}
+.sb-evlog__row--warn:hover {
+  background: rgba(253, 214, 99, 0.1);
+}
+.sb-evlog__row--error:hover {
+  background: rgba(242, 139, 130, 0.12);
+}
+.sb-evlog__chevron {
+  color: var(--evlog-text-faint);
+  font-size: 10px;
+  transition: transform 0.12s ease;
+  user-select: none;
+}
+.sb-evlog__chevron--open {
+  transform: rotate(90deg);
+}
+.sb-evlog__icon {
+  font-size: 12px;
+  text-align: center;
+  line-height: 1;
+  padding-top: 2px;
+  user-select: none;
+}
+.sb-evlog__icon--info {
+  color: var(--evlog-info);
+}
+.sb-evlog__icon--warn {
+  color: var(--evlog-warn);
+}
+.sb-evlog__icon--error {
+  color: var(--evlog-error);
+}
+.sb-evlog__icon--debug {
+  color: var(--evlog-debug);
+}
+.sb-evlog__ts {
+  color: var(--evlog-text-faint);
+  font-size: 11px;
+}
+.sb-evlog__name {
+  color: var(--evlog-text);
+  font-weight: 500;
+  white-space: nowrap;
+}
+.sb-evlog__row--info .sb-evlog__name {
+  color: var(--evlog-info);
+}
+.sb-evlog__row--warn .sb-evlog__name {
+  color: var(--evlog-warn);
+}
+.sb-evlog__row--error .sb-evlog__name {
+  color: var(--evlog-error);
+}
+.sb-evlog__row--debug .sb-evlog__name {
+  color: var(--evlog-debug);
+}
+.sb-evlog__count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 16px;
+  padding: 0 5px;
+  background: var(--evlog-bg-3);
+  border-radius: 8px;
+  color: var(--evlog-text);
+  font-size: 10px;
+  font-weight: 600;
+}
+.sb-evlog__preview {
+  color: var(--evlog-text-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+.sb-evlog__source {
+  color: var(--evlog-text-faint);
+  font-size: 11px;
+  text-align: right;
+  white-space: nowrap;
+  text-decoration: underline dotted;
+  text-decoration-color: rgba(255, 255, 255, 0.15);
+  text-underline-offset: 2px;
+}
+.sb-evlog__payload {
+  grid-column: 3 / -1;
+  margin: 6px 0 4px 0;
+  padding: 8px 10px;
+  background: var(--evlog-bg-2);
+  border: 1px solid var(--evlog-border);
+  border-radius: 4px;
+  color: var(--evlog-text);
+  white-space: pre;
+  overflow-x: auto;
+  font: inherit;
+  font-size: 11px;
+}
+.sb-evlog__tk-key {
+  color: #f28b82;
+}
+.sb-evlog__tk-str {
+  color: #c3e88d;
+}
+.sb-evlog__tk-num {
+  color: #f78c6c;
+}
+.sb-evlog__tk-bool {
+  color: #c58af9;
+}
+.sb-evlog__expand {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px 24px;
+  font-size: 13px;
+  color: #4a5364;
+  background: #f8fafc;
+}

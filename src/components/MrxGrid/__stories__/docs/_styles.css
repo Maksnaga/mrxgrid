@@ -1,0 +1,213 @@
+/* Shared styles for the MDX documentation pages.
+ * Imported once per MDX file via `import './_styles.css'`.
+ * Avoids JSX `<style>{`…`}</style>` which the dev-mode MDX parser can't tokenise. */
+
+.mrx-doc {
+  max-width: 1000px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+}
+
+.mrx-doc h1 {
+  font-size: 32px;
+  margin: 0 0 8px;
+  letter-spacing: -0.02em;
+}
+
+.mrx-doc h2 {
+  font-size: 22px;
+  margin: 32px 0 8px;
+  padding-top: 16px;
+  border-top: 1px solid #e3e6ea;
+}
+
+.mrx-doc h3 {
+  font-size: 16px;
+  margin: 20px 0 6px;
+  color: #1f2937;
+}
+
+.mrx-doc p,
+.mrx-doc li {
+  line-height: 1.6;
+  color: #2b313b;
+}
+
+.mrx-doc ol li {
+  margin-bottom: 6px;
+}
+
+.mrx-doc code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 13px;
+  background: #f3f4f6;
+  padding: 1px 6px;
+  border-radius: 4px;
+  color: #0f172a;
+}
+
+.mrx-doc pre {
+  background: #0f172a;
+  color: #e2e8f0;
+  padding: 14px 16px;
+  border-radius: 8px;
+  overflow-x: auto;
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+
+.mrx-doc pre code {
+  background: transparent;
+  color: inherit;
+  padding: 0;
+}
+
+.mrx-doc table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 12px 0;
+  font-size: 13px;
+}
+
+.mrx-doc th,
+.mrx-doc td {
+  border-bottom: 1px solid #e3e6ea;
+  padding: 8px 12px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.mrx-doc th {
+  background: #f8fafc;
+  font-weight: 600;
+}
+
+.mrx-doc .badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  margin-right: 6px;
+}
+
+.mrx-doc .badge--green { background: #d1fae5; color: #065f46; }
+.mrx-doc .badge--blue  { background: #dbeafe; color: #1e3a8a; }
+.mrx-doc .badge--amber { background: #fef3c7; color: #78350f; }
+
+.mrx-doc .grid-feature {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin: 16px 0;
+}
+
+.mrx-doc .feature-card {
+  background: #f8fafc;
+  border: 1px solid #e3e6ea;
+  border-radius: 8px;
+  padding: 12px 16px;
+}
+
+.mrx-doc .feature-card h4 {
+  margin: 0 0 4px;
+  font-size: 14px;
+}
+
+.mrx-doc .feature-card p {
+  margin: 0;
+  font-size: 13px;
+  color: #4a5364;
+}
+
+.mrx-doc .callout {
+  border-left: 4px solid #0071ce;
+  background: #eff6ff;
+  padding: 10px 14px;
+  border-radius: 4px;
+  margin: 16px 0;
+  font-size: 13.5px;
+}
+
+.mrx-doc .callout--info  { border-color: #0071ce; background: #eff6ff; }
+.mrx-doc .callout--warn  { border-color: #d11717; background: #fef2f2; }
+
+.mrx-doc .ascii-diagram,
+.mrx-doc .ascii {
+  background: #fff;
+  border: 1px solid #e3e6ea;
+  border-radius: 8px;
+  padding: 16px;
+  font-family: ui-monospace, monospace;
+  font-size: 11.5px;
+  line-height: 1.45;
+  white-space: pre;
+  overflow-x: auto;
+  color: #1f2937;
+}
+
+.mrx-doc .step-grid {
+  display: grid;
+  grid-template-columns: 32px 1fr;
+  gap: 12px;
+  margin: 12px 0;
+}
+
+.mrx-doc .step-num {
+  background: #0071ce;
+  color: #fff;
+  border-radius: 999px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.mrx-doc .step-body h3 { margin-top: 0; }
+
+.mrx-doc .swatch {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  border: 1px solid #e3e6ea;
+  vertical-align: middle;
+  margin-right: 6px;
+}
+
+.mrx-doc .theme-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin: 16px 0;
+}
+
+.mrx-doc .theme-card {
+  border: 1px solid #e3e6ea;
+  border-radius: 8px;
+  padding: 14px 16px;
+}
+
+.mrx-doc .theme-card h4 {
+  margin: 0 0 8px;
+}
+
+.mrx-doc .theme-card__title {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  margin: 0 0 8px;
+}
+
+.mrx-doc .do,
+.mrx-doc .dont {
+  padding: 12px 14px;
+  border-radius: 8px;
+  margin: 8px 0;
+  font-size: 13.5px;
+}
+
+.mrx-doc .do   { background: #f0fdf4; border-left: 4px solid #16a34a; }
+.mrx-doc .dont { background: #fef2f2; border-left: 4px solid #dc2626; }

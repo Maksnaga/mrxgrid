@@ -1,0 +1,3 @@
+/* CSS layer order — `mrx-grid-overrides` is consumer space and always wins
+ * over the grid's own styles. Anything outside any layer beats them all. */
+@layer mozaic, mrx-grid, mrx-grid-overrides;
