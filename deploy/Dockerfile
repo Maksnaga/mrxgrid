@@ -1,6 +1,7 @@
 FROM node:20-alpine
 
-RUN apk add --no-cache git
+# git + ca-certificates pour cloner depuis GitHub en HTTPS
+RUN apk add --no-cache git ca-certificates && update-ca-certificates
 
 WORKDIR /app
 
