@@ -826,6 +826,28 @@ watch(
   { immediate: true },
 )
 
+// ──────────────────────────────────────────────────────────────────────
+// Auto-apply edits to rows
+// ──────────────────────────────────────────────────────────────────────
+// As long as a column is marked `editable: true`, the grid writes the
+// new value directly into the user's row object before emitting the
+// matching event. Consumers still receive `@cell-edit` / `@fill` /
+// `@bulk-delete` for tracking, history, or any side-effect they want —
+// but they no longer have to mutate the row themselves for the grid to
+// stay in sync. `props.rows[i]` is a reactive proxy under Vue 3 deep
+// ref reactivity, so assigning a property triggers re-render via the
+// consumer's reactive system without violating prop immutability
+// (we mutate the object, never reassign the array).
+function applyEditAt(rowIndex: number, field: string, value: unknown): void {
+  // Prefer renderableRows because that's the index emit sites use.
+  // Object references are shared with props.rows, so the mutation
+  // propagates back to the consumer's source array automatically.
+  const row = renderableRows.value[rowIndex]
+  if (row && !isGroupRow(row) && !(row as Record<string, unknown>).__mrxSkeleton) {
+    ;(row as Record<string, unknown>)[field] = value
+  }
+}
+
 // History emits cellEdit on every reverted / replayed change. The
 // engine's built-in `undo()` mutates `state.sourceData` via
 // `clipboard.applyChanges`, but the render pipeline
@@ -845,26 +867,13 @@ gridEngine.history.undo = () => {
     // the revert target. Match the consumer's cellEdit signature so the
     // same handler that processes fresh edits also processes undos.
     for (const c of op.changes) {
-      const currentRowValue = (props.rows[c.rowIndex] as Record<string, unknown> | undefined)?.[
-        c.field
-      ]
-      console.log('[MrxGrid] emitting cellEdit for undo:', {
-        rowIndex: c.rowIndex,
-        field: c.field,
-        oldValue: c.after,
-        newValue: c.before,
-        currentValueInPropsRows: currentRowValue,
-      })
+      applyEditAt(c.rowIndex, c.field, c.before)
       emit('cellEdit', {
         rowIndex: c.rowIndex,
         field: c.field,
         oldValue: c.after,
         newValue: c.before,
       })
-      console.log(
-        '[MrxGrid] emit done, new value in propsRows:',
-        (props.rows[c.rowIndex] as Record<string, unknown> | undefined)?.[c.field],
-      )
     }
   }
   return op
@@ -873,6 +882,7 @@ gridEngine.history.redo = () => {
   const op = _origRedo()
   if (op) {
     for (const c of op.changes) {
+      applyEditAt(c.rowIndex, c.field, c.after)
       emit('cellEdit', {
         rowIndex: c.rowIndex,
         field: c.field,
@@ -1377,6 +1387,10 @@ function emitBulkDelete() {
     }
   }
 
+  // Auto-apply: clear each fill target on the consumer's rows.
+  for (const f of fills) {
+    applyEditAt(f.rowIndex, f.field, '')
+  }
   emit('bulkDelete', { selection: selectionModel.value, fills })
 }
 
@@ -1449,6 +1463,7 @@ async function pasteIntoSelectedRows() {
       if (!col.editable) continue
       const value = clipRow[c] ?? ''
       if (col.valueValidator && !col.valueValidator(value)) continue
+      applyEditAt(rowIdx, col.field, value)
       emit('cellEdit', {
         rowIndex: rowIdx,
         field: col.field,
@@ -1738,6 +1753,10 @@ const fillHandle = useFillHandle({
   utilityWidth:
     (props.selectable ? UTILITY_COL_WIDTH : 0) + (props.expandable ? UTILITY_COL_WIDTH : 0),
   onFill: (event: FillEvent) => {
+    // Auto-apply each fill target to the consumer's rows.
+    for (const f of event.fills) {
+      applyEditAt(f.rowIndex, f.field, f.value)
+    }
     emit('fill', event)
   },
 })
@@ -1761,6 +1780,7 @@ const clipboard = useClipboard({
     for (const fill of fills) {
       const row = renderableRows.value[fill.rowIndex]
       if (row) {
+        applyEditAt(fill.rowIndex, fill.field, fill.value)
         emit('cellEdit', {
           rowIndex: fill.rowIndex,
           field: fill.field,
@@ -1778,6 +1798,7 @@ const clipboard = useClipboard({
       const oldValue = row[fill.field]
       if (oldValue === '') continue
       changes.push({ rowIndex: fill.rowIndex, field: fill.field, before: oldValue, after: '' })
+      applyEditAt(fill.rowIndex, fill.field, '')
       emit('cellEdit', {
         rowIndex: fill.rowIndex,
         field: fill.field,
@@ -1946,6 +1967,7 @@ function flushEdit() {
       },
     ])
   }
+  applyEditAt(event.rowIndex, event.field, event.newValue)
   emit('cellEdit', event)
 
   // Resolve a stable row id for the formula engine — falls back to the

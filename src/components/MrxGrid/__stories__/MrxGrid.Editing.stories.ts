@@ -439,6 +439,10 @@ Pas de \`fillable\` flag — le handle apparaît dès qu'une cellule est éditab
     setup() {
       const rows = ref<LMProduct[]>(JSON.parse(JSON.stringify(lmProducts)))
       const lastFill = ref('—')
+      function onCellEdit(e: { rowIndex: number; field: string; newValue: unknown }) {
+        const row = rows.value[e.rowIndex] as Record<string, unknown> | undefined
+        if (row) row[e.field] = e.newValue
+      }
       function onFill(e: FillEvent) {
         for (const f of e.fills) {
           const row = rows.value[f.rowIndex] as Record<string, unknown> | undefined
@@ -447,15 +451,15 @@ Pas de \`fillable\` flag — le handle apparaît dès qu'une cellule est éditab
         lastFill.value = `Direction ${e.direction} · ${e.fills.length} cellule(s) écrite(s)`
       }
       const plugins = [useUndoRedoPlugin({ storageKey: 'lm-editing-fill' })]
-      return { lmColumns, rows, onFill, lastFill, plugins }
+      return { lmColumns, rows, onCellEdit, onFill, lastFill, plugins }
     },
     template: `
       <div class="sb-mrx-shell">
         <h2>Excel-style fill handle</h2>
-        <p>Sélectionne une cellule (ou un range) puis tire le carré bleu en bas-droite pour répliquer la valeur. L'évent <code>fill</code> remonte les écritures à appliquer.</p>
+        <p>Sélectionne une cellule (ou un range) puis tire le carré bleu en bas-droite pour répliquer la valeur. L'évent <code>fill</code> remonte les écritures à appliquer. Le double-click sur une cellule l'édite et émet <code>cell-edit</code>.</p>
         <div class="sb-mrx-toolbar">Dernier fill : <code>{{ lastFill }}</code></div>
         <div class="sb-mrx-frame">
-          <MrxGrid :height="560" :columns="lmColumns" :rows="rows" :plugins="plugins" history-id="lm-editing-fill" @fill="onFill" />
+          <MrxGrid :height="560" :columns="lmColumns" :rows="rows" :plugins="plugins" history-id="lm-editing-fill" @cell-edit="onCellEdit" @fill="onFill" />
         </div>
       </div>
     `,
