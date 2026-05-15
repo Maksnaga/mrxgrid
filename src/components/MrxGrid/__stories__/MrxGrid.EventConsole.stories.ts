@@ -568,7 +568,7 @@ Toute interaction avec la grille (click, drag, edit, hover sur un menu, ouvertur
             </div>
           </div>
         </div>
-        
+      </div>
     `,
   }),
 }
