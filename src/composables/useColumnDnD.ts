@@ -208,6 +208,45 @@ export function useColumnDnD(options: ColumnDnDOptions) {
     return parsePx(getColumnWidth(col.field) ?? col.width, DEFAULT_WIDTH)
   }
 
+  /**
+   * Field → actual rendered width, measured from the DOM. The last centre
+   * column is flex-stretched to fill the viewport, so its real width is far
+   * larger than `resolveWidth` reports (that only knows the *defined* width).
+   * `translateX` from the live drag transforms does not change an element's
+   * width, so this stays correct mid-drag. Columns with no cell in the DOM
+   * (virtualised out) are simply absent — callers fall back to resolveWidth.
+   */
+  function buildRenderedWidths(): Map<string, number> {
+    const map = new Map<string, number>()
+    const wrapper = wrapperRef.value
+    if (!wrapper) return map
+    const cells = wrapper.querySelectorAll<HTMLElement>('[data-field]')
+    cells.forEach((c) => {
+      const f = c.dataset.field
+      if (!f || map.has(f)) return
+      const w = c.getBoundingClientRect().width
+      if (w > 0) map.set(f, w)
+    })
+    return map
+  }
+
+  /**
+   * True when horizontal column virtualisation is dropping off-screen
+   * columns from the DOM (rendered header cells < total columns). The live
+   * per-frame slide needs every column between source and target rendered;
+   * when columns are virtualised that's impossible, so the gesture falls
+   * back to the insert-line indicator during the drag and a FLIP slide on
+   * drop.
+   */
+  function isColumnVirtualized(): boolean {
+    const wrapper = wrapperRef.value
+    if (!wrapper) return false
+    const rendered = wrapper.querySelectorAll('.mrx-grid-header-cell[data-field]').length
+    const total =
+      leftColumns.value.length + centerColumns.value.length + rightColumns.value.length
+    return rendered < total
+  }
+
   function getZone(col: ColumnDef): PinZone {
     if (col.pinned === 'left') return 'left'
     if (col.pinned === 'right') return 'right'
@@ -241,11 +280,20 @@ export function useColumnDnD(options: ColumnDnDOptions) {
     const viewportWidth = wrapper.clientWidth
     const utility = unrefMaybe(options.utilityWidth) ?? 0
 
+    // Use each column's *rendered* width. The last centre column is
+    // flex-stretched to fill the viewport, so its real on-screen width is
+    // far larger than `resolveWidth`. The drag transforms below shift by
+    // these widths — feeding the defined width slides a column only
+    // part-way past a stretched neighbour, leaving it overlapping it.
+    const rendered = buildRenderedWidths()
+    const widthOf = (col: ColumnDef): number =>
+      rendered.get(col.field) ?? resolveWidth(col)
+
     if (zone === 'left') {
       const items: Array<{ field: string; x: number; width: number }> = []
       let x = utility
       for (const col of leftColumns.value) {
-        const w = resolveWidth(col)
+        const w = widthOf(col)
         items.push({ field: col.field, x, width: w })
         x += w
       }
@@ -257,7 +305,7 @@ export function useColumnDnD(options: ColumnDnDOptions) {
       const items: Array<{ field: string; x: number; width: number }> = []
       let rightEdge = viewportWidth
       for (let i = cols.length - 1; i >= 0; i--) {
-        const w = resolveWidth(cols[i]!)
+        const w = widthOf(cols[i]!)
         rightEdge -= w
         items.push({ field: cols[i]!.field, x: rightEdge, width: w })
       }
@@ -267,11 +315,11 @@ export function useColumnDnD(options: ColumnDnDOptions) {
 
     // Center
     const leftPinnedWidth =
-      utility + leftColumns.value.reduce((s, c) => s + resolveWidth(c), 0)
+      utility + leftColumns.value.reduce((s, c) => s + widthOf(c), 0)
     const items: Array<{ field: string; x: number; width: number }> = []
     let x = leftPinnedWidth - scrollLeft
     for (const col of centerColumns.value) {
-      const w = resolveWidth(col)
+      const w = widthOf(col)
       items.push({ field: col.field, x, width: w })
       x += w
     }
@@ -372,6 +420,18 @@ export function useColumnDnD(options: ColumnDnDOptions) {
     const target = computeDropTarget(_mouseX)
     if (!target) {
       clearLiveTransforms()
+      return
+    }
+
+    // Virtualised grids never hold every column in the DOM, so the live
+    // per-frame slide cannot run — it would shift only the rendered window
+    // and leave the dragged column's slot as an empty white gap (and
+    // rendering all columns to fix that froze the grid). Show the
+    // insert-line indicator instead; the FLIP slide on drop carries the
+    // animation.
+    if (isColumnVirtualized()) {
+      clearLiveTransforms()
+      showIndicator(target.indicatorX)
       return
     }
 
@@ -568,7 +628,7 @@ export function useColumnDnD(options: ColumnDnDOptions) {
       return
     }
 
-    if (sourceZone === dropZone) {
+    if (sourceZone === dropZone && !isColumnVirtualized()) {
       // Same-zone drop: cells were already animated into their target
       // slots via live transforms. Disable transitions briefly, commit
       // the reorder, and clear the transforms — the cells go from
@@ -588,9 +648,10 @@ export function useColumnDnD(options: ColumnDnDOptions) {
         }
       })
     } else {
-      // Cross-zone drop: cells weren't animated during drag (live
-      // transforms skipped this case). Use the FLIP slide on the
-      // commit to make the change feel intentional rather than abrupt.
+      // Cross-zone OR virtualised drop: cells weren't live-animated during
+      // the drag (cross-zone and virtualised grids both skip the live
+      // slide). Use the FLIP slide on commit so the reorder still reads as
+      // a smooth motion rather than an abrupt jump.
       clearLiveTransforms()
       const beforeRects = captureCellOffsets()
       if (target.pin !== currentPin) onPin(_field, target.pin)

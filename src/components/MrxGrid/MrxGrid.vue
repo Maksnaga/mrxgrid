@@ -65,8 +65,10 @@ import MrxGridBody from './components/body/MrxGridBody.vue'
 import MrxGridEmptyState from './components/body/MrxGridEmptyState.vue'
 import MrxGridTagBar from './components/header/MrxGridTagBar.vue'
 import MrxGridSelectionBar from './components/overlays/MrxGridSelectionBar.vue'
+import MrxGridSmartToolbar from './components/overlays/MrxGridSmartToolbar.vue'
+import type { GroupingItem } from './components/overlays/MrxGroupingDrawer.vue'
 import { OPERATOR_LABELS, VALUELESS_OPERATORS, RANGE_OPERATORS } from './models/filter.model'
-import type { FilterCondition } from './models/filter.model'
+import type { FilterCondition, FilterModel } from './models/filter.model'
 
 const UTILITY_COL_WIDTH = 50
 
@@ -717,6 +719,51 @@ function mapDensityToGrid(d: DataDensity | undefined): GridDensity {
   return 'default'
 }
 
+// --- Internal "effective" state for the default toolbar ---
+// The grid OWNS these — the matching props are initial seeds. When a
+// consumer passes the prop (or drives their own #toolbar slot), the
+// `watch` below mirrors the prop into the ref; when the built-in
+// toolbar mutates the ref directly, the same apply-watches downstream
+// react. This keeps the grid uncontrolled without adding new emits.
+const fsState = ref(props.fullscreen ?? false)
+watch(
+  () => props.fullscreen,
+  (v) => {
+    if (v !== undefined) fsState.value = v
+  },
+)
+
+const densityState = ref<DataDensity>(props.density ?? 'default')
+watch(
+  () => props.density,
+  (v) => {
+    if (v !== undefined) densityState.value = v
+  },
+)
+
+const hiddenFieldsState = ref<string[]>(props.hiddenFields ?? [])
+watch(
+  () => props.hiddenFields,
+  (v) => {
+    if (v !== undefined) hiddenFieldsState.value = v
+  },
+)
+
+const groupFieldsState = ref<string[]>(props.groupFields ?? [])
+watch(
+  () => props.groupFields,
+  (v) => {
+    if (v !== undefined) groupFieldsState.value = v
+  },
+)
+
+/** True when at least one column declares `filterable` — drives the
+ *  default toolbar's "Filters" button visibility. */
+const hasFilterableColumn = computed(() => mergedColumns.value.some((c) => c.filterable === true))
+/** True when at least one column declares `groupable` — drives the
+ *  default toolbar's "Group" button visibility. */
+const hasGroupableColumn = computed(() => mergedColumns.value.some((c) => c.groupable === true))
+
 // rows → sourceData
 watch(
   () => props.rows,
@@ -772,9 +819,11 @@ watch(
   { immediate: true },
 )
 
-// density (legacy DataDensity) → Angular-parity GridDensity
+// density (legacy DataDensity) → Angular-parity GridDensity.
+// Sourced from `densityState` so prop changes AND default-toolbar
+// mutations both flow through this apply logic.
 watch(
-  () => props.density,
+  densityState,
   (d) => {
     gridState.density.value = mapDensityToGrid(d)
   },
@@ -826,28 +875,6 @@ watch(
   { immediate: true },
 )
 
-// ──────────────────────────────────────────────────────────────────────
-// Auto-apply edits to rows
-// ──────────────────────────────────────────────────────────────────────
-// As long as a column is marked `editable: true`, the grid writes the
-// new value directly into the user's row object before emitting the
-// matching event. Consumers still receive `@cell-edit` / `@fill` /
-// `@bulk-delete` for tracking, history, or any side-effect they want —
-// but they no longer have to mutate the row themselves for the grid to
-// stay in sync. `props.rows[i]` is a reactive proxy under Vue 3 deep
-// ref reactivity, so assigning a property triggers re-render via the
-// consumer's reactive system without violating prop immutability
-// (we mutate the object, never reassign the array).
-function applyEditAt(rowIndex: number, field: string, value: unknown): void {
-  // Prefer renderableRows because that's the index emit sites use.
-  // Object references are shared with props.rows, so the mutation
-  // propagates back to the consumer's source array automatically.
-  const row = renderableRows.value[rowIndex]
-  if (row && !isGroupRow(row) && !(row as Record<string, unknown>).__mrxSkeleton) {
-    ;(row as Record<string, unknown>)[field] = value
-  }
-}
-
 // History emits cellEdit on every reverted / replayed change. The
 // engine's built-in `undo()` mutates `state.sourceData` via
 // `clipboard.applyChanges`, but the render pipeline
@@ -859,21 +886,29 @@ function applyEditAt(rowIndex: number, field: string, value: unknown): void {
 const _origUndo = gridEngine.history.undo.bind(gridEngine.history)
 const _origRedo = gridEngine.history.redo.bind(gridEngine.history)
 gridEngine.history.undo = () => {
-  console.log('[MrxGrid] history.undo() called')
   const op = _origUndo()
-  console.log('[MrxGrid] _origUndo returned:', op)
   if (op) {
-    // Reverting: c.after is the value currently on the row, c.before is
-    // the revert target. Match the consumer's cellEdit signature so the
-    // same handler that processes fresh edits also processes undos.
-    for (const c of op.changes) {
-      applyEditAt(c.rowIndex, c.field, c.before)
-      emit('cellEdit', {
-        rowIndex: c.rowIndex,
-        field: c.field,
-        oldValue: c.after,
-        newValue: c.before,
+    if (op.type === 'fill') {
+      const fills = op.changes.map((c) => ({ rowIndex: c.rowIndex, field: c.field, value: c.before }))
+      applyFills(fills)
+      emit('fill', {
+        sourceRange: { r1: -1, c1: -1, r2: -1, c2: -1 },
+        targetRange: { r1: -1, c1: -1, r2: -1, c2: -1 },
+        direction: 'down',
+        fills,
       })
+    } else {
+      // Reverting: c.after is the value currently on the row, c.before is
+      // the revert target. Match the consumer's cellEdit signature so the
+      // same handler that processes fresh edits also processes undos.
+      for (const c of op.changes) {
+        emit('cellEdit', {
+          rowIndex: c.rowIndex,
+          field: c.field,
+          oldValue: c.after,
+          newValue: c.before,
+        })
+      }
     }
   }
   return op
@@ -881,14 +916,24 @@ gridEngine.history.undo = () => {
 gridEngine.history.redo = () => {
   const op = _origRedo()
   if (op) {
-    for (const c of op.changes) {
-      applyEditAt(c.rowIndex, c.field, c.after)
-      emit('cellEdit', {
-        rowIndex: c.rowIndex,
-        field: c.field,
-        oldValue: c.before,
-        newValue: c.after,
+    if (op.type === 'fill') {
+      const fills = op.changes.map((c) => ({ rowIndex: c.rowIndex, field: c.field, value: c.after }))
+      applyFills(fills)
+      emit('fill', {
+        sourceRange: { r1: -1, c1: -1, r2: -1, c2: -1 },
+        targetRange: { r1: -1, c1: -1, r2: -1, c2: -1 },
+        direction: 'down',
+        fills,
       })
+    } else {
+      for (const c of op.changes) {
+        emit('cellEdit', {
+          rowIndex: c.rowIndex,
+          field: c.field,
+          oldValue: c.before,
+          newValue: c.after,
+        })
+      }
     }
   }
   return op
@@ -1035,6 +1080,13 @@ function clearFilterModel() {
     nextTick(() => emit('filterChange', { ...filters.value }))
   }
 }
+
+/** Writable v-model target for the default toolbar's filter drawer —
+ *  reads/writes the formal filter model owned by `gridState`. */
+const toolbarFilterModel = computed<FilterModel>({
+  get: () => gridState.filterModel.value,
+  set: (model) => gridEngine.filter.setModel(model, 'replace'),
+})
 
 // --- Tag-bar helpers (Sprint 3 — REFONTE-PLAN-V2 §2.3) ---
 // Build the human-readable chips fed to the unified <MrxGridTagBar> for
@@ -1195,6 +1247,36 @@ function toggleGroupExpand(key: string) {
   if (serverGroupingActive.value) serverToggleGroupExpand(key)
   else clientToggleGroupExpand(key)
 }
+
+// --- Default toolbar grouping bridge ---
+// `groups` is `{ field, headerName }[]`; the grouping drawer's
+// `GroupingItem` adds a `direction`. `toolbarGroups` is the v-model
+// target for the default toolbar — seeded from the grid's grouping
+// state, and reconciled back via clearGroups()/addGroup() on edit.
+const toolbarGroups = ref<GroupingItem[]>([])
+let _syncingToolbarGroups = false
+watch(
+  groups,
+  (g) => {
+    _syncingToolbarGroups = true
+    toolbarGroups.value = g.map((item) => ({
+      field: item.field,
+      headerName: item.headerName,
+      direction: 'asc' as const,
+    }))
+    nextTick(() => {
+      _syncingToolbarGroups = false
+    })
+  },
+  { immediate: true },
+)
+watch(toolbarGroups, (items) => {
+  if (_syncingToolbarGroups) return
+  clearGroups()
+  for (const item of items) {
+    addGroup(item.field)
+  }
+})
 function isGroupExpanded(key: string): boolean {
   if (serverGroupingActive.value) return serverIsGroupExpanded(key)
   return clientIsGroupExpanded(key)
@@ -1202,9 +1284,9 @@ function isGroupExpanded(key: string): boolean {
 
 // --- Sync external props to internal composables ---
 
-// Sync hiddenFields prop → useColumns
+// Sync hiddenFields (effective state) → useColumns
 watch(
-  () => props.hiddenFields,
+  hiddenFieldsState,
   (fields) => {
     if (!fields) return
     const desired = new Set(fields)
@@ -1229,9 +1311,9 @@ watch(
   { immediate: true },
 )
 
-// Sync groupFields prop → useGrouping (client + server)
+// Sync groupFields (effective state) → useGrouping (client + server)
 watch(
-  () => props.groupFields,
+  groupFieldsState,
   (fields) => {
     if (!fields) return
     clearGroups()
@@ -1264,7 +1346,7 @@ watch(
 )
 
 // --- Reactive row height (changes with density) ---
-const rowHeight = computed(() => DENSITY_ROW_HEIGHT[props.density ?? 'default'] ?? 48)
+const rowHeight = computed(() => DENSITY_ROW_HEIGHT[densityState.value ?? 'default'] ?? 48)
 
 // --- Row ID helper ---
 const getRowId = (row: RowData, index: number): string => {
@@ -1387,10 +1469,6 @@ function emitBulkDelete() {
     }
   }
 
-  // Auto-apply: clear each fill target on the consumer's rows.
-  for (const f of fills) {
-    applyEditAt(f.rowIndex, f.field, '')
-  }
   emit('bulkDelete', { selection: selectionModel.value, fills })
 }
 
@@ -1463,7 +1541,6 @@ async function pasteIntoSelectedRows() {
       if (!col.editable) continue
       const value = clipRow[c] ?? ''
       if (col.valueValidator && !col.valueValidator(value)) continue
-      applyEditAt(rowIdx, col.field, value)
       emit('cellEdit', {
         rowIndex: rowIdx,
         field: col.field,
@@ -1738,6 +1815,16 @@ const {
 })
 
 // --- Fill Handle ---
+
+function applyFills(fills: Array<{ rowIndex: number; field: string; value: unknown }>): void {
+  for (const f of fills) {
+    const row = renderableRows.value[f.rowIndex]
+    if (row && !isGroupRow(row) && !(row as Record<string, unknown>).__mrxSkeleton) {
+      ;(row as Record<string, unknown>)[f.field] = f.value
+    }
+  }
+}
+
 const lastSelectionRange = computed(() => {
   const ranges = cellSelection.allRanges.value
   return ranges.length > 0 ? ranges[ranges.length - 1]! : null
@@ -1753,9 +1840,16 @@ const fillHandle = useFillHandle({
   utilityWidth:
     (props.selectable ? UTILITY_COL_WIDTH : 0) + (props.expandable ? UTILITY_COL_WIDTH : 0),
   onFill: (event: FillEvent) => {
-    // Auto-apply each fill target to the consumer's rows.
-    for (const f of event.fills) {
-      applyEditAt(f.rowIndex, f.field, f.value)
+    // Capture before values BEFORE mutation so history has correct old state.
+    const changes = event.fills.map((f) => ({
+      rowIndex: f.rowIndex,
+      field: f.field,
+      before: (renderableRows.value[f.rowIndex] as Record<string, unknown> | undefined)?.[f.field],
+      after: f.value,
+    }))
+    applyFills(event.fills)
+    if (changes.length > 0) {
+      gridEngine.history.record('fill', changes)
     }
     emit('fill', event)
   },
@@ -1777,17 +1871,44 @@ const clipboard = useClipboard({
   totalCols,
   isEditable,
   onPaste(fills) {
-    for (const fill of fills) {
-      const row = renderableRows.value[fill.rowIndex]
-      if (row) {
-        applyEditAt(fill.rowIndex, fill.field, fill.value)
-        emit('cellEdit', {
-          rowIndex: fill.rowIndex,
-          field: fill.field,
-          oldValue: row[fill.field],
-          newValue: fill.value,
-        })
-      }
+    // Coerce TSV string values to the correct type for typed editors.
+    // Clipboard text is always string; cellEditor: 'number' columns expect a
+    // number so validators using `typeof v === 'number'` don't reject pastes.
+    const cols = allColumnsFlat.value
+    const coercedFills = fills.map((fill) => {
+      const col = cols.find((c) => c.field === fill.field)
+      const value =
+        col?.cellEditor === 'number' && typeof fill.value === 'string' && fill.value !== ''
+          ? Number(fill.value)
+          : fill.value
+      return { rowIndex: fill.rowIndex, field: fill.field, value }
+    })
+
+    // Capture old values BEFORE mutating so history records the correct before.
+    const changes = coercedFills.map((fill) => ({
+      rowIndex: fill.rowIndex,
+      field: fill.field,
+      before: (renderableRows.value[fill.rowIndex] as Record<string, unknown> | undefined)?.[
+        fill.field
+      ],
+      after: fill.value,
+    }))
+
+    // Auto-apply directly to the row objects (same pattern as fill handle) so
+    // getCellFlags / validators see the new values on the same render tick.
+    applyFills(coercedFills)
+
+    if (changes.length > 0) {
+      gridEngine.history.record('edit', changes)
+    }
+
+    for (const change of changes) {
+      emit('cellEdit', {
+        rowIndex: change.rowIndex,
+        field: change.field,
+        oldValue: change.before,
+        newValue: change.after,
+      })
     }
   },
   onClear(fills) {
@@ -1798,11 +1919,16 @@ const clipboard = useClipboard({
       const oldValue = row[fill.field]
       if (oldValue === '') continue
       changes.push({ rowIndex: fill.rowIndex, field: fill.field, before: oldValue, after: '' })
-      applyEditAt(fill.rowIndex, fill.field, '')
+    }
+
+    // Auto-apply the clear directly so getCellFlags sees '' on the same tick.
+    applyFills(changes.map((c) => ({ rowIndex: c.rowIndex, field: c.field, value: '' })))
+
+    for (const c of changes) {
       emit('cellEdit', {
-        rowIndex: fill.rowIndex,
-        field: fill.field,
-        oldValue,
+        rowIndex: c.rowIndex,
+        field: c.field,
+        oldValue: c.before,
         newValue: '',
       })
     }
@@ -1967,7 +2093,6 @@ function flushEdit() {
       },
     ])
   }
-  applyEditAt(event.rowIndex, event.field, event.newValue)
   emit('cellEdit', event)
 
   // Resolve a stable row id for the formula engine — falls back to the
@@ -2118,7 +2243,18 @@ function onGridKeyDown(e: KeyboardEvent) {
       }
       if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
         e.preventDefault()
-        startEditing(cell.rowIndex, cell.field, e.key)
+        // For number editors, coerce the initial key character to a number so
+        // that immediately pressing Enter commits a number (not a string).
+        // `onInput` would coerce on the next keystroke, but single-char commits
+        // (type '6' → Enter) would otherwise store the string '6', failing
+        // validators that check `typeof v === 'number'`.
+        const col = allColumnsFlat.value.find((c) => c.field === cell.field)
+        let initialValue: unknown = e.key
+        if (col?.cellEditor === 'number') {
+          const n = Number(e.key)
+          initialValue = Number.isFinite(n) ? n : ''
+        }
+        startEditing(cell.rowIndex, cell.field, initialValue)
         return
       }
     }
@@ -2181,10 +2317,22 @@ function getCellFlags(rowIndex: number, field: string): CellFlags {
   if (col?.cellValidator) {
     const row = renderableRows.value[rowIndex]
     if (row && !isGroupRow(row)) {
-      const result = col.cellValidator(row[field], row)
-      if (result !== true) {
-        invalid = true
-        invalidMessage = result
+      const currentEdit = editingCell.value
+      const isCurrentlyEditing = currentEdit?.rowIndex === rowIndex && currentEdit?.field === field
+      // Suppress validation while the cell is actively being edited — errors
+      // only apply to committed values so the user isn't distracted by
+      // intermediate states while typing.
+      // Also skip validation for empty/null values so cells cleared by
+      // delete or cut-paste don't show spurious errors.
+      if (!isCurrentlyEditing) {
+        const val = row[field]
+        if (val !== '' && val !== null && val !== undefined) {
+          const result = col.cellValidator(val, row)
+          if (result !== true) {
+            invalid = true
+            invalidMessage = result
+          }
+        }
       }
     }
   }
@@ -2433,7 +2581,7 @@ onBeforeUnmount(() => {
 // fullscreen grid (z-index: 1000). The overlay wraps the drawer and creates
 // a stacking context, so both need to be raised.
 watch(
-  () => props.fullscreen,
+  fsState,
   (fs) => {
     const el = document.documentElement.style
     if (fs) {
@@ -2530,6 +2678,26 @@ function restoreView(storageKey: string): boolean {
   return gridEngine.statePersistence.restore(storageKey)
 }
 
+// --- Default toolbar imperative API ---
+// Plain object handed to the built-in `MrxGridSmartToolbar` as `:grid`.
+// Getters keep the live selection counts flowing without extra refs.
+const toolbarGridApi = {
+  exportCsv,
+  selectAll,
+  clearSelection,
+  setFilterModel: (m: FilterModel) => gridEngine.filter.setModel(m, 'replace'),
+  clearFilterModel,
+  get selectedCount() {
+    return selectedCount.value
+  },
+  get selectionTotalCount() {
+    return selectionTotalCount.value
+  },
+  get selectionModel() {
+    return selectionModel.value
+  },
+}
+
 defineExpose({
   // Filter — surfaces are independent. `setFilter` writes to the quick
   // (filter row) state; `setFilterModel` writes to the formal builder
@@ -2589,14 +2757,31 @@ defineExpose({
 <template>
   <div
     class="mrx-grid-root"
-    :class="{ 'mrx-grid-root--fullscreen': props.fullscreen }"
+    :class="{ 'mrx-grid-root--fullscreen': fsState }"
     :style="
-      props.fullscreen
+      fsState
         ? undefined
         : { height: typeof props.height === 'number' ? `${props.height}px` : props.height }
     "
   >
-    <slot name="toolbar" />
+    <slot name="toolbar">
+      <MrxGridSmartToolbar
+        :grid="toolbarGridApi"
+        :columns="mergedColumns"
+        v-model:fullscreen="fsState"
+        v-model:density="densityState"
+        v-model:hidden-fields="hiddenFieldsState"
+        v-model:column-order="columnOrderState"
+        v-model:active-groups="toolbarGroups"
+        v-model:filter-model="toolbarFilterModel"
+        :show-fullscreen="true"
+        :show-settings="true"
+        :show-filters="hasFilterableColumn"
+        :show-group="hasGroupableColumn"
+        :show-export="true"
+        :show-keyboard="true"
+      />
+    </slot>
 
     <!-- Hidden default slot — render-less <MrxColumn> children live here.
          They register themselves into the column registry on mount and
@@ -2651,13 +2836,13 @@ defineExpose({
       class="mrx-grid-wrapper"
       :class="{
         'mrx-grid-wrapper--virtual': isVirtual,
-        'mrx-grid-wrapper--compact': props.density === 'compact',
-        'mrx-grid-wrapper--comfortable': props.density === 'comfortable',
+        'mrx-grid-wrapper--compact': densityState === 'compact',
+        'mrx-grid-wrapper--comfortable': densityState === 'comfortable',
         'mrx-grid-wrapper--paginated': paginationEnabled,
       }"
       :style="{
         '--mrx-row-height': `${rowHeight}px`,
-        ...((virtualScroll || paginationEnabled) && !props.fullscreen
+        ...((virtualScroll || paginationEnabled) && !fsState
           ? { height: `${containerHeight}px` }
           : {}),
       }"

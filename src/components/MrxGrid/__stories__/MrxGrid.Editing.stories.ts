@@ -123,15 +123,8 @@ L'input force \`type="number"\`, parse en \`Number()\` au commit, rejette les no
       const rows = ref<LMProduct[]>(JSON.parse(JSON.stringify(lmProducts)))
       const lastEdit = ref('—')
       function onCellEdit(e: CellEditEvent) {
-        console.log('[Story] onCellEdit fired:', e)
         const row = rows.value[e.rowIndex] as Record<string, unknown> | undefined
-        if (!row) {
-          console.log('[Story] no row at index', e.rowIndex)
-          return
-        }
-        console.log('[Story] before mutation, row[field] =', row[e.field])
-        row[e.field] = e.newValue
-        console.log('[Story] after mutation, row[field] =', row[e.field])
+        if (row) row[e.field] = e.newValue
         lastEdit.value = `[row ${e.rowIndex}] ${e.field}: ${String(e.oldValue)} → ${String(e.newValue)}`
       }
       const plugins = [useUndoRedoPlugin({ storageKey: 'lm-editing-inline-text' })]

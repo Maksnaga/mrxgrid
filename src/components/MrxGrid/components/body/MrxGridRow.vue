@@ -97,93 +97,49 @@ const emit = defineEmits<{
   <!-- Data row -->
   <div v-else class="mrx-grid-row" :class="{ 'mrx-grid-row--selected': selected }" role="row">
     <!-- Row number (sticky-left, auto-on with formula columns) -->
-    <div
-      v-if="showRowNumbers"
-      class="mrx-grid-cell mrx-grid-rownum-cell"
-      :class="{ 'mrx-grid-cell--pinned': hasPinned }"
-      :style="getUtilityStyle('rownum', false)"
-      role="rowheader"
-    >
+    <div v-if="showRowNumbers" class="mrx-grid-cell mrx-grid-rownum-cell"
+      :class="{ 'mrx-grid-cell--pinned': hasPinned }" :style="getUtilityStyle('rownum', false)" role="rowheader">
       {{ rowNumber }}
     </div>
 
     <!-- Checkbox (sticky left when pinned) -->
-    <div
-      v-if="selectable"
-      class="mrx-grid-cell mrx-grid-checkbox-cell"
-      :class="{ 'mrx-grid-cell--pinned': hasPinned }"
-      :style="getUtilityStyle('checkbox', false)"
-      role="gridcell"
-      @click.capture="(e: MouseEvent) => emit('toggleSelect', e)"
-    >
+    <div v-if="selectable" class="mrx-grid-cell mrx-grid-checkbox-cell" :class="{ 'mrx-grid-cell--pinned': hasPinned }"
+      :style="getUtilityStyle('checkbox', false)" role="gridcell"
+      @click.capture="(e: MouseEvent) => emit('toggleSelect', e)">
       <MCheckbox :id="`mrx-row-cb-${rowIndex}`" :model-value="selected" />
     </div>
 
     <!-- Expand button (sticky left when pinned) -->
-    <div
-      v-if="expandable"
-      class="mrx-grid-cell mrx-grid-expand-cell"
-      :class="{ 'mrx-grid-cell--pinned': hasPinned }"
-      :style="getUtilityStyle('expand', false)"
-      role="gridcell"
-    >
-      <MButton
-        class="mrx-grid-expand-btn"
-        type="button"
-        :ghost="true"
-        :aria-label="expanded ? 'Collapse row' : 'Expand row'"
-        :aria-expanded="expanded"
-        @click="emit('toggleExpand')"
-      >
+    <div v-if="expandable" class="mrx-grid-cell mrx-grid-expand-cell" :class="{ 'mrx-grid-cell--pinned': hasPinned }"
+      :style="getUtilityStyle('expand', false)" role="gridcell">
+      <MButton class="mrx-grid-expand-btn" type="button" :ghost="true"
+        :aria-label="expanded ? 'Collapse row' : 'Expand row'" :aria-expanded="expanded" @click="emit('toggleExpand')">
         <component :is="expanded ? ChevronDown20 : ChevronRight20" class="mrx-grid-expand-icon" aria-hidden="true" />
       </MButton>
     </div>
 
     <!-- Left-pinned columns (always rendered, sticky left) -->
-    <MrxGridCell
-      v-for="(col, idx) in pinnedLeftColumns"
-      :key="'pl-' + col.field"
-      :value="row[col.field]"
-      :row="row"
-      :field="col.field"
-      :row-index="rowIndex"
-      :column="col"
-      :active="activeField === col.field"
-      :editing="editingField === col.field"
-      :edit-value="editingField === col.field ? editValue : undefined"
-      :selected="flags(col.field).selected"
-      :edge-top="flags(col.field).edgeTop"
-      :edge-bottom="flags(col.field).edgeBottom"
-      :edge-left="flags(col.field).edgeLeft"
-      :edge-right="flags(col.field).edgeRight"
-      :fill-handle="flags(col.field).fillHandle"
-      :fill-target="flags(col.field).fillTarget"
-      :fill-target-invalid="flags(col.field).fillTargetInvalid"
-      :invalid="flags(col.field).invalid"
-      :invalid-message="flags(col.field).invalidMessage"
-      :cut-source="flags(col.field).cutSource"
-      :cut-edge-top="flags(col.field).cutEdgeTop"
-      :cut-edge-bottom="flags(col.field).cutEdgeBottom"
-      :cut-edge-left="flags(col.field).cutEdgeLeft"
-      :cut-edge-right="flags(col.field).cutEdgeRight"
-      class="mrx-grid-cell--pinned"
-      :class="{
+    <MrxGridCell v-for="(col, idx) in pinnedLeftColumns" :key="'pl-' + col.field" :value="row[col.field]" :row="row"
+      :field="col.field" :row-index="rowIndex" :column="col" :active="activeField === col.field"
+      :editing="editingField === col.field" :edit-value="editingField === col.field ? editValue : undefined"
+      :selected="flags(col.field).selected" :edge-top="flags(col.field).edgeTop"
+      :edge-bottom="flags(col.field).edgeBottom" :edge-left="flags(col.field).edgeLeft"
+      :edge-right="flags(col.field).edgeRight" :fill-handle="flags(col.field).fillHandle"
+      :fill-target="flags(col.field).fillTarget" :fill-target-invalid="flags(col.field).fillTargetInvalid"
+      :invalid="flags(col.field).invalid" :invalid-message="flags(col.field).invalidMessage"
+      :cut-source="flags(col.field).cutSource" :cut-edge-top="flags(col.field).cutEdgeTop"
+      :cut-edge-bottom="flags(col.field).cutEdgeBottom" :cut-edge-left="flags(col.field).cutEdgeLeft"
+      :cut-edge-right="flags(col.field).cutEdgeRight" class="mrx-grid-cell--pinned" :class="{
         'mrx-grid-cell--pinned-left-edge': idx === pinnedLeftColumns.length - 1,
         'mrx-grid-cell--pinned-row-start': idx === 0,
-      }"
-      :style="{
+      }" :style="{
         ...getPinnedStyle('left', idx, false),
         width: getColumnWidth ? getColumnWidth(col.field) : undefined,
         minWidth: getColumnWidth ? getColumnWidth(col.field) : undefined,
-      }"
-      @activate="emit('activateCell', col.field, $event)"
-      @edit-start="emit('editStart', col.field)"
-      @edit-input="emit('editInput', $event)"
-      @edit-commit="emit('editCommit', $event)"
-      @edit-cancel="emit('editCancel')"
-      @edit-blur="emit('editBlur')"
-      @fill-handle-mousedown="emit('fillHandleMousedown', $event)"
-    >
+      }" @activate="emit('activateCell', col.field, $event)" @edit-start="emit('editStart', col.field)"
+      @edit-input="emit('editInput', $event)" @edit-commit="emit('editCommit', $event)"
+      @edit-cancel="emit('editCancel')" @edit-blur="emit('editBlur')"
+      @fill-handle-mousedown="emit('fillHandleMousedown', $event)">
       <template v-if="$slots.cell" #default="cellSlot">
         <slot name="cell" v-bind="cellSlot" />
       </template>
@@ -192,108 +148,56 @@ const emit = defineEmits<{
     <!-- Left spacer (for virtual center columns). Skip rendering when the
          width is missing or `0px` so the row doesn't carry a phantom flex
          child that would otherwise expand inside the trailing empty space. -->
-    <div
-      v-if="leftSpacerWidth && leftSpacerWidth !== '0px'"
-      aria-hidden="true"
-      class="mrx-grid-spacer"
-      :style="{ width: leftSpacerWidth, minWidth: leftSpacerWidth }"
-    />
+    <div v-if="leftSpacerWidth && leftSpacerWidth !== '0px'" aria-hidden="true" class="mrx-grid-spacer"
+      :style="{ width: leftSpacerWidth, minWidth: leftSpacerWidth }" />
 
     <!-- Center columns (virtual slice or all unpinned) -->
-    <MrxGridCell
-      v-for="col in columns"
-      :key="col.field"
-      :value="row[col.field]"
-      :row="row"
-      :field="col.field"
-      :row-index="rowIndex"
-      :column="col"
-      :active="activeField === col.field"
-      :editing="editingField === col.field"
-      :edit-value="editingField === col.field ? editValue : undefined"
-      :selected="flags(col.field).selected"
-      :edge-top="flags(col.field).edgeTop"
-      :edge-bottom="flags(col.field).edgeBottom"
-      :edge-left="flags(col.field).edgeLeft"
-      :edge-right="flags(col.field).edgeRight"
-      :fill-handle="flags(col.field).fillHandle"
-      :fill-target="flags(col.field).fillTarget"
-      :fill-target-invalid="flags(col.field).fillTargetInvalid"
-      :invalid="flags(col.field).invalid"
-      :invalid-message="flags(col.field).invalidMessage"
-      :cut-source="flags(col.field).cutSource"
-      :cut-edge-top="flags(col.field).cutEdgeTop"
-      :cut-edge-bottom="flags(col.field).cutEdgeBottom"
-      :cut-edge-left="flags(col.field).cutEdgeLeft"
-      :cut-edge-right="flags(col.field).cutEdgeRight"
-      :class="{ 'mrx-grid-cell--fill': fillField && col.field === fillField }"
-      :style="centerCellStyle(col.field)"
-      @activate="emit('activateCell', col.field, $event)"
-      @edit-start="emit('editStart', col.field)"
-      @edit-input="emit('editInput', $event)"
-      @edit-commit="emit('editCommit', $event)"
-      @edit-cancel="emit('editCancel')"
-      @edit-blur="emit('editBlur')"
-      @fill-handle-mousedown="emit('fillHandleMousedown', $event)"
-    >
+    <MrxGridCell v-for="col in columns" :key="col.field" :value="row[col.field]" :row="row" :field="col.field"
+      :row-index="rowIndex" :column="col" :active="activeField === col.field" :editing="editingField === col.field"
+      :edit-value="editingField === col.field ? editValue : undefined" :selected="flags(col.field).selected"
+      :edge-top="flags(col.field).edgeTop" :edge-bottom="flags(col.field).edgeBottom"
+      :edge-left="flags(col.field).edgeLeft" :edge-right="flags(col.field).edgeRight"
+      :fill-handle="flags(col.field).fillHandle" :fill-target="flags(col.field).fillTarget"
+      :fill-target-invalid="flags(col.field).fillTargetInvalid" :invalid="flags(col.field).invalid"
+      :invalid-message="flags(col.field).invalidMessage" :cut-source="flags(col.field).cutSource"
+      :cut-edge-top="flags(col.field).cutEdgeTop" :cut-edge-bottom="flags(col.field).cutEdgeBottom"
+      :cut-edge-left="flags(col.field).cutEdgeLeft" :cut-edge-right="flags(col.field).cutEdgeRight"
+      :class="{ 'mrx-grid-cell--fill': fillField && col.field === fillField }" :style="centerCellStyle(col.field)"
+      @activate="emit('activateCell', col.field, $event)" @edit-start="emit('editStart', col.field)"
+      @edit-input="emit('editInput', $event)" @edit-commit="emit('editCommit', $event)"
+      @edit-cancel="emit('editCancel')" @edit-blur="emit('editBlur')"
+      @fill-handle-mousedown="emit('fillHandleMousedown', $event)">
       <template v-if="$slots.cell" #default="cellSlot">
         <slot name="cell" v-bind="cellSlot" />
       </template>
     </MrxGridCell>
 
     <!-- Right spacer (for virtual center columns). See note on left spacer. -->
-    <div
-      v-if="rightSpacerWidth && rightSpacerWidth !== '0px'"
-      aria-hidden="true"
-      class="mrx-grid-spacer"
-      :style="{ width: rightSpacerWidth, minWidth: rightSpacerWidth }"
-    />
+    <div v-if="rightSpacerWidth && rightSpacerWidth !== '0px'" aria-hidden="true" class="mrx-grid-spacer"
+      :style="{ width: rightSpacerWidth, minWidth: rightSpacerWidth }" />
 
     <!-- Right-pinned columns (always rendered, sticky right) -->
-    <MrxGridCell
-      v-for="(col, idx) in pinnedRightColumns"
-      :key="'pr-' + col.field"
-      :value="row[col.field]"
-      :row="row"
-      :field="col.field"
-      :row-index="rowIndex"
-      :column="col"
-      :active="activeField === col.field"
-      :editing="editingField === col.field"
-      :edit-value="editingField === col.field ? editValue : undefined"
-      :selected="flags(col.field).selected"
-      :edge-top="flags(col.field).edgeTop"
-      :edge-bottom="flags(col.field).edgeBottom"
-      :edge-left="flags(col.field).edgeLeft"
-      :edge-right="flags(col.field).edgeRight"
-      :fill-handle="flags(col.field).fillHandle"
-      :fill-target="flags(col.field).fillTarget"
-      :fill-target-invalid="flags(col.field).fillTargetInvalid"
-      :invalid="flags(col.field).invalid"
-      :invalid-message="flags(col.field).invalidMessage"
-      :cut-source="flags(col.field).cutSource"
-      :cut-edge-top="flags(col.field).cutEdgeTop"
-      :cut-edge-bottom="flags(col.field).cutEdgeBottom"
-      :cut-edge-left="flags(col.field).cutEdgeLeft"
-      :cut-edge-right="flags(col.field).cutEdgeRight"
-      class="mrx-grid-cell--pinned"
-      :class="{
+    <MrxGridCell v-for="(col, idx) in pinnedRightColumns" :key="'pr-' + col.field" :value="row[col.field]" :row="row"
+      :field="col.field" :row-index="rowIndex" :column="col" :active="activeField === col.field"
+      :editing="editingField === col.field" :edit-value="editingField === col.field ? editValue : undefined"
+      :selected="flags(col.field).selected" :edge-top="flags(col.field).edgeTop"
+      :edge-bottom="flags(col.field).edgeBottom" :edge-left="flags(col.field).edgeLeft"
+      :edge-right="flags(col.field).edgeRight" :fill-handle="flags(col.field).fillHandle"
+      :fill-target="flags(col.field).fillTarget" :fill-target-invalid="flags(col.field).fillTargetInvalid"
+      :invalid="flags(col.field).invalid" :invalid-message="flags(col.field).invalidMessage"
+      :cut-source="flags(col.field).cutSource" :cut-edge-top="flags(col.field).cutEdgeTop"
+      :cut-edge-bottom="flags(col.field).cutEdgeBottom" :cut-edge-left="flags(col.field).cutEdgeLeft"
+      :cut-edge-right="flags(col.field).cutEdgeRight" class="mrx-grid-cell--pinned" :class="{
         'mrx-grid-cell--pinned-right-edge': idx === 0,
         'mrx-grid-cell--pinned-row-end': idx === pinnedRightColumns.length - 1,
-      }"
-      :style="{
+      }" :style="{
         ...getPinnedStyle('right', idx, false),
         width: getColumnWidth ? getColumnWidth(col.field) : undefined,
         minWidth: getColumnWidth ? getColumnWidth(col.field) : undefined,
-      }"
-      @activate="emit('activateCell', col.field, $event)"
-      @edit-start="emit('editStart', col.field)"
-      @edit-input="emit('editInput', $event)"
-      @edit-commit="emit('editCommit', $event)"
-      @edit-cancel="emit('editCancel')"
-      @edit-blur="emit('editBlur')"
-      @fill-handle-mousedown="emit('fillHandleMousedown', $event)"
-    >
+      }" @activate="emit('activateCell', col.field, $event)" @edit-start="emit('editStart', col.field)"
+      @edit-input="emit('editInput', $event)" @edit-commit="emit('editCommit', $event)"
+      @edit-cancel="emit('editCancel')" @edit-blur="emit('editBlur')"
+      @fill-handle-mousedown="emit('fillHandleMousedown', $event)">
       <template v-if="$slots.cell" #default="cellSlot">
         <slot name="cell" v-bind="cellSlot" />
       </template>
@@ -323,7 +227,6 @@ const emit = defineEmits<{
 :deep(.mrx-grid-cell)::before {
   content: '';
   position: absolute;
-  inset: 3px;
   border-radius: 4px;
   background: transparent;
   pointer-events: none;
@@ -445,12 +348,10 @@ const emit = defineEmits<{
 .mrx-grid-skeleton-shimmer {
   height: 14px;
   border-radius: m.get-radius('s');
-  background: linear-gradient(
-    90deg,
-    var(--color-background-secondary) 25%,
-    var(--color-background-primary) 50%,
-    var(--color-background-secondary) 75%
-  );
+  background: linear-gradient(90deg,
+      var(--color-background-secondary) 25%,
+      var(--color-background-primary) 50%,
+      var(--color-background-secondary) 75%);
   background-size: 200% 100%;
   animation: mrx-shimmer 1.4s infinite linear;
 }

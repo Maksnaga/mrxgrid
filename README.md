@@ -430,7 +430,7 @@ interface ColumnDef {
   editable?: boolean           // Allow inline editing
   renderer?: 'text' | Component     // Custom cell renderer component
   rendererProps?: Record<string, unknown>  // Extra props for renderer
-  valueValidator?: (value: unknown) => boolean           // Pre-paste/fill validation
+  valueValidator?: (value: unknown) => boolean           // Pre-paste validation
   cellValidator?: (value: unknown, row: RowData) => true | string  // Display-time validation
 }
 ```
@@ -556,7 +556,7 @@ const columns: ColumnDef[] = [
 - Hovering the icon shows a tooltip with the error message (teleported to `<body>` to escape scroll container clipping)
 - When the cell is active (focused), it also gets a light red background
 
-**`valueValidator`** runs before paste and fill-handle operations. If it returns `false`, the value is rejected and the cell is not updated.
+**`valueValidator`** runs before paste operations. If it returns `false`, the value is rejected and the cell is not updated. It does not affect the fill handle — a column marked `editable: true` always accepts fills.
 
 ### Fill Handle (Excel-style Drag)
 
@@ -566,7 +566,7 @@ The small blue square at the bottom-right corner of the selection is the **fill 
 - **Drag up/left/right:** Same, in the respective direction
 - **Direction detection:** Uses pixel distance (not cell count) so the fill feels natural regardless of row height vs column width differences
 
-The fill respects `valueValidator`: columns that reject a value are skipped during fill.
+A column with `editable: true` always accepts fills — `valueValidator` does not block the fill handle (it only applies to paste).
 
 ### Copy / Paste / Cut
 
@@ -852,7 +852,7 @@ Inline cell editing lifecycle. **Key invariant:** At most one cell in edit mode 
 
 **File:** `src/composables/useFillHandle.ts`
 
-Excel-style fill-handle drag. Direction is detected using **pixel distance** (not cell count). Source values are replicated cyclically into the target range. Each value passes through the column's `valueValidator` before being accepted.
+Excel-style fill-handle drag. Direction is detected using **pixel distance** (not cell count). Source values are replicated cyclically into the target range. Any column with `editable: true` always accepts the fill — `valueValidator` is not consulted.
 
 ### useClipboard
 

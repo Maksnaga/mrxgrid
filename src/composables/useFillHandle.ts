@@ -272,19 +272,15 @@ export function useFillHandle(options: FillHandleOptions) {
         for (let c = source.c1; c <= source.c2; c++) {
           const col = cols[c]
           if (!col || !col.editable) continue
-          const val = srcRow[col.field]
-          if (col.valueValidator && !col.valueValidator(val)) continue
           result.push({
             rowIndex: r,
             field: col.field,
-            value: val,
+            value: srcRow[col.field],
           })
         }
       }
     } else {
       // Replicate source columns cyclically into target columns.
-      // Skip target cells where the value type differs from the source
-      // (e.g. don't paste a string into a column that holds numbers).
       for (let c = target.c1; c <= target.c2; c++) {
         const srcColOffset = direction === 'right'
           ? (c - target.c1) % srcCols
@@ -300,15 +296,10 @@ export function useFillHandle(options: FillHandleOptions) {
         for (let r = source.r1; r <= source.r2; r++) {
           const srcRow = rows.value[r]
           if (!srcRow) continue
-          const srcVal = srcRow[srcCol.field]
-          const tgtVal = srcRow[tgtCol.field]
-          // Skip if types don't match (both null/undefined are OK)
-          if (srcVal != null && tgtVal != null && typeof srcVal !== typeof tgtVal) continue
-          if (tgtCol.valueValidator && !tgtCol.valueValidator(srcVal)) continue
           result.push({
             rowIndex: r,
             field: tgtCol.field,
-            value: srcVal,
+            value: srcRow[srcCol.field],
           })
         }
       }

@@ -194,7 +194,15 @@ watch(
         if (input) {
           input.focus()
           if (localEditValue.value.length > 1) {
-            input.select()
+            if (input.type === 'number') {
+              // select() throws InvalidStateError for type="number" in all browsers.
+              // Temporarily switch to text so select() works, then restore.
+              input.type = 'text'
+              input.select()
+              input.type = 'number'
+            } else {
+              input.select()
+            }
           }
           return
         }
@@ -215,8 +223,12 @@ watch(
 )
 
 function onInput(e: Event) {
-  const value = (e.target as HTMLInputElement).value
-  localEditValue.value = value
+  const raw = (e.target as HTMLInputElement).value
+  localEditValue.value = raw
+  let value: unknown = raw
+  if (props.column.cellEditor === 'number' && raw !== '') {
+    value = Number(raw)
+  }
   emit('editInput', value)
 }
 
@@ -491,6 +503,7 @@ function onEditKeydown(e: KeyboardEvent) {
           v-else
           ref="editInputRef"
           class="mrx-grid-cell__input"
+          :type="column.cellEditor === 'number' ? 'number' : 'text'"
           :value="localEditValue"
           @input="onInput"
           @keydown.stop="onEditKeydown"

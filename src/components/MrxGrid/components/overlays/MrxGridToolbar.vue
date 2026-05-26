@@ -65,90 +65,54 @@ const emit = defineEmits<{
 <template>
   <div class="moz-grid__toolbar">
     <div class="moz-grid__toolbar-left">
-      <MIconButton
-        v-if="showFullscreen"
-        id="grid-fullscreen"
-        ghost
-        size="s"
-        :aria-label="fullscreen ? 'Exit fullscreen' : 'Fullscreen'"
-        @click="emit('toggle-fullscreen')"
-      >
+      <MIconButton v-if="showFullscreen" id="grid-fullscreen" ghost size="s"
+        :aria-label="fullscreen ? 'Exit fullscreen' : 'Fullscreen'" @click="emit('toggle-fullscreen')">
         <template #icon>
           <FullscreenExit24 v-if="fullscreen" />
           <FullscreenEnter24 v-else />
         </template>
       </MIconButton>
 
-      <MIconButton
-        v-if="showExport"
-        id="grid-export"
-        ghost
-        size="s"
-        aria-label="Export CSV"
-        @click="emit('export')"
-      >
-        <template #icon><Download24 /></template>
+      <MIconButton v-if="showExport" id="grid-export" ghost size="s" aria-label="Export CSV" @click="emit('export')">
+        <template #icon>
+          <Download24 />
+        </template>
       </MIconButton>
 
-      <MButton
-        v-if="showFilters"
-        id="grid-filter"
-        ghost
-        size="s"
-        class="moz-grid__toolbar-filter-btn"
-        @click="emit('filters')"
-      >
+      <MButton v-if="showFilters" id="grid-filter" ghost size="s" class="moz-grid__toolbar-filter-btn"
+        @click="emit('filters')">
         <Filter24 class="moz-grid__toolbar-filter-icon" />
         <span>Filters</span>
-        <span
-          v-if="activeFilterCount && activeFilterCount > 0"
-          class="moz-grid__toolbar-filter-badge"
-          aria-hidden="true"
-        >{{ activeFilterCount }}</span>
+        <span v-if="activeFilterCount && activeFilterCount > 0" class="moz-grid__toolbar-filter-badge"
+          aria-hidden="true">{{
+            activeFilterCount }}</span>
       </MButton>
 
-      <MIconButton
-        v-if="showSettings"
-        id="grid-settings"
-        ghost
-        size="s"
-        aria-label="Settings"
-        @click="emit('settings')"
-      >
-        <template #icon><Settings24 /></template>
+      <MIconButton v-if="showSettings" id="grid-settings" ghost size="s" aria-label="Settings"
+        @click="emit('settings')">
+        <template #icon>
+          <Settings24 />
+        </template>
       </MIconButton>
 
-      <MIconButton
-        v-if="showGroup"
-        id="grid-group"
-        ghost
-        size="s"
-        aria-label="Group"
-        @click="emit('group')"
-      >
-        <template #icon><Group24 /></template>
+      <MIconButton v-if="showGroup" id="grid-group" ghost size="s" aria-label="Group" @click="emit('group')">
+        <template #icon>
+          <Group24 />
+        </template>
       </MIconButton>
 
-      <MIconButton
-        v-if="showKeyboard"
-        id="grid-keyboard"
-        ghost
-        size="s"
-        aria-label="Keyboard shortcuts"
-        @click="emit('keyboard')"
-      >
-        <template #icon><Keyboard24 /></template>
+      <MIconButton v-if="showKeyboard" id="grid-keyboard" ghost size="s" aria-label="Keyboard shortcuts"
+        @click="emit('keyboard')">
+        <template #icon>
+          <Keyboard24 />
+        </template>
       </MIconButton>
 
-      <MIconButton
-        v-if="showFormulaReference"
-        id="grid-formula-reference"
-        ghost
-        size="s"
-        aria-label="Formula reference"
-        @click="emit('formula-reference')"
-      >
-        <template #icon><Calculator24 /></template>
+      <MIconButton v-if="showFormulaReference" id="grid-formula-reference" ghost size="s" aria-label="Formula reference"
+        @click="emit('formula-reference')">
+        <template #icon>
+          <Calculator24 />
+        </template>
       </MIconButton>
 
       <slot name="toolbar-start" />
@@ -159,13 +123,8 @@ const emit = defineEmits<{
       <span class="moz-grid__selection-text">
         {{ selectedCount }} row{{ selectedCount === 1 ? '' : 's' }} selected
       </span>
-      <MButton
-        v-if="!allSelected && totalCount && selectedCount < totalCount"
-        ghost
-        size="s"
-        appearance="accent"
-        @click="emit('select-all-rows')"
-      >
+      <MButton v-if="!allSelected && totalCount && selectedCount < totalCount" ghost size="s" appearance="accent"
+        @click="emit('select-all-rows')">
         Select all {{ totalCount }} rows
       </MButton>
       <MButton ghost size="s" @click="emit('clear-selection')">
@@ -239,7 +198,6 @@ const emit = defineEmits<{
   align-items: center;
   justify-content: center;
   gap: m.get-spacing('200');
-  padding: m.get-spacing('100') m.get-spacing('200');
   border: m.get-token('border-width', 's') solid var(--color-border-primary, #e2e8f0);
   border-radius: m.get-radius('s');
   background: var(--color-background-primary, #fff);

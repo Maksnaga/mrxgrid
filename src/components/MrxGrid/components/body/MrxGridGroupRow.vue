@@ -52,11 +52,7 @@ const INDENT_PX = 24
     <!-- Sticky-left: chevron + (field above value). Stays anchored to
          the visible viewport during horizontal scroll. -->
     <div class="mrx-group-row__label" :style="{ paddingLeft: `${depth * INDENT_PX + 16}px` }">
-      <component
-        :is="expanded ? ChevronDown20 : ChevronRight20"
-        class="mrx-group-row__toggle"
-        aria-hidden="true"
-      />
+      <component :is="expanded ? ChevronDown20 : ChevronRight20" class="mrx-group-row__toggle" aria-hidden="true" />
       <div class="mrx-group-row__info">
         <span class="mrx-group-row__field">{{ headerName }}</span>
         <span class="mrx-group-row__value">{{ value ?? '(empty)' }}</span>
@@ -101,7 +97,7 @@ const INDENT_PX = 24
   height: 100%;
   padding-right: 16px;
   background-color: inherit;
-  z-index: 3;
+  z-index: 2;
 }
 
 .mrx-group-row__toggle {
@@ -163,6 +159,6 @@ const INDENT_PX = 24
   font-weight: 400;
   color: #94a3b8;
   background-color: inherit;
-  z-index: 3;
+  z-index: 2;
 }
 </style>

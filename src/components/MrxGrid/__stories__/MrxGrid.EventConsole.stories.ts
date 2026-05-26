@@ -494,7 +494,7 @@ Toute interaction avec la grille (click, drag, edit, hover sur un menu, ouvertur
                 <strong>{{ row.name }}</strong>
                 <span>· {{ row.brand }}</span>
                 <span>· stock {{ row.stock }}</span>
-                <span>· {{ row.price.toFixed(2) }} €</span>
+                <span>· {{ typeof row.price === 'number' ? row.price.toFixed(2) : row.price }} €</span>
                 <span>· {{ row.store }}</span>
               </div>
             </template>
