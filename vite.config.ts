@@ -9,8 +9,9 @@ import vueDevTools from 'vite-plugin-vue-devtools'
 //
 // `base` est piloté par l'env `VITE_BASE` :
 //   • dev local                 → '/' (défaut)
-//   • build pour Asustor        → VITE_BASE=/mrxgrid-app/ npm run build:app
-// Les assets générés sont alors préfixés correctement (`/mrxgrid-app/assets/…`).
+//   • build pour Asustor        → VITE_BASE=/mrxgrid/mrxgrid-app/ npm run build:app
+//     (path imbriqué car Web Center sert /volume1/Web/mrxgrid/ à /mrxgrid/)
+// Les assets générés sont alors préfixés correctement.
 export default defineConfig({
   base: process.env.VITE_BASE ?? '/',
   plugins: [
