@@ -7,6 +7,7 @@ const meta = {
   title: 'Stories/Pinned Columns/Start · End · Both',
   component: MrxGrid,
   tags: ['autodocs'],
+  args: { rows: [] },
   parameters: {
     docs: {
       description: {

@@ -437,3 +437,31 @@
   color: #4a5364;
   background: #f8fafc;
 }
+
+.sb-price-range {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+}
+.sb-price-range__values {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  font-weight: 600;
+  color: #2b313b;
+}
+.sb-price-range__sliders {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.sb-price-range__sliders input[type='range'] {
+  width: 100%;
+  accent-color: #3b82f6;
+}
+
+.sb-combo-wrap {
+  flex: 1 1 220px;
+  min-width: 200px;
+}

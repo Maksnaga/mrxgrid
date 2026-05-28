@@ -7,6 +7,7 @@ const meta = {
   title: 'Stories/Sorting/Single · Multi · Custom comparator',
   component: MrxGrid,
   tags: ['autodocs'],
+  args: { rows: [] },
   parameters: {
     docs: {
       description: {

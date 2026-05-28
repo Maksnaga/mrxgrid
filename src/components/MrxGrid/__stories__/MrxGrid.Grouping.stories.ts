@@ -8,6 +8,7 @@ const meta = {
   title: 'Stories/Grouping/Single · Nested · Drawer · Server-side',
   component: MrxGrid,
   tags: ['autodocs'],
+  args: { rows: [] },
   parameters: {
     docs: {
       description: {

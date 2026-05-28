@@ -28,6 +28,18 @@
   }
 }
 
+/* Skeleton shimmer — partagée entre le full-skeleton (`MrxGridSkeletonRow`)
+ * et le cell-level pending (`.mrx-grid-cell--pending::after`). Globale
+ * pour que les deux références au même nom résolvent. */
+@keyframes mrx-skeleton-shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
+}
+
 /* Default formula ref-highlight palette (Phase 6b). Consumers can override
  * any of these on `:root` or a scoping element to rebrand the colours. The
  * `FormulaRefPalette` cycles through 8 slots; cells that reference the

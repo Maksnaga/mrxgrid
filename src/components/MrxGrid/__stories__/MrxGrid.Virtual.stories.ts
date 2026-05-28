@@ -7,6 +7,7 @@ const meta = {
   title: 'Stories/Virtual Scroll/Vertical · Horizontal · Both',
   component: MrxGrid,
   tags: ['autodocs'],
+  args: { rows: [] },
   parameters: {
     docs: {
       description: {

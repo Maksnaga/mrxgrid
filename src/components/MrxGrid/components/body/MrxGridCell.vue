@@ -1,11 +1,43 @@
 <script setup lang="ts">
-import { computed, ref, watch, watchEffect, nextTick, type Component } from 'vue'
+import {
+  computed,
+  defineComponent,
+  ref,
+  watch,
+  watchEffect,
+  nextTick,
+  type Component,
+  type Slot,
+} from 'vue'
 import { Danger24 } from '@mozaic-ds/icons-vue'
 import { MSelect, MDatepicker, MTooltip } from '@mozaic-ds/vue'
 import type { ColumnDef, RowData } from '../../types'
 import { injectMrxGridSlots, resolveCellSlot, resolveEditSlot } from '../../state/MrxGridSlots'
 import { BUILTIN_RENDERERS, type BuiltinRendererName } from '../../features/renderers/builtin'
 import MrxGridFormulaEditor from './MrxGridFormulaEditor.vue'
+
+/**
+ * `<SlotInvoker>` — functional wrapper qui invoque une `Slot` (resolved
+ * depuis l'inject de slots du grid) avec un `scope` arbitraire en argument.
+ *
+ * Pourquoi pas `<component :is="slotFn" :a="x" :b="y">` ? Le pattern par
+ * `:is` traite la slot fn comme un functional component : Vue normalise
+ * les attrs en kebab/camel et perd la trace de certaines clés selon
+ * comment le compilateur les a annotées. Concrètement les scope props
+ * comme `:update-value` arrivaient `undefined` côté `<template #edit-foo
+ * ="slotProps">` parce que `slotProps.updateValue` était jamais set.
+ *
+ * Avec ce wrapper on passe le scope **comme un seul objet** à la slot fn
+ * (signature naturelle `slot(scope)`), ce qui matche exactement ce que
+ * fait `<slot :a="x" :b="y">` côté templating standard.
+ */
+const SlotInvoker = defineComponent<{
+  slotFn: Slot
+  scope: Record<string, unknown>
+}>(
+  (props) => () => props.slotFn(props.scope),
+  { props: ['slotFn', 'scope'], inheritAttrs: false },
+)
 
 const props = defineProps<{
   value: unknown
@@ -34,13 +66,15 @@ const props = defineProps<{
   cutEdgeBottom?: boolean
   cutEdgeLeft?: boolean
   cutEdgeRight?: boolean
+  /** True when an async mutation is in-flight for this (row, field). */
+  pending?: boolean
 }>()
 
 const emit = defineEmits<{
   activate: [e: MouseEvent]
   editStart: []
   editInput: [value: unknown]
-  editCommit: [direction: 'down' | 'right' | 'left']
+  editCommit: [direction: 'down' | 'right' | 'left' | 'stay']
   editCancel: []
   editBlur: []
   fillHandleMousedown: [e: MouseEvent]
@@ -412,6 +446,7 @@ function onEditKeydown(e: KeyboardEvent) {
       'mrx-grid-cell--cut': cutSource,
       'mrx-grid-cell--ref-highlight': refHighlightColor,
       'mrx-grid-cell--moving': isMovingColumn,
+      'mrx-grid-cell--pending': pending,
     }"
     :style="refHighlightColor ? { '--moz-grid-ref-color': refHighlightColor } : undefined"
     ref="cellContentRef"
@@ -442,24 +477,32 @@ function onEditKeydown(e: KeyboardEvent) {
       :edit-value="editValue"
       :start-edit="() => emit('editStart')"
       :update-value="(v: unknown) => emit('editInput', v)"
-      :commit="(dir?: 'down' | 'right' | 'left') => emit('editCommit', dir ?? 'down')"
+      :commit="(dir?: 'down' | 'right' | 'left' | 'stay') => emit('editCommit', dir ?? 'down')"
       :cancel="() => emit('editCancel')"
     >
       <!-- Editing mode — try `#edit-{field}` first, then `#edit`, then text input. -->
       <template v-if="editing">
-        <!-- 1. User-provided edit slot wins -->
-        <component
+        <!-- 1. User-provided edit slot wins. `SlotInvoker` passe le scope
+             en un seul objet à la slot fn — voir le commentaire sur la
+             definition pour pourquoi `<component :is>` direct ne marchait
+             pas (kebab/camel mismatch). Le scope expose `setValue` ET
+             `updateValue` comme alias pour matcher les deux conventions
+             documentées dans les stories. -->
+        <SlotInvoker
           v-if="resolvedEditSlot"
-          :is="resolvedEditSlot"
-          :value="value"
-          :row="row"
-          :field="field"
-          :row-index="rowIndex"
-          :column="column"
-          :edit-value="editValue"
-          :update-value="(v: unknown) => emit('editInput', v)"
-          :commit="(dir?: 'down' | 'right' | 'left') => emit('editCommit', dir ?? 'down')"
-          :cancel="() => emit('editCancel')"
+          :slot-fn="resolvedEditSlot"
+          :scope="{
+            value,
+            row,
+            field,
+            rowIndex,
+            column,
+            editValue,
+            updateValue: (v: unknown) => emit('editInput', v),
+            setValue: (v: unknown) => emit('editInput', v),
+            commit: (dir?: 'down' | 'right' | 'left' | 'stay') => emit('editCommit', dir ?? 'down'),
+            cancel: () => emit('editCancel'),
+          }"
         />
         <!-- 2. Mozaic select editor (Sprint 1 — REFONTE-PLAN-V2 §2.7) -->
         <MSelect
@@ -513,16 +556,21 @@ function onEditKeydown(e: KeyboardEvent) {
 
       <!-- Display mode — try injected per-field / generic slot, then renderer, then text. -->
       <template v-else>
-        <component
+        <!-- Même fix que pour l'edit slot : `SlotInvoker` passe le scope
+             entier à la slot fn pour éviter la perte de clés par le
+             `<component :is>` direct. -->
+        <SlotInvoker
           v-if="resolvedCellSlot"
-          :is="resolvedCellSlot"
-          :value="value"
-          :row="row"
-          :field="field"
-          :row-index="rowIndex"
-          :column="column"
-          :active="active"
-          :editing="editing"
+          :slot-fn="resolvedCellSlot"
+          :scope="{
+            value,
+            row,
+            field,
+            rowIndex,
+            column,
+            active,
+            editing,
+          }"
         />
         <component v-else-if="rendererComponent" :is="rendererComponent" v-bind="rendererProps!" />
         <!-- Wrap raw text in a span so `text-overflow: ellipsis` actually
@@ -921,6 +969,51 @@ function onEditKeydown(e: KeyboardEvent) {
   pointer-events: none;
   z-index: 3;
 }
+
+// --- Pending shimmer (granular skeleton) ----------------------------------
+// Overlay rendu uniquement sur les cellules ciblées par `props.pendingCells`.
+// Le shimmer est volontairement bien visible : palette gris franc avec un
+// flash blanc qui traverse, plus une opacity assez haute pour qu'on voie
+// clairement qu'une mutation est en vol — pas un effet "premium-subtle"
+// invisible sur fond clair. La valeur sous-jacente reste lisible parce
+// que l'opacity est < 1, mais l'overlay domine visuellement.
+// --- Pending shimmer (granular skeleton) ----------------------------------
+// On change DIRECTEMENT le background-color de la cellule (pas un `::after`
+// qui peut se faire clipper par `contain: paint` côté `.mrx-grid-cell`).
+// Le shimmer vient d'un `background-image` gradient animé + `background-size:
+// 200% 100%` qui scrolle. Pas de pseudo-element, pas de stacking context
+// à gérer — visible quelle que soit la config du parent.
+//
+// `!important` parce que `.mrx-grid-cell` set `background-color` côté
+// classes pinned / selected qui ont la même spécificité — sans ça, le
+// background "pending" se ferait écraser par `--selected` quand l'user
+// vient juste de cliquer / commit.
+.mrx-grid-cell--pending {
+  background-color: #d9dde3 !important;
+  background-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.85) 50%,
+    transparent 100%
+  ) !important;
+  background-size: 200% 100% !important;
+  background-repeat: no-repeat !important;
+  animation: mrx-skeleton-shimmer 1.4s ease-in-out infinite !important;
+}
+
+// Pendant le pending on rend le texte de la cellule transparent — comme ça
+// la valeur est "remplacée" par le shimmer (vrai effet skeleton) plutôt
+// que d'avoir un texte qui scintille à travers.
+.mrx-grid-cell--pending > * {
+  opacity: 0.25 !important;
+  transition: opacity 200ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mrx-grid-cell--pending {
+    animation: none !important;
+  }
+}
 </style>
 
 <!-- Global @keyframes — must be unscoped so the animation names resolve
@@ -940,6 +1033,21 @@ function onEditKeydown(e: KeyboardEvent) {
   }
   to {
     background-position-y: 8px;
+  }
+}
+
+/* Skeleton shimmer — partagée entre le full-skeleton (`MrxGridSkeletonRow`)
+ * et le cell-level pending (`.mrx-grid-cell--pending::after`). Unscoped
+ * pour rester accessible aux scoped styles des autres SFC qui réfèrent
+ * `animation: mrx-skeleton-shimmer ...` par nom. (`_animations.scss`
+ * existe mais n'est branchée dans aucun chemin d'import au runtime, c'est
+ * de la doc — d'où la duplication ici comme pour les marching-ants.) */
+@keyframes mrx-skeleton-shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
   }
 }
 </style>

@@ -143,7 +143,7 @@ export function useFilterEngine<T = RowData>(state: GridState<T>): FilterEngine<
   }
 
   function filterData(data: T[]): T[] {
-    if (state.mode.value === 'server') return data
+    if (state.filterMode.value === 'server') return data
 
     // Quick filters (filter row) and the formal filterModel (drawer +
     // per-column overlay) live in independent state slots and compose
@@ -153,7 +153,9 @@ export function useFilterEngine<T = RowData>(state: GridState<T>): FilterEngine<
     const defMap = state.columnDefMap.value
     const quickEntries = quickFilterEntries(state, defMap)
 
-    const formal = state.filterModel.value.conditions.filter(isConditionComplete)
+    const formal = state.filterModel.value.conditions.filter((c) =>
+      isComplete(c, defMap.get(c.field)),
+    )
     const formalPrepared = formal.map((c) => {
       const col = defMap.get(c.field)
       return { cond: c, col, type: resolveFilterType(col) }
@@ -161,26 +163,54 @@ export function useFilterEngine<T = RowData>(state: GridState<T>): FilterEngine<
 
     if (quickEntries.length === 0 && formalPrepared.length === 0) return data
 
-    return data.filter((row) => {
+    return data.filter((row, rowIndex) => {
       // Quick filters always AND together — no combinator UI for them.
       for (const q of quickEntries) {
         if (!matchOne(row, q.cond, q.col, q.type)) return false
       }
       if (formalPrepared.length === 0) return true
       const first = formalPrepared[0]!
-      let pass = matchOne(row, first.cond, first.col, first.type)
+      let pass = matchFormal(row, rowIndex, first)
       for (let i = 1; i < formalPrepared.length; i++) {
         const step = formalPrepared[i]!
-        const result = matchOne(row, step.cond, step.col, step.type)
+        const result = matchFormal(row, rowIndex, step)
         pass = step.cond.combinator === 'and' ? pass && result : pass || result
       }
       return pass
     })
   }
 
+  /**
+   * Completion check for a condition.
+   *
+   * - Built-in filter types defer to the public `isConditionComplete`.
+   * - Custom filters: presence of `condition.model` is the signal — the
+   *   builder only writes it when `instance.isFilterActive()` is true.
+   */
+  function isComplete(condition: FilterCondition, col: ColumnDef<T> | undefined): boolean {
+    if (resolveFilterType(col) === 'custom') {
+      if (!condition.field) return false
+      return condition.model != null
+    }
+    return isConditionComplete(condition)
+  }
+
   function toLabel(condition: FilterCondition): string {
     const def = state.columnDefMap.value.get(condition.field)
     const col = def?.headerName ?? condition.field
+
+    // Custom filter — read from `condition.model` (the AG-Grid contract's
+    // storage slot) and let the column-level `getModelAsString` format it.
+    // Falls back to a generic renderer (array → "a, b", object → JSON,
+    // primitive → String(v)).
+    const customCfg = getCustomFilterConfig(def)
+    if (customCfg) {
+      const formatted =
+        customCfg.getModelAsString?.(condition.model) ??
+        formatModelGeneric(condition.model)
+      return formatted ? `${col}: ${formatted}` : col
+    }
+
     const op = OPERATOR_LABELS[condition.operator] ?? condition.operator
 
     if (VALUELESS_OPERATORS.has(condition.operator)) {
@@ -205,6 +235,28 @@ export function useFilterEngine<T = RowData>(state: GridState<T>): FilterEngine<
   }
 
   function describeColumn(def: ColumnDef<T>): FilterColumnDescriptor {
+    const customFilter = getCustomFilterConfig(def)
+    if (customFilter) {
+      // Custom filter — the config carries everything (component + predicate
+      // + opaque params). The builder mounts the component and hides the
+      // operator picker; the engine routes evaluation to `doesFilterPass`.
+      return {
+        field: def.field,
+        headerName: def.headerName ?? def.field,
+        filterType: 'custom',
+        operators: [],
+        defaultOperator: 'equals',
+        filter: customFilter as unknown as import('../models/filter.model').MrxFilterConfig<
+          unknown,
+          unknown,
+          unknown
+        >,
+        // Forward the source ColumnDef so the builder can hand it to the
+        // filter component as `params.column`. Cast widens T → unknown
+        // since the descriptor type is non-generic.
+        colDef: def as ColumnDef<unknown>,
+      }
+    }
     const type = resolveFilterType(def)
     const operators =
       def.filterOperators && def.filterOperators.length > 0
@@ -274,6 +326,24 @@ interface QuickEntry<T> {
  *  column's `filter.type` (text → contains, select → equals, date range
  *  → between/gte/lte). These conditions are AND-only — the row UI has no
  *  combinator picker. */
+/**
+ * Default formatter for a custom-filter model in the tag bar.
+ * Arrays join with ", ", objects round-trip through JSON, primitives
+ * coerce via String. Returns the empty string for null/undefined.
+ */
+function formatModelGeneric(model: unknown): string {
+  if (model == null) return ''
+  if (Array.isArray(model)) return model.join(', ')
+  if (typeof model === 'object') {
+    try {
+      return JSON.stringify(model)
+    } catch {
+      return ''
+    }
+  }
+  return String(model)
+}
+
 function quickFilterEntries<T>(
   state: GridState<T>,
   defMap: Map<string, ColumnDef<T>>,
@@ -284,7 +354,10 @@ function quickFilterEntries<T>(
     const value = quick[field]
     if (!isQuickFilterValueSet(value)) continue
     const col = defMap.get(field)
-    const filterType = col?.filter?.type
+    // `col.filter` is a union — only the inline FilterDef shape carries
+    // `type`. Narrow before reading so the union doesn't surface here.
+    const inline = col?.filter && 'type' in col.filter ? col.filter : undefined
+    const filterType = inline?.type
     const condType = resolveFilterType(col)
 
     if (filterType === 'date' && isDateRangeQuick(value)) {
@@ -336,8 +409,29 @@ function isDateRangeQuick(
   return typeof v === 'object' && v !== null && 'from' in v && 'to' in v
 }
 
+/**
+ * Returns the custom filter config carried on `col.filter` when it has the
+ * AG-Grid-style shape (presence of `component`). When `col.filter` is the
+ * inline `FilterDef` shape (presence of `type`) — or absent — returns
+ * `undefined`. The two shapes are statically distinguishable because they
+ * share no required field.
+ */
+function getCustomFilterConfig<T>(
+  def: ColumnDef<T> | undefined,
+):
+  | import('../models/filter.model').MrxFilterConfig<T, unknown, unknown>
+  | undefined {
+  const f = def?.filter
+  if (!f) return undefined
+  if ('component' in f) {
+    return f as import('../models/filter.model').MrxFilterConfig<T, unknown, unknown>
+  }
+  return undefined
+}
+
 function resolveFilterType<T>(def: ColumnDef<T> | undefined): FilterDataType {
   if (!def) return 'text'
+  if (getCustomFilterConfig(def)) return 'custom'
   if (def.filterType) return def.filterType
   switch (def.cellEditor) {
     case 'number':
@@ -367,6 +461,44 @@ function matchOne<T>(
   const predicate = PREDICATES[type]?.[condition.operator]
   if (!predicate) return true
   return predicate(raw, condition.value)
+}
+
+/**
+ * Evaluates a formal-model condition.
+ *
+ * - Built-in types route to `matchOne`.
+ * - Custom filters route to `col.filter.doesFilterPass(params)` — pure
+ *   function declared in the column config (NOT bolted on the component).
+ *   A custom condition with no predicate is inert (returns `true`) — the
+ *   expected shape in `filter-mode="server"`.
+ */
+function matchFormal<T>(
+  row: T,
+  rowIndex: number,
+  item: { cond: FilterCondition; col: ColumnDef<T> | undefined; type: FilterDataType },
+): boolean {
+  if (item.type === 'custom') {
+    const cfg = getCustomFilterConfig(item.col)
+    if (!cfg?.doesFilterPass) return true
+    if (item.cond.model == null) return true
+    const getValue = (field: string): unknown => {
+      const c = item.col
+      if (c?.valueGetter && field === c.field) return c.valueGetter(row)
+      return (row as unknown as Record<string, unknown>)[field]
+    }
+    // `cfg.doesFilterPass` is typed `<T>` over the column's generic; the
+    // call-site already narrows `item.col` to the matching shape, but TS
+    // can't track that through the union → narrow via cast.
+    const params = {
+      row,
+      rowIndex,
+      getValue,
+      model: item.cond.model,
+      column: item.col as ColumnDef<T>,
+    }
+    return (cfg.doesFilterPass as (p: typeof params) => boolean)(params)
+  }
+  return matchOne(row, item.cond, item.col, item.type)
 }
 
 function formatValue<T>(value: unknown, def: ColumnDef<T> | undefined): string {
@@ -525,4 +657,7 @@ const PREDICATES: Record<FilterDataType, Partial<Record<FilterOperator, Predicat
     blank,
     notBlank,
   },
+  // Custom filters bypass this table entirely — `matchFormal` delegates to
+  // `col.filter.doesFilterPass` before any lookup here.
+  custom: {},
 }

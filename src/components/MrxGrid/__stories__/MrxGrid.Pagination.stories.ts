@@ -7,6 +7,7 @@ const meta = {
   title: 'Stories/Pagination/Default · Custom page sizes',
   component: MrxGrid,
   tags: ['autodocs'],
+  args: { rows: [] },
   parameters: {
     docs: {
       description: {

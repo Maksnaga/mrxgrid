@@ -23,6 +23,7 @@ import { computed, onMounted, onScopeDispose, useSlots, watch } from 'vue'
 import type { Component, Raw } from 'vue'
 import type { ColumnDef, FilterDef, RowData } from './types'
 import type { CellEditorType } from './models/column.model'
+import type { MrxFilterConfig } from './models/filter.model'
 import { injectMrxColumnRegistry } from './state/MrxColumnRegistry'
 
 let _orderSeq = 0
@@ -60,8 +61,11 @@ const props = withDefaults(
     /** Custom renderer component (alternative to `#cell` slot). */
     renderer?: 'text' | Raw<Component>
     rendererProps?: Record<string, unknown>
-    /** Legacy filter shape — Phase 3 grid-level builder takes precedence. */
-    filter?: FilterDef
+    /**
+     * Filter config — inline filter row config ({ type, options, … }) or
+     * custom filter config ({ component, doesFilterPass, filterParams }).
+     */
+    filter?: FilterDef | MrxFilterConfig<RowData, unknown, unknown>
   }>(),
   {
     sortable: true,

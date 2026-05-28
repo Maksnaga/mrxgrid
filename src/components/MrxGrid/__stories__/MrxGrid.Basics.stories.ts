@@ -7,6 +7,7 @@ const meta = {
   title: 'Stories/Basics/Density · Fullscreen · Row identity',
   component: MrxGrid,
   tags: ['autodocs'],
+  args: { rows: [] },
   parameters: {
     docs: {
       description: {
@@ -96,7 +97,7 @@ export const Fullscreen: Story = {
         story: `
 ## Fullscreen
 
-\`\`:fullscreen=\"true\"\`\` ⇒ la racine de la grille passe en \`position: fixed; inset: 0; z-index: ...\` et recouvre la fenêtre.
+\`\`:fullscreen="true"\`\` ⇒ la racine de la grille passe en \`position: fixed; inset: 0; z-index: ...\` et recouvre la fenêtre.
 
 ### Gotcha #1 — la toolbar disparaît
 

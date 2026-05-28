@@ -26,7 +26,7 @@ import type {
   PinnedSide,
 } from '../models/column.model'
 import type { CellCoord, CellEditState } from '../models/cell.model'
-import type { FilterModel } from '../models/filter.model'
+import type { FilterMode, FilterModel } from '../models/filter.model'
 import type { LoadingStrategy } from '../models/pagination.model'
 import type { GridDensity } from '../models/grid-events.model'
 import type { GroupEntry } from '../models/grid-events.model'
@@ -60,6 +60,11 @@ export interface GridState<T = RowData> {
 
   // --- Filter ---
   readonly filterModel: Ref<FilterModel>
+  /**
+   * Filter evaluation mode, decoupled from the grid-level `mode`. Default `'client'`.
+   * `MrxGrid.vue` derives it from the `filterMode` prop (falling back to `serverFilter`).
+   */
+  readonly filterMode: Ref<FilterMode>
 
   // --- Pagination ---
   readonly pageIndex: Ref<number>
@@ -198,6 +203,7 @@ export function useGridState<T = RowData>(): GridState<T> {
 
   // --- Filter ---
   const filterModel = ref<FilterModel>({ conditions: [] })
+  const filterMode = ref<FilterMode>('client')
 
   // --- Pagination ---
   const pageIndex = ref(0)
@@ -402,6 +408,7 @@ export function useGridState<T = RowData>(): GridState<T> {
     groupColumns,
     expandedGroups,
     filterModel,
+    filterMode,
     pageIndex,
     pageSize,
     visibleRowCount,

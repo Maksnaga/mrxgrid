@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/vue3-vite'
-import { computed, ref } from 'vue'
+import { ref, watch } from 'vue'
 import {
   MrxColumn,
   MrxGrid,
@@ -15,6 +15,7 @@ const meta = {
   title: 'Stories/Customization/Persist · Plugins · Toolbar · Declarative',
   component: MrxGrid,
   tags: ['autodocs'],
+  args: { rows: [] },
   parameters: {
     docs: {
       description: {
@@ -195,7 +196,11 @@ Utilisez \`<MrxGridSmartToolbar>\` qui bundle ce wiring (voir story *Devtools / 
       const hiddenFields = ref<string[]>([])
       const columnOrder = ref<string[] | undefined>(undefined)
 
-      function onApply(payload: { density: DataDensity; hiddenFields: string[]; columnOrder: string[] }) {
+      function onApply(payload: {
+        density: DataDensity
+        hiddenFields: string[]
+        columnOrder: string[]
+      }) {
         density.value = payload.density
         hiddenFields.value = payload.hiddenFields
         columnOrder.value = payload.columnOrder
@@ -207,8 +212,15 @@ Utilisez \`<MrxGridSmartToolbar>\` qui bundle ce wiring (voir story *Devtools / 
       }
 
       return {
-        lmColumns, lmProducts, settingsOpen, fullscreen,
-        density, hiddenFields, columnOrder, onApply, onReset,
+        lmColumns,
+        lmProducts,
+        settingsOpen,
+        fullscreen,
+        density,
+        hiddenFields,
+        columnOrder,
+        onApply,
+        onReset,
       }
     },
     template: `
@@ -317,18 +329,20 @@ Voir story suivante.
     setup() {
       const log = ref<string[]>([])
 
-      // Tiny audit-log plugin: subscribes to engine events on init, returns
-      // a cleanup that logs disposal.
+      // Tiny audit-log plugin: watches state on init, returns a cleanup
+      // that logs disposal.
       const auditPlugin: MrxGridPlugin = {
-        id: 'audit',
-        init({ engine }) {
+        name: 'audit',
+        init({ state }) {
           log.value.push('plugin:init')
-          const off = engine.events?.on?.('cellEditCommit', (e: { field: string; rowIndex: number }) => {
-            log.value.push(`edit · row ${e.rowIndex} · ${e.field}`)
+          const off = watch(state.activeSorts, (sorts) => {
+            log.value.push(
+              `sort · ${sorts.map((s) => `${s.field}:${s.direction}`).join(', ') || 'none'}`,
+            )
             if (log.value.length > 30) log.value.shift()
           })
           return () => {
-            off?.()
+            off()
             log.value.push('plugin:dispose')
           }
         },

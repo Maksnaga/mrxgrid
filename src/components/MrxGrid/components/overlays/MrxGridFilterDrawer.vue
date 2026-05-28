@@ -71,7 +71,25 @@ watch(
 )
 
 function cloneConditions(list: FilterCondition[]): FilterCondition[] {
-  return list.map((c) => ({ ...c, value: { ...c.value } }))
+  return list.map((c) => ({
+    ...c,
+    value: { ...c.value },
+    // Deep-clone the opaque AG-Grid-style filter model so two drafts don't
+    // alias the same nested object. `structuredClone` falls back to a JSON
+    // round-trip for older runtimes (the model is required to be
+    // JSON-serializable anyway — see MrxFilterInstance docs).
+    model: c.model == null ? c.model : cloneModel(c.model),
+  }))
+}
+
+function cloneModel(model: unknown): unknown {
+  try {
+    return typeof structuredClone === 'function'
+      ? structuredClone(model)
+      : JSON.parse(JSON.stringify(model))
+  } catch {
+    return model
+  }
 }
 
 function emitChange(): void {

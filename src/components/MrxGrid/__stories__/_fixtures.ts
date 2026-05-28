@@ -72,16 +72,76 @@ const LM_STORES = [
 ] as const
 
 const LM_PRODUCT_NAMES: Record<(typeof LM_CATEGORIES)[number], string[]> = {
-  Plomberie: ['Mitigeur évier', 'Robinet thermostatique', 'Joint silicone', 'Tuyau PER 16mm', 'Siphon évier inox'],
-  Électricité: ['Disjoncteur 16A', 'Câble HO7VU 2.5mm', 'Interrupteur va-et-vient', 'Tableau électrique 13 modules', 'Spot LED encastrable'],
-  Outillage: ['Perceuse-visseuse 18V', 'Scie circulaire 1200W', 'Niveau à bulle 60cm', 'Marteau 500g', 'Mètre ruban 5m'],
-  Peinture: ['Peinture mur blanc 10L', 'Rouleau anti-goutte', 'Pinceau plat 50mm', 'Bâche de protection', 'Sous-couche universelle'],
-  Jardin: ['Tondeuse électrique', 'Sécateur ergonomique', 'Tuyau d\'arrosage 25m', 'Salon de jardin 6 places', 'Barbecue à gaz'],
-  'Salle de bain': ['Cabine de douche 80x80', 'Vasque à poser blanche', 'Miroir LED 60cm', 'Sèche-serviettes électrique', 'Receveur extra-plat'],
-  Cuisine: ['Plan de travail chêne 250cm', 'Hotte aspirante 60cm', 'Évier inox 1 bac', 'Crédence verre', 'Robinet mitigeur cuisine'],
-  Quincaillerie: ['Lot vis Torx 200pcs', 'Cadenas haute sécurité', 'Charnière invisible', 'Poignée de meuble inox', 'Boîte rangement clous'],
-  Sols: ['Parquet stratifié chêne', 'Carrelage 60x60 gris', 'Plinthe MDF blanc', 'Sous-couche acoustique', 'Lame PVC clipsable'],
-  Chauffage: ['Radiateur électrique 1500W', 'Poêle à bois 8kW', 'Convecteur soufflant', 'Climatiseur mobile', 'Thermostat connecté'],
+  Plomberie: [
+    'Mitigeur évier',
+    'Robinet thermostatique',
+    'Joint silicone',
+    'Tuyau PER 16mm',
+    'Siphon évier inox',
+  ],
+  Électricité: [
+    'Disjoncteur 16A',
+    'Câble HO7VU 2.5mm',
+    'Interrupteur va-et-vient',
+    'Tableau électrique 13 modules',
+    'Spot LED encastrable',
+  ],
+  Outillage: [
+    'Perceuse-visseuse 18V',
+    'Scie circulaire 1200W',
+    'Niveau à bulle 60cm',
+    'Marteau 500g',
+    'Mètre ruban 5m',
+  ],
+  Peinture: [
+    'Peinture mur blanc 10L',
+    'Rouleau anti-goutte',
+    'Pinceau plat 50mm',
+    'Bâche de protection',
+    'Sous-couche universelle',
+  ],
+  Jardin: [
+    'Tondeuse électrique',
+    'Sécateur ergonomique',
+    "Tuyau d'arrosage 25m",
+    'Salon de jardin 6 places',
+    'Barbecue à gaz',
+  ],
+  'Salle de bain': [
+    'Cabine de douche 80x80',
+    'Vasque à poser blanche',
+    'Miroir LED 60cm',
+    'Sèche-serviettes électrique',
+    'Receveur extra-plat',
+  ],
+  Cuisine: [
+    'Plan de travail chêne 250cm',
+    'Hotte aspirante 60cm',
+    'Évier inox 1 bac',
+    'Crédence verre',
+    'Robinet mitigeur cuisine',
+  ],
+  Quincaillerie: [
+    'Lot vis Torx 200pcs',
+    'Cadenas haute sécurité',
+    'Charnière invisible',
+    'Poignée de meuble inox',
+    'Boîte rangement clous',
+  ],
+  Sols: [
+    'Parquet stratifié chêne',
+    'Carrelage 60x60 gris',
+    'Plinthe MDF blanc',
+    'Sous-couche acoustique',
+    'Lame PVC clipsable',
+  ],
+  Chauffage: [
+    'Radiateur électrique 1500W',
+    'Poêle à bois 8kW',
+    'Convecteur soufflant',
+    'Climatiseur mobile',
+    'Thermostat connecté',
+  ],
 }
 
 let _seed = 0
@@ -109,7 +169,8 @@ function makeLMProduct(i: number): LMProduct {
     stock,
     status,
     rating: Math.round(rand(1, 5) * 10) / 10,
-    energyClass: (['A', 'A', 'B', 'B', 'C', 'D', 'E', 'F', 'G'][Math.floor(rand(0, 9))] ?? 'A') as LMProduct['energyClass'],
+    energyClass: (['A', 'A', 'B', 'B', 'C', 'D', 'E', 'F', 'G'][Math.floor(rand(0, 9))] ??
+      'A') as LMProduct['energyClass'],
     promo: i % 5 === 0,
     store: pick(LM_STORES),
     updatedAt: new Date(2025, Math.floor(rand(0, 12)), Math.floor(rand(1, 28)) + 1)
@@ -130,9 +191,32 @@ const eur = new Intl.NumberFormat('fr-FR', {
   currency: 'EUR',
 })
 
-export const lmColumns: ColumnDef<LMProduct>[] = [
-  { field: 'sku', headerName: 'Référence', width: '120px', pinned: 'start', sortable: true, filterable: true, filterType: 'text' },
-  { field: 'name', headerName: 'Produit', width: '260px', sortable: true, filterable: true, filterType: 'text', editable: true },
+// Exported as `ColumnDef[]` (default `RowData`) rather than `ColumnDef<LMProduct>[]`
+// so the array is freely assignable to `MrxGrid`'s `columns` prop. `ColumnDef<T>`
+// is contravariant in `T` (callbacks like `valueGetter`/`sortComparator` take
+// `row: T`), so a narrower `ColumnDef<LMProduct>[]` is NOT assignable to
+// `ColumnDef<RowData>[]`. Consumers that need the narrower type (e.g. typed
+// `filterPredicate`) can re-cast locally — the contravariant direction
+// (`ColumnDef<RowData>` → `ColumnDef<LMProduct>`) is allowed by TS.
+export const lmColumns: ColumnDef[] = [
+  {
+    field: 'sku',
+    headerName: 'Référence',
+    width: '120px',
+    pinned: 'start',
+    sortable: true,
+    filterable: true,
+    filterType: 'text',
+  },
+  {
+    field: 'name',
+    headerName: 'Produit',
+    width: '260px',
+    sortable: true,
+    filterable: true,
+    filterType: 'text',
+    editable: true,
+  },
   {
     field: 'category',
     headerName: 'Rayon',
@@ -143,7 +227,15 @@ export const lmColumns: ColumnDef<LMProduct>[] = [
     filterType: 'set',
     filterOptions: LM_CATEGORIES.map((c) => ({ value: c, label: c })),
   },
-  { field: 'brand', headerName: 'Marque', width: '140px', sortable: true, groupable: true, filterable: true, filterType: 'text' },
+  {
+    field: 'brand',
+    headerName: 'Marque',
+    width: '140px',
+    sortable: true,
+    groupable: true,
+    filterable: true,
+    filterType: 'text',
+  },
   {
     field: 'price',
     headerName: 'Prix',
@@ -207,9 +299,32 @@ export const lmColumns: ColumnDef<LMProduct>[] = [
     sortable: true,
     valueFormatter: (v) => (typeof v === 'number' ? `${v.toFixed(1)} ★` : ''),
   },
-  { field: 'promo', headerName: 'Promo', width: '90px', sortable: true, filterable: true, filterType: 'boolean' },
-  { field: 'store', headerName: 'Magasin', width: '180px', sortable: true, groupable: true, filterable: true, filterType: 'text', pinned: 'end' },
-  { field: 'updatedAt', headerName: 'Maj', width: '110px', sortable: true, filterable: true, filterType: 'date' },
+  {
+    field: 'promo',
+    headerName: 'Promo',
+    width: '90px',
+    sortable: true,
+    filterable: true,
+    filterType: 'boolean',
+  },
+  {
+    field: 'store',
+    headerName: 'Magasin',
+    width: '180px',
+    sortable: true,
+    groupable: true,
+    filterable: true,
+    filterType: 'text',
+    pinned: 'end',
+  },
+  {
+    field: 'updatedAt',
+    headerName: 'Maj',
+    width: '110px',
+    sortable: true,
+    filterable: true,
+    filterType: 'date',
+  },
 ]
 
 // ---------------------------------------------------------------------------
@@ -230,7 +345,14 @@ export interface AdeoOps extends RowData {
 }
 
 const ADEO_TEAMS = ['Platform', 'Data', 'Mobile', 'Web', 'Infra', 'Design System']
-const ADEO_OWNERS = ['M. Dupont', 'A. Martin', 'L. Moreau', 'S. Bernard', 'C. Lefebvre', 'J. Garcia']
+const ADEO_OWNERS = [
+  'M. Dupont',
+  'A. Martin',
+  'L. Moreau',
+  'S. Bernard',
+  'C. Lefebvre',
+  'J. Garcia',
+]
 
 export function generateAdeoOps(count: number): AdeoOps[] {
   _seed = 42
@@ -254,11 +376,44 @@ export function generateAdeoOps(count: number): AdeoOps[] {
 
 export const adeoRows: AdeoOps[] = generateAdeoOps(20)
 
-export const adeoColumns: ColumnDef<AdeoOps>[] = [
-  { field: 'ticket', headerName: 'Ticket', width: '110px', pinned: 'start', sortable: true, filterable: true, filterType: 'text' },
-  { field: 'team', headerName: 'Équipe', width: '160px', sortable: true, groupable: true, filterable: true, filterType: 'set', filterOptions: ADEO_TEAMS.map((v) => ({ value: v, label: v })) },
-  { field: 'owner', headerName: 'Responsable', width: '160px', sortable: true, filterable: true, filterType: 'text' },
-  { field: 'region', headerName: 'Région', width: '110px', sortable: true, groupable: true, filterable: true, filterType: 'set', filterOptions: ['EMEA', 'APAC', 'AMER'].map((v) => ({ value: v, label: v })) },
+export const adeoColumns: ColumnDef[] = [
+  {
+    field: 'ticket',
+    headerName: 'Ticket',
+    width: '110px',
+    pinned: 'start',
+    sortable: true,
+    filterable: true,
+    filterType: 'text',
+  },
+  {
+    field: 'team',
+    headerName: 'Équipe',
+    width: '160px',
+    sortable: true,
+    groupable: true,
+    filterable: true,
+    filterType: 'set',
+    filterOptions: ADEO_TEAMS.map((v) => ({ value: v, label: v })),
+  },
+  {
+    field: 'owner',
+    headerName: 'Responsable',
+    width: '160px',
+    sortable: true,
+    filterable: true,
+    filterType: 'text',
+  },
+  {
+    field: 'region',
+    headerName: 'Région',
+    width: '110px',
+    sortable: true,
+    groupable: true,
+    filterable: true,
+    filterType: 'set',
+    filterOptions: ['EMEA', 'APAC', 'AMER'].map((v) => ({ value: v, label: v })),
+  },
   {
     field: 'priority',
     headerName: 'Priorité',
@@ -312,8 +467,22 @@ export const adeoColumns: ColumnDef<AdeoOps>[] = [
     valueFormatter: (v) => (typeof v === 'number' ? eur.format(v) : ''),
     cellClass: 'mrx-cell-num',
   },
-  { field: 'startDate', headerName: 'Début', width: '120px', sortable: true, filterable: true, filterType: 'date' },
-  { field: 'dueDate', headerName: 'Échéance', width: '120px', sortable: true, filterable: true, filterType: 'date' },
+  {
+    field: 'startDate',
+    headerName: 'Début',
+    width: '120px',
+    sortable: true,
+    filterable: true,
+    filterType: 'date',
+  },
+  {
+    field: 'dueDate',
+    headerName: 'Échéance',
+    width: '120px',
+    sortable: true,
+    filterable: true,
+    filterType: 'date',
+  },
 ]
 
 // ---------------------------------------------------------------------------
@@ -332,7 +501,13 @@ export interface BricoInventory extends RowData {
   flag: 'normal' | 'reorder' | 'overstock'
 }
 
-const BRICO_WAREHOUSES = ['Roma Casilina', 'Milano Sud', 'Napoli Caivano', 'Torino Nord', 'Firenze Ovest']
+const BRICO_WAREHOUSES = [
+  'Roma Casilina',
+  'Milano Sud',
+  'Napoli Caivano',
+  'Torino Nord',
+  'Firenze Ovest',
+]
 const BRICO_PRODUCTS = [
   'Trapano percussione',
   'Cassetta utensili',
@@ -350,7 +525,8 @@ export function generateBricoInventory(count: number): BricoInventory[] {
   _seed = 99
   return Array.from({ length: count }, (_, i) => {
     const units = Math.floor(rand(0, 350))
-    const flag: BricoInventory['flag'] = units < 25 ? 'reorder' : units > 250 ? 'overstock' : 'normal'
+    const flag: BricoInventory['flag'] =
+      units < 25 ? 'reorder' : units > 250 ? 'overstock' : 'normal'
     return {
       id: i + 1,
       ean: `8${String(Math.floor(rand(1_000_000_000, 9_999_999_999)))}`,
@@ -369,13 +545,63 @@ export function generateBricoInventory(count: number): BricoInventory[] {
 
 export const bricoRows: BricoInventory[] = generateBricoInventory(20)
 
-export const bricoColumns: ColumnDef<BricoInventory>[] = [
-  { field: 'ean', headerName: 'EAN', width: '160px', pinned: 'start', sortable: true, filterable: true, filterType: 'text' },
-  { field: 'product', headerName: 'Prodotto', width: '220px', sortable: true, filterable: true, filterType: 'text', editable: true },
-  { field: 'warehouse', headerName: 'Magazzino', width: '180px', sortable: true, groupable: true, filterable: true, filterType: 'set', filterOptions: BRICO_WAREHOUSES.map((v) => ({ value: v, label: v })) },
-  { field: 'shelf', headerName: 'Scaffale', width: '110px', sortable: true, filterable: true, filterType: 'text' },
-  { field: 'units', headerName: 'Unità', width: '100px', sortable: true, filterable: true, filterType: 'number', editable: true, cellEditor: 'number', cellClass: 'mrx-cell-num' },
-  { field: 'defective', headerName: 'Difettosi', width: '110px', sortable: true, filterable: true, filterType: 'number', cellClass: 'mrx-cell-num' },
+export const bricoColumns: ColumnDef[] = [
+  {
+    field: 'ean',
+    headerName: 'EAN',
+    width: '160px',
+    pinned: 'start',
+    sortable: true,
+    filterable: true,
+    filterType: 'text',
+  },
+  {
+    field: 'product',
+    headerName: 'Prodotto',
+    width: '220px',
+    sortable: true,
+    filterable: true,
+    filterType: 'text',
+    editable: true,
+  },
+  {
+    field: 'warehouse',
+    headerName: 'Magazzino',
+    width: '180px',
+    sortable: true,
+    groupable: true,
+    filterable: true,
+    filterType: 'set',
+    filterOptions: BRICO_WAREHOUSES.map((v) => ({ value: v, label: v })),
+  },
+  {
+    field: 'shelf',
+    headerName: 'Scaffale',
+    width: '110px',
+    sortable: true,
+    filterable: true,
+    filterType: 'text',
+  },
+  {
+    field: 'units',
+    headerName: 'Unità',
+    width: '100px',
+    sortable: true,
+    filterable: true,
+    filterType: 'number',
+    editable: true,
+    cellEditor: 'number',
+    cellClass: 'mrx-cell-num',
+  },
+  {
+    field: 'defective',
+    headerName: 'Difettosi',
+    width: '110px',
+    sortable: true,
+    filterable: true,
+    filterType: 'number',
+    cellClass: 'mrx-cell-num',
+  },
   {
     field: 'flag',
     headerName: 'Stato',
@@ -397,7 +623,14 @@ export const bricoColumns: ColumnDef<BricoInventory>[] = [
       },
     },
   },
-  { field: 'lastInbound', headerName: 'Ultimo arrivo', width: '130px', sortable: true, filterable: true, filterType: 'date' },
+  {
+    field: 'lastInbound',
+    headerName: 'Ultimo arrivo',
+    width: '130px',
+    sortable: true,
+    filterable: true,
+    filterType: 'date',
+  },
 ]
 
 // ---------------------------------------------------------------------------

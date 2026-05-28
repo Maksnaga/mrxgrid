@@ -3,7 +3,9 @@ import { onMounted, ref } from 'vue'
 import { MrxGrid } from '@/components/MrxGrid'
 import { lmColumns, lmProducts, datasets, type DatasetId } from './_fixtures'
 
-const meta = {
+type IntroArgs = { dataset?: DatasetId }
+
+const meta: Meta<IntroArgs> = {
   title: 'Stories/Introduction/Overview',
   component: MrxGrid,
   tags: ['autodocs'],
@@ -65,10 +67,10 @@ Utilisez le sélecteur **Theme** dans la toolbar Storybook (en haut à droite) p
       description: 'Switch between brand datasets at runtime',
     },
   },
-} satisfies Meta<typeof MrxGrid & { dataset?: DatasetId }>
+}
 
 export default meta
-type Story = StoryObj<{ dataset?: DatasetId }>
+type Story = StoryObj<IntroArgs>
 
 export const Default: Story = {
   args: { dataset: 'leroymerlin' },
@@ -150,8 +152,12 @@ Sans slot, la grille affiche \`<MrxGridEmptyState>\` qui distingue les deux vari
   render: () => ({
     components: { MrxGrid },
     setup() {
-      function onAdd() { window.alert?.('Ajouter une ligne…') }
-      function onImport() { window.alert?.('Import CSV…') }
+      function onAdd() {
+        window.alert?.('Ajouter une ligne…')
+      }
+      function onImport() {
+        window.alert?.('Import CSV…')
+      }
       return { lmColumns, onAdd, onImport }
     },
     template: `

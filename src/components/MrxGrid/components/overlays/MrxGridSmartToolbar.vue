@@ -125,7 +125,11 @@ const filterColumns = computed<FilterColumnDescriptor[]>(() =>
       filterType,
       operators,
       defaultOperator,
-      options: col.filterOptions ?? col.filter?.options,
+      // `col.filter` is a union (inline FilterDef OR MrxFilterConfig).
+      // Only the inline shape carries `options`; narrow before reading.
+      options:
+        col.filterOptions ??
+        (col.filter && 'type' in col.filter ? col.filter.options : undefined),
     }
   }),
 )

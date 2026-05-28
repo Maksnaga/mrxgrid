@@ -209,9 +209,9 @@ describe('useFilterEngine / filterData', () => {
     expect(out.map((r) => r.name).sort()).toEqual(['Alice', 'Bob'])
   })
 
-  it('server mode bypasses filtering', () => {
+  it('server filterMode bypasses filtering', () => {
     const { state, filter } = setup()
-    state.mode.value = 'server'
+    state.filterMode.value = 'server'
     filter.addCondition(cond({ field: 'name', value: { value: 'a' } }))
     expect(filter.filterData(state.sourceData.value)).toHaveLength(4)
   })

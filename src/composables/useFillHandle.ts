@@ -292,14 +292,23 @@ export function useFillHandle(options: FillHandleOptions) {
         const srcCol = cols[srcColIdx]
         const tgtCol = cols[c]
         if (!srcCol || !tgtCol || !tgtCol.editable) continue
+        // Skip target columns whose cell editor doesn't match the source's —
+        // propagating across editor types (e.g. text → number) would push a
+        // value the typed column can't accept.
+        if (!areCompatibleColumns(srcCol, tgtCol)) continue
 
         for (let r = source.r1; r <= source.r2; r++) {
           const srcRow = rows.value[r]
           if (!srcRow) continue
+          const value = srcRow[srcCol.field]
+          // Honour the target column's `valueValidator` — its doc states it
+          // is "called before paste / fill writes a value". Keeps the fill
+          // handle aligned with the clipboard's paste path.
+          if (tgtCol.valueValidator && !tgtCol.valueValidator(value)) continue
           result.push({
             rowIndex: r,
             field: tgtCol.field,
-            value: srcRow[srcCol.field],
+            value,
           })
         }
       }
@@ -324,4 +333,16 @@ export function useFillHandle(options: FillHandleOptions) {
 function parseWidth(w: string | undefined): number {
   if (!w) return 150
   return parseInt(w, 10) || 150
+}
+
+/**
+ * Two columns share a "fill type" when their cell editors agree (an
+ * undefined editor defaults to plain text). The fill handle uses this to
+ * skip target columns whose type doesn't match the source — text → number
+ * would otherwise push a string into a typed column.
+ */
+function areCompatibleColumns(src: ColumnDef, tgt: ColumnDef): boolean {
+  const srcType = src.cellEditor ?? 'text'
+  const tgtType = tgt.cellEditor ?? 'text'
+  return srcType === tgtType
 }

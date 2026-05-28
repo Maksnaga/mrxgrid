@@ -9,7 +9,7 @@
  * for consumer-driven start / end actions.
  */
 
-import { MIconButton, MButton } from '@mozaic-ds/vue'
+import { MIconButton, MButton, MNumberBadge } from '@mozaic-ds/vue'
 import {
   FullscreenEnter24,
   FullscreenExit24,
@@ -79,14 +79,19 @@ const emit = defineEmits<{
         </template>
       </MIconButton>
 
-      <MButton v-if="showFilters" id="grid-filter" ghost size="s" class="moz-grid__toolbar-filter-btn"
-        @click="emit('filters')">
-        <Filter24 class="moz-grid__toolbar-filter-icon" />
-        <span>Filters</span>
-        <span v-if="activeFilterCount && activeFilterCount > 0" class="moz-grid__toolbar-filter-badge"
-          aria-hidden="true">{{
-            activeFilterCount }}</span>
-      </MButton>
+      <div v-if="showFilters" class="moz-grid__toolbar-filter">
+        <MIconButton id="grid-filter" ghost size="s" aria-label="Filters" @click="emit('filters')">
+          <template #icon>
+            <Filter24 />
+          </template>
+        </MIconButton>
+        <MNumberBadge
+          v-if="activeFilterCount && activeFilterCount > 0"
+          class="moz-grid__toolbar-filter-badge"
+          :label="activeFilterCount"
+          appearance="accent"
+        />
+      </div>
 
       <MIconButton v-if="showSettings" id="grid-settings" ghost size="s" aria-label="Settings"
         @click="emit('settings')">
@@ -159,32 +164,19 @@ const emit = defineEmits<{
   margin-left: auto;
 }
 
-.moz-grid__toolbar-filter-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: m.get-spacing('050');
+// Inline wrap so the `MStatusBadge` (filter count) can sit floating in the
+// top-right corner of the icon-only Filters button.
+.moz-grid__toolbar-filter {
   position: relative;
-}
-
-.moz-grid__toolbar-filter-icon {
-  width: 20px;
-  height: 20px;
+  display: inline-flex;
 }
 
 .moz-grid__toolbar-filter-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 18px;
-  height: 18px;
-  padding: 0 5px;
-  margin-left: m.get-spacing('050');
-  border-radius: 9px;
-  background: var(--Status-Standalone-element-Primary, #0071ce);
-  color: #fff;
-  font-size: 11px;
-  font-weight: 700;
-  line-height: 1;
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  pointer-events: none;
+  z-index: 1;
 }
 
 /* Selection banner — inline in the toolbar, neutral input-style frame

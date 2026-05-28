@@ -237,11 +237,15 @@ const groupFields = computed(() => activeGroups.value.map((g) => g.field))
 // condition from the drawer.
 const filterColumns = computed<FilterColumnDescriptor[]>(() =>
   columns.map((col) => {
+    // Narrow `col.filter` to its inline shape before reading `type` /
+    // `options` — the union also covers custom MrxFilterConfig
+    // (`component` / `doesFilterPass`) which doesn't carry those.
+    const inline = col.filter && 'type' in col.filter ? col.filter : undefined
     const filterType: FilterDataType =
       col.filterType ??
-      (col.filter?.type === 'select'
+      (inline?.type === 'select'
         ? 'set'
-        : col.filter?.type === 'date'
+        : inline?.type === 'date'
           ? 'date'
           : col.field === 'price' || col.field === 'stock' || col.field === 'id'
             ? 'number'
@@ -255,7 +259,7 @@ const filterColumns = computed<FilterColumnDescriptor[]>(() =>
       filterType,
       operators,
       defaultOperator,
-      options: col.filterOptions ?? col.filter?.options,
+      options: col.filterOptions ?? inline?.options,
     }
   }),
 )

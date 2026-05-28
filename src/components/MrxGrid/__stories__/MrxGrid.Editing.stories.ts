@@ -8,6 +8,7 @@ const meta = {
   title: 'Stories/Editing/Inline · Editors · Validation · Fill',
   component: MrxGrid,
   tags: ['autodocs'],
+  args: { rows: [] },
   parameters: {
     docs: {
       description: {

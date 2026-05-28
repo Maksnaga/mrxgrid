@@ -1,19 +1,17 @@
 <script setup lang="ts">
 /**
- * App shell — Sprint 9 (cleanup).
+ * App root — deux modes de rendu :
  *
- * Two render modes:
- *   • `?fixtures=<state>` in the URL → render the visual-regression
- *     fixture harness used by `e2e/visual.spec.ts`.
- *   • Anything else → render the Stock demo directly.
+ *   • `?fixtures=<state>` dans l'URL → fixtures de régression visuelle
+ *     (consommées par `e2e/visual.spec.ts`).
+ *   • Sinon → `AppShell` (la vraie demo app servie à `/mrxgrid-app/`).
  *
- * The earlier "stress test" demo (100k × 150 grid) and the demo-mode toggle
- * have been removed at the user's request — Stock demo is the canonical
- * showcase now. Restore via Git history if perf benchmarks are needed.
+ * `StockDemo.vue` historique reste dispo (vues, e2e) mais n'est plus
+ * l'entrée par défaut.
  */
 
 import GridFixtures from '@/views/GridFixtures.vue'
-import StockDemo from '@/views/StockDemo.vue'
+import AppShell from '@/app/AppShell.vue'
 
 const isFixtureMode =
   typeof window !== 'undefined' &&
@@ -22,5 +20,5 @@ const isFixtureMode =
 
 <template>
   <GridFixtures v-if="isFixtureMode" />
-  <StockDemo v-else />
+  <AppShell v-else />
 </template>

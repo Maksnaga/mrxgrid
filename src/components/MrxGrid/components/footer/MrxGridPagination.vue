@@ -56,14 +56,8 @@ function onPageChange(value: string | number): void {
     <!-- Left: rows per page + range label -->
     <div class="mrx-pagination__left">
       <span class="mrx-pagination__label">Rows per page</span>
-      <MSelect
-        id="mrx-pagination-page-size"
-        size="s"
-        :options="pageSizeSelectOptions"
-        :model-value="pageSize"
-        class="mrx-pagination__select-mozaic"
-        @update:modelValue="onPageSizeChange"
-      />
+      <MSelect id="mrx-pagination-page-size" size="s" :options="pageSizeSelectOptions" :model-value="pageSize"
+        class="mrx-pagination__select-mozaic" @update:modelValue="onPageSizeChange" />
       <span class="mrx-pagination__range">
         {{ rangeStart }}-{{ rangeEnd }} of {{ totalRows }} items
       </span>
@@ -71,37 +65,23 @@ function onPageChange(value: string | number): void {
 
     <!-- Right: prev / page-of-N / next -->
     <div class="mrx-pagination__right">
-      <MIconButton
-        id="mrx-pagination-prev"
-        ghost
-        size="s"
-        aria-label="Previous page"
-        :disabled="currentPage <= 1"
-        @click="emit('prev')"
-      >
-        <template #icon><ChevronLeft24 /></template>
+      <MIconButton id="mrx-pagination-prev" ghost size="s" aria-label="Previous page" :disabled="currentPage <= 1"
+        @click="emit('prev')">
+        <template #icon>
+          <ChevronLeft24 />
+        </template>
       </MIconButton>
 
       <span class="mrx-pagination__label">Page</span>
-      <MSelect
-        id="mrx-pagination-current"
-        size="s"
-        :options="pageSelectOptions"
-        :model-value="currentPage"
-        class="mrx-pagination__select-mozaic"
-        @update:modelValue="onPageChange"
-      />
+      <MSelect id="mrx-pagination-current" size="s" :options="pageSelectOptions" :model-value="currentPage"
+        class="mrx-pagination__select-mozaic" @update:modelValue="onPageChange" />
       <span class="mrx-pagination__label">of {{ totalPages }}</span>
 
-      <MIconButton
-        id="mrx-pagination-next"
-        ghost
-        size="s"
-        aria-label="Next page"
-        :disabled="currentPage >= totalPages"
-        @click="emit('next')"
-      >
-        <template #icon><ChevronRight24 /></template>
+      <MIconButton id="mrx-pagination-next" ghost size="s" aria-label="Next page" :disabled="currentPage >= totalPages"
+        @click="emit('next')">
+        <template #icon>
+          <ChevronRight24 />
+        </template>
       </MIconButton>
     </div>
   </div>
@@ -119,6 +99,7 @@ function onPageChange(value: string | number): void {
   color: var(--color-text-secondary);
   flex-wrap: wrap;
   gap: m.get-spacing('100');
+  border-radius: 0 0 m.get-spacing('200') m.get-spacing('200');
 }
 
 .mrx-pagination__left,

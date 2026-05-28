@@ -6,6 +6,7 @@ import MrxGridHeaderCell from './MrxGridHeaderCell.vue'
 import MrxGridHeaderMenu from './MrxGridHeaderMenu.vue'
 import MrxColumnFilterOverlay from './MrxColumnFilterOverlay.vue'
 import type { FilterCondition } from '../../models/filter.model'
+import { useGridContext } from '../../state/GridContext'
 
 defineOptions({ inheritAttrs: false })
 
@@ -91,8 +92,25 @@ function toggleMenu(field: string, e: MouseEvent) {
 
 // Sprint 5 — when the menu emits `filter-column`, swap the kebab listbox
 // for the per-column filter overlay (anchored on the same trigger rect).
+// Inject the grid state so the per-column overlay can read the active
+// filter model and stay in sync with the global filter drawer — opening
+// the overlay on a column that's already filtered must surface the
+// existing condition (and let the user edit it) rather than starting
+// from an empty draft.
+const _gridState = useGridContext()
+
 const openFilterField = ref<string | null>(null)
 const filterTriggerRect = ref<DOMRect | null>(null)
+
+/** Current engine-side filter condition for the column the overlay is
+ *  pointing at, or `null` when none. Pulled live from `gridState.filterModel`
+ *  so the per-column overlay and the global filter drawer share a single
+ *  source of truth. */
+const openFilterExisting = computed<FilterCondition | null>(() => {
+  const f = openFilterField.value
+  if (!f) return null
+  return _gridState.filterModel.value.conditions.find((c) => c.field === f) ?? null
+})
 
 const openFilterColumn = computed<ColumnDef | null>(() => {
   const f = openFilterField.value
@@ -295,6 +313,7 @@ function isResizable(col: ColumnDef): boolean {
     :column="openFilterColumn"
     :filterable-columns="props.filterableColumns"
     :trigger-rect="filterTriggerRect"
+    :existing="openFilterExisting"
     @apply="onColumnFilterApply"
     @remove="onColumnFilterRemove"
     @reorder="onColumnFilterReorder"

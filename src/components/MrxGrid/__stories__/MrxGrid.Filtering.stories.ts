@@ -1,10 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/vue3-vite'
-import { computed, ref } from 'vue'
-import {
-  MrxGrid,
-  MrxGridFilterDrawer,
-  MrxGridToolbar,
-} from '@/components/MrxGrid'
+import { computed, defineComponent, h, markRaw, onMounted, ref } from 'vue'
+import { MCombobox } from '@mozaic-ds/vue'
+import { teleportListbox, type TeleportListboxController } from '@/composables/useTeleportListbox'
+import { MrxGrid, MrxGridFilterDrawer, MrxGridToolbar } from '@/components/MrxGrid'
 import type { ColumnDef } from '@/components/MrxGrid'
 import {
   DEFAULT_OPERATORS,
@@ -12,13 +10,182 @@ import {
   type FilterColumnDescriptor,
   type FilterDataType,
   type FilterModel,
+  type MrxDoesFilterPassParams,
+  type MrxFilterParams,
 } from '@/components/MrxGrid/models/filter.model'
-import { lmColumns, lmProducts } from './_fixtures'
+import { lmColumns, lmProducts, type LMProduct } from './_fixtures'
+
+// Custom filter component — Mozaic `<MCombobox>` in multi-select mode for
+// `category`. Built-in `set` filter renders a flat list of checkboxes; the
+// design-system combobox brings type-to-filter, chips, clearable, etc.
+// for free.
+//
+// Migrated to the AG-Grid-style contract: state lives in a local ref, the
+// component exposes `isFilterActive` / `getModel` / `setModel` for the
+// builder, and a static `doesFilterPass` is attached to the component
+// constructor for engine evaluation.
+// Custom filter component — Mozaic `<MCombobox>` in multi-select mode for
+// `category`. AG-Grid-style contract: a single `params` prop bundles
+// everything the component needs; the predicate is column data, declared
+// alongside the component on `colDef.filter.doesFilterPass`.
+const CategoryComboFilter = defineComponent({
+  name: 'CategoryComboFilter',
+  props: {
+    params: { type: Object, required: true },
+  },
+  setup(props: { params: MrxFilterParams<LMProduct, string[]> }, { expose }) {
+    // Options derived from the demo dataset. A real implementation would
+    // accept them via `params.filterParams` or fetch them asynchronously.
+    const options = Array.from(new Set(lmProducts.map((r) => r.category)))
+      .sort()
+      .map((c) => ({ label: c, value: c }))
+
+    // Local mirror of the model; the grid is the source of truth (see
+    // `params.model`), the component syncs via `refresh()` and announces
+    // changes via `params.onModelChange()`.
+    const model = ref<string[] | null>(
+      Array.isArray(props.params.model) ? props.params.model : null,
+    )
+
+    function onUpdate(value: string | number | (string | number)[] | null): void {
+      const next = Array.isArray(value) ? (value as string[]) : value == null ? [] : [String(value)]
+      model.value = next.length === 0 ? null : next
+      props.params.onModelChange(model.value)
+    }
+
+    // The drawer clips overflow, so the combobox dropdown gets cut off. Lift
+    // the listbox to document.body once mounted; the parent then drives its
+    // visibility via `update:open` because the lifted listbox no longer sees
+    // Mozaic's own open/close CSS.
+    const wrapperRef = ref<HTMLElement | null>(null)
+    let controller: TeleportListboxController | undefined
+    onMounted(() => {
+      if (wrapperRef.value) controller = teleportListbox(wrapperRef.value)
+    })
+    function onOpenChange(open: boolean): void {
+      controller?.setOpen(open)
+    }
+
+    expose({
+      // `null` ⇔ inactive. Non-empty array ⇔ active.
+      isFilterActive: () => Array.isArray(model.value) && model.value.length > 0,
+      // Called when the grid's model changes from a source OTHER than this
+      // component (drawer apply, persistView restore). Re-sync local state.
+      refresh: (newParams: MrxFilterParams<LMProduct, string[]>): boolean => {
+        const m = newParams.model
+        model.value = Array.isArray(m) && m.length > 0 ? m : null
+        return true
+      },
+      getModelAsString: (m: string[]) => (Array.isArray(m) && m.length > 0 ? m.join(', ') : ''),
+    })
+
+    // Render function (not `template: '...'`) — avoids the runtime
+    // template compiler entirely.
+    return () =>
+      h('div', { ref: wrapperRef, class: 'sb-combo-wrap' }, [
+        h(MCombobox, {
+          multiple: true,
+          search: true,
+          clearable: true,
+          size: 's',
+          placeholder: 'Choisir un rayon…',
+          options,
+          modelValue: model.value ?? [],
+          'onUpdate:modelValue': onUpdate,
+          'onUpdate:open': onOpenChange,
+        }),
+      ])
+  },
+})
+
+// Pure predicate — declared alongside the component on the column. The
+// engine calls it once per row; no Vue instance involved.
+const categoryDoesFilterPass = (p: MrxDoesFilterPassParams<LMProduct, string[]>): boolean => {
+  if (!Array.isArray(p.model) || p.model.length === 0) return true
+  const v = p.getValue('category')
+  return typeof v === 'string' && p.model.includes(v)
+}
+
+// Custom filter component — dual-range slider for `price`, written with
+// the new AG-Grid-style contract: the component owns its state via a ref,
+// exposes `isFilterActive` / `getModel` / `setModel` to the builder, and
+// declares a static `doesFilterPass` that the engine calls during
+// evaluation. No more `filterPredicate` / `filterIsComplete` on the
+// ColumnDef — everything lives on the component.
+interface PriceModel {
+  min: number
+  max: number
+}
+const PRICE_MIN = 0
+const PRICE_MAX = 1500
+
+const PriceRangeFilter = defineComponent({
+  name: 'PriceRangeFilter',
+  props: {
+    params: { type: Object, required: true },
+  },
+  setup(props: { params: MrxFilterParams<LMProduct, PriceModel> }, { expose }) {
+    // Local mutable state. `null` means "no filter" → the engine drops the
+    // condition. The grid's source-of-truth lives on `params.model` and is
+    // re-synced via `refresh()` when changed externally.
+    const model = ref<PriceModel | null>(
+      props.params.model && typeof props.params.model === 'object' ? props.params.model : null,
+    )
+
+    function commit(next: PriceModel | null): void {
+      model.value = next
+      props.params.onModelChange(next)
+    }
+
+    function onMin(e: Event): void {
+      const v = Number((e.target as HTMLInputElement).value)
+      const current = model.value ?? { min: PRICE_MIN, max: PRICE_MAX }
+      commit({ min: v, max: current.max })
+    }
+    function onMax(e: Event): void {
+      const v = Number((e.target as HTMLInputElement).value)
+      const current = model.value ?? { min: PRICE_MIN, max: PRICE_MAX }
+      commit({ min: current.min, max: v })
+    }
+
+    expose({
+      isFilterActive: () => model.value !== null,
+      refresh: (newParams: MrxFilterParams<LMProduct, PriceModel>): boolean => {
+        model.value = newParams.model ?? null
+        return true
+      },
+      getModelAsString: (m: PriceModel) => (m ? `${m.min} € – ${m.max} €` : ''),
+    })
+
+    return () => {
+      const min = model.value?.min ?? PRICE_MIN
+      const max = model.value?.max ?? PRICE_MAX
+      return h('div', { class: 'sb-price-range' }, [
+        h('div', { class: 'sb-price-range__values' }, [
+          h('span', null, `${min} €`),
+          h('span', null, `${max} €`),
+        ]),
+        h('div', { class: 'sb-price-range__sliders' }, [
+          h('input', { type: 'range', min: PRICE_MIN, max: PRICE_MAX, value: min, onInput: onMin }),
+          h('input', { type: 'range', min: PRICE_MIN, max: PRICE_MAX, value: max, onInput: onMax }),
+        ]),
+      ])
+    }
+  },
+})
+
+// Pure predicate — declared alongside the component on the column.
+const priceDoesFilterPass = (p: MrxDoesFilterPassParams<LMProduct, PriceModel>): boolean => {
+  const v = p.getValue('price')
+  if (typeof v !== 'number' || !p.model) return false
+  return v >= p.model.min && v <= p.model.max
+}
 
 const meta = {
   title: 'Stories/Filtering/Inline · Drawer · Server-side',
   component: MrxGrid,
   tags: ['autodocs'],
+  args: { rows: [] },
   parameters: {
     docs: {
       description: {
@@ -395,7 +562,7 @@ Pour éviter de wirer le drawer + le model + filterColumns à la main, utilisez 
       const columns = lmColumns
 
       const filterColumns = computed<FilterColumnDescriptor[]>(() =>
-        columns.map((col: ColumnDef) => {
+        columns.map((col) => {
           const filterType: FilterDataType = col.filterType ?? 'text'
           return {
             field: col.field,
@@ -417,7 +584,16 @@ Pour éviter de wirer le drawer + le model + filterColumns à la main, utilisez 
         gridRef.value?.clearFilterModel?.()
       }
 
-      return { lmColumns, lmProducts, gridRef, drawerOpen, filterColumns, filterModel, onApply, onClear }
+      return {
+        lmColumns,
+        lmProducts,
+        gridRef,
+        drawerOpen,
+        filterColumns,
+        filterModel,
+        onApply,
+        onClear,
+      }
     },
     template: `
       <div class="sb-mrx-shell">
@@ -527,6 +703,246 @@ Si vous avez aussi du sort ou de la pagination server-side, écoutez \`@page-cha
             @filter-change="onFilterChange"
           />
         </div>
+      </div>
+    `,
+  }),
+}
+
+export const CustomFilter: Story = {
+  parameters: {
+    docs: {
+      description: {
+        story: `
+## Custom filter components
+
+Quand les 5 types built-in (\`text\`, \`number\`, \`date\`, \`set\`, \`boolean\`) ne couvrent pas le besoin — slider double, combobox autocomplete, tag picker, regex — déclarez \`filter\` sur la \`ColumnDef\` avec **un objet** qui bundle le composant et le prédicat (parité AG Grid).
+
+### Contrat
+
+\`\`\`ts
+import type { MrxFilterParams, MrxDoesFilterPassParams } from '@/components/MrxGrid'
+
+// 1. Le composant — un seul prop \`params\` qui bundle tout le contexte.
+const PriceRangeFilter = defineComponent({
+  props: { params: { type: Object, required: true } },
+  setup(props, { expose }) {
+    const model = ref(props.params.model ?? null)
+    expose({
+      isFilterActive: () => model.value !== null,
+      refresh: (newParams) => { model.value = newParams.model; return true },
+      getModelAsString: (m) => m ? \`\${m.min} € – \${m.max} €\` : '',
+    })
+    function onMin(e) {
+      model.value = { min: Number(e.target.value), max: model.value?.max ?? 1500 }
+      props.params.onModelChange(model.value)
+    }
+    // …
+  },
+})
+
+// 2. Le prédicat — pure function, déclarée à côté du composant.
+const priceDoesFilterPass = (p) => {
+  const v = p.getValue('price')
+  return v >= p.model.min && v <= p.model.max
+}
+
+// 3. La colonne — config bundlée.
+{
+  field: 'price',
+  filterable: true,
+  filter: {
+    component: markRaw(PriceRangeFilter),
+    doesFilterPass: priceDoesFilterPass,
+  },
+}
+\`\`\`
+
+### Pourquoi cette forme
+
+- **Le prédicat est de la donnée**, pas une méthode collée au composant. Tu peux le swapper, le partager, le tester en isolation.
+- **Un seul prop \`params\`** côté composant — \`{ model, column, filterParams, getValue, onModelChange }\`. Pas de prolifération de props.
+- **Le composant appelle \`params.onModelChange(value)\`** pour annoncer un changement. \`null\` ⇒ "pas de filtre" ⇒ la grille retire la condition.
+- **\`refresh(newParams)\`** pour resync depuis l'extérieur (drawer apply, persistView restore).
+- **\`isFilterActive\` optionnel** — par défaut \`model != null\`. Override-le si un model non-null peut quand même vouloir dire "inactif".
+
+Cette story illustre deux customs : **Rayon** (combobox multi-select) et **Prix** (dual-range slider).
+
+### \`filterMode\` découplé
+
+La prop \`filter-mode\` est désormais **indépendante** de \`server-filter\` / \`server-grouping\` :
+
+- \`filter-mode="client"\` (défaut) — l'engine appelle \`doesFilterPass\` sur chaque ligne.
+- \`filter-mode="server"\` — la grille passe les lignes telles quelles, à toi de re-fetch sur \`update:filter-model\`.
+
+Combinaison nouvelle (impossible avant) : **grouping serveur + filtrage client** via \`<MrxGrid :server-grouping :filter-mode="client" />\`.
+        `,
+      },
+    },
+  },
+  render: () => ({
+    components: { MrxGrid, MrxGridFilterDrawer, MrxGridToolbar },
+    setup() {
+      const drawerOpen = ref(false)
+      const filterModel = ref<FilterModel>({ conditions: [] })
+      const gridRef = ref<InstanceType<typeof MrxGrid>>()
+      const mode = ref<'client' | 'server'>('client')
+      const lastEvent = ref<string>('—')
+
+      // Override two columns with custom filter components. `markRaw` keeps
+      // Vue from making the components reactive when they live on a plain
+      // `ColumnDef` object.
+      const columns = lmColumns.map((col) => {
+        if (col.field === 'price') {
+          // AG-Grid-style config: a single `filter` field bundling the
+          // component (UI), the doesFilterPass (predicate), and an
+          // optional `getModelAsString` for the "FILTERED BY" tag bar.
+          //
+          // The `as any` widens our model-specific functions (PriceModel)
+          // to ColumnDef's `unknown`-typed slot — TypeScript variance on
+          // function-typed properties refuses the otherwise valid narrowing.
+          return {
+            ...col,
+            filter: {
+              component: markRaw(PriceRangeFilter),
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              doesFilterPass: priceDoesFilterPass as any,
+              getModelAsString: (m: unknown) => {
+                const pm = m as PriceModel | null
+                return pm ? `${pm.min} € – ${pm.max} €` : ''
+              },
+            },
+          }
+        }
+        if (col.field === 'category') {
+          // `category` already declared a `set` filterType on the inline
+          // row (lmColumns). Setting `filter` to a custom config flips
+          // the builder / overlay to the combobox; the inline row keeps
+          // its native multi-select untouched.
+          return {
+            ...col,
+            filter: {
+              component: markRaw(CategoryComboFilter),
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              doesFilterPass: categoryDoesFilterPass as any,
+              getModelAsString: (m: unknown) =>
+                Array.isArray(m) ? (m as string[]).join(', ') : '',
+            },
+          }
+        }
+        return col
+      })
+
+      const filterColumns = computed<FilterColumnDescriptor[]>(() =>
+        columns.map((col) => {
+          // Detect AG-Grid-style custom filter on `col.filter`. The
+          // alternative shape (`{ type, options, … }`) is the inline
+          // filter row config and is handled in the else branch.
+          const custom = col.filter && 'component' in col.filter ? col.filter : undefined
+          if (custom) {
+            return {
+              field: col.field,
+              headerName: col.headerName ?? col.field,
+              filterType: 'custom',
+              operators: [],
+              defaultOperator: 'equals',
+              // FilterColumnDescriptor types filter as MrxFilterConfig<unknown>;
+              // our config is typed on the row's actual shape, but the engine
+              // only ever needs the shape, not the row generic. Cast widens.
+              filter:
+                custom as unknown as import('@/components/MrxGrid/models/filter.model').MrxFilterConfig<
+                  unknown,
+                  unknown,
+                  unknown
+                >,
+              // Forward the source ColumnDef so the builder can pass it
+              // as `params.column` to the filter component.
+              colDef: col as ColumnDef<unknown>,
+            }
+          }
+          const filterType: FilterDataType = col.filterType ?? 'text'
+          return {
+            field: col.field,
+            headerName: col.headerName ?? col.field,
+            filterType,
+            operators: col.filterOperators ?? DEFAULT_OPERATORS[filterType],
+            defaultOperator: col.defaultFilterOperator ?? DEFAULT_OPERATOR_PER_TYPE[filterType],
+            options: col.filterOptions,
+          }
+        }),
+      )
+
+      function onApply(model: FilterModel): void {
+        filterModel.value = model
+        gridRef.value?.setFilterModel?.(model)
+      }
+      function onClear(): void {
+        filterModel.value = { conditions: [] }
+        gridRef.value?.clearFilterModel?.()
+      }
+      function onFilterChange(payload: unknown): void {
+        lastEvent.value = JSON.stringify(payload)
+      }
+
+      return {
+        columns,
+        lmProducts,
+        gridRef,
+        drawerOpen,
+        filterColumns,
+        filterModel,
+        mode,
+        lastEvent,
+        onApply,
+        onClear,
+        onFilterChange,
+      }
+    },
+    template: `
+      <div class="sb-mrx-shell">
+        <h2>Custom filter components</h2>
+        <p>
+          Deux colonnes ont un <code>filter: { component, doesFilterPass }</code> custom :
+          <strong>Rayon</strong> (combobox autocomplete avec chips) et <strong>Prix</strong>
+          (dual-range slider). Ouvre le drawer via la toolbar, ajoute une condition sur
+          l'une des deux colonnes — l'éditeur de valeur est remplacé et l'opérateur est masqué.
+        </p>
+        <div class="sb-mrx-toolbar">
+          <label style="display: inline-flex; align-items: center; gap: 8px;">
+            <strong>filter-mode :</strong>
+            <select :value="mode" @change="mode = $event.target.value">
+              <option value="client">client (default)</option>
+              <option value="server">server (predicate is bypassed)</option>
+            </select>
+          </label>
+          <span style="margin-left: 16px;">Dernier <code>filterChange</code> : <code>{{ lastEvent }}</code></span>
+        </div>
+        <div class="sb-mrx-frame">
+          <MrxGrid
+            :height="560"
+            ref="gridRef"
+            :columns="columns"
+            :rows="lmProducts"
+            :filter-mode="mode"
+            @filter-change="onFilterChange"
+            @update:filter-model="filterModel = $event"
+          >
+            <template #toolbar>
+              <MrxGridToolbar
+                show-filters
+                :active-filter-count="filterModel.conditions.length"
+                @filters="drawerOpen = !drawerOpen"
+              />
+            </template>
+          </MrxGrid>
+        </div>
+        <MrxGridFilterDrawer
+          :open="drawerOpen"
+          :columns="filterColumns"
+          :model="filterModel"
+          @update:open="drawerOpen = $event"
+          @apply="onApply"
+          @clear="onClear"
+        />
       </div>
     `,
   }),

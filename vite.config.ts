@@ -6,7 +6,13 @@ import vueJsx from '@vitejs/plugin-vue-jsx'
 import vueDevTools from 'vite-plugin-vue-devtools'
 
 // https://vite.dev/config/
+//
+// `base` est piloté par l'env `VITE_BASE` :
+//   • dev local                 → '/' (défaut)
+//   • build pour Asustor        → VITE_BASE=/mrxgrid-app/ npm run build:app
+// Les assets générés sont alors préfixés correctement (`/mrxgrid-app/assets/…`).
 export default defineConfig({
+  base: process.env.VITE_BASE ?? '/',
   plugins: [
     vue(),
     vueJsx(),

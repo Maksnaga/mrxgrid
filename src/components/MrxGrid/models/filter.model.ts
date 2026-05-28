@@ -9,7 +9,22 @@
  * for backward compat. The filter engine migration happens in Phase 3.
  */
 
-export type FilterDataType = 'text' | 'number' | 'date' | 'set' | 'boolean'
+import type { Component, Raw } from 'vue'
+
+// `ColumnDef` lives in ../types and itself imports from this file (for the
+// legacy filterComponent type). We reference it via inline `import('...')`
+// inside type positions to keep the dependency type-only and break the cycle.
+type ColumnDefRef<T> = import('../types').ColumnDef<T>
+
+/**
+ * Filter evaluation mode, decoupled from the grid-level `mode`.
+ * - `'client'` : `filterData()` evaluates conditions in-memory.
+ * - `'server'` : `filterData()` passes data through; consumer reacts to
+ *   `filterChange` and refreshes `:rows`.
+ */
+export type FilterMode = 'client' | 'server'
+
+export type FilterDataType = 'text' | 'number' | 'date' | 'set' | 'boolean' | 'custom'
 
 export type TextOperator =
   | 'contains'
@@ -60,6 +75,15 @@ export interface FilterCondition {
   field: string
   operator: FilterOperator
   value: FilterValue
+  /**
+   * Opaque state for AG-Grid-style custom filters (`ColumnDef.filter`).
+   *
+   * Captured each time the filter component invokes
+   * `params.onModelChange(value)`. The engine forwards it to
+   * `filter.doesFilterPass({ model, … })` per row. Ignored for built-in
+   * filter types.
+   */
+  model?: unknown
 }
 
 export interface FilterModel {
@@ -92,7 +116,148 @@ export interface FilterColumnDescriptor {
   operators: FilterOperator[]
   options?: { value: unknown; label: string }[]
   defaultOperator: FilterOperator
+  /**
+   * Full custom filter config — component + predicate + opaque params. The
+   * builder mounts `filter.component` and forwards `filter.filterParams`;
+   * the engine evaluates `filter.doesFilterPass` per row.
+   */
+  filter?: MrxFilterConfig<unknown, unknown, unknown>
+  /**
+   * Reference to the source `ColumnDef` — set by the engine's
+   * `describeColumn`. The builder forwards this through `MrxFilterParams.column`
+   * to the filter component. Consumers building descriptors manually (e.g.
+   * in stories) can omit it; the builder falls back to a synthesised
+   * minimal column shape.
+   */
+  colDef?: ColumnDefRef<unknown>
 }
+
+// ---------------------------------------------------------------------------
+// Custom filter contract — AG-Grid style.
+// ---------------------------------------------------------------------------
+
+/**
+ * A Vue component used as a custom filter UI (wrap with `markRaw()`).
+ * Mounted by the builder via `<component :is>`. The component receives a
+ * single `params` prop ({@link MrxFilterParams}) bundling everything it
+ * needs to read state, resolve values, and announce changes.
+ */
+export type MrxFilterComponent = Raw<Component>
+
+/**
+ * Predicate that decides whether a single row passes the filter. Lives on
+ * {@link MrxFilterConfig.doesFilterPass} — **not** on the component — so
+ * the predicate is column configuration, not bolted onto a constructor.
+ *
+ * Skip it for server-mode filtering: the grid passes rows through and the
+ * consumer re-fetches on `update:filter-model`.
+ */
+export type MrxDoesFilterPass<T = unknown, M = unknown> = (
+  params: MrxDoesFilterPassParams<T, M>,
+) => boolean
+
+/** Argument passed to {@link MrxDoesFilterPass}. */
+export interface MrxDoesFilterPassParams<T = unknown, M = unknown> {
+  /** Row data. */
+  row: T
+  /** Row index in the dataset BEFORE filtering. */
+  rowIndex: number
+  /** Resolves a column field to a value, honoring `valueGetter`. */
+  getValue: (field: string) => unknown
+  /** Current filter model (the value the component last announced). */
+  model: M
+  /** Column being filtered. */
+  column: ColumnDefRef<T>
+}
+
+/**
+ * Config object placed on `ColumnDef.filter` to plug in a custom filter.
+ *
+ * ```ts
+ * {
+ *   field: 'price',
+ *   filter: {
+ *     component: markRaw(PriceRangeFilter),
+ *     doesFilterPass: (p) => p.getValue('price') >= p.model.min
+ *                         && p.getValue('price') <= p.model.max,
+ *   },
+ * }
+ * ```
+ *
+ * - `component` — the UI. Receives `params: MrxFilterParams`, calls
+ *   `params.onModelChange(newModel)` on user interaction.
+ * - `doesFilterPass` — the predicate. Pure function; the grid calls it on
+ *   every row.
+ * - `filterParams` — opaque bag forwarded as `params.filterParams` to the
+ *   component (options, async loaders, …).
+ */
+export interface MrxFilterConfig<T = unknown, M = unknown, P = unknown> {
+  component: MrxFilterComponent
+  doesFilterPass?: MrxDoesFilterPass<T, M>
+  filterParams?: P
+  /**
+   * Optional — formats the model into a human-readable string for the
+   * "FILTERED BY" tag bar. Falls back to a generic formatter (array join,
+   * primitive coercion, JSON for objects) when absent.
+   *
+   * Lives on the column config rather than the component because the tag
+   * bar needs a label even when the filter is unmounted (overlay closed).
+   */
+  getModelAsString?: (model: M) => string
+}
+
+/**
+ * The single object the builder hands to a custom filter component as its
+ * `params` prop. The component reads `model` for re-hydration, calls
+ * `onModelChange` to announce a new state, and uses `getValue` if it needs
+ * row-level access.
+ */
+export interface MrxFilterParams<T = unknown, M = unknown, P = unknown> {
+  /** Current filter model (null when no filter is set). */
+  model: M | null
+  /** Column hosting this filter. */
+  column: ColumnDefRef<T>
+  /** Opaque params from `colDef.filter.filterParams`. */
+  filterParams?: P
+  /**
+   * Resolves a column field to a value. When called with a row argument,
+   * applies the column's `valueGetter`; without, returns a closed-over
+   * value resolver bound to the row currently being scanned.
+   */
+  getValue: (field: string) => unknown
+  /**
+   * Component → grid: announce a new model. Pass `null` to clear the
+   * filter (grid drops the condition). Triggers `doesFilterPass` re-run.
+   */
+  onModelChange: (model: M | null) => void
+}
+
+/**
+ * Optional lifecycle methods a custom filter component may expose via
+ * `defineExpose`. The grid auto-detects which ones are present.
+ *
+ * - `refresh(newParams)` — called when the grid's model changes from a
+ *   source OTHER than the component (drawer apply, persistView restore,
+ *   imperative `setFilterModel`). Return `false` to signal "can't sync,
+ *   please re-mount me". `void` / `true` mean "synced fine, keep me".
+ *
+ * - `afterGuiAttached(params)` — fired after first mount. `params.suppressFocus`
+ *   = true means the parent doesn't want this filter to steal focus.
+ *
+ * - `isFilterActive` — overrides the default "model != null" heuristic.
+ *   Use it when a non-null model can still mean "not filtering" (e.g. an
+ *   empty array, a range covering the full dataset).
+ *
+ * - `getModelAsString(model)` — label rendered in the "FILTERED BY" tag
+ *   bar. Defaults to the column header name when absent.
+ */
+export interface MrxFilterInstance<M = unknown> {
+  refresh?(newParams: MrxFilterParams<unknown, M>): boolean | void
+  afterGuiAttached?(params?: { suppressFocus?: boolean }): void
+  isFilterActive?(): boolean
+  getModelAsString?(model: M): string
+}
+
 
 export interface FilterDrawerData {
   model: FilterModel
@@ -120,6 +285,9 @@ export const DEFAULT_OPERATORS: Record<FilterDataType, FilterOperator[]> = {
   date: ['equals', 'notEquals', 'gt', 'gte', 'lt', 'lte', 'between', 'blank', 'notBlank'],
   set: ['in', 'notIn', 'blank', 'notBlank'],
   boolean: ['equals', 'blank', 'notBlank'],
+  // Custom filters bypass the operator picker entirely — the embedded
+  // component owns its own semantics.
+  custom: [],
 }
 
 export const DEFAULT_OPERATOR_PER_TYPE: Record<FilterDataType, FilterOperator> = {
@@ -128,6 +296,7 @@ export const DEFAULT_OPERATOR_PER_TYPE: Record<FilterDataType, FilterOperator> =
   date: 'equals',
   set: 'in',
   boolean: 'equals',
+  custom: 'equals',
 }
 
 export const OPERATOR_LABELS: Record<FilterOperator, string> = {

@@ -7,6 +7,7 @@ const meta = {
   title: 'Stories/Formula Engine/Basics · Custom functions · Refs',
   component: MrxGrid,
   tags: ['autodocs'],
+  args: { rows: [] },
   parameters: {
     docs: {
       description: {

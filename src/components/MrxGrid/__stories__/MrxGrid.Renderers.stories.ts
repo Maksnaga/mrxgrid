@@ -8,6 +8,7 @@ const meta = {
   title: 'Stories/Renderers/Text · Tag · Status · Custom · Slot',
   component: MrxGrid,
   tags: ['autodocs'],
+  args: { rows: [] },
   parameters: {
     docs: {
       description: {

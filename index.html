@@ -9,8 +9,25 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <title>Vite App</title>
     <style>
+      /* Reset margins du user-agent et coupe le scroll global. La demo
+         occupe exactement le viewport — c'est .app-shell__content qui
+         scrolle, pas la page. Sans ce reset, le 8px de body margin pousse
+         le 100vh hors viewport → on doit scroller pour voir le footer
+         de la sidebar. */
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        overflow: hidden;
+      }
+
       body {
         font-family: var(--font-family, Roboto), sans-serif;
+      }
+
+      #app {
+        height: 100%;
       }
     </style>
   </head>

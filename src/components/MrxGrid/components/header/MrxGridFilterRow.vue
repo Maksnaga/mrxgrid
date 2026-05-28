@@ -103,6 +103,7 @@ function widthFor(col: ColumnDef, getter?: (f: string) => string | undefined): s
       :key="'fl-' + col.field"
       class="mrx-filter-cell mrx-grid-cell--pinned"
       :class="{ 'mrx-grid-cell--pinned-left-edge': idx === pinnedLeftColumns.length - 1 }"
+      :data-field="col.field"
       :style="{
         ...getPinnedStyle('left', idx, true),
         width: widthFor(col, getColumnWidth),
@@ -130,6 +131,7 @@ function widthFor(col: ColumnDef, getter?: (f: string) => string | undefined): s
       v-for="col in columns"
       :key="col.field"
       class="mrx-filter-cell"
+      :data-field="col.field"
       :style="
         fillField && col.field === fillField
           ? { flex: '1 1 0', width: 'auto', minWidth: widthFor(col, getColumnWidth) }
@@ -157,7 +159,11 @@ function widthFor(col: ColumnDef, getter?: (f: string) => string | undefined): s
       v-for="(col, idx) in pinnedRightColumns"
       :key="'fr-' + col.field"
       class="mrx-filter-cell mrx-grid-cell--pinned"
-      :class="{ 'mrx-grid-cell--pinned-right-edge': idx === 0 }"
+      :class="{
+        'mrx-grid-cell--pinned-right-edge': idx === 0,
+        'mrx-grid-cell--pinned-row-end': idx === pinnedRightColumns.length - 1,
+      }"
+      :data-field="col.field"
       :style="{
         ...getPinnedStyle('right', idx, true),
         width: widthFor(col, getColumnWidth),
@@ -196,6 +202,13 @@ function widthFor(col: ColumnDef, getter?: (f: string) => string | undefined): s
 // separator — they're layout-only, not data columns.
 .mrx-filter-cell--spacer,
 .mrx-filter-cell--utility {
+  border-right: none;
+}
+
+// Dernière colonne right-pinned : bord externe sur la limite de la table,
+// donc on supprime le `border-right` qui doublerait le bord du wrapper.
+// Mirror exact du même fix sur `MrxGridHeaderCell` et `MrxGridRow`.
+.mrx-filter-cell.mrx-grid-cell--pinned-row-end {
   border-right: none;
 }
 

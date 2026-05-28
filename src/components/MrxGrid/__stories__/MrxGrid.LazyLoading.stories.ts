@@ -8,6 +8,7 @@ const meta = {
   title: 'Stories/Lazy Loading/Page-based · Infinite scroll',
   component: MrxGrid,
   tags: ['autodocs'],
+  args: { rows: [] },
   parameters: {
     docs: {
       description: {
@@ -137,7 +138,9 @@ const onVisible = debounce(handler, 60)
           // Sparse-fill the rows array at the right offset.
           if (rows.value.length < SERVER_TOTAL) {
             rows.value = rows.value.concat(
-              new Array(Math.max(0, p * PAGE + slice.length - rows.value.length)) as LMProduct[],
+              Array.from({
+                length: Math.max(0, p * PAGE + slice.length - rows.value.length),
+              }) as LMProduct[],
             )
           }
           for (let i = 0; i < slice.length; i++) {
@@ -229,7 +232,12 @@ Si vous filtrez ou triez côté serveur, écoutez aussi \`@filter-change\` et ut
     setup() {
       const rows = ref<LMProduct[]>(allRows.slice(0, 50))
       const lastChange = ref<string>('—')
-      function onPageChange(p: { page: number; pageSize: number; startIndex: number; endIndex: number }) {
+      function onPageChange(p: {
+        page: number
+        pageSize: number
+        startIndex: number
+        endIndex: number
+      }) {
         lastChange.value = `page ${p.page + 1} · ${p.pageSize}`
         rows.value = allRows.slice(p.startIndex, p.endIndex + 1)
       }

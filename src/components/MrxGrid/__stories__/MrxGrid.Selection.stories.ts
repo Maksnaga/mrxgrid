@@ -8,6 +8,7 @@ const meta = {
   title: 'Stories/Selection/Row · Cell · Bulk',
   component: MrxGrid,
   tags: ['autodocs'],
+  args: { rows: [] },
   parameters: {
     docs: {
       description: {

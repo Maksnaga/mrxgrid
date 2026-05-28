@@ -6,6 +6,7 @@ const meta = {
   title: 'Stories/Row Expansion/Detail row',
   component: MrxGrid,
   tags: ['autodocs'],
+  args: { rows: [] },
   parameters: {
     docs: {
       description: {
@@ -41,6 +42,7 @@ export default meta
 type Story = StoryObj<typeof meta>
 
 export const ExpandableRows: Story = {
+  args: { columns: lmColumns, rows: lmProducts },
   parameters: {
     docs: {
       description: {
@@ -126,6 +128,7 @@ const accordion = (state) => {
 }
 
 export const ExpandWithCustomActions: Story = {
+  args: { columns: lmColumns, rows: lmProducts },
   parameters: {
     docs: {
       description: {
@@ -165,7 +168,7 @@ Le slot reçoit la \`row\` complète — vous y posez librement vos CTA (réappr
     setup() {
       function reorder(row: LMProduct) {
         // Storybook actions panel will display this if the consumer wires it.
-        // eslint-disable-next-line no-alert
+
         window.alert?.(`Réapprovisionnement déclenché pour ${row.sku} (${row.name})`)
       }
       return { lmColumns, lmProducts, reorder }

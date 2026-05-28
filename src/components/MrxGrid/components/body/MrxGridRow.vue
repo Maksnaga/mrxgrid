@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import type { CSSProperties } from 'vue'
 import type { CellFlags, ColumnDef, RowData } from '../../types'
-import { MButton, MCheckbox } from '@mozaic-ds/vue'
+import { MButton, MCheckbox, MLoader } from '@mozaic-ds/vue'
 import { ChevronDown20, ChevronRight20 } from '@mozaic-ds/icons-vue'
 import MrxGridCell from './MrxGridCell.vue'
 
@@ -43,6 +43,12 @@ const props = defineProps<{
    *  space (typically the last unpinned column when no right-pinned column
    *  is present and horizontal virtualisation is off). */
   fillField?: string | null
+  /**
+   * True quand cette row entière est en attente d'une mutation serveur
+   * (bulk delete, drawer save, etc.). Drive un dim global + un mini
+   * spinner Mozaic — voir `props.pendingRowIds` côté `<MrxGrid>`.
+   */
+  pending?: boolean
 }>()
 
 /** Inline style for an unpinned center cell. The `fillField` column gets
@@ -79,7 +85,7 @@ const emit = defineEmits<{
   activateCell: [field: string, e: MouseEvent]
   editStart: [field: string]
   editInput: [value: unknown]
-  editCommit: [direction: 'down' | 'right' | 'left']
+  editCommit: [direction: 'down' | 'right' | 'left' | 'stay']
   editCancel: []
   editBlur: []
   fillHandleMousedown: [e: MouseEvent]
@@ -95,7 +101,23 @@ const emit = defineEmits<{
   </div>
 
   <!-- Data row -->
-  <div v-else class="mrx-grid-row" :class="{ 'mrx-grid-row--selected': selected }" role="row">
+  <div
+    v-else
+    class="mrx-grid-row"
+    :class="{ 'mrx-grid-row--selected': selected, 'mrx-grid-row--pending': pending }"
+    :aria-busy="pending ? 'true' : undefined"
+    role="row"
+  >
+    <!-- Mini spinner row-level — affiché uniquement quand la row est en
+         attente d'une mutation serveur. Positionné en absolute à droite
+         pour ne pas pousser les cellules ; le dim opacity sur la row
+         entière fait le reste du signal visuel. -->
+    <MLoader
+      v-if="pending"
+      class="mrx-grid-row-spinner"
+      size="xs"
+      aria-label="Modification en cours"
+    />
     <!-- Row number (sticky-left, auto-on with formula columns) -->
     <div v-if="showRowNumbers" class="mrx-grid-cell mrx-grid-rownum-cell"
       :class="{ 'mrx-grid-cell--pinned': hasPinned }" :style="getUtilityStyle('rownum', false)" role="rowheader">
@@ -127,7 +149,7 @@ const emit = defineEmits<{
       :edge-right="flags(col.field).edgeRight" :fill-handle="flags(col.field).fillHandle"
       :fill-target="flags(col.field).fillTarget" :fill-target-invalid="flags(col.field).fillTargetInvalid"
       :invalid="flags(col.field).invalid" :invalid-message="flags(col.field).invalidMessage"
-      :cut-source="flags(col.field).cutSource" :cut-edge-top="flags(col.field).cutEdgeTop"
+      :cut-source="flags(col.field).cutSource" :pending="flags(col.field).pending" :cut-edge-top="flags(col.field).cutEdgeTop"
       :cut-edge-bottom="flags(col.field).cutEdgeBottom" :cut-edge-left="flags(col.field).cutEdgeLeft"
       :cut-edge-right="flags(col.field).cutEdgeRight" class="mrx-grid-cell--pinned" :class="{
         'mrx-grid-cell--pinned-left-edge': idx === pinnedLeftColumns.length - 1,
@@ -160,6 +182,7 @@ const emit = defineEmits<{
       :fill-handle="flags(col.field).fillHandle" :fill-target="flags(col.field).fillTarget"
       :fill-target-invalid="flags(col.field).fillTargetInvalid" :invalid="flags(col.field).invalid"
       :invalid-message="flags(col.field).invalidMessage" :cut-source="flags(col.field).cutSource"
+      :pending="flags(col.field).pending"
       :cut-edge-top="flags(col.field).cutEdgeTop" :cut-edge-bottom="flags(col.field).cutEdgeBottom"
       :cut-edge-left="flags(col.field).cutEdgeLeft" :cut-edge-right="flags(col.field).cutEdgeRight"
       :class="{ 'mrx-grid-cell--fill': fillField && col.field === fillField }" :style="centerCellStyle(col.field)"
@@ -185,7 +208,7 @@ const emit = defineEmits<{
       :edge-right="flags(col.field).edgeRight" :fill-handle="flags(col.field).fillHandle"
       :fill-target="flags(col.field).fillTarget" :fill-target-invalid="flags(col.field).fillTargetInvalid"
       :invalid="flags(col.field).invalid" :invalid-message="flags(col.field).invalidMessage"
-      :cut-source="flags(col.field).cutSource" :cut-edge-top="flags(col.field).cutEdgeTop"
+      :cut-source="flags(col.field).cutSource" :pending="flags(col.field).pending" :cut-edge-top="flags(col.field).cutEdgeTop"
       :cut-edge-bottom="flags(col.field).cutEdgeBottom" :cut-edge-left="flags(col.field).cutEdgeLeft"
       :cut-edge-right="flags(col.field).cutEdgeRight" class="mrx-grid-cell--pinned" :class="{
         'mrx-grid-cell--pinned-right-edge': idx === 0,
@@ -216,6 +239,27 @@ const emit = defineEmits<{
 
 .mrx-grid-row--selected {
   background-color: var(--color-background-accent);
+}
+
+// --- Row-level pending (granular skeleton) --------------------------------
+// La row entière est en attente d'une mutation serveur → on dim toute la
+// row (le contenu reste visible mais grisé) + on bloque les pointer
+// events pour que l'utilisateur ne déclenche pas une 2e mutation sur la
+// même row. Le mini spinner Mozaic flotte à droite, anchored au coin
+// trailing pour ne pas pousser le layout des cellules.
+.mrx-grid-row--pending {
+  position: relative;
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.mrx-grid-row-spinner {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 4;
+  pointer-events: none;
 }
 
 // Hover lives on the cell, not the row — only the cell directly under

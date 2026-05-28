@@ -52,6 +52,8 @@ defineProps<{
   /** Row-state queries. */
   isRowSelected: (row: RowData, index: number) => boolean
   isExpanded: (index: number) => boolean
+  /** True quand la row a une mutation en vol — drive le dim row-level. */
+  isRowPending?: (row: RowData, index: number) => boolean
   isGroupExpanded: (key: string) => boolean
   activeFieldForRow: (index: number) => string | null | undefined
   editingFieldForRow: (index: number) => string | null | undefined
@@ -79,7 +81,7 @@ const emit = defineEmits<{
   activateCell: [index: number, field: string, event: MouseEvent]
   editStart: [index: number, field: string]
   editInput: [value: unknown]
-  editCommit: [direction: 'down' | 'right' | 'left']
+  editCommit: [direction: 'down' | 'right' | 'left' | 'stay']
   editCancel: []
   editBlur: []
   fillHandleMousedown: [event: MouseEvent]
@@ -140,6 +142,7 @@ const emit = defineEmits<{
             :has-pinned="hasPinned"
             :selectable="selectable"
             :selected="isRowSelected(getRenderRow(i), i)"
+            :pending="isRowPending ? isRowPending(getRenderRow(i), i) : false"
             :expandable="expandable"
             :expanded="isExpanded(i)"
             :active-field="activeFieldForRow(i)"
@@ -159,7 +162,7 @@ const emit = defineEmits<{
             @activate-cell="(field: string, e: MouseEvent) => emit('activateCell', i, field, e)"
             @edit-start="(field: string) => emit('editStart', i, field)"
             @edit-input="(v: unknown) => emit('editInput', v)"
-            @edit-commit="(d: 'down' | 'right' | 'left') => emit('editCommit', d)"
+            @edit-commit="(d: 'down' | 'right' | 'left' | 'stay') => emit('editCommit', d)"
             @edit-cancel="emit('editCancel')"
             @edit-blur="emit('editBlur')"
             @fill-handle-mousedown="(e: MouseEvent) => emit('fillHandleMousedown', e)"
@@ -234,7 +237,7 @@ const emit = defineEmits<{
           @activate-cell="(field: string, e: MouseEvent) => emit('activateCell', i, field, e)"
           @edit-start="(field: string) => emit('editStart', i, field)"
           @edit-input="(v: unknown) => emit('editInput', v)"
-          @edit-commit="(d: 'down' | 'right' | 'left') => emit('editCommit', d)"
+          @edit-commit="(d: 'down' | 'right' | 'left' | 'stay') => emit('editCommit', d)"
           @edit-cancel="emit('editCancel')"
           @edit-blur="emit('editBlur')"
           @fill-handle-mousedown="(e: MouseEvent) => emit('fillHandleMousedown', e)"

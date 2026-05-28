@@ -123,41 +123,28 @@ function onResizeMouseDown(e: MouseEvent): void {
 </script>
 
 <template>
-  <div
-    class="mrx-grid-header-cell"
-    :class="[cellClass, { 'mrx-grid-header-cell--moving': isMoving }]"
-    :style="
-      fill
-        ? {
-            ...cellStyle,
-            // basis 0 (not auto) so a long header label can't push the
-            // cell past `declaredWidth`. min-width still floors the cell
-            // at the configured size; flex-grow absorbs any trailing
-            // empty space in the header row.
-            flex: '1 1 0',
-            width: 'auto',
-            minWidth: width ?? column.width,
-            cursor: isSortable ? 'pointer' : 'grab',
-          }
-        : {
-            ...cellStyle,
-            width: width ?? column.width,
-            minWidth: width ?? column.width,
-            cursor: isSortable ? 'pointer' : 'grab',
-          }
-    "
-    role="columnheader"
-    :data-field="column.field"
-    @mousedown="onHeaderMouseDown"
-    @click="onHeaderClick"
-  >
+  <div class="mrx-grid-header-cell" :class="[cellClass, { 'mrx-grid-header-cell--moving': isMoving }]" :style="fill
+    ? {
+      ...cellStyle,
+      // basis 0 (not auto) so a long header label can't push the
+      // cell past `declaredWidth`. min-width still floors the cell
+      // at the configured size; flex-grow absorbs any trailing
+      // empty space in the header row.
+      flex: '1 1 0',
+      width: 'auto',
+      minWidth: width ?? column.width,
+      cursor: isSortable ? 'pointer' : 'grab',
+    }
+    : {
+      ...cellStyle,
+      width: width ?? column.width,
+      minWidth: width ?? column.width,
+      cursor: isSortable ? 'pointer' : 'grab',
+    }
+    " role="columnheader" :data-field="column.field" @mousedown="onHeaderMouseDown" @click="onHeaderClick">
     <span class="mrx-grid-header-content">
-      <component
-        v-if="resolvedHeaderSlot"
-        :is="resolvedHeaderSlot"
-        :column="column"
-        :sort-direction="sortDirection ?? null"
-      />
+      <component v-if="resolvedHeaderSlot" :is="resolvedHeaderSlot" :column="column"
+        :sort-direction="sortDirection ?? null" />
       <span v-else class="mrx-grid-header-label">{{ column.headerName }}</span>
       <span v-if="sortIcon" class="mrx-grid-sort-indicator" aria-hidden="true">
         <component :is="sortIcon" class="mrx-grid-sort-icon" />
@@ -165,21 +152,12 @@ function onResizeMouseDown(e: MouseEvent): void {
           {{ sortIndex }}
         </span>
       </span>
-      <button
-        type="button"
-        class="mrx-grid-menu-trigger"
-        aria-label="Menu de la colonne"
-        @click.stop="onMenuClick"
-      >
+      <button type="button" class="mrx-grid-menu-trigger" aria-label="Menu de la colonne" @click.stop="onMenuClick">
         <Settings20 class="mrx-grid-menu-icon" />
       </button>
     </span>
-    <div
-      v-if="resizable"
-      class="mrx-grid-resize-handle"
-      :class="{ 'mrx-grid-resize-handle--left': resizeFromLeft }"
-      @mousedown.prevent="onResizeMouseDown"
-    />
+    <div v-if="resizable" class="mrx-grid-resize-handle" :class="{ 'mrx-grid-resize-handle--left': resizeFromLeft }"
+      @mousedown.prevent="onResizeMouseDown" />
   </div>
 </template>
 
@@ -243,7 +221,6 @@ function onResizeMouseDown(e: MouseEvent): void {
 }
 
 .mrx-grid-sort-indicator {
-  color: var(--color-text-accent);
   display: inline-flex;
   align-items: center;
   gap: 2px;
@@ -251,8 +228,8 @@ function onResizeMouseDown(e: MouseEvent): void {
 }
 
 .mrx-grid-sort-icon {
-  width: 14px;
-  height: 14px;
+  width: 20px;
+  height: 20px;
   display: block;
   fill: currentColor;
 }

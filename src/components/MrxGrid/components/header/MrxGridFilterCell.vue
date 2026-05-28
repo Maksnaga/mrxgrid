@@ -39,15 +39,24 @@ const emit = defineEmits<{
 const _gridSlots = injectMrxGridSlots()
 const slot = computed(() => resolveFilterSlot(_gridSlots, props.column.field))
 
+// The inline filter row consumes the FilterDef shape only (`type`, `options`,
+// `placeholder`). Narrow the union before reading those fields — a custom
+// MrxFilterConfig (`component`, `doesFilterPass`) is a builder/overlay
+// concept and doesn't drive the inline row.
+const inlineFilter = computed(() => {
+  const f = props.column.filter
+  return f && 'type' in f ? f : undefined
+})
+
 const selectOptions = computed(() => {
-  const opts = props.column.filter?.options ?? []
+  const opts = inlineFilter.value?.options ?? []
   return opts.map((o) => ({ text: o.label, value: o.value as string | number }))
 })
 
 // `MSelect` requires a value-less placeholder option to render the "All"
 // reset entry, so prepend one when the column declares a placeholder.
 const selectOptionsWithPlaceholder = computed(() => {
-  const placeholder = props.column.filter?.placeholder ?? 'All'
+  const placeholder = inlineFilter.value?.placeholder ?? 'All'
   return [{ text: placeholder, value: '' }, ...selectOptions.value]
 })
 
@@ -94,16 +103,18 @@ function onDateTo(v: string | number) {
     :clear="() => emit('commit', null)"
   />
 
-  <!-- 3. Built-in Mozaic inputs based on `column.filter.type`. -->
-  <template v-else-if="column.filter">
+  <!-- 3. Built-in Mozaic inputs based on `inlineFilter.type`. Custom-filter
+       configs (`{ component, doesFilterPass }`) are skipped here — they
+       drive the builder / column overlay, not the inline filter row. -->
+  <template v-else-if="inlineFilter">
     <!-- Text — MTextInput with leading search icon (search inputType pairs
          with the icon slot to render the magnifier inside the field). -->
     <MTextInput
-      v-if="column.filter.type === 'text'"
+      v-if="inlineFilter.type === 'text'"
       :id="`mrx-filter-${column.field}`"
       size="s"
       input-type="search"
-      :placeholder="column.filter.placeholder ?? 'Filter...'"
+      :placeholder="inlineFilter.placeholder ?? 'Filter...'"
       :model-value="value == null ? '' : String(value)"
       @input="onTextInput"
     >
@@ -112,7 +123,7 @@ function onDateTo(v: string | number) {
 
     <!-- Select — MSelect with placeholder "All" entry. -->
     <MSelect
-      v-else-if="column.filter.type === 'select'"
+      v-else-if="inlineFilter.type === 'select'"
       :id="`mrx-filter-${column.field}`"
       size="s"
       :options="selectOptionsWithPlaceholder"
@@ -121,7 +132,7 @@ function onDateTo(v: string | number) {
     />
 
     <!-- Date range — paired MDatepickers. -->
-    <div v-else-if="column.filter.type === 'date'" class="mrx-filter-cell__date-range">
+    <div v-else-if="inlineFilter.type === 'date'" class="mrx-filter-cell__date-range">
       <MDatepicker
         :id="`mrx-filter-${column.field}-from`"
         size="s"
@@ -139,7 +150,7 @@ function onDateTo(v: string | number) {
     <!-- Custom component name (legacy escape hatch). -->
     <component
       v-else
-      :is="column.filter.type"
+      :is="inlineFilter.type"
       :model-value="value"
       :field="column.field"
       :column="column"

@@ -14,8 +14,8 @@
  */
 
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { MSelect, MTextInput, MIconButton } from '@mozaic-ds/vue'
-import { Cross20, Drag24 } from '@mozaic-ds/icons-vue'
+import { MSelect, MTextInput, MIconButton, MButton } from '@mozaic-ds/vue'
+import { Trash24, Drag24, ListAdd24 } from '@mozaic-ds/icons-vue'
 import type { ColumnDef } from '../../types'
 import {
   DEFAULT_OPERATORS,
@@ -147,6 +147,37 @@ interface Draft {
   combinator: FilterCombinator
   value: unknown
   valueTo: unknown
+  /**
+   * Custom-filter model — captured each time the filter component calls
+   * `params.onModelChange(value)`. Carried through to the engine via
+   * `condition.model` for evaluation by `col.filter.doesFilterPass`.
+   * `null` means "no filter applied".
+   */
+  model: unknown
+}
+
+/**
+ * Methods a custom filter component may expose via `defineExpose`. All
+ * fields are optional — the grid auto-detects which ones are present
+ * (`isFilterActive` overrides the default "model != null" heuristic;
+ * `refresh` is called on external model updates; `afterGuiAttached` runs
+ * after first mount).
+ */
+interface FilterInstanceLike {
+  isFilterActive?(): boolean
+  refresh?(params: unknown): boolean | void
+  afterGuiAttached?(params?: { suppressFocus?: boolean }): void
+  getModelAsString?(model: unknown): string
+}
+
+/** Active instance refs keyed by draft id. */
+const instanceRefs = new Map<string, FilterInstanceLike>()
+function setInstanceRef(id: string, inst: unknown): void {
+  if (inst && typeof inst === 'object') {
+    instanceRefs.set(id, inst as FilterInstanceLike)
+  } else {
+    instanceRefs.delete(id)
+  }
 }
 
 const COMBINATOR_OPTIONS = [
@@ -166,6 +197,7 @@ function defaultDraft(seedField: string, seed?: FilterCondition | null): Draft {
     combinator: seed?.combinator ?? 'and',
     value: seed?.value?.value ?? '',
     valueTo: seed?.value?.valueTo ?? '',
+    model: seed?.model ?? null,
   }
 }
 
@@ -187,10 +219,31 @@ function isRange(op: FilterOperator) {
 }
 
 function isDraftComplete(d: Draft): boolean {
+  const col = getColumn(d.field)
+  const cfg = customFilterFor(col)
+  if (cfg) {
+    // Custom filter — prefer the instance's `isFilterActive()` when
+    // available (lets the consumer say "non-null model is still inactive"
+    // for empty arrays / full ranges). Otherwise rely on `model != null`.
+    const inst = instanceRefs.get(d.id)
+    if (inst?.isFilterActive) return inst.isFilterActive()
+    return d.model != null
+  }
   if (isValueless(d.operator)) return true
   if (d.value == null || d.value === '') return false
   if (isRange(d.operator) && (d.valueTo == null || d.valueTo === '')) return false
   return true
+}
+
+/**
+ * Returns `col.filter` when it carries the AG-Grid-style shape
+ * (`component` + optional `doesFilterPass`). Returns `undefined` when
+ * `col.filter` is the inline FilterDef shape or absent.
+ */
+function customFilterFor(col: ColumnDef) {
+  const f = col.filter
+  if (f && 'component' in f) return f
+  return undefined
 }
 
 // ---------------------------------------------------------------------------
@@ -208,13 +261,18 @@ function buildCondition(d: Draft): FilterCondition {
     : isRange(d.operator)
       ? { value: d.value, valueTo: d.valueTo }
       : { value: d.value }
-  return {
+  const base: FilterCondition = {
     id: d.id,
     combinator: d.combinator,
     field: d.field,
     operator: d.operator,
     value: cleanValue,
   }
+  // Carry the AG-Grid-style opaque model through — the engine reads
+  // this on every evaluation, and the drawer round-trips it via
+  // `update:filterModel`.
+  if (d.model != null) base.model = d.model
+  return base
 }
 
 function emitApply(d: Draft) {
@@ -277,6 +335,75 @@ function onTextInputTo(d: Draft, e: Event) {
 function onValueSelect(d: Draft, v: string | number) {
   d.value = v
   emitApply(d)
+}
+
+/**
+ * `MrxFilterParams.onModelChange` — invoked by the filter component each
+ * time it announces a new model. Mirrors the model onto the draft, then
+ * emits `apply` (still active) or `remove` (cleared). Idempotent: a
+ * subsequent `onModelChange(null)` is a safe no-op when nothing was set.
+ */
+function onModelChange(d: Draft, nextModel: unknown) {
+  d.model = nextModel
+  if (isDraftComplete(d)) {
+    emit('apply', buildCondition(d))
+    return
+  }
+  // No longer active — drop the engine row idempotently.
+  emit('remove', d.id)
+  d.model = null
+}
+
+/**
+ * Builds the bundled `params` object passed to the filter component as
+ * its single `params` prop. Re-evaluated on each render so the component
+ * sees the current model whenever Vue patches it.
+ */
+function buildFilterParams(d: Draft) {
+  const col = getColumn(d.field)
+  const cfg = customFilterFor(col)
+  return {
+    model: d.model,
+    column: col,
+    filterParams: cfg?.filterParams,
+    // At UI time we don't have a row context. Resolvers that need it
+    // are used by the engine, where a real row IS available.
+    getValue: (_field: string) => undefined as unknown,
+    onModelChange: (m: unknown) => onModelChange(d, m),
+  }
+}
+
+/**
+ * Returns a function-ref bound to the given draft. Out-of-template arrow
+ * so `noImplicitAny` stays happy without leaking TS annotations into the
+ * template (Vue's parser doesn't accept them).
+ */
+function bindRefFor(d: Draft): (inst: unknown) => void {
+  return (inst) => bindAGFilterInstance(d, inst)
+}
+
+/**
+ * Function-ref handler. Stores the live instance keyed by draft id,
+ * calls `refresh?()` to re-hydrate from any persisted model, then fires
+ * `afterGuiAttached?()`. The destructor branch (Vue passes `null` on
+ * unmount) cleans up the map.
+ */
+function bindAGFilterInstance(d: Draft, inst: unknown) {
+  if (inst == null) {
+    instanceRefs.delete(d.id)
+    return
+  }
+  setInstanceRef(d.id, inst)
+  const live = instanceRefs.get(d.id)
+  if (!live) return
+  if (d.model != null) {
+    try {
+      live.refresh?.(buildFilterParams(d))
+    } catch {
+      // Defensive — a bad refresh shouldn't break the UI.
+    }
+  }
+  live.afterGuiAttached?.()
 }
 
 // ---------------------------------------------------------------------------
@@ -346,6 +473,9 @@ function onRemoveDraft(d: Draft) {
   const timer = textTimers.get(d.id)
   if (timer) clearTimeout(timer)
   textTimers.delete(d.id)
+  // Forget the AG-Grid-style instance handle (the component will unmount
+  // with the row; defensive cleanup in case Vue's ref destructor races).
+  instanceRefs.delete(d.id)
 
   // If the row was registered with the engine (i.e. had a complete value at
   // some point), tell the host to drop it.
@@ -375,7 +505,63 @@ const position = ref<{ top: number; left: number }>({
   left: props.triggerRect.right,
 })
 
+/**
+ * Drag-to-move state. Once the user drags the overlay by its header, we
+ * pin the manually-chosen position and stop the auto-reposition logic from
+ * fighting it (the user is now in charge).
+ */
+const userMoved = ref(false)
+let _dragStart: { x: number; y: number } | null = null
+let _dragOrigin: { top: number; left: number } | null = null
+
+function onHeaderMouseDown(e: MouseEvent) {
+  // Ignore clicks on interactive children — only drag from the bare label.
+  if ((e.target as HTMLElement).closest('button, input, select, textarea, a')) return
+  e.preventDefault()
+  _dragStart = { x: e.clientX, y: e.clientY }
+  _dragOrigin = { top: position.value.top, left: position.value.left }
+  userMoved.value = true
+  document.addEventListener('mousemove', onHeaderDragMove)
+  document.addEventListener('mouseup', onHeaderDragEnd)
+  document.body.style.userSelect = 'none'
+  document.body.style.cursor = 'grabbing'
+}
+
+function onHeaderDragMove(e: MouseEvent) {
+  if (!_dragStart || !_dragOrigin) return
+  const overlay = overlayRef.value
+  if (!overlay) return
+  const overlayRect = overlay.getBoundingClientRect()
+  const vw = window.innerWidth
+  const vh = window.innerHeight
+  const dx = e.clientX - _dragStart.x
+  const dy = e.clientY - _dragStart.y
+  // Clamp to keep the panel inside the viewport — same padding as `reposition`.
+  const left = Math.min(
+    Math.max(VIEWPORT_PADDING, _dragOrigin.left + dx),
+    Math.max(VIEWPORT_PADDING, vw - VIEWPORT_PADDING - overlayRect.width),
+  )
+  const top = Math.min(
+    Math.max(VIEWPORT_PADDING, _dragOrigin.top + dy),
+    Math.max(VIEWPORT_PADDING, vh - VIEWPORT_PADDING - overlayRect.height),
+  )
+  position.value = { top, left }
+}
+
+function onHeaderDragEnd() {
+  _dragStart = null
+  _dragOrigin = null
+  document.removeEventListener('mousemove', onHeaderDragMove)
+  document.removeEventListener('mouseup', onHeaderDragEnd)
+  document.body.style.userSelect = ''
+  document.body.style.cursor = ''
+}
+
 function reposition() {
+  // Once the user dragged the panel by its header, respect their choice and
+  // skip the auto-position logic — otherwise a `triggerRect` change (re-render,
+  // scroll, etc.) would snap it back next to the kebab.
+  if (userMoved.value) return
   const overlay = overlayRef.value
   if (!overlay) return
 
@@ -443,6 +629,11 @@ onBeforeUnmount(() => {
   document.removeEventListener('mousedown', handleClickOutside)
   document.removeEventListener('keydown', handleKeyDown)
   window.removeEventListener('resize', reposition)
+  // Defensive cleanup in case the overlay unmounts mid-drag.
+  document.removeEventListener('mousemove', onHeaderDragMove)
+  document.removeEventListener('mouseup', onHeaderDragEnd)
+  document.body.style.userSelect = ''
+  document.body.style.cursor = ''
 })
 </script>
 
@@ -458,7 +649,14 @@ onBeforeUnmount(() => {
       role="dialog"
       :aria-label="`Filter ${column.headerName}`"
     >
-      <div class="mrx-column-filter-overlay__label">SHOW ROWS</div>
+      <div
+        class="mrx-column-filter-overlay__header"
+        title="Drag to move"
+        @mousedown="onHeaderMouseDown"
+      >
+        <div class="mrx-column-filter-overlay__title">Filter</div>
+        <div class="mrx-column-filter-overlay__subtitle">Show rows</div>
+      </div>
 
       <div
         v-for="(draft, idx) in drafts"
@@ -492,7 +690,10 @@ onBeforeUnmount(() => {
           />
         </div>
 
-        <div class="mrx-column-filter-overlay__operator-slot">
+        <div
+          v-if="!customFilterFor(getColumn(draft.field))"
+          class="mrx-column-filter-overlay__operator-slot"
+        >
           <MSelect
             :id="`mrx-col-filter-op-${draft.id}`"
             size="s"
@@ -502,7 +703,23 @@ onBeforeUnmount(() => {
           />
         </div>
 
-        <div v-if="!isValueless(draft.operator)" class="mrx-column-filter-overlay__value-slot">
+        <!-- Custom filter component — `col.filter = { component, doesFilterPass }`.
+             Receives a single bundled `params` prop ({ model, column,
+             filterParams, getValue, onModelChange }). The component calls
+             `params.onModelChange(newModel)` on user interaction; the
+             builder hooks `refresh()` / `afterGuiAttached()` via the ref. -->
+        <div
+          v-if="customFilterFor(getColumn(draft.field))"
+          class="mrx-column-filter-overlay__value-slot"
+        >
+          <component
+            :is="customFilterFor(getColumn(draft.field))!.component"
+            :ref="bindRefFor(draft)"
+            :params="buildFilterParams(draft)"
+          />
+        </div>
+
+        <div v-else-if="!isValueless(draft.operator)" class="mrx-column-filter-overlay__value-slot">
           <MSelect
             v-if="getValueOptions(draft.field)"
             :id="`mrx-col-filter-val-${draft.id}`"
@@ -537,7 +754,7 @@ onBeforeUnmount(() => {
           class="mrx-column-filter-overlay__remove"
           @click="onRemoveDraft(draft)"
         >
-          <template #icon><Cross20 /></template>
+          <template #icon><Trash24 /></template>
         </MIconButton>
 
         <span
@@ -549,14 +766,18 @@ onBeforeUnmount(() => {
         </span>
       </div>
 
-      <button
-        type="button"
-        class="mrx-column-filter-overlay__add"
-        @click="onAddCondition"
-      >
-        <span class="mrx-column-filter-overlay__add-icon" aria-hidden="true">+</span>
-        Add condition
-      </button>
+      <div class="mrx-column-filter-overlay__add-wrapper">
+        <MButton
+          ghost
+          size="s"
+          appearance="accent"
+          iconPosition="left"
+          @click="onAddCondition"
+        >
+          <template #icon><ListAdd24 /></template>
+          Add condition
+        </MButton>
+      </div>
     </div>
   </Teleport>
 </template>
@@ -574,13 +795,32 @@ onBeforeUnmount(() => {
   padding: 14px 16px 12px;
 }
 
-.mrx-column-filter-overlay__label {
-  font-size: 11px;
+// Header — "Filter" title + "Show rows" subtitle. Also doubles as the drag
+// handle for the whole overlay (see `onHeaderMouseDown`).
+.mrx-column-filter-overlay__header {
+  margin-bottom: 12px;
+  padding-bottom: 4px;
+  cursor: grab;
+  user-select: none;
+
+  &:active {
+    cursor: grabbing;
+  }
+}
+
+.mrx-column-filter-overlay__title {
+  font-size: 16px;
   font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  color: var(--color-text-primary, #0f172a);
+  line-height: 1.3;
+}
+
+.mrx-column-filter-overlay__subtitle {
+  font-size: 13px;
+  font-weight: 400;
   color: var(--color-text-secondary, #64748b);
-  margin-bottom: 10px;
+  line-height: 1.4;
+  margin-top: 2px;
 }
 
 .mrx-column-filter-overlay__row {
@@ -651,36 +891,10 @@ onBeforeUnmount(() => {
   color: var(--color-text-secondary, #64748b);
 }
 
-.mrx-column-filter-overlay__add {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 12px;
-  padding: 6px 10px;
-  border: none;
-  background: transparent;
-  color: var(--color-background-accent-inverse, #2563eb);
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  border-radius: 6px;
-}
-
-.mrx-column-filter-overlay__add:hover {
-  background: var(--color-background-secondary, #f1f5f9);
-}
-
-.mrx-column-filter-overlay__add-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 18px;
-  height: 18px;
-  border-radius: 4px;
-  background: currentColor;
-  color: var(--color-background-primary, #fff);
-  font-size: 13px;
-  line-height: 1;
-  font-weight: 700;
+// Wrapper around the `MButton`-based "Add condition" CTA — just gives it
+// the same horizontal indent as the rows above so it lines up under "Where".
+.mrx-column-filter-overlay__add-wrapper {
+  margin-top: 8px;
+  padding: 0 4px;
 }
 </style>

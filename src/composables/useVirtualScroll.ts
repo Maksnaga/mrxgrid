@@ -8,6 +8,9 @@ import type { RowData } from '@/components/MrxGrid/types'
 /** Frozen sentinel placed at indices not yet fetched from the server. */
 export const SKELETON_ROW: RowData = Object.freeze({ __mrxSkeleton: true })
 
+/** Shared empty array — avoids re-allocating when no row is expanded. */
+const EMPTY_INDICES: number[] = []
+
 // ---------------------------------------------------------------------------
 // Options
 // ---------------------------------------------------------------------------
@@ -38,6 +41,20 @@ export interface VirtualScrollOptions {
   totalCount?: Ref<number>
   /** Called when the visible window shifts. Use for lazy loading. */
   onVisibleRangeChange?: (start: number, end: number) => void
+  /**
+   * Indices of rows whose intrinsic height is `rowHeight + expandedRowExtraHeight`
+   * instead of `rowHeight`. The composable folds these into a sparse
+   * prefix sum so `offsetY`, `startIndex`, `endIndex` and `totalHeight`
+   * remain correct even when expanded rows are scrolled past. Optional —
+   * omit for the classic fixed-row-height fast path.
+   */
+  expandedRowIndices?: Ref<Set<number>>
+  /**
+   * Extra height (px) of an expanded row, on top of `rowHeight`. May be
+   * reactive (changes with density / consumer config). Ignored when
+   * `expandedRowIndices` is empty.
+   */
+  expandedRowExtraHeight?: Ref<number> | number
 }
 
 // ---------------------------------------------------------------------------
@@ -82,6 +99,8 @@ export function useVirtualScroll(options: VirtualScrollOptions) {
     maxRendered = 80,
     totalCount,
     onVisibleRangeChange,
+    expandedRowIndices,
+    expandedRowExtraHeight,
   } = options
 
   const os = overscan
@@ -90,10 +109,58 @@ export function useVirtualScroll(options: VirtualScrollOptions) {
   // --- Reactive row height (supports density changes) ---
   const rh = computed(() => isRef(options.rowHeight) ? options.rowHeight.value : options.rowHeight)
 
+  // --- Expansion extra (per-row delta height, 0 when nothing expanded) ---
+  const expExtra = computed(() => {
+    if (!expandedRowIndices || expandedRowIndices.value.size === 0) return 0
+    if (expandedRowExtraHeight === undefined) return 0
+    return isRef(expandedRowExtraHeight) ? expandedRowExtraHeight.value : expandedRowExtraHeight
+  })
+
+  /**
+   * Sorted array of expanded row indices. Recomputed only when the
+   * expansion set changes — avoids re-sorting on every scroll tick.
+   * Empty array shortcircuits the variable-height path inside `_compute`.
+   */
+  const sortedExpanded = computed<number[]>(() => {
+    if (!expandedRowIndices || expandedRowIndices.value.size === 0) return EMPTY_INDICES
+    const arr: number[] = []
+    for (const i of expandedRowIndices.value) arr.push(i)
+    arr.sort((a, b) => a - b)
+    return arr
+  })
+
+  /**
+   * Number of expanded rows whose index is `< index`. Used both for the
+   * prefix-sum height up to `index` and for the inverse mapping from
+   * scrollTop to the first visible row. Iterates a sorted array of (small)
+   * expanded indices — O(E) where E is the number of expanded rows
+   * (typically < 10 in real-world use).
+   */
+  function _expandedBelow(index: number): number {
+    const arr = sortedExpanded.value
+    if (arr.length === 0) return 0
+    // Linear scan — fast for small E; could be replaced by binary search
+    // if E ever grows into the hundreds.
+    let k = 0
+    for (let i = 0; i < arr.length; i++) {
+      if ((arr[i] ?? -1) < index) k++
+      else break
+    }
+    return k
+  }
+
+  /** Cumulative height of rows [0, index). Drives offsetY / totalHeight. */
+  function _prefixHeight(index: number): number {
+    return index * rh.value + _expandedBelow(index) * expExtra.value
+  }
+
   // --- Total scrollable height (stable when totalCount is provided) ---
+  // When expansion is active the sizer grows by `numExpanded × extra` so the
+  // scrollbar thumb always reflects the true content length.
   const totalHeight = computed(() => {
     const count = totalCount ? totalCount.value : rows.value.length
-    return count * rh.value
+    const expanded = expandedRowIndices?.value.size ?? 0
+    return count * rh.value + expanded * expExtra.value
   })
 
   // --- Outputs (shallowRef — only written when the window actually shifts) ---
@@ -119,28 +186,79 @@ export function useVirtualScroll(options: VirtualScrollOptions) {
 
     const viewH = containerHeight.value
     const rowH = rh.value
+    const extra = expExtra.value
+    const expandedArr = sortedExpanded.value
+    const hasExpansion = expandedArr.length > 0 && extra > 0
     const top = _scrollTop
 
-    // Defensive clamp — _scrollTop may exceed content after height changes.
-    const maxTop = Math.max(0, total * rowH - viewH)
+    // Defensive clamp — `_scrollTop` may exceed content after height
+    // changes. When expansion is active the cap grows by the cumulative
+    // expansion extra so the user can scroll all the way to the last
+    // row's detail panel.
+    const fullHeight = total * rowH + expandedArr.length * extra
+    const maxTop = Math.max(0, fullHeight - viewH)
     if (top > maxTop) _scrollTop = maxTop
     const clampedTop = Math.min(top, maxTop)
 
-    // First fully visible row.
-    const first = (clampedTop / rowH) | 0
-    // Number of rows that fit in the viewport (+ 1 for partial row at bottom).
-    const visible = ((viewH / rowH) | 0) + 1
+    // --- First visible row -------------------------------------------------
+    // Fast path: no expansion → constant-time `scrollTop / rowH`.
+    // Slow path: expansion → invert the prefix sum
+    //   `first * rowH + countExpanded(< first) * extra ≤ clampedTop`
+    // by iterating on `countExpanded(< first)` — converges in O(1)
+    // iterations because the count function is monotonic and stair-stepped.
+    let first: number
+    if (!hasExpansion) {
+      first = (clampedTop / rowH) | 0
+    } else {
+      first = (clampedTop / rowH) | 0
+      // Three passes are enough in practice — each pass either lands on the
+      // correct count or undershoots it by exactly one (the row we just
+      // crossed), so convergence is bounded.
+      for (let iter = 0; iter < 3; iter++) {
+        const k = _expandedBelow(first)
+        const next = Math.max(0, ((clampedTop - k * extra) / rowH) | 0)
+        if (next === first) break
+        first = next
+      }
+      // Guard against undershoot: ensure the cumulative height for `first`
+      // is ≤ clampedTop. If not, decrement (rare edge case at boundaries
+      // where iteration over/undershoots by one).
+      while (first > 0 && _prefixHeight(first) > clampedTop) first--
+      // Guard against overshoot similarly.
+      while (first < total - 1 && _prefixHeight(first + 1) <= clampedTop) first++
+    }
 
-    // Clamp with overscan and max rendered cap.
+    // --- Window size (number of rows that fit in the viewport) -------------
+    // With expansion, an expanded row inside the viewport consumes `extra`
+    // additional pixels, so fewer rows fit. We bump `visible` by an
+    // approximation of how many extra rows would be needed.
+    let visible = ((viewH / rowH) | 0) + 1
+    if (hasExpansion) {
+      // Count expanded rows within a conservative forward window from `first`.
+      const probeEnd = Math.min(total, first + visible + os)
+      let expandedAhead = 0
+      for (let i = 0; i < expandedArr.length; i++) {
+        const e = expandedArr[i] ?? -1
+        if (e >= first && e < probeEnd) expandedAhead++
+        else if (e >= probeEnd) break
+      }
+      // Each expanded row "eats" extra/rowH worth of vertical space; add
+      // that many rows to ensure we render through the bottom of the viewport.
+      visible += Math.ceil((expandedAhead * extra) / rowH)
+    }
+
+    // Clamp with overscan and max-rendered cap.
     const ns = Math.max(0, first - os)
     const ne = Math.min(total, first + visible + os, ns + maxR)
 
     // Write-on-change guard — skip if window didn't shift.
-    if (ns === startIndex.value && ne === endIndex.value) return
+    if (ns === startIndex.value && ne === endIndex.value && offsetY.value === _prefixHeight(ns)) {
+      return
+    }
 
     startIndex.value = ns
     endIndex.value = ne
-    offsetY.value = ns * rowH
+    offsetY.value = _prefixHeight(ns)
 
     onVisibleRangeChange?.(ns, ne)
   }
@@ -199,6 +317,17 @@ export function useVirtualScroll(options: VirtualScrollOptions) {
   // When rows identity changes (sort, filter, data swap) — recompute
   // to pick up the new data without touching scroll position.
   watch(() => rows.value, () => _compute())
+
+  // When the expansion set (or its extra height) changes — recompute so
+  // `offsetY`, `startIndex`, `endIndex`, `totalHeight` instantly reflect
+  // the variable-height layout. No scroll touched; the user's current
+  // viewport stays anchored to the same row.
+  if (expandedRowIndices) {
+    watch(sortedExpanded, () => _compute())
+  }
+  if (expandedRowExtraHeight !== undefined) {
+    watch(expExtra, () => _compute())
+  }
 
   // --- Computed range for template v-for ---
 

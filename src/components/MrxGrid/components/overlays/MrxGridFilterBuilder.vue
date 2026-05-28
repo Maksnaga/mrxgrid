@@ -20,6 +20,8 @@
  */
 
 import { computed } from 'vue'
+import { MSelect, MTextInput, MCheckbox, MButton, MIconButton } from '@mozaic-ds/vue'
+import { Trash24, ListAdd24 } from '@mozaic-ds/icons-vue'
 import {
   OPERATOR_LABELS,
   RANGE_OPERATORS,
@@ -29,6 +31,18 @@ import {
   type FilterCondition,
   type FilterOperator,
 } from '../../models/filter.model'
+
+// --- MSelect option helpers ---------------------------------------------------
+const COMBINATOR_OPTIONS = [
+  { text: 'And', value: 'and' },
+  { text: 'Or', value: 'or' },
+]
+
+const BOOLEAN_OPTIONS = [
+  { text: '—', value: '' },
+  { text: 'True', value: 'true' },
+  { text: 'False', value: 'false' },
+]
 
 const props = defineProps<{
   conditions: FilterCondition[]
@@ -57,6 +71,27 @@ function operatorsFor(field: string): FilterOperator[] {
   return descriptorFor(field)?.operators ?? []
 }
 
+function fieldOptions(): Array<{ text: string; value: string }> {
+  return props.columns.map((c) => ({ text: c.headerName, value: c.field }))
+}
+
+function operatorOptions(field: string): Array<{ text: string; value: string }> {
+  return operatorsFor(field).map((op) => ({
+    text: OPERATOR_LABELS[op] ?? op,
+    value: op,
+  }))
+}
+
+function asString(v: unknown): string {
+  return v == null ? '' : String(v)
+}
+
+function booleanSelectValue(condition: FilterCondition): string {
+  if (condition.value.value === true) return 'true'
+  if (condition.value.value === false) return 'false'
+  return ''
+}
+
 function onCombinatorChange(id: string, value: string): void {
   emit('update', id, { combinator: value as FilterCombinator })
 }
@@ -80,6 +115,104 @@ function onValueChange(id: string, value: unknown): void {
 
 function onValueToChange(id: string, valueTo: unknown): void {
   emit('update', id, { value: { valueTo } })
+}
+
+function onBooleanSelect(id: string, raw: string | number): void {
+  const s = String(raw)
+  emit('update', id, { value: { value: s === 'true' ? true : s === 'false' ? false : null } })
+}
+
+function onTextInput(id: string, e: Event, field: string): void {
+  const raw = (e.target as HTMLInputElement).value
+  const typed = descriptorFor(field)?.filterType === 'number' ? (raw === '' ? null : Number(raw)) : raw
+  emit('update', id, { value: { value: typed } })
+}
+
+function onTextInputTo(id: string, e: Event, field: string): void {
+  const raw = (e.target as HTMLInputElement).value
+  const typed = descriptorFor(field)?.filterType === 'number' ? (raw === '' ? null : Number(raw)) : raw
+  emit('update', id, { value: { valueTo: typed } })
+}
+
+// --- Custom filter wiring -----------------------------------------------------
+
+/**
+ * Fallback `column` value passed inside the bundled `params` object when
+ * the descriptor wasn't built with a `colDef` reference. The minimal
+ * shape carries `field` + `headerName`, which is all most filter UIs need.
+ */
+function columnFor(field: string): unknown {
+  const d = descriptorFor(field)
+  return d?.colDef ?? { field, headerName: d?.headerName ?? field }
+}
+
+/**
+ * Optional lifecycle methods a custom filter component MAY expose via
+ * `defineExpose`. All optional — the builder branches on what's present.
+ */
+interface FilterInstanceLike {
+  isFilterActive?(): boolean
+  refresh?(params: unknown): boolean | void
+  afterGuiAttached?(params?: { suppressFocus?: boolean }): void
+  getModelAsString?(model: unknown): string
+}
+const agInstances = new Map<string, FilterInstanceLike>()
+
+/**
+ * Returns a function-ref bound to the given condition. Pulling the arrow
+ * out of the template lets us keep TypeScript's `noImplicitAny` happy
+ * without leaking TS annotations into the template (which Vue's parser
+ * doesn't accept).
+ */
+function bindRefFor(condition: FilterCondition): (inst: unknown) => void {
+  return (inst) => bindAGFilterInstance(condition, inst)
+}
+
+function bindAGFilterInstance(condition: FilterCondition, inst: unknown): void {
+  if (inst == null) {
+    agInstances.delete(condition.id)
+    return
+  }
+  if (typeof inst !== 'object') return
+  const candidate = inst as FilterInstanceLike
+  agInstances.set(condition.id, candidate)
+  // Re-hydrate from the persisted model on mount / draft swap.
+  if (condition.model != null) {
+    try {
+      candidate.refresh?.(buildFilterParams(condition))
+    } catch {
+      // Defensive — a bad refresh shouldn't break the UI.
+    }
+  }
+  candidate.afterGuiAttached?.()
+}
+
+/**
+ * `MrxFilterParams.onModelChange` handler — emit an `update` patch with
+ * the new model. The drawer's parent maps that through the filter engine.
+ */
+function onModelChange(condition: FilterCondition, nextModel: unknown): void {
+  // Optional override via `isFilterActive` lets components flag "non-null
+  // model but inactive" (e.g. empty array). Default heuristic: model != null.
+  const inst = agInstances.get(condition.id)
+  const isActive =
+    typeof inst?.isFilterActive === 'function' ? inst.isFilterActive() : nextModel != null
+  emit('update', condition.id, { model: isActive ? nextModel : null })
+}
+
+/**
+ * Builds the bundled `params` object passed to the filter component as
+ * its single `params` prop.
+ */
+function buildFilterParams(condition: FilterCondition) {
+  const d = descriptorFor(condition.field)
+  return {
+    model: condition.model,
+    column: columnFor(condition.field),
+    filterParams: d?.filter?.filterParams,
+    getValue: (_field: string) => undefined as unknown,
+    onModelChange: (m: unknown) => onModelChange(condition, m),
+  }
 }
 
 function onSetToggle(condition: FilterCondition, optionValue: unknown, checked: boolean): void {
@@ -150,134 +283,155 @@ function onDrop(index: number): void {
     >
       <!-- Combinator: "Where" for first row, AND/OR picker otherwise -->
       <span v-if="index === 0" class="mrx-filter-builder__where">Where</span>
-      <select
-        v-else
-        class="mrx-filter-builder__field mrx-filter-builder__field--combinator"
-        :value="condition.combinator"
-        @change="onCombinatorChange(condition.id, ($event.target as HTMLSelectElement).value)"
-      >
-        <option value="and">AND</option>
-        <option value="or">OR</option>
-      </select>
+      <div v-else class="mrx-filter-builder__slot mrx-filter-builder__slot--combinator">
+        <MSelect
+          :id="`mrx-filter-builder-comb-${condition.id}`"
+          size="s"
+          :options="COMBINATOR_OPTIONS"
+          :model-value="condition.combinator"
+          @update:modelValue="(v: string | number) => onCombinatorChange(condition.id, String(v))"
+        />
+      </div>
 
       <!-- Field picker -->
-      <select
-        class="mrx-filter-builder__field"
-        :value="condition.field"
-        @change="onFieldChange(condition.id, ($event.target as HTMLSelectElement).value)"
-      >
-        <option v-for="col in columns" :key="col.field" :value="col.field">
-          {{ col.headerName }}
-        </option>
-      </select>
+      <div class="mrx-filter-builder__slot mrx-filter-builder__slot--field">
+        <MSelect
+          :id="`mrx-filter-builder-field-${condition.id}`"
+          size="s"
+          :options="fieldOptions()"
+          :model-value="condition.field"
+          @update:modelValue="(v: string | number) => onFieldChange(condition.id, String(v))"
+        />
+      </div>
 
-      <!-- Operator picker -->
-      <select
-        class="mrx-filter-builder__field mrx-filter-builder__field--operator"
-        :value="condition.operator"
-        @change="onOperatorChange(condition.id, ($event.target as HTMLSelectElement).value)"
+      <!-- Operator picker — hidden for 'custom' filters, which own their semantics -->
+      <div
+        v-if="descriptorFor(condition.field)?.filterType !== 'custom'"
+        class="mrx-filter-builder__slot mrx-filter-builder__slot--operator"
       >
-        <option v-for="op in operatorsFor(condition.field)" :key="op" :value="op">
-          {{ OPERATOR_LABELS[op] ?? op }}
-        </option>
-      </select>
+        <MSelect
+          :id="`mrx-filter-builder-op-${condition.id}`"
+          size="s"
+          :options="operatorOptions(condition.field)"
+          :model-value="condition.operator"
+          @update:modelValue="(v: string | number) => onOperatorChange(condition.id, String(v))"
+        />
+      </div>
 
-      <!-- Value input(s) — shape depends on operator + filter type -->
-      <template v-if="!isValueless(condition.operator)">
-        <!-- set / multi-select -->
+      <!-- Custom filter component. Receives a single bundled `params` prop
+           ({ model, column, filterParams, getValue, onModelChange }); the
+           operator picker and value editors are hidden because the
+           component covers both. -->
+      <component
+        v-if="
+          descriptorFor(condition.field)?.filterType === 'custom' &&
+          descriptorFor(condition.field)?.filter
+        "
+        :is="descriptorFor(condition.field)!.filter!.component"
+        :ref="bindRefFor(condition)"
+        class="mrx-filter-builder__custom"
+        :params="buildFilterParams(condition)"
+      />
+      <template v-else-if="!isValueless(condition.operator)">
+        <!-- set / multi-select — MCheckbox-per-option -->
         <div
           v-if="descriptorFor(condition.field)?.filterType === 'set'"
           class="mrx-filter-builder__set"
         >
-          <label
+          <MCheckbox
             v-for="opt in descriptorFor(condition.field)?.options ?? []"
             :key="String(opt.value)"
-            class="mrx-filter-builder__set-option"
-          >
-            <input
-              type="checkbox"
-              :checked="isSetChecked(condition, opt.value)"
-              @change="
-                onSetToggle(
-                  condition,
-                  opt.value,
-                  ($event.target as HTMLInputElement).checked,
-                )
-              "
-            />
-            {{ opt.label }}
-          </label>
+            :id="`mrx-filter-builder-set-${condition.id}-${String(opt.value)}`"
+            :model-value="isSetChecked(condition, opt.value)"
+            :label="opt.label"
+            @update:modelValue="(v: boolean) => onSetToggle(condition, opt.value, v)"
+          />
         </div>
 
         <!-- boolean -->
-        <select
+        <div
           v-else-if="descriptorFor(condition.field)?.filterType === 'boolean'"
-          class="mrx-filter-builder__field"
-          :value="condition.value.value === true ? 'true' : condition.value.value === false ? 'false' : ''"
-          @change="
-            onValueChange(
-              condition.id,
-              ($event.target as HTMLSelectElement).value === 'true',
-            )
-          "
+          class="mrx-filter-builder__slot mrx-filter-builder__slot--value"
         >
-          <option value="">—</option>
-          <option value="true">true</option>
-          <option value="false">false</option>
-        </select>
+          <MSelect
+            :id="`mrx-filter-builder-bool-${condition.id}`"
+            size="s"
+            :options="BOOLEAN_OPTIONS"
+            :model-value="booleanSelectValue(condition)"
+            @update:modelValue="(v: string | number) => onBooleanSelect(condition.id, v)"
+          />
+        </div>
 
         <!-- range: value + valueTo -->
         <template v-else-if="isRange(condition.operator)">
-          <input
-            :type="inputTypeFor(descriptorFor(condition.field))"
-            class="mrx-filter-builder__value"
-            :value="(condition.value.value as string | number | null) ?? ''"
-            placeholder="from"
-            @input="onValueChange(condition.id, ($event.target as HTMLInputElement).value)"
-          />
+          <div class="mrx-filter-builder__slot mrx-filter-builder__slot--value">
+            <MTextInput
+              :id="`mrx-filter-builder-val-${condition.id}`"
+              size="s"
+              :type="inputTypeFor(descriptorFor(condition.field))"
+              :model-value="asString(condition.value.value)"
+              placeholder="from"
+              @input="(e: Event) => onTextInput(condition.id, e, condition.field)"
+            />
+          </div>
           <span class="mrx-filter-builder__range-sep">–</span>
-          <input
-            :type="inputTypeFor(descriptorFor(condition.field))"
-            class="mrx-filter-builder__value"
-            :value="(condition.value.valueTo as string | number | null) ?? ''"
-            placeholder="to"
-            @input="onValueToChange(condition.id, ($event.target as HTMLInputElement).value)"
-          />
+          <div class="mrx-filter-builder__slot mrx-filter-builder__slot--value">
+            <MTextInput
+              :id="`mrx-filter-builder-val-to-${condition.id}`"
+              size="s"
+              :type="inputTypeFor(descriptorFor(condition.field))"
+              :model-value="asString(condition.value.valueTo)"
+              placeholder="to"
+              @input="(e: Event) => onTextInputTo(condition.id, e, condition.field)"
+            />
+          </div>
         </template>
 
         <!-- scalar -->
-        <input
-          v-else
-          :type="inputTypeFor(descriptorFor(condition.field))"
-          class="mrx-filter-builder__value"
-          :value="(condition.value.value as string | number | null) ?? ''"
-          placeholder="value"
-          @input="onValueChange(condition.id, ($event.target as HTMLInputElement).value)"
-        />
+        <div v-else class="mrx-filter-builder__slot mrx-filter-builder__slot--value">
+          <MTextInput
+            :id="`mrx-filter-builder-val-${condition.id}`"
+            size="s"
+            :type="inputTypeFor(descriptorFor(condition.field))"
+            :model-value="asString(condition.value.value)"
+            placeholder="value"
+            @input="(e: Event) => onTextInput(condition.id, e, condition.field)"
+          />
+        </div>
       </template>
 
-      <button
-        type="button"
+      <MIconButton
+        ghost
+        size="s"
         class="mrx-filter-builder__remove"
-        :aria-label="`Remove condition`"
+        aria-label="Remove condition"
         @click="emit('remove', condition.id)"
       >
-        &times;
-      </button>
+        <template #icon><Trash24 /></template>
+      </MIconButton>
     </div>
 
     <div class="mrx-filter-builder__footer">
-      <button type="button" class="mrx-filter-builder__add" @click="emit('add')">
-        + Add filter
-      </button>
-      <button
+      <MButton
+        ghost
+        size="s"
+        appearance="accent"
+        iconPosition="left"
+        @click="emit('add')"
+      >
+        <template #icon><ListAdd24 /></template>
+        Add condition
+      </MButton>
+      <MButton
         v-if="conditions.length"
-        type="button"
+        ghost
+        size="s"
+        appearance="danger"
         class="mrx-filter-builder__clear"
         @click="emit('clear')"
       >
         Clear all
-      </button>
+      </MButton>
     </div>
   </div>
 </template>
@@ -326,35 +480,36 @@ function onDrop(index: number): void {
   min-width: 52px;
 }
 
-.mrx-filter-builder__field,
-.mrx-filter-builder__value {
-  padding: 4px 8px;
-  border: 1px solid #cbd5e1;
-  border-radius: 4px;
-  font-size: 13px;
-  color: #1e293b;
-  background: white;
-  outline: none;
-  box-sizing: border-box;
+/* Slot widths — let each input area participate in flex layout. */
+.mrx-filter-builder__slot {
+  display: flex;
+  align-items: center;
 }
 
-.mrx-filter-builder__field--combinator {
-  min-width: 60px;
+.mrx-filter-builder__slot--combinator {
+  flex: 0 0 auto;
+  width: 88px;
 }
 
-.mrx-filter-builder__field--operator {
+.mrx-filter-builder__slot--field,
+.mrx-filter-builder__slot--operator {
+  flex: 0 0 auto;
+  min-width: 140px;
+}
+
+.mrx-filter-builder__slot--value {
+  flex: 1 1 160px;
   min-width: 120px;
 }
 
-.mrx-filter-builder__value {
-  flex: 1 1 120px;
-  min-width: 80px;
+.mrx-filter-builder__slot--value > * {
+  flex: 1 1 0;
+  min-width: 0;
 }
 
-.mrx-filter-builder__field:focus,
-.mrx-filter-builder__value:focus {
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 1px #3b82f6;
+.mrx-filter-builder__custom {
+  flex: 1 1 200px;
+  min-width: 150px;
 }
 
 .mrx-filter-builder__range-sep {
@@ -366,38 +521,13 @@ function onDrop(index: number): void {
   display: flex;
   flex-wrap: wrap;
   gap: 4px 12px;
-  padding: 4px 8px;
-  border: 1px solid #cbd5e1;
-  border-radius: 4px;
   flex: 1 1 200px;
   min-width: 150px;
 }
 
-.mrx-filter-builder__set-option {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 12px;
-  color: #1e293b;
-  cursor: pointer;
-}
-
 .mrx-filter-builder__remove {
   margin-left: auto;
-  width: 28px;
-  height: 28px;
-  border: 1px solid transparent;
-  border-radius: 4px;
-  background: transparent;
-  color: #64748b;
-  font-size: 18px;
-  line-height: 1;
-  cursor: pointer;
-}
-
-.mrx-filter-builder__remove:hover {
-  border-color: #e2e8f0;
-  color: #dc2626;
+  flex-shrink: 0;
 }
 
 .mrx-filter-builder__footer {
@@ -406,35 +536,7 @@ function onDrop(index: number): void {
   padding-top: 4px;
 }
 
-.mrx-filter-builder__add {
-  padding: 6px 12px;
-  border: 1px dashed #cbd5e1;
-  background: white;
-  color: #334155;
-  border-radius: 4px;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-}
-
-.mrx-filter-builder__add:hover {
-  background: #f1f5f9;
-  border-color: #94a3b8;
-}
-
 .mrx-filter-builder__clear {
   margin-left: auto;
-  padding: 6px 12px;
-  border: 1px solid #e2e8f0;
-  background: white;
-  color: #dc2626;
-  border-radius: 4px;
-  font-size: 13px;
-  cursor: pointer;
-}
-
-.mrx-filter-builder__clear:hover {
-  background: #fef2f2;
-  border-color: #fecaca;
 }
 </style>

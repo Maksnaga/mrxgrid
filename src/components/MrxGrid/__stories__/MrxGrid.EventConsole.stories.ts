@@ -9,6 +9,7 @@ const meta = {
   title: 'Stories/Devtools/Event console',
   component: MrxGrid,
   tags: ['autodocs'],
+  args: { rows: [] },
   parameters: {
     docs: {
       description: {
@@ -23,6 +24,7 @@ Une story "all features ON" avec une console DevTools-like qui trace en temps r�
 |-------|-------|
 | \`update:selection\` | Coche / décoche row, ou range cell change |
 | \`update:hidden-fields\` | Hide/show colonne via menu kebab ou drawer |
+| \`update:filter-model\` | Filtre ajouté / modifié / supprimé via overlay ou drawer |
 | \`column-menu-action\` | Action du menu kebab (sort, pin, hide, filter-in-this-column) |
 | \`cell-edit\` | Commit d'une édition cellulaire |
 | \`fill\` | Fin d'un drag fill |
@@ -416,6 +418,7 @@ Toute interaction avec la grille (click, drag, edit, hover sur un menu, ouvertur
         // Pure log handlers
         onUpdateSelection: (e: unknown) => log('update:selection', e),
         onUpdateHiddenFields: (e: unknown) => log('update:hidden-fields', e),
+        onUpdateFilterModel: (e: unknown) => log('update:filter-model', e),
         onColumnMenuAction: (e: unknown) => log('column-menu-action', e),
         onPageChange: (e: unknown) => log('page-change', e),
         onFilterChange: (e: unknown) => log('filter-change', e),
@@ -456,6 +459,7 @@ Toute interaction avec la grille (click, drag, edit, hover sur un menu, ouvertur
             :column-order="columnOrder"
             @update:selection="onUpdateSelection"
             @update:hidden-fields="onUpdateHiddenFields"
+            @update:filter-model="onUpdateFilterModel"
             @column-menu-action="onColumnMenuAction"
             @cell-edit="onCellEdit"
             @fill="onFill"

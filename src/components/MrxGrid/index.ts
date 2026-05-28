@@ -3,6 +3,8 @@ export { default as MrxColumn } from './MrxColumn.vue'
 
 // Body
 export { default as MrxGridBody } from './components/body/MrxGridBody.vue'
+export { default as MrxGridSkeletonBody } from './components/body/MrxGridSkeletonBody.vue'
+export { default as MrxGridSkeletonRow } from './components/body/MrxGridSkeletonRow.vue'
 export { default as MrxGridDetailRow } from './components/body/MrxGridDetailRow.vue'
 
 // Header

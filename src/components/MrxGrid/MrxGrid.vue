@@ -62,15 +62,24 @@ import MrxGridSpreadsheetHeader from './components/header/MrxGridSpreadsheetHead
 import MrxGridFilterRow from './components/header/MrxGridFilterRow.vue'
 import MrxGridFooter from './components/footer/MrxGridFooter.vue'
 import MrxGridBody from './components/body/MrxGridBody.vue'
+import MrxGridSkeletonBody from './components/body/MrxGridSkeletonBody.vue'
 import MrxGridEmptyState from './components/body/MrxGridEmptyState.vue'
 import MrxGridTagBar from './components/header/MrxGridTagBar.vue'
 import MrxGridSelectionBar from './components/overlays/MrxGridSelectionBar.vue'
 import MrxGridSmartToolbar from './components/overlays/MrxGridSmartToolbar.vue'
 import type { GroupingItem } from './components/overlays/MrxGroupingDrawer.vue'
 import { OPERATOR_LABELS, VALUELESS_OPERATORS, RANGE_OPERATORS } from './models/filter.model'
-import type { FilterCondition, FilterModel } from './models/filter.model'
+import type { FilterCondition, FilterMode, FilterModel } from './models/filter.model'
 
 const UTILITY_COL_WIDTH = 50
+
+/**
+ * Sentinelle partagée par les computeds `pendingCellLookup` /
+ * `pendingRowLookup` quand le consumer ne passe rien : on évite de
+ * re-allouer un `Set` vide à chaque tick reactivity → 0 GC pressure
+ * dans le hot path de `getCellFlags`.
+ */
+const EMPTY_PENDING_SET: ReadonlySet<string> = new Set()
 
 /** Row heights per density — must match CSS padding in the scoped styles. */
 const DENSITY_ROW_HEIGHT: Record<DataDensity, number> = {
@@ -88,6 +97,13 @@ const props = withDefaults(
      */
     columns?: ColumnDef[]
     rows: RowData[]
+    /**
+     * Active le tri multi-colonnes (Shift+clic) ET l'affichage du badge
+     * de priorité (1, 2, …) à côté de l'icône de tri. Par défaut `true`
+     * pour rester back-compat. Passer `false` pour limiter à un seul
+     * tri actif à la fois : Shift est ignoré, le badge n'apparaît jamais.
+     */
+    multiSort?: boolean
     selectable?: boolean
     /**
      * Compact selection bar — drop the count, close (X) and "Select all N"
@@ -97,6 +113,22 @@ const props = withDefaults(
      */
     selectionBarCompact?: boolean
     expandable?: boolean
+    /**
+     * Hauteur (px) ajoutée par chaque row expandée (slot `#expand-row`).
+     * Utilisée par le virtual-scroll pour ajuster `offsetY` et le sizer —
+     * sinon les rows en dessous d'une row expandée flottent au mauvais
+     * pixel et flickerent au scroll. Approximation fixe ; le proper
+     * variable-height engine est `useVariableHeightVirtualScroll` (TBD).
+     */
+    expandedRowHeight?: number
+    /**
+     * Nombre de skeleton rows affichées quand `loading === true`. Si non
+     * fourni, le grid en déduit un nombre raisonnable basé sur la
+     * hauteur visible (`containerHeight / rowHeight`), clampé entre 4 et
+     * 20. Passer `0` désactive complètement les skeletons (seule la
+     * barre de chargement reste visible).
+     */
+    skeletonRowCount?: number
     /**
      * Function to extract a unique string ID from a row.
      * Defaults to using the row index as string.
@@ -144,6 +176,15 @@ const props = withDefaults(
      * and pass the filtered rows back via `:rows`.
      */
     serverFilter?: boolean
+    /**
+     * Filter evaluation mode — decoupled from the global `mode` and from
+     * `serverFilter` / `serverGrouping`. When set, overrides the legacy
+     * `serverFilter` prop. Defaults to `'client'`.
+     * - `'client'` : in-memory evaluation (current behaviour).
+     * - `'server'` : grid emits `filterChange` and passes data through; the
+     *   consumer reloads and re-supplies `:rows`.
+     */
+    filterMode?: FilterMode
     serverGrouping?: ServerGroupingOptions
     /**
      * Enable pagination with virtual scroll.
@@ -156,6 +197,27 @@ const props = withDefaults(
      * user keeps context during refetches.
      */
     loading?: boolean
+    /**
+     * Silent refetch state — drive a thin progress bar at the top of the
+     * grid without replacing the body with skeletons. Use this when rows
+     * are already visible and a server fetch is in-flight (sort, filter,
+     * pagination, post-mutation refresh). Independent from `loading`.
+     * Default: false.
+     */
+    refreshing?: boolean
+    /**
+     * Cells with an in-flight mutation. Each entry adds a shimmer overlay
+     * to the matching `(rowId, field)` so the user sees exactly which
+     * field is being pushed to the server. Pair with `usePendingMutations`
+     * in the consumer. Default: [].
+     */
+    pendingCells?: ReadonlyArray<{ rowId: string | number; field: string }>
+    /**
+     * Row ids with an in-flight mutation (bulk delete, drawer save, …).
+     * Each matching row gets a dim overlay + spinner. Cumulates with
+     * `pendingCells`. Default: [].
+     */
+    pendingRowIds?: ReadonlyArray<string | number>
     /**
      * Optional error to surface — drives the `#error` slot. Pass `null` to
      * clear. The grid emits `retry` when the consumer wires the slot's
@@ -214,6 +276,14 @@ const emit = defineEmits<{
   pageChange: [range: { page: number; pageSize: number; startIndex: number; endIndex: number }]
   /** Emitted when filters change. Use with serverFilter to apply filters server-side. */
   filterChange: [filters: Record<string, unknown>]
+  /**
+   * Emitted whenever the formal filter model changes — from the per-column
+   * overlay, the filter drawer, programmatic `setFilterModel`, or any tag-bar
+   * remove. Wire `v-model:filter-model="filterModel"` on `<MrxGrid>` to keep
+   * a consumer-owned `filterModel` ref in sync with what the grid actually
+   * filters on.
+   */
+  'update:filterModel': [model: FilterModel]
   /** Emitted when the user clicks Delete in the action bar. Includes all cell clears to apply in one batch. */
   bulkDelete: [
     payload: {
@@ -865,6 +935,20 @@ watch(
   { deep: true },
 )
 
+// Emit `update:filterModel` whenever the formal filter model changes —
+// regardless of which surface mutated it (drawer, per-column overlay,
+// imperative `setFilterModel`, tag-bar remove). This lets a consumer
+// `v-model:filter-model="filterModel"` keep its local model ref linked
+// to the grid's internal state, so a per-column overlay apply also
+// surfaces in a separate drawer placed alongside the grid.
+watch(
+  () => gridState.filterModel.value,
+  (next) => {
+    emit('update:filterModel', { conditions: next.conditions.slice() })
+  },
+  { deep: true },
+)
+
 // Phase 1.0 — history attach: mirror undo/redo stacks to localStorage when
 // `historyId` is set. Detach on prop change.
 watch(
@@ -992,6 +1076,18 @@ watch(
   { immediate: true },
 )
 
+// filterMode prop → state.filterMode. Explicit `filterMode` wins; falls back
+// to the legacy `serverFilter` boolean so existing consumers keep working.
+// Decoupled from `state.mode` so `serverGrouping` no longer forces filtering
+// to server.
+watch(
+  () => props.filterMode ?? (props.serverFilter ? 'server' : 'client'),
+  (m) => {
+    gridState.filterMode.value = m
+  },
+  { immediate: true },
+)
+
 // --- Column state (visibility, pinning overrides) ---
 // Phase 2.8 — `useColumns` is a thin adapter on `gridState.columnStates[]`.
 // Visibility, pinning, order, and per-column search-visible all live in the
@@ -1045,15 +1141,25 @@ const {
   clearFilters: rawClearFilters,
 } = useFiltering(gridState, mergedColumns)
 
-// When serverFilter is enabled, bypass client-side filtering — pass rows through.
-// The filter UI still works: we emit filterChange so the consumer handles it.
+// `serverFilter` (legacy boolean) OU `filterMode === 'server'` (nouvelle API)
+// — les deux signaux doivent gater le bypass client + l'emit `filterChange`.
+// Avant cette unification, le demo qui passait `:filter-mode="'server'"`
+// sans `:server-filter` voyait le filter row appliqué côté client (sur la
+// page de 25 lignes seulement) et aucun event remontait au consumer.
+const isServerFilter = computed(
+  () => props.serverFilter === true || props.filterMode === 'server',
+)
+
+// Bypass client-side filtering quand le serveur s'en charge. Le filter UI
+// continue de marcher : on émet `filterChange` pour que le consumer
+// déclenche son refetch.
 const filteredRows = computed(() =>
-  props.serverFilter ? props.rows : gridEngine.filter.filterData(props.rows),
+  isServerFilter.value ? props.rows : gridEngine.filter.filterData(props.rows),
 )
 
 function setFilter(field: string, value: unknown) {
   rawSetFilter(field, value)
-  if (props.serverFilter) {
+  if (isServerFilter.value) {
     // Emit after updating internal state so `filters` ref is current
     nextTick(() => emit('filterChange', { ...filters.value }))
   }
@@ -1066,7 +1172,7 @@ function setFilter(field: string, value: unknown) {
 function clearFilters() {
   rawClearFilters() // quick filters (filter row)
   gridEngine.filter.clearAll() // formal model (drawer + overlay)
-  if (props.serverFilter) {
+  if (isServerFilter.value) {
     nextTick(() => emit('filterChange', {}))
   }
 }
@@ -1076,7 +1182,7 @@ function clearFilters() {
  *  chips only represent formal-model conditions. */
 function clearFilterModel() {
   gridEngine.filter.clearAll()
-  if (props.serverFilter) {
+  if (isServerFilter.value) {
     nextTick(() => emit('filterChange', { ...filters.value }))
   }
 }
@@ -1096,6 +1202,18 @@ const toolbarFilterModel = computed<FilterModel>({
 function describeFilterCondition(c: FilterCondition): string {
   const col = mergedColumns.value.find((m) => m.field === c.field)
   const header = col?.headerName ?? c.field
+
+  // AG-Grid-style custom filter — model lives on `c.model`, label format
+  // lives on `col.filter.getModelAsString`. Generic fallback handles
+  // arrays / objects / primitives.
+  const customCfg =
+    col?.filter && 'component' in col.filter ? col.filter : undefined
+  if (customCfg) {
+    const formatted =
+      customCfg.getModelAsString?.(c.model) ?? formatModelGeneric(c.model)
+    return formatted ? `${header}: ${formatted}` : header
+  }
+
   const op = OPERATOR_LABELS[c.operator] ?? c.operator
   if (VALUELESS_OPERATORS.has(c.operator)) return `${header} ${op}`
   const v = c.value?.value
@@ -1112,6 +1230,20 @@ function formatChipValue(v: unknown): string {
   return String(v)
 }
 
+/** Same generic formatter as the engine's tag label fallback. */
+function formatModelGeneric(model: unknown): string {
+  if (model == null) return ''
+  if (Array.isArray(model)) return model.join(', ')
+  if (typeof model === 'object') {
+    try {
+      return JSON.stringify(model)
+    } catch {
+      return ''
+    }
+  }
+  return String(model)
+}
+
 const activeFilterTags = computed(() =>
   gridState.filterModel.value.conditions.map((c) => ({
     id: c.id,
@@ -1122,7 +1254,7 @@ const activeFilterTags = computed(() =>
 function onRemoveFilter(conditionId: string) {
   const next = gridState.filterModel.value.conditions.filter((c) => c.id !== conditionId)
   gridState.filterModel.value = { conditions: next }
-  if (props.serverFilter) {
+  if (isServerFilter.value) {
     nextTick(() => emit('filterChange', { ...filters.value }))
   }
 }
@@ -1144,7 +1276,11 @@ const hiddenTags = computed(() =>
 // filter → sort → paginate, so we apply `sortData` to `filteredRows` here.
 const sortEngine = gridEngine.sort
 const getSortDirection = sortEngine.getSortDirection
-const getSortIndex = sortEngine.getSortIndex
+// Gate `getSortIndex` sur `props.multiSort` : quand le multi-sort est off,
+// on n'expose jamais d'index → le badge "1 / 2 / …" à côté de la flèche
+// disparaît même si l'engine garde sa logique interne.
+const getSortIndex = (field: string): number | null =>
+  props.multiSort === false ? null : sortEngine.getSortIndex(field)
 const setSort = sortEngine.setSort
 const sortedRows = computed(() => sortEngine.sortData(filteredRows.value))
 
@@ -1244,8 +1380,27 @@ function clearGroups() {
   clientClearGroups()
 }
 function toggleGroupExpand(key: string) {
+  // Preserve scroll position across the toggle. Expanding/collapsing a
+  // group changes `flatRows.length` → `totalCount` → `totalHeight`, and
+  // the `useVirtualGrid` watcher would otherwise clamp `el.scrollTop` to
+  // the *old* viewport bounds (computed pre-DOM-update via Vue's default
+  // pre-flush). The net effect: clicking a chevron would jump the scroll
+  // back near the top. Capture before, restore after the DOM settles.
+  const el = wrapperRef.value
+  const savedScrollTop = el?.scrollTop ?? 0
+
   if (serverGroupingActive.value) serverToggleGroupExpand(key)
   else clientToggleGroupExpand(key)
+
+  if (!el) return
+  nextTick(() => {
+    // Re-clamp against the new content bounds. When the saved position
+    // is still valid, the user sees no jump; when collapsing genuinely
+    // shrunk the content below the saved position, we snap to the
+    // largest still-valid scrollTop instead of 0.
+    const maxScroll = Math.max(0, el.scrollHeight - el.clientHeight)
+    el.scrollTop = Math.min(savedScrollTop, maxScroll)
+  })
 }
 
 // --- Default toolbar grouping bridge ---
@@ -1354,6 +1509,26 @@ const getRowId = (row: RowData, index: number): string => {
   return String(index)
 }
 
+// --- Pending mutations lookups (granular skeleton) -----------------------
+// On indexe `props.pendingCells` par `${rowId}::${field}` pour que
+// `getCellFlags` puisse setter `pending` en O(1). Recompute uniquement
+// quand le consumer mute son ref. Vide / non fourni = pas de coût.
+const pendingCellLookup = computed<ReadonlySet<string>>(() => {
+  const arr = props.pendingCells ?? []
+  if (arr.length === 0) return EMPTY_PENDING_SET
+  const set = new Set<string>()
+  for (const e of arr) set.add(`${e.rowId}::${e.field}`)
+  return set
+})
+
+const pendingRowLookup = computed<ReadonlySet<string>>(() => {
+  const arr = props.pendingRowIds ?? []
+  if (arr.length === 0) return EMPTY_PENDING_SET
+  const set = new Set<string>()
+  for (const id of arr) set.add(String(id))
+  return set
+})
+
 // --- Row Selection (Gmail-style) ---
 // Phase 2.6 — `useRowSelection` now reads / writes `gridState.selectAllMode`
 // + `selectedRowIds` + `excludedRowIds` directly. The Gmail-shape
@@ -1377,6 +1552,19 @@ const {
 function isRowSelected(row: RowData, index: number): boolean {
   const originalIndex = Number(row.__mrxOriginalIndex ?? index)
   return isIdSelected(getRowId(row, originalIndex))
+}
+
+/**
+ * True quand `props.pendingRowIds` contient l'id de cette row. Lookup en
+ * O(1) via la `Set` indexée par `pendingRowLookup`. Pas de pending si
+ * row de groupe (les __mrxType:group rows n'ont pas d'id propre).
+ */
+function isRowPending(row: RowData, index: number): boolean {
+  const lookup = pendingRowLookup.value
+  if (lookup.size === 0) return false
+  if (isGroupRow(row)) return false
+  const originalIndex = Number(row.__mrxOriginalIndex ?? index)
+  return lookup.has(getRowId(row, originalIndex))
 }
 
 /** Resolve a rendered row's ID. */
@@ -1555,7 +1743,26 @@ async function pasteIntoSelectedRows() {
 // Phase 2.4 — `gridState.expandedRowIds` (id-keyed) is now the single source
 // of truth. `useRowExpansion` is a thin index↔id adapter so `MrxGridBody`
 // keeps its index-based API (`isExpanded(rowIndex)`, `toggleExpansion(...)`).
-const { isExpanded, toggleExpansion } = useRowExpansion(gridState, () => renderableRows.value)
+const { expanded: expandedRowSet, isExpanded, toggleExpansion } = useRowExpansion(
+  gridState,
+  () => renderableRows.value,
+)
+
+// Forwarded to `useVirtualScroll` below so it can apply variable-height
+// math (offsetY / startIndex / endIndex / totalHeight). Defined here so
+// the value is available at `useVirtualGrid` call site.
+//
+// `props.expandedRowHeight` is the TOTAL height of an expanded row
+// (detail panel included). The virtualizer needs the DELTA on top of a
+// regular row, so we subtract `rowHeight`. Clamped at zero to guard
+// against custom consumers that pass `expandedRowHeight < rowHeight`.
+const EXPANDED_ROW_DEFAULT_HEIGHT = 320
+
+const expandedRowExtraForVirtual = computed(() => {
+  if (!props.expandable) return 0
+  const total = props.expandedRowHeight ?? EXPANDED_ROW_DEFAULT_HEIGHT
+  return Math.max(0, total - rowHeight.value)
+})
 
 // --- Column Resize ---
 // Phase 2.3 — `useColumnResize` is now a thin DOM adapter that reads/writes
@@ -1668,6 +1875,41 @@ const {
   columnOverscan: props.columnOverscan,
   getColumnWidth,
   totalCount: totalCountRef,
+  expandedRowIndices: expandedRowSet,
+  expandedRowExtraHeight: expandedRowExtraForVirtual,
+})
+
+// --- Expanded-row scroll correction --------------------------------------
+// `useVirtualScroll` est maintenant expansion-aware : il reçoit
+// `expandedRowIndices` + `expandedRowExtraHeight` (cf.
+// `expandedRowExtraForVirtual` plus haut) et calcule un prefix sum pour
+// ramener `offsetY`, `startIndex`, `endIndex` et `totalHeight` au bon
+// mapping pixel → row même quand des detail panels sont déployés. Plus
+// de bypass et plus de `adjustedTotalHeight` à patcher ici — le
+// composable s'occupe de tout. Conséquence : aucune limite sur la taille
+// du dataset (100 000+ rows OK), le slicing virtuel reste actif, le
+// scroll est fluide quelle que soit la combinaison expansion / vitesse
+// de scroll.
+
+// --- Skeleton rows (loading state) ---------------------------------------
+// Quand `props.loading === true`, on remplace le body par N rows skeleton.
+// Si l'utilisateur ne précise pas `skeletonRowCount`, on dérive ce nombre
+// de la viewport visible — assez de rows pour donner l'illusion d'un
+// tableau plein, mais sans surcoût DOM. Clampé entre 4 et 20 pour rester
+// raisonnable dans les vues compactes (hauteur fixe basse) comme dans les
+// vues fullscreen.
+//
+// `0` est respecté pour permettre aux consumers de désactiver totalement
+// les skeletons et garder uniquement la barre de chargement.
+const SKELETON_MIN = 4
+const SKELETON_MAX = 20
+const skeletonRowCountResolved = computed<number>(() => {
+  const explicit = props.skeletonRowCount
+  if (explicit !== undefined) return Math.max(0, explicit)
+  const rh = rowHeight.value || 48
+  const ch = props.containerHeight || 600
+  const derived = Math.ceil(ch / rh)
+  return Math.min(SKELETON_MAX, Math.max(SKELETON_MIN, derived))
 })
 
 // --- Autosize ---
@@ -2093,6 +2335,13 @@ function flushEdit() {
       },
     ])
   }
+  // Auto-apply the edit so `editable: true` works end-to-end even when the
+  // consumer doesn't wire `@cell-edit` — same pattern as the fill handle
+  // and clipboard paste paths above. The `cellEdit` event still fires for
+  // any side-effects the consumer wires up.
+  applyFills([
+    { rowIndex: event.rowIndex, field: event.field, value: event.newValue },
+  ])
   emit('cellEdit', event)
 
   // Resolve a stable row id for the formula engine — falls back to the
@@ -2156,11 +2405,20 @@ function onEditInput(value: unknown) {
   updateDraft(value)
 }
 
-function onEditCommit(direction: 'down' | 'right' | 'left') {
+function onEditCommit(direction: 'down' | 'right' | 'left' | 'stay') {
   const state = editingCell.value
   if (!state) return
 
   flushEdit()
+
+  // 'stay' = commit sans déplacer l'active cell (utile pour les editors
+  // qui veulent laisser le focus visuel sur la cellule modifiée — combobox,
+  // color picker, etc.). Les directions classiques (down/right/left)
+  // gardent leur sémantique Excel-like.
+  if (direction === 'stay') {
+    wrapperRef.value?.focus()
+    return
+  }
 
   const { rowIndex, field } = state
   if (direction === 'down') {
@@ -2195,7 +2453,35 @@ function onEditBlur() {
 // Grid-level keyboard handler
 // ---------------------------------------------------------------------------
 
+/**
+ * Returns `true` when the keydown originated from a form-control element
+ * that has its own native key handling (filter row inputs, slot
+ * `#filter-{field}` content, `MTextInput` in a toolbar, …). The wrapper
+ * has `tabindex="0"` so EVERY keydown inside the grid bubbles here,
+ * including those from interactive descendants we don't want to hijack.
+ *
+ * Without this guard, typing in a filter input would also start an
+ * inline edit on the focused cell (`e.key.length === 1` branch below).
+ */
+function isInteractiveKeyTarget(target: EventTarget | null): boolean {
+  if (!(target instanceof HTMLElement)) return false
+  const tag = target.tagName
+  if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return true
+  if (target.isContentEditable) return true
+  // Mozaic's MTextInput wraps its real <input> inside a div with class
+  // mc-text-input — defensive check in case Vue's shadow-DOM-like
+  // composition changes the tag we see at event time.
+  if (target.closest('input, textarea, select, [contenteditable=""], [contenteditable="true"]'))
+    return true
+  return false
+}
+
 function onGridKeyDown(e: KeyboardEvent) {
+  // Interactive descendant has the focus — stay passive. Native key
+  // handling (text input, undo, arrows inside the input, …) keeps
+  // working without the grid stealing the keystroke.
+  if (isInteractiveKeyTarget(e.target)) return
+
   // Undo / redo — wire here (NOT on a window-level listener) so the
   // shortcut is scoped to the grid wrapper. The wrapper has tabindex="0"
   // so it can take focus on click; once focused, every keydown lands
@@ -2337,6 +2623,19 @@ function getCellFlags(rowIndex: number, field: string): CellFlags {
     }
   }
 
+  // --- Pending (granular skeleton) ---
+  // O(1) lookup sur `${rowId}::${field}`. On résout l'id depuis la row
+  // courante — pas l'index — pour rester stable au tri / au scroll virtuel.
+  let pending = false
+  const lookup = pendingCellLookup.value
+  if (lookup.size > 0) {
+    const row = renderableRows.value[rowIndex]
+    if (row && !isGroupRow(row)) {
+      const rowId = getRowId(row, rowIndex)
+      pending = lookup.has(`${rowId}::${field}`)
+    }
+  }
+
   return {
     selected: sel,
     edgeTop: edges.top,
@@ -2353,12 +2652,16 @@ function getCellFlags(rowIndex: number, field: string): CellFlags {
     cutEdgeBottom,
     cutEdgeLeft,
     cutEdgeRight,
+    pending,
   }
 }
 
 // --- Column menu action dispatcher ---
 function onColumnSort(field: string, isMultiSort: boolean) {
-  gridEngine.sort.toggleSort(field, isMultiSort)
+  // Quand `multiSort` est désactivé côté prop, on neutralise le modifier
+  // Shift : un seul tri actif à la fois, le précédent est remplacé.
+  const allowMulti = props.multiSort !== false
+  gridEngine.sort.toggleSort(field, allowMulti && isMultiSort)
 }
 
 function onColumnMenuAction(action: ColumnMenuAction) {
@@ -2414,21 +2717,26 @@ function onColumnFilterApply(condition: FilterCondition) {
   // row and limit overlays to one condition per column.
   const existing = gridState.filterModel.value.conditions.find((c) => c.id === condition.id)
   if (existing) {
+    // Forward `model` too — custom AG-Grid-style filters store their state
+    // there, and omitting it would silently drop user edits the second
+    // time the same column overlay applies (multi-select category, range
+    // slider drag, …).
     gridEngine.filter.updateCondition(existing.id, {
       operator: condition.operator,
       value: condition.value,
+      model: condition.model,
     })
   } else {
     gridEngine.filter.addCondition(condition)
   }
-  if (props.serverFilter) {
+  if (isServerFilter.value) {
     nextTick(() => emit('filterChange', { ...filters.value }))
   }
 }
 
 function onColumnFilterRemove(id: string) {
   gridEngine.filter.removeCondition(id)
-  if (props.serverFilter) {
+  if (isServerFilter.value) {
     nextTick(() => emit('filterChange', { ...filters.value }))
   }
 }
@@ -2448,7 +2756,7 @@ function onColumnFilterReorder(movedId: string, targetId: string | null) {
   if (toIndex > fromIndex) toIndex -= 1
   if (toIndex === fromIndex) return
   gridEngine.filter.reorderConditions(fromIndex, toIndex)
-  if (props.serverFilter) {
+  if (isServerFilter.value) {
     nextTick(() => emit('filterChange', { ...filters.value }))
   }
 }
@@ -2509,7 +2817,12 @@ const fillField = computed<string | null>(() => {
 // the filter row only renders if `filterTemplate` is declared).
 const hasFilterRow = computed(() => {
   const cols = mergedColumns.value
-  if (cols.some((c) => c.filter || c.filterRenderer)) return true
+  // `col.filter` is a union (inline FilterDef OR custom MrxFilterConfig).
+  // Only the FilterDef shape (`{ type, options, … }`) drives the inline
+  // filter row; the custom-filter shape (`{ component, doesFilterPass }`)
+  // is for the builder / column overlay and must NOT light up an empty
+  // row under the header.
+  if (cols.some((c) => (c.filter && 'type' in c.filter) || c.filterRenderer)) return true
   if (columnRegistry.list().some((r) => r.hasFilterSlot)) return true
   if (_rootSlots.filter) return true
   return cols.some((c) => `filter-${c.field}` in _rootSlots)
@@ -2800,10 +3113,13 @@ defineExpose({
       </div>
     </slot>
 
-    <!-- Loading overlay — sits above the grid wrapper, body keeps rendering. -->
-    <slot v-if="props.loading" name="loading">
-      <div class="mrx-grid-loading-bar" aria-hidden="true" />
-    </slot>
+    <!-- Loading slot — le grid ne rend AUCUN visuel par défaut quand
+         `loading` ou `refreshing` est true. Le full skeleton est posé en
+         bas dans `<MrxGridSkeletonBody>` (quand `loading=true`), et c'est
+         le seul signal d'activité de longue durée. Les consumers qui
+         veulent un indicateur custom (top bar, spinner, …) peuvent
+         remplir le slot `#loading`. -->
+    <slot v-if="props.loading || props.refreshing" name="loading" />
 
     <!-- Sprint 3 — unified Mozaic tag bars (HIDDEN / GROUPED / FILTERED) -->
     <MrxGridTagBar
@@ -2870,6 +3186,7 @@ defineExpose({
       <div
         v-if="props.loading || props.error || (props.rows.length > 0 && renderableRows.length > 0)"
         class="mrx-grid-sticky-header"
+        :class="{ 'mrx-grid-sticky-header--with-filter-row': hasFilterRow }"
       >
         <!-- A / B / C / … strip — auto-on when any column has `allowFormula`. -->
         <MrxGridSpreadsheetHeader
@@ -2943,12 +3260,35 @@ defineExpose({
         />
       </div>
 
+      <!-- Skeleton body — affichée pendant le chargement, à la place du
+           body et de l'empty state. On garde le header visible (cf. condition
+           plus haut) pour conserver le contexte des colonnes. Ne s'affiche
+           pas si le consumer a explicitement mis `skeletonRowCount = 0`. -->
+      <MrxGridSkeletonBody
+        v-if="props.loading && skeletonRowCountResolved > 0"
+        :count="skeletonRowCountResolved"
+        :grid-content-width="gridContentWidth"
+        :columns="renderCenterColumns"
+        :left-columns="leftColumns"
+        :right-columns="rightColumns"
+        :has-pinned="hasPinned"
+        :selectable="selectable"
+        :expandable="expandable"
+        :show-row-numbers="hasFormulaColumns"
+        :get-column-width="getColumnWidth"
+        :get-pinned-style="getPinnedStyle"
+        :get-utility-style="getUtilityStyle"
+        :left-spacer-width="leftSpacerWidth"
+        :right-spacer-width="rightSpacerWidth"
+        :fill-field="fillField"
+      />
+
       <!-- Empty state — fires both when the input array is empty AND when
          filters reduce the visible set to zero. The variant in the card
          (pristine vs filtered) is driven by `hasActiveFilters` so the
          user sees the right call-to-action. -->
       <slot
-        v-if="
+        v-else-if="
           !props.loading && !props.error && (props.rows.length === 0 || renderableRows.length === 0)
         "
         name="empty"
@@ -2981,6 +3321,7 @@ defineExpose({
         :show-row-numbers="hasFormulaColumns"
         :get-render-row="getRenderRow"
         :is-row-selected="isRowSelected"
+        :is-row-pending="isRowPending"
         :is-expanded="isExpanded"
         :is-group-expanded="isGroupExpanded"
         :active-field-for-row="activeFieldForRow"
@@ -3069,6 +3410,7 @@ defineExpose({
   min-height: 0;
 }
 
+
 .mrx-grid-root--fullscreen {
   position: fixed;
   inset: 0;
@@ -3111,7 +3453,9 @@ defineExpose({
 }
 
 .mrx-grid-wrapper--paginated {
-  border-radius: m.get-radius('m') m.get-radius('m') 0 0;
+  // Top 16px (= 1rem, matching the default wrapper) ; bottom plat parce
+  // que la barre de pagination Mozaic prend le relais juste en dessous.
+  border-radius: 1rem 1rem 0 0;
   border-bottom: none;
 }
 
@@ -3119,6 +3463,15 @@ defineExpose({
   position: sticky;
   top: 0;
   z-index: 3;
+}
+
+// Quand une filter row est rendue juste sous le header, le label (haut)
+// et l'input (bas) doivent former une seule cellule visuelle par colonne.
+// On supprime le `border-bottom` du header cell (sinon trait horizontal
+// entre LABEL et input) — seule la border-bottom de la filter cell
+// délimite alors la fin du bloc header complet.
+.mrx-grid-sticky-header--with-filter-row :deep(.mrx-grid-header-cell) {
+  border-bottom: none;
 }
 
 .mrx-grid-body {

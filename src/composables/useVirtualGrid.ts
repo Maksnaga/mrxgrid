@@ -26,6 +26,18 @@ export interface VirtualGridOptions {
    * so that lazy-loading never causes scroll jumps or feedback loops.
    */
   totalCount?: Ref<number>
+  /**
+   * Set of row indices currently expanded. Forwarded to `useVirtualScroll`
+   * so it can apply variable-height math and keep the detail panel from
+   * being sliced out mid-scroll. Optional — omit for the classic
+   * fixed-row-height fast path.
+   */
+  expandedRowIndices?: Ref<Set<number>>
+  /**
+   * Extra height (px) added by an expanded row on top of `rowHeight`.
+   * Required when `expandedRowIndices` is provided. May be reactive.
+   */
+  expandedRowExtraHeight?: Ref<number> | number
 }
 
 /**
@@ -48,6 +60,8 @@ export function useVirtualGrid(options: VirtualGridOptions) {
     columnOverscan = 2,
     getColumnWidth,
     totalCount,
+    expandedRowIndices,
+    expandedRowExtraHeight,
   } = options
 
   // --- Reactive boolean flags ---
@@ -82,6 +96,8 @@ export function useVirtualGrid(options: VirtualGridOptions) {
     containerHeight,
     overscan: rowOverscan,
     totalCount,
+    expandedRowIndices,
+    expandedRowExtraHeight,
   })
 
   // --- Horizontal axis ---

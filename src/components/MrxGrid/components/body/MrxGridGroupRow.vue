@@ -2,10 +2,11 @@
 /**
  * Group row — a single horizontal band that summarises a group of rows.
  * The row spans the full grid content width (so the horizontal
- * scrollbar lines up with data rows), but the label (chevron + field
- * + value) is `position: sticky; left: 0` and the count is
- * `position: sticky; right: 0`, so both stay anchored to the visible
- * viewport while the user scrolls the body horizontally.
+ * scrollbar lines up with data rows). The label (chevron + field
+ * + value + count) is `position: sticky; left: 0` so it stays anchored
+ * to the visible viewport while the user scrolls the body horizontally.
+ * The count sits right next to the title rather than at the row's far
+ * right edge, so the eye doesn't have to travel the full row width.
  */
 import type { CSSProperties } from 'vue'
 import { ChevronDown20, ChevronRight20 } from '@mozaic-ds/icons-vue'
@@ -49,18 +50,17 @@ const INDENT_PX = 24
 
 <template>
   <div class="mrx-group-row" role="row" @click="emit('toggle')">
-    <!-- Sticky-left: chevron + (field above value). Stays anchored to
-         the visible viewport during horizontal scroll. -->
+    <!-- Sticky-left: chevron + (field above value) + count. The count
+         sits right next to the title — the whole block stays anchored
+         to the visible viewport during horizontal scroll. -->
     <div class="mrx-group-row__label" :style="{ paddingLeft: `${depth * INDENT_PX + 16}px` }">
       <component :is="expanded ? ChevronDown20 : ChevronRight20" class="mrx-group-row__toggle" aria-hidden="true" />
       <div class="mrx-group-row__info">
         <span class="mrx-group-row__field">{{ headerName }}</span>
         <span class="mrx-group-row__value">{{ value ?? '(empty)' }}</span>
       </div>
+      <span class="mrx-group-row__count">{{ count }}</span>
     </div>
-    <!-- Sticky-right: count stays anchored to the right edge of the
-         visible viewport during horizontal scroll. -->
-    <span class="mrx-group-row__count">{{ count }}</span>
   </div>
 </template>
 
@@ -142,23 +142,20 @@ const INDENT_PX = 24
   text-overflow: ellipsis;
 }
 
-// Sticky-right: count stays anchored to the right edge of the visible
-// viewport during horizontal scroll. `margin-left: auto` pushes it to
-// the row's natural end; `right: 0` then anchors it once the row would
-// scroll past the viewport.
+// Inline pill sitting right next to the group title — soft neutral
+// background so it reads as a count, not a tappable element. Lives
+// inside `__label`, so it inherits the sticky-left anchoring during
+// horizontal scroll.
 .mrx-group-row__count {
-  position: sticky;
-  right: 0;
-  margin-left: auto;
   flex-shrink: 0;
-  padding: 0 16px;
-  height: 100%;
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  font-size: 14px;
-  font-weight: 400;
-  color: #94a3b8;
-  background-color: inherit;
-  z-index: 2;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background-color: #e2e8f0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #475569;
+  line-height: 1.2;
 }
 </style>

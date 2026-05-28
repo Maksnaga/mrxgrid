@@ -170,8 +170,23 @@ export interface ColumnDef<T = RowData> {
    * column doesn't declare a built-in `filter` shape. Sprint 6.
    */
   filterRenderer?: Raw<Component>
-  /** Filter configuration. Omit to disable filtering for this column. (Legacy — Phase 3 migrates to FilterModel.) */
-  filter?: FilterDef
+  /**
+   * Filter configuration. Two shapes are accepted:
+   *
+   * 1. **Inline filter row** — `{ type: 'text' | 'number' | 'select' | 'date', … }`
+   *    (see {@link FilterDef}). Drives the input row below the header.
+   *
+   * 2. **Custom filter for the builder / column overlay** —
+   *    `{ component, doesFilterPass, filterParams? }`
+   *    (see {@link import('./models/filter.model').MrxFilterConfig}).
+   *    The component owns the UI + state, the predicate is column data.
+   *
+   * The two shapes are distinguished structurally: an object with `type` →
+   * inline; an object with `component` → custom. Omit entirely to disable.
+   */
+  filter?:
+    | FilterDef
+    | import('./models/filter.model').MrxFilterConfig<T, unknown, unknown>
   /**
    * Optional validator called before paste / fill writes a value into this column.
    * Return `true` to accept, `false` to reject.
@@ -313,6 +328,13 @@ export interface CellFlags {
   cutEdgeBottom?: boolean
   cutEdgeLeft?: boolean
   cutEdgeRight?: boolean
+  /**
+   * True when an async mutation is in-flight for this (row, field). Drives a
+   * shimmer overlay above the value (the value stays visible in filigree so
+   * the user knows WHICH field is being pushed). Set via `props.pendingCells`
+   * on `<MrxGrid>` — see the `usePendingMutations` pattern in the demo.
+   */
+  pending?: boolean
 }
 
 /** Emitted when a fill-handle drag completes. */
