@@ -79,6 +79,20 @@ function flags(field: string): CellFlags {
   return props.getCellFlags?.(props.rowIndex, field) ?? EMPTY_FLAGS
 }
 
+/**
+ * Resolve the cell display value.
+ *
+ * `col.valueGetter`, when defined, takes precedence over `row[col.field]`.
+ * Without this, columns whose value is computed on-the-fly (synthetic /
+ * stress-test / derived fields that don't exist on the row object) render
+ * as blank — the engine layer (filter/sort/export/group/clipboard) already
+ * routes through `valueGetter`, but the visual rendering path was bypassing
+ * it and reading `row[field]` directly. This helper closes the gap.
+ */
+function cellValue(col: ColumnDef, row: RowData): unknown {
+  return col.valueGetter ? col.valueGetter(row) : (row as Record<string, unknown>)[col.field]
+}
+
 const emit = defineEmits<{
   toggleSelect: [event?: MouseEvent]
   toggleExpand: []
@@ -141,7 +155,7 @@ const emit = defineEmits<{
     </div>
 
     <!-- Left-pinned columns (always rendered, sticky left) -->
-    <MrxGridCell v-for="(col, idx) in pinnedLeftColumns" :key="'pl-' + col.field" :value="row[col.field]" :row="row"
+    <MrxGridCell v-for="(col, idx) in pinnedLeftColumns" :key="'pl-' + col.field" :value="cellValue(col, row)" :row="row"
       :field="col.field" :row-index="rowIndex" :column="col" :active="activeField === col.field"
       :editing="editingField === col.field" :edit-value="editingField === col.field ? editValue : undefined"
       :selected="flags(col.field).selected" :edge-top="flags(col.field).edgeTop"
@@ -174,7 +188,7 @@ const emit = defineEmits<{
       :style="{ width: leftSpacerWidth, minWidth: leftSpacerWidth }" />
 
     <!-- Center columns (virtual slice or all unpinned) -->
-    <MrxGridCell v-for="col in columns" :key="col.field" :value="row[col.field]" :row="row" :field="col.field"
+    <MrxGridCell v-for="col in columns" :key="col.field" :value="cellValue(col, row)" :row="row" :field="col.field"
       :row-index="rowIndex" :column="col" :active="activeField === col.field" :editing="editingField === col.field"
       :edit-value="editingField === col.field ? editValue : undefined" :selected="flags(col.field).selected"
       :edge-top="flags(col.field).edgeTop" :edge-bottom="flags(col.field).edgeBottom"
@@ -200,7 +214,7 @@ const emit = defineEmits<{
       :style="{ width: rightSpacerWidth, minWidth: rightSpacerWidth }" />
 
     <!-- Right-pinned columns (always rendered, sticky right) -->
-    <MrxGridCell v-for="(col, idx) in pinnedRightColumns" :key="'pr-' + col.field" :value="row[col.field]" :row="row"
+    <MrxGridCell v-for="(col, idx) in pinnedRightColumns" :key="'pr-' + col.field" :value="cellValue(col, row)" :row="row"
       :field="col.field" :row-index="rowIndex" :column="col" :active="activeField === col.field"
       :editing="editingField === col.field" :edit-value="editingField === col.field ? editValue : undefined"
       :selected="flags(col.field).selected" :edge-top="flags(col.field).edgeTop"

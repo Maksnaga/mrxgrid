@@ -96,7 +96,13 @@ export function useCellEditing(options: CellEditingOptions) {
     if (!isEditable(field)) return
     const row = rows.value[rowIndex]
     if (!row) return
-    const currentValue = row[field]
+    // Same valueGetter routing as the visual render path (cf. MrxGridRow.vue
+    // `cellValue`). Without this, columns whose value is computed on-the-fly
+    // (synthetic / stress-test / derived fields not present on the row
+    // object) open the editor blank — `row[field]` returns undefined and
+    // the editor's `localEditValue` seeds to `''`.
+    const col = columns.value.find((c) => c.field === field)
+    const currentValue = col?.valueGetter ? col.valueGetter(row) : row[field]
     editingCell.value = {
       rowIndex,
       field,

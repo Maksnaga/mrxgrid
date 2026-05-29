@@ -42,6 +42,7 @@ import ProductDetailExpand from './components/detail/ProductDetailExpand.vue'
 
 import { useProductList } from './composables/useProductList'
 import { usePendingMutations } from './composables/usePendingMutations'
+import { useStressOverrides } from './composables/useStressOverrides'
 import { useToastsStore } from './stores/toasts.store'
 import {
   deleteProduct,
@@ -50,6 +51,27 @@ import {
   updateProducts,
 } from './mock/api'
 import type { LMProduct } from './mock/seed'
+import { stressColumns } from './columns/stressColumns'
+
+// Champs "vrais" de LMProduct côté mock store. Tout field hors de ce set est
+// une colonne stress (gérée par overrides côté demo, pas par updateProduct).
+const BASE_FIELDS: ReadonlySet<string> = new Set([
+  'id',
+  'sku',
+  'name',
+  'category',
+  'brand',
+  'price',
+  'stock',
+  'status',
+  'rating',
+  'energyClass',
+  'promo',
+  'store',
+  'updatedAt',
+])
+
+const stress = useStressOverrides()
 
 const LM_CATEGORIES = [
   'Plomberie',
@@ -81,16 +103,6 @@ const LM_BRANDS = [
   'Black & Decker',
   'Makita',
 ]
-
-// Pools déterministes pour les colonnes stress-test (cf. `extraColumns`
-// plus bas). Chaque row pioche via `row.id % pool.length` → données
-// stables d'un fetch à l'autre, pas de re-render flicker.
-const STRESS_SUPPLIERS = ['Acme Tools', 'TruValue', 'BuildPro', 'NordicSupply', 'Iberica SA', 'EuroParts', 'GlobalTrade']
-const STRESS_WAREHOUSES = ['Lille N1', 'Lille N2', 'Lyon S1', 'Marseille E', 'Bordeaux O', 'Paris C', 'Strasbourg N']
-const STRESS_REGIONS = ['Hauts-de-France', 'Île-de-France', 'PACA', 'Nouvelle-Aquitaine', 'AURA', 'Grand Est']
-const STRESS_PRIORITIES = ['Critique', 'Haute', 'Normale', 'Basse']
-const STRESS_LIFECYCLES = ['New', 'Active', 'Mature', 'Phasing out', 'EOL']
-const STRESS_RESPONSIBLES = ['S. Martin', 'L. Bernard', 'P. Dubois', 'M. Robert', 'C. Petit', 'F. Durand']
 
 const toasts = useToastsStore()
 const list = useProductList()
@@ -187,12 +199,10 @@ const baseColumns: ColumnDef[] = [
         if (!Array.isArray(p.model) || p.model.length === 0) return true
         const v = p.getValue('category')
         return typeof v === 'string' && p.model.includes(v)
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      }) as any,
+      }),
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       getModelAsString: ((m: string[]) =>
-        Array.isArray(m) && m.length > 0 ? m.join(', ') : '') as any,
+        Array.isArray(m) && m.length > 0 ? m.join(', ') : ''),
     },
   },
   {
@@ -277,114 +287,21 @@ const baseColumns: ColumnDef[] = [
 ]
 
 // ---------------------------------------------------------------------------
-// Colonnes "stress-test" — générées programmatiquement avec `valueGetter`.
+// Stress-test 200 colonnes — la génération des 190 extras vit dans
+// `./columns/stressColumns.ts`. Chaque colonne stress :
+//   • est éditable (number / text / set / date)
+//   • lit via `valueGetter` qui résout overrides utilisateur d'abord,
+//     fallback sur valeur pseudo-aléatoire dérivée de `row.id`
+//   • n'occupe aucune mémoire tant qu'elle n'est pas éditée
 //
-// Objectif : tester le rendu, le virtual-columns et le scroll horizontal sur
-// 30+ colonnes sans avoir à étendre l'interface `LMProduct`. Les valeurs
-// dérivent de `row.id` via des pools déterministes → stables d'un fetch à
-// l'autre, et la lecture reste O(1).
-//
-// On groupe par type pour exercer chaque renderer / éditeur du grid :
-//   • 10 colonnes numériques (ventes Q1/Q2/Q3/Q4, marges, retours…)
-//   • 6 colonnes texte (fournisseur, entrepôt, région, responsable…)
-//   • 5 colonnes "set" (priorité, lifecycle, classification…)
-//   • 5 colonnes date
-//   • 4 colonnes éditables (toggle / number)
+// Total final : 10 colonnes base + 190 stress = 200 colonnes.
+// Le `pinned: 'end'` sur `status` reste honoré par le grid quel que soit
+// l'ordre — on push les stress au milieu sans casser le pinning.
 // ---------------------------------------------------------------------------
 
-function pick<T>(pool: readonly T[], id: number, salt = 0): T {
-  // Hash léger pour décorréler les colonnes entre elles — sinon les rows
-  // se ressemblent toutes (même supplier sur toute la colonne adjacente).
-  const h = ((id * 2654435761) ^ (salt * 16807)) >>> 0
-  return pool[h % pool.length]!
-}
-
-function pseudoNumber(id: number, salt: number, max: number): number {
-  const h = ((id * 2246822519) ^ (salt * 3266489917)) >>> 0
-  return h % max
-}
-
-function isoDateFromId(id: number, salt: number, spreadDays = 730): string {
-  const days = pseudoNumber(id, salt, spreadDays)
-  const d = new Date()
-  d.setDate(d.getDate() - days)
-  return d.toISOString().slice(0, 10)
-}
-
-const numericExtras: ColumnDef[] = [
-  ['salesQ1', 'Ventes Q1', 5000],
-  ['salesQ2', 'Ventes Q2', 6000],
-  ['salesQ3', 'Ventes Q3', 4500],
-  ['salesQ4', 'Ventes Q4', 7200],
-  ['margin', 'Marge %', 60],
-  ['returns', 'Retours', 80],
-  ['leadtime', 'Lead time (j)', 45],
-  ['weight', 'Poids (kg)', 30],
-  ['height', 'Hauteur (cm)', 200],
-  ['warranty', 'Garantie (mois)', 60],
-].map(([field, headerName, max], i) => ({
-  field: field as string,
-  headerName: headerName as string,
-  width: '120px',
-  sortable: true,
-  cellClass: 'mrx-cell-num',
-  valueGetter: (row) => pseudoNumber((row as LMProduct).id, 100 + i, max as number),
-}))
-
-const textExtras: ColumnDef[] = [
-  ['supplier', 'Fournisseur', STRESS_SUPPLIERS],
-  ['warehouse', 'Entrepôt', STRESS_WAREHOUSES],
-  ['region', 'Région', STRESS_REGIONS],
-  ['responsible', 'Responsable', STRESS_RESPONSIBLES],
-].map(([field, headerName, pool], i) => ({
-  field: field as string,
-  headerName: headerName as string,
-  width: '160px',
-  sortable: true,
-  filterable: true,
-  filterType: 'text',
-  valueGetter: (row) => pick(pool as string[], (row as LMProduct).id, 200 + i),
-}))
-
-const setExtras: ColumnDef[] = [
-  ['priority', 'Priorité', STRESS_PRIORITIES, '110px'],
-  ['lifecycle', 'Cycle de vie', STRESS_LIFECYCLES, '130px'],
-].map(([field, headerName, pool, width], i) => ({
-  field: field as string,
-  headerName: headerName as string,
-  width: width as string,
-  sortable: true,
-  filterable: true,
-  filterType: 'set',
-  valueGetter: (row) => pick(pool as string[], (row as LMProduct).id, 300 + i),
-}))
-
-const dateExtras: ColumnDef[] = [
-  ['lastOrderAt', 'Dernière commande', 365],
-  ['firstReceivedAt', 'Première récep.', 730],
-  ['nextAuditAt', 'Prochain audit', 180],
-].map(([field, headerName, spread], i) => ({
-  field: field as string,
-  headerName: headerName as string,
-  width: '160px',
-  sortable: true,
-  valueGetter: (row) => isoDateFromId((row as LMProduct).id, 400 + i, spread as number),
-}))
-
-const extraColumns: ColumnDef[] = [
-  ...numericExtras,
-  ...textExtras,
-  ...setExtras,
-  ...dateExtras,
-]
-
-// La liste finale poussée au grid. On garde `status` en dernier pour
-// préserver le `pinned: 'end'` ; le grid honore le pinning indépendamment
-// de l'ordre dans le tableau, donc le spread des extras avant `status`
-// suffit. Total : ~32 colonnes — assez pour stresser `virtual-columns`.
 const columns: ColumnDef[] = [
   ...baseColumns.filter((c) => c.field !== 'status'),
-  ...extraColumns,
+  ...stressColumns,
   baseColumns.find((c) => c.field === 'status')!,
 ]
 
@@ -392,6 +309,16 @@ const columns: ColumnDef[] = [
 // Édition inline — chaque commit déclenche un updateProduct + toast.
 // Pas d'history app-level : la demo reste focus sur les features grid.
 // ---------------------------------------------------------------------------
+
+/**
+ * Latence simulée pour les writes "stress" — sans aller-retour serveur
+ * il n'y aurait pas de shimmer du tout. On garde 350 ms (cohérent avec
+ * la latency mock côté `mock/latency.ts`) pour que la démo montre bien
+ * le skeleton sur les 200 colonnes.
+ */
+function simulateLatency(): Promise<void> {
+  return new Promise((r) => setTimeout(r, 350))
+}
 
 async function onCellEdit(e: {
   rowIndex: number
@@ -402,6 +329,22 @@ async function onCellEdit(e: {
   if (e.oldValue === e.newValue) return
   const row = list.rows.value[e.rowIndex] as LMProduct | undefined
   if (!row) return
+
+  // Champ stress (hors LMProduct) → on stocke dans les overrides locaux
+  // après un délai simulé, le tout enveloppé dans `withCellPending` pour
+  // que le shimmer s'affiche pendant l'écriture (sinon l'utilisateur ne
+  // voit jamais le feedback visuel sur les 190 stress cols).
+  if (!BASE_FIELDS.has(e.field)) {
+    try {
+      await pending.withCellPending(String(row.id), e.field, async () => {
+        await simulateLatency()
+        stress.setOverride(row.id, e.field, e.newValue)
+      })
+    } catch (err) {
+      toasts.error((err as Error).message)
+    }
+    return
+  }
 
   const field = e.field as keyof LMProduct
   const patch = { [field]: e.newValue } as Partial<LMProduct>
@@ -440,50 +383,80 @@ function onSearch(value: string): void {
 async function onFill(event: {
   fills: Array<{ rowIndex: number; field: string; value: unknown }>
 }): Promise<void> {
-  // Group by field so we appellons `updateProducts(ids, patch)` une seule
-  // fois par champ — économise des allers-retours et garde la sémantique
-  // "un fill = une opération" dans l'history.
-  const byField = new Map<string, { ids: number[]; value: unknown; prev: Map<number, unknown> }>()
+  // Split fills en 2 buckets : base (→ updateProducts mock api) et stress
+  // (→ overrides locaux, instantané). Permet de fill 1000 cellules de
+  // "Ventes Mars 2024" en un drag sans aller-retour réseau simulé.
+  const baseFills: Array<{ rowId: number; field: string; value: unknown }> = []
+  const stressFills: Array<{ rowId: number; field: string; value: unknown }> = []
 
   for (const f of event.fills) {
     const row = list.rows.value[f.rowIndex] as LMProduct | undefined
     if (!row) continue
-    let bucket = byField.get(f.field)
-    if (!bucket) {
-      bucket = { ids: [], value: f.value, prev: new Map() }
-      byField.set(f.field, bucket)
+    if (BASE_FIELDS.has(f.field)) {
+      baseFills.push({ rowId: row.id, field: f.field, value: f.value })
+    } else {
+      stressFills.push({ rowId: row.id, field: f.field, value: f.value })
     }
-    bucket.ids.push(row.id)
-    // Au fill, le grid mute déjà row[field] en place (cf. applyFills) — la
-    // valeur ici est déjà la nouvelle. L'event ne porte pas la précédente,
-    // donc l'undo bulk n'est pas supporté pour le fill ; les edits
-    // unitaires (commit cellule) restent annulables.
   }
 
-  // Map cell-level pending sur CHAQUE cellule du fill (pas row-level :
-  // le fill n'affecte qu'un champ par row, dim toute la row serait
-  // disproportionné). On reconstruit la liste `{rowId, field}` à partir
-  // de `event.fills`.
-  const pendingCells = event.fills
-    .map((f) => {
-      const row = list.rows.value[f.rowIndex] as LMProduct | undefined
-      return row ? { rowId: String(row.id), field: f.field } : null
-    })
-    .filter((c): c is { rowId: string; field: string } => c !== null)
+  // Stress cells : on shimmer toutes les cellules ciblées pendant un
+  // délai simulé, puis on flush les overrides en un coup. Pareil que
+  // `onCellEdit` mais en bulk — le user voit le skeleton sur toute la
+  // zone fill, pas seulement sur la source.
+  if (stressFills.length > 0) {
+    const stressPendingCells = stressFills.map((f) => ({
+      rowId: String(f.rowId),
+      field: f.field,
+    }))
+    try {
+      await pending.withCellsPending(stressPendingCells, async () => {
+        await simulateLatency()
+        stress.setManyOverrides(stressFills)
+      })
+    } catch (err) {
+      toasts.error((err as Error).message)
+    }
+  }
 
-  try {
-    await pending.withCellsPending(pendingCells, async () => {
-      for (const [field, bucket] of byField.entries()) {
-        await updateProducts(bucket.ids, {
-          [field]: bucket.value,
-        } as Partial<LMProduct>)
+  // Base cells : on garde la sémantique pending shimmer + batch API.
+  if (baseFills.length > 0) {
+    const byField = new Map<string, { ids: number[]; value: unknown }>()
+    for (const f of baseFills) {
+      let bucket = byField.get(f.field)
+      if (!bucket) {
+        bucket = { ids: [], value: f.value }
+        byField.set(f.field, bucket)
       }
-    })
-    toasts.success(`${event.fills.length} cellules mises à jour`)
-    await list.refetch()
-  } catch (err) {
-    toasts.error((err as Error).message)
-    await list.refetch()
+      bucket.ids.push(f.rowId)
+    }
+
+    const pendingCells = baseFills.map((f) => ({
+      rowId: String(f.rowId),
+      field: f.field,
+    }))
+
+    try {
+      await pending.withCellsPending(pendingCells, async () => {
+        for (const [field, bucket] of byField.entries()) {
+          await updateProducts(bucket.ids, {
+            [field]: bucket.value,
+          } as Partial<LMProduct>)
+        }
+      })
+      toasts.success(`${event.fills.length} cellules mises à jour`)
+      await list.refetch()
+      return
+    } catch (err) {
+      toasts.error((err as Error).message)
+      await list.refetch()
+      return
+    }
+  }
+
+  // 100% stress fills — pas de fetch nécessaire, le valueGetter relira
+  // direct depuis les overrides au prochain render.
+  if (stressFills.length > 10) {
+    toasts.success(`${stressFills.length} cellules mises à jour`)
   }
 }
 
@@ -661,83 +634,84 @@ function retryFetch(): void {
 
     <!-- Vue 1 — la démo complète (grid + drawers + bulk action bar). -->
     <template v-if="activeTab === 0">
-    <MrxGrid ref="gridRef" class="demo-page__grid" :columns="columns" :rows="list.rows.value"
-      :row-id="(row) => String((row as LMProduct).id)" :total-count="list.total.value" :pagination="paginationConfig"
-      :virtual-columns="true" :multi-sort="false" :height="640" :loading="list.loading.value"
-      :pending-cells="pendingCells" :pending-row-ids="pendingRowIds" :error="list.error.value"
-      selectable selection-bar-compact
-      expandable :filter-mode="'server'" v-model:filter-model="list.filterModel.value" :density="density"
-      :hidden-fields="hiddenFields" :column-order="columnOrder" :group-fields="groupFields" :fullscreen="fullscreen"
-      @page-change="list.onPageChange" @cell-edit="onCellEdit" @filter-change="list.onFilterChange" @fill="onFill"
-      @update:selection="onSelectionChange" @cell-selection-change="onCellSelectionChange">
-      <template #toolbar>
-        <ToolbarActions :grid="gridRef" :columns="columns" :search="list.searchInput.value" :fullscreen="fullscreen"
-          :density="density" :hidden-fields="hiddenFields" :column-order="columnOrder" :active-groups="activeGroups"
-          :filter-model="list.filterModel.value" @update:search="onSearch" @update:fullscreen="fullscreen = $event"
-          @update:density="density = $event" @update:hidden-fields="hiddenFields = $event"
-          @update:column-order="columnOrder = $event" @update:active-groups="activeGroups = $event"
-          @update:filter-model="list.filterModel.value = $event" @new-product="onNewProduct"
-          @import-csv="onImportCsv" />
-      </template>
+      <MrxGrid ref="gridRef" class="demo-page__grid" :columns="columns" :rows="list.rows.value"
+        :row-id="(row) => String((row as LMProduct).id)" :total-count="list.total.value" :pagination="paginationConfig"
+        :virtual-columns="true" :multi-sort="false" :height="640" :loading="list.loading.value"
+        :pending-cells="pendingCells" :pending-row-ids="pendingRowIds" :error="list.error.value" selectable
+        selection-bar-compact expandable :filter-mode="'server'" v-model:filter-model="list.filterModel.value"
+        :density="density" :hidden-fields="hiddenFields" :column-order="columnOrder" :group-fields="groupFields"
+        :fullscreen="fullscreen" @page-change="list.onPageChange" @cell-edit="onCellEdit"
+        @filter-change="list.onFilterChange" @fill="onFill" @update:selection="onSelectionChange"
+        @cell-selection-change="onCellSelectionChange">
+        <template #toolbar>
+          <ToolbarActions :grid="gridRef" :columns="columns" :search="list.searchInput.value" :fullscreen="fullscreen"
+            :density="density" :hidden-fields="hiddenFields" :column-order="columnOrder" :active-groups="activeGroups"
+            :filter-model="list.filterModel.value" @update:search="onSearch" @update:fullscreen="fullscreen = $event"
+            @update:density="density = $event" @update:hidden-fields="hiddenFields = $event"
+            @update:column-order="columnOrder = $event" @update:active-groups="activeGroups = $event"
+            @update:filter-model="list.filterModel.value = $event" @new-product="onNewProduct"
+            @import-csv="onImportCsv" />
+        </template>
 
-      <!-- Slot #edit-brand — éditeur custom MCombobox Mozaic. Le grid
+        <!-- Slot #edit-brand — éditeur custom MCombobox Mozaic. Le grid
            bascule en mode édition au double-clic / Enter ; ce slot
            remplace l'editor par défaut. Le scope expose `updateValue`
            pour pusher le draft, `commit('down')` pour valider, et
            `cancel()` pour Escape. `cellEditorOptions` côté ColumnDef
            fournit la liste des marques au composant. -->
-      <template #edit-brand="editProps">
-        <BrandComboEditor :field="editProps.field" :row-index="editProps.rowIndex" :column="editProps.column"
-          :edit-value="editProps.editValue" :update-value="editProps.updateValue" :commit="editProps.commit" />
-      </template>
+        <template #edit-brand="editProps">
+          <BrandComboEditor :field="editProps.field" :row-index="editProps.rowIndex" :column="editProps.column"
+            :edit-value="editProps.editValue" :update-value="editProps.updateValue" :commit="editProps.commit" />
+        </template>
 
-      <!-- Empty state custom — affiché quand les filtres écrasent tout. -->
-      <template #empty="{ hasFilters, clearFilters }">
-        <div class="demo-page__empty">
-          <p v-if="hasFilters">
-            Aucun produit ne correspond à tes filtres.
-          </p>
-          <p v-else>Le catalogue est vide.</p>
-          <button v-if="hasFilters" type="button" class="demo-page__empty-btn" @click="clearFilters">
-            Effacer les filtres
-          </button>
-        </div>
-      </template>
 
-      <!-- Slot #error — affiché en cas d'erreur de fetch (2 % aléatoire). -->
-      <template #error="{ error, retry }">
-        <div class="demo-page__error">
-          <p>{{ error.message }}</p>
-          <button type="button" class="demo-page__error-btn" @click="retry ?? retryFetch">
-            Réessayer
-          </button>
-        </div>
-      </template>
+        <!-- Empty state custom — affiché quand les filtres écrasent tout. -->
+        <template #empty="{ hasFilters, clearFilters }">
+          <div class="demo-page__empty">
+            <p v-if="hasFilters">
+              Aucun produit ne correspond à tes filtres.
+            </p>
+            <p v-else>Le catalogue est vide.</p>
+            <button v-if="hasFilters" type="button" class="demo-page__empty-btn" @click="clearFilters">
+              Effacer les filtres
+            </button>
+          </div>
+        </template>
 
-      <!-- Slot #expand-row — drill-down inline. Click chevron pour
+        <!-- Slot #error — affiché en cas d'erreur de fetch (2 % aléatoire). -->
+        <template #error="{ error, retry }">
+          <div class="demo-page__error">
+            <p>{{ error.message }}</p>
+            <button type="button" class="demo-page__error-btn" @click="retry ?? retryFetch">
+              Réessayer
+            </button>
+          </div>
+        </template>
+
+        <!-- Slot #expand-row — drill-down inline. Click chevron pour
            déplier, voir la fiche du produit + mini grid des mouvements
            de stock. Le bouton "Éditer" ouvre `ProductDrawer` en mode
            édition. -->
-      <template #expand-row="{ row }">
-        <ProductDetailExpand :product="row as LMProduct" @edit="onEditProduct(row as LMProduct)" />
-      </template>
-    </MrxGrid>
+        <template #expand-row="{ row }">
+          <ProductDetailExpand :product="row as LMProduct" @edit="onEditProduct(row as LMProduct)" />
+        </template>
+      </MrxGrid>
 
-    <!-- Drawer création / édition produit. -->
-    <ProductDrawer v-model:open="drawerOpen" :product="drawerProduct" @created="onProductCreated"
-      @updated="onProductUpdated" @delete="(id) => askDelete([id])" />
+      <!-- Drawer création / édition produit. -->
+      <ProductDrawer v-model:open="drawerOpen" :product="drawerProduct" @created="onProductCreated"
+        @updated="onProductUpdated" @delete="(id) => askDelete([id])" />
 
-    <!-- Modal de confirmation suppression (single ou bulk). -->
-    <DeleteConfirmModal v-model:open="deleteModalOpen" :count="deleteIds.length" :loading="deleting"
-      @confirm="confirmDelete" />
+      <!-- Modal de confirmation suppression (single ou bulk). -->
+      <DeleteConfirmModal v-model:open="deleteModalOpen" :count="deleteIds.length" :loading="deleting"
+        @confirm="confirmDelete" />
 
-    <!-- Modal modification statut bulk. -->
-    <BulkStatusModal v-model:open="bulkStatusModalOpen" :count="selectionIds.length" :loading="bulkUpdating"
-      @confirm="confirmBulkStatus" />
+      <!-- Modal modification statut bulk. -->
+      <BulkStatusModal v-model:open="bulkStatusModalOpen" :count="selectionIds.length" :loading="bulkUpdating"
+        @confirm="confirmBulkStatus" />
 
-    <!-- Barre flottante d'actions bulk — apparait dès qu'il y a sélection. -->
-    <BulkActionBar :row-count="selectionIds.length" :cell-count="cellSelectionCount" @export="onBulkExport"
-      @edit-status="onBulkEditStatus" @delete="onBulkDelete" @clear="onBulkClear" />
+      <!-- Barre flottante d'actions bulk — apparait dès qu'il y a sélection. -->
+      <BulkActionBar :row-count="selectionIds.length" :cell-count="cellSelectionCount" @export="onBulkExport"
+        @edit-status="onBulkEditStatus" @delete="onBulkDelete" @clear="onBulkClear" />
     </template>
 
     <!-- Vue 2 — Tutoriel pas-à-pas. -->

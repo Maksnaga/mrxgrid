@@ -10,7 +10,7 @@ import {
   type Slot,
 } from 'vue'
 import { Danger24 } from '@mozaic-ds/icons-vue'
-import { MSelect, MDatepicker, MTooltip } from '@mozaic-ds/vue'
+import { MSelect, MTooltip } from '@mozaic-ds/vue'
 import type { ColumnDef, RowData } from '../../types'
 import { injectMrxGridSlots, resolveCellSlot, resolveEditSlot } from '../../state/MrxGridSlots'
 import { BUILTIN_RENDERERS, type BuiltinRendererName } from '../../features/renderers/builtin'
@@ -519,16 +519,26 @@ function onEditKeydown(e: KeyboardEvent) {
             }
           "
         />
-        <!-- 3. Mozaic datepicker editor -->
-        <MDatepicker
+        <!-- 3. Date editor — native `<input type="date">`.
+             Note historique : on a tenté MDatepicker Mozaic ici (cf. branch
+             commentée), mais inline-cell il a un bug de rendu (les
+             pseudo-éléments `::-webkit-datetime-edit-*` se stackent
+             verticalement à cause de `display: flex` sur l'input + padding
+             hérité de `.mc-text-input__control`). Le `<input type="date">`
+             natif marche directement, montre la valeur dans le format
+             locale du browser, et ouvre le picker calendrier system au
+             clic sur l'icône. Même classe `.mrx-grid-cell__input` que le
+             text/number fallback pour un styling consistent (inset 0,
+             fond transparent, sans bordure double). -->
+        <input
           v-else-if="column.cellEditor === 'date'"
-          :id="`mrx-cell-date-${field}-${rowIndex}`"
-          :model-value="(localEditValue as string | undefined) ?? ''"
-          size="s"
-          class="mrx-grid-cell__editor-date"
-          @update:modelValue="
-            (v: string | number) => onInput({ target: { value: String(v) } } as unknown as Event)
-          "
+          ref="editInputRef"
+          class="mrx-grid-cell__input"
+          type="date"
+          :value="localEditValue"
+          @input="onInput"
+          @change="onInput"
+          @keydown="onEditKeydown"
           @blur="emit('editBlur')"
         />
         <!-- 4. Spreadsheet-style editor for formula columns -->
@@ -880,6 +890,7 @@ function onEditKeydown(e: KeyboardEvent) {
   background: transparent;
   box-sizing: border-box;
 }
+
 
 .mrx-grid-cell__fill-handle {
   position: absolute;

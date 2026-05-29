@@ -80,7 +80,7 @@ const columns: ColumnDef[] = [/* ... voir étape 2 ... */]
     objective: 'Déclarer un tableau de <code>ColumnDef</code> qui pilote l\'affichage des colonnes.',
     explanation: [
       'Chaque colonne est un objet typé avec au minimum <code>field</code> (clé d\'accès dans la row) et <code>headerName</code> (libellé affiché). Tu peux ajouter <code>width</code> (px ou %), <code>pinned: \'start\' | \'end\'</code> pour épingler à gauche/droite, et plein d\'autres options optionnelles selon les features que tu actives.',
-      'Le grid lit chaque cellule comme <code>row[col.field]</code>. Pour des valeurs calculées, utilise <code>valueGetter</code> (cf. étape 9).',
+      'Le grid lit chaque cellule comme <code>col.valueGetter?.(row) ?? row[col.field]</code>. Si tu déclares un <code>valueGetter</code>, il prend la main partout (rendu, tri, filtre, copy/paste, fill handle, édition, export). Sinon le grid lit directement <code>row[col.field]</code>. Voir étape 9 pour le pattern colonne calculée.',
     ],
     snippet: `import type { ColumnDef } from '@/components/MrxGrid'
 
@@ -380,8 +380,9 @@ const columns: ColumnDef[] = [
     title: 'Value getter (colonne calculée)',
     objective: 'Créer une colonne dont la valeur est calculée à partir de la row, sans modifier ton modèle.',
     explanation: [
-      'Quand la colonne n\'existe pas comme champ dans ta row mais doit être dérivée (somme de plusieurs champs, ratio, valeur synthétique pour un stress-test…), utilise <code>valueGetter: (row) => ...</code>. Le grid l\'appelle pour le rendu, le tri client, le filtrage et l\'export.',
+      'Quand la colonne n\'existe pas comme champ dans ta row mais doit être dérivée (somme de plusieurs champs, ratio, valeur synthétique pour un stress-test…), utilise <code>valueGetter: (row) => ...</code>. Le grid l\'appelle sur <em>tous</em> les chemins : rendu, tri client, filtrage, copy/paste, fill handle, édition, export.',
       'Coût : 1 appel par cellule par render — garde la fonction pure et rapide (pas d\'allocation lourde).',
+      'Pratique pour les colonnes éditables sans backing field : combine <code>valueGetter</code> avec un cache d\'overrides côté app (Map keyée par <code>(rowId, field)</code>) que <code>@cell-edit</code> alimente — le getter renvoie l\'override si présent, sinon recalcule.',
     ],
     snippet: `const columns: ColumnDef[] = [
   {

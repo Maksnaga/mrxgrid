@@ -245,6 +245,16 @@ export function useFillHandle(options: FillHandleOptions) {
 
   // --- Fill value computation ---
 
+  /**
+   * Read a cell's value honouring `col.valueGetter` when present.
+   * Same routing as the clipboard `buildTsv` / `MrxGridRow.cellValue` —
+   * without it, fill on synthetic / derived columns propagates `undefined`
+   * and the user sees nothing happen on drag-fill.
+   */
+  function readCellValue(col: ColumnDef, row: RowData): unknown {
+    return col.valueGetter ? col.valueGetter(row) : row[col.field]
+  }
+
   function computeFills(
     state: FillDragState,
   ): FillEvent['fills'] {
@@ -275,7 +285,7 @@ export function useFillHandle(options: FillHandleOptions) {
           result.push({
             rowIndex: r,
             field: col.field,
-            value: srcRow[col.field],
+            value: readCellValue(col, srcRow),
           })
         }
       }
@@ -300,7 +310,7 @@ export function useFillHandle(options: FillHandleOptions) {
         for (let r = source.r1; r <= source.r2; r++) {
           const srcRow = rows.value[r]
           if (!srcRow) continue
-          const value = srcRow[srcCol.field]
+          const value = readCellValue(srcCol, srcRow)
           // Honour the target column's `valueValidator` — its doc states it
           // is "called before paste / fill writes a value". Keeps the fill
           // handle aligned with the clipboard's paste path.

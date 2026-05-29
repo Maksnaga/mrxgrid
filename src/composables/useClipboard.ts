@@ -81,7 +81,16 @@ export function useClipboard(options: ClipboardOptions) {
    * Build TSV string from all selected ranges.
    * When multiple disjoint ranges exist, we use the bounding box
    * (same behavior as Excel).
+   *
+   * Reads via `col.valueGetter(row)` when defined (synthetic / derived
+   * fields), otherwise falls back to `row[field]`. Without this routing,
+   * copy on a valueGetter column would produce an empty TSV and paste
+   * would silently do nothing — same root cause as the render / edit bugs.
    */
+  function readCellValue(col: ColumnDef, row: RowData): unknown {
+    return col.valueGetter ? col.valueGetter(row) : row[col.field]
+  }
+
   function buildTsv(): string {
     const ranges = allRanges.value
     if (ranges.length === 0) {
@@ -90,7 +99,7 @@ export function useClipboard(options: ClipboardOptions) {
       const col = getCol(activeCol.value)
       const row = rows.value[activeRow.value]
       if (!col || !row) return ''
-      const v = row[col.field]
+      const v = readCellValue(col, row)
       return v == null ? '' : String(v)
     }
 
@@ -118,7 +127,7 @@ export function useClipboard(options: ClipboardOptions) {
           cells.push('')
           continue
         }
-        const v = row[col.field]
+        const v = readCellValue(col, row)
         cells.push(v == null ? '' : String(v))
       }
       lines.push(cells.join('\t'))

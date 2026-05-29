@@ -1651,7 +1651,7 @@ function emitBulkDelete() {
     for (const col of cols) {
       if (!col.editable) continue
       if (col.valueValidator && !col.valueValidator('')) continue
-      const oldValue = row[col.field]
+      const oldValue = col.valueGetter ? col.valueGetter(row) : row[col.field]
       if (oldValue === '' || oldValue == null) continue
       fills.push({ rowIndex: i, field: col.field, oldValue })
     }
@@ -1675,7 +1675,7 @@ async function copySelectedRows() {
 
     const cells: string[] = []
     for (const col of cols) {
-      const v = row[col.field]
+      const v = col.valueGetter ? col.valueGetter(row) : row[col.field]
       cells.push(v == null ? '' : String(v))
     }
     lines.push(cells.join('\t'))
@@ -1732,7 +1732,7 @@ async function pasteIntoSelectedRows() {
       emit('cellEdit', {
         rowIndex: rowIdx,
         field: col.field,
-        oldValue: row[col.field],
+        oldValue: col.valueGetter ? col.valueGetter(row) : row[col.field],
         newValue: value,
       })
     }
@@ -2611,7 +2611,7 @@ function getCellFlags(rowIndex: number, field: string): CellFlags {
       // Also skip validation for empty/null values so cells cleared by
       // delete or cut-paste don't show spurious errors.
       if (!isCurrentlyEditing) {
-        const val = row[field]
+        const val = col.valueGetter ? col.valueGetter(row) : row[field]
         if (val !== '' && val !== null && val !== undefined) {
           const result = col.cellValidator(val, row)
           if (result !== true) {
