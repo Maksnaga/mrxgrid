@@ -104,6 +104,8 @@ function onReset() {
 </script>
 
 <template>
+  <!-- See MrxGridFilterDrawer.vue for why we Teleport to <body>. -->
+  <Teleport to="body">
   <MDrawer
     :open="open"
     title="Group by"
@@ -170,6 +172,7 @@ function onReset() {
       </div>
     </template>
   </MDrawer>
+  </Teleport>
 </template>
 
 <style scoped>

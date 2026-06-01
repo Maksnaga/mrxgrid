@@ -199,10 +199,12 @@ const baseColumns: ColumnDef[] = [
         if (!Array.isArray(p.model) || p.model.length === 0) return true
         const v = p.getValue('category')
         return typeof v === 'string' && p.model.includes(v)
-      }),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      }) as any,
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       getModelAsString: ((m: string[]) =>
-        Array.isArray(m) && m.length > 0 ? m.join(', ') : ''),
+        Array.isArray(m) && m.length > 0 ? m.join(', ') : '') as any,
     },
   },
   {

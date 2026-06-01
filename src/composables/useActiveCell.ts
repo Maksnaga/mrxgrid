@@ -28,6 +28,20 @@ export interface ActiveCellOptions {
   pinnedLeftCount: Ref<number>
   /** Number of right-pinned columns (always visible). */
   pinnedRightCount: Ref<number>
+  /**
+   * Optional set of row indices that are expanded (detail panel deployed).
+   * When provided alongside `expandedRowExtraHeight`, `scrollCellIntoView`
+   * accounts for the extra space each prior expanded row consumes — without
+   * it, the formula `rowIndex * rowHeight` understates `cellTop` and the
+   * grid scrolls back up when activating a cell below an expanded row.
+   */
+  expandedRowIndices?: Ref<ReadonlySet<number>>
+  /**
+   * Extra height (px) added by a single expanded row's detail panel. Read
+   * together with `expandedRowIndices` to compute the actual cellTop in
+   * `scrollCellIntoView`.
+   */
+  expandedRowExtraHeight?: Ref<number> | number
 }
 
 /**
@@ -278,23 +292,78 @@ export function useActiveCell(options: ActiveCellOptions) {
 
   // --- Auto-scroll into view ---
 
+  /**
+   * Cumulative px height of every row strictly BEFORE `rowIndex`, including
+   * the extra height contributed by any expanded detail panels in that
+   * range. Without the expansion correction, `scrollCellIntoView` would
+   * treat row N's top as `N * rowHeight` — way too high if rows < N have
+   * expanded details — and would scroll the container back up when the
+   * user activates a cell below an expanded row.
+   */
+  function topOfRow(rowIndex: number): number {
+    const baseTop = rowIndex * rowHeight.value
+    const expandedSet = options.expandedRowIndices?.value
+    if (!expandedSet || expandedSet.size === 0) return baseTop
+    const extra = isRef(options.expandedRowExtraHeight)
+      ? options.expandedRowExtraHeight.value
+      : (options.expandedRowExtraHeight ?? 0)
+    if (extra <= 0) return baseTop
+    let expandedBefore = 0
+    for (const idx of expandedSet) {
+      if (idx < rowIndex) expandedBefore++
+    }
+    return baseTop + expandedBefore * extra
+  }
+
   function scrollCellIntoView(rowIndex: number, cIdx: number) {
     const el = wrapperRef.value
     if (!el) return
 
-    // Vertical scroll
-    const cellTop = rowIndex * rowHeight.value
+    // Vertical scroll — `cellTop` is the row's position in the SIZER,
+    // accounting for any expanded detail rows that sit above it.
+    const cellTop = topOfRow(rowIndex)
     const cellBottom = cellTop + rowHeight.value
     const viewTop = el.scrollTop
     const viewBottom = viewTop + el.clientHeight
 
-    if (cellTop < viewTop) {
-      el.scrollTop = cellTop
-    } else if (cellBottom > viewBottom) {
-      el.scrollTop = cellBottom - el.clientHeight
+    // Sticky chunk height at the top of the scroll container — the grid
+    // wraps the header + (optional) filter row in a single
+    // `.mrx-grid-sticky-header` block that sits sticky-top inside the
+    // scroll viewport. Without subtracting its height from the visible
+    // body region, the comfort math thinks rows behind the chunk are
+    // "visible" when they're actually occluded.
+    const stickyTop =
+      el.querySelector<HTMLElement>('.mrx-grid-sticky-header')?.offsetHeight ??
+      0
+
+    // Comfort margin — keep one row of breathing space around the focused
+    // cell during keyboard navigation.
+    //
+    // Math (S = scrollTop, all values in sizer-coords for the cell, in
+    // wrapper-coords for `clientHeight`):
+    //   • the visible row area starts BELOW the sticky chunk and ends at
+    //     the wrapper bottom → its sizer-range is `(S, S + clientHeight
+    //     - stickyTop)`
+    //   • for `cellTop` we want at least `margin` of space above it →
+    //     S ≤ cellTop − margin − stickyTop
+    //     (subtract stickyTop because the cell would otherwise slip
+    //      behind the sticky chunk before crossing `viewTop`)
+    //   • for `cellBottom` we want at least `margin` of space below it →
+    //     S ≥ cellBottom + margin − clientHeight + stickyTop
+    //     (this is the one we kept incorrect previously — without
+    //      `+ stickyTop` the cell ended up clipped by the wrapper bottom)
+    const margin = rowHeight.value
+    const visibleTop = viewTop + stickyTop
+    const visibleBottom = viewTop + el.clientHeight
+
+    if (cellTop - margin < visibleTop) {
+      el.scrollTop = Math.max(0, cellTop - margin - stickyTop)
+    } else if (cellBottom + margin > visibleBottom) {
+      el.scrollTop = cellBottom + margin - el.clientHeight + stickyTop
     }
 
-    // Horizontal scroll — only for non-pinned (center) columns
+    // Horizontal scroll — only for non-pinned (center) columns. Pinned
+    // columns stay visible on the sticky edges regardless of scroll.
     const leftPinned = pinnedLeftCount.value
     const rightPinned = pinnedRightCount.value
     const totalCols = allColumns.value.length
@@ -320,10 +389,24 @@ export function useActiveCell(options: ActiveCellOptions) {
       const scrollLeft = el.scrollLeft
       const availableWidth = el.clientWidth - pinnedLeftWidth - pinnedRightWidth
 
-      if (colLeft < scrollLeft) {
-        el.scrollLeft = colLeft
-      } else if (colRight > scrollLeft + availableWidth) {
-        el.scrollLeft = colRight - availableWidth
+      // Horizontal comfort margin — same idea as the vertical one: keep
+      // some breathing space around the focused column so the user sees
+      // at least a slice of the neighbouring column before reaching the
+      // pinned edge. Without this, the cell would only scroll into view
+      // once it's strictly under a pinned column, leaving it pinned to
+      // the edge mid-navigation. We use the focused column's own width
+      // (clamped to avoid overshooting on very wide columns) so the
+      // margin scales naturally with the dataset's typography.
+      const hMargin = Math.min(colW, 120)
+
+      // Math mirrors the vertical branch (with `pinnedLeftWidth` playing
+      // the role of `stickyTop` and `pinnedRightWidth` reducing the
+      // bottom of the visible area). The visible center range in
+      // scroll-content coords is `(scrollLeft, scrollLeft + availableWidth)`.
+      if (colLeft - hMargin < scrollLeft) {
+        el.scrollLeft = Math.max(0, colLeft - hMargin)
+      } else if (colRight + hMargin > scrollLeft + availableWidth) {
+        el.scrollLeft = colRight + hMargin - availableWidth
       }
     }
   }

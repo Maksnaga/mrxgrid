@@ -215,6 +215,8 @@ function onDrop(field: string, e: DragEvent) {
 </script>
 
 <template>
+  <!-- See MrxGridFilterDrawer.vue for why we Teleport to <body>. -->
+  <Teleport to="body">
   <MDrawer
     :open="open"
     :title="drawerTitle"
@@ -310,6 +312,7 @@ function onDrop(field: string, e: DragEvent) {
       </div>
     </template>
   </MDrawer>
+  </Teleport>
 </template>
 
 <style scoped>

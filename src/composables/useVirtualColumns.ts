@@ -165,20 +165,38 @@ export function useVirtualColumns(options: VirtualColumnsOptions) {
     if (_rafId) cancelAnimationFrame(_rafId)
   })
 
-  // Re-compute immediately when columns or their widths change. Also fires
-  // when `enabled` flips so toggling virtualisation on/off re-syncs the
-  // visible window without waiting for a scroll event.
+  // Re-compute when columns or their widths change, and when `enabled`
+  // flips so toggling virtualisation on/off re-syncs the visible window
+  // without waiting for a scroll event.
+  //
+  // **Schedule via rAF** instead of running synchronously inside the
+  // watcher. During drag-resize the user moves the mouse at 60-120 Hz;
+  // each move bumps `colPositions` (which iterates over every column to
+  // rebuild the prefix-sum array — O(N), with N up to 200+ for dense
+  // grids). Running `_compute()` immediately on every change re-does the
+  // same upperBound + slice work several times per frame and chokes the
+  // resize handle (visible jank, 2-3 frames of latency between cursor
+  // and column edge). Coalescing into one rAF means at most one
+  // recompute per paint, regardless of how many widths changed.
+  //
+  // The first run still needs to happen synchronously (otherwise the
+  // initial `visibleColumns` is empty until the first scroll/resize),
+  // so we pass `immediate: true` and run `_compute()` directly there.
   watch(
     [colPositions, () => columns.value.length, enabledRef],
     () => {
-      if (_rafId) {
-        cancelAnimationFrame(_rafId)
-        _rafId = 0
+      // Coalesce multiple change events firing within the same frame
+      // into a single rAF callback — if a rAF is already pending it
+      // covers the next paint, no need to schedule another.
+      if (_rafId === 0) {
+        _rafId = requestAnimationFrame(_compute)
       }
-      _compute()
     },
-    { immediate: true },
   )
+
+  // Initial sync — fires once on mount so `visibleColumns` is populated
+  // before the first scroll event hits.
+  _compute()
 
   return {
     visibleColumns,

@@ -107,6 +107,8 @@ function close() {
 </script>
 
 <template>
+  <!-- See MrxGridFilterDrawer.vue for why we Teleport to <body>. -->
+  <Teleport to="body">
   <MDrawer
     :open="open"
     title="Keyboard shortcuts"
@@ -133,6 +135,7 @@ function close() {
       </section>
     </div>
   </MDrawer>
+  </Teleport>
 </template>
 
 <style scoped lang="scss">

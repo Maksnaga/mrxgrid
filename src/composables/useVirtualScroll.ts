@@ -191,14 +191,24 @@ export function useVirtualScroll(options: VirtualScrollOptions) {
     const hasExpansion = expandedArr.length > 0 && extra > 0
     const top = _scrollTop
 
-    // Defensive clamp — `_scrollTop` may exceed content after height
-    // changes. When expansion is active the cap grows by the cumulative
-    // expansion extra so the user can scroll all the way to the last
-    // row's detail panel.
-    const fullHeight = total * rowH + expandedArr.length * extra
-    const maxTop = Math.max(0, fullHeight - viewH)
-    if (top > maxTop) _scrollTop = maxTop
-    const clampedTop = Math.min(top, maxTop)
+    // Do NOT clamp `_scrollTop` against the rows-only `fullHeight` here.
+    //
+    // The scroll container hosts sticky non-row content (header, filter
+    // row, footer if inside it) whose pixels DO count in the DOM's
+    // `scrollHeight` but NOT in `fullHeight = rows × rowH + expanded ×
+    // extra`. Clamping internally caused a dead zone: when `top` exceeded
+    // `fullHeight - viewH` (legit DOM territory because of the sticky
+    // pixels), `_scrollTop` snapped back to that internal cap, `offsetY`
+    // froze, and any further trackpad-inertia events kept hitting the
+    // same frozen frame — producing the "scrollbar bounce" reported when
+    // scrolling near the bottom of an expanded-row page.
+    //
+    // The DOM is the source of truth for the maximum valid scroll
+    // position (the browser already prevents `scrollTop` from exceeding
+    // `scrollHeight - clientHeight`). The while-loops below already clamp
+    // `first` to `total - 1` when `top` ≥ `_prefixHeight(total - 1)`, so
+    // render correctness is preserved without the internal cap.
+    const clampedTop = top
 
     // --- First visible row -------------------------------------------------
     // Fast path: no expansion → constant-time `scrollTop / rowH`.

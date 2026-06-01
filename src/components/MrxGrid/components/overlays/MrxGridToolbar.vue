@@ -195,6 +195,8 @@ const emit = defineEmits<{
   background: var(--color-background-primary, #fff);
   font-size: 14px;
   color: var(--color-text-primary);
+  display: flex;
+padding: 0 8px 0 16px;
   min-width: 0;
 }
 

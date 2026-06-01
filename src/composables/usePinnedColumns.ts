@@ -89,22 +89,30 @@ export function usePinnedColumns(options: PinnedColumnsOptions) {
 
   /**
    * Returns a CSS style object for a pinned column cell.
-   * `isHeader` controls z-index (header pinned = 3, body pinned = 2).
-   * Body pinned cells use z-index 2 so they stack above active/selected
-   * center cells (z-index 1) during horizontal scroll.
+   *
+   * z-index hierarchy during scroll:
+   *   • center body cell (active, selected, fill flag)  → 1
+   *   • center body cell (editing, `--editing` class)   → 3
+   *   • body pinned cell                                 → 4  (>editing so the
+   *     editing cell slides UNDER pinned during horizontal scroll instead of
+   *     painting over it — fixes the "editing cell appears on top of pinned"
+   *     visual bug)
+   *   • header pinned cell                               → 5  (>body pinned
+   *     because headers also sit at sticky-top and the pinned ones cross
+   *     pinned body cells during vertical scroll)
    */
   function getPinnedStyle(side: 'left' | 'right', index: number, isHeader: boolean): CSSProperties {
     if (side === 'left') {
       return {
         position: 'sticky',
         left: `${leftOffsets.value[index] ?? 0}px`,
-        zIndex: isHeader ? 3 : 2,
+        zIndex: isHeader ? 5 : 4,
       }
     }
     return {
       position: 'sticky',
       right: `${rightOffsets.value[index] ?? 0}px`,
-      zIndex: isHeader ? 3 : 2,
+      zIndex: isHeader ? 5 : 4,
     }
   }
 
@@ -127,7 +135,7 @@ export function usePinnedColumns(options: PinnedColumnsOptions) {
     if (isHeader) {
       base.position = 'sticky'
       base.top = '0px'
-      base.zIndex = hasPinned.value || stickyAlways ? 3 : 2
+      base.zIndex = hasPinned.value || stickyAlways ? 5 : 2
     }
 
     if (hasPinned.value || stickyAlways) {
@@ -138,7 +146,7 @@ export function usePinnedColumns(options: PinnedColumnsOptions) {
           : type === 'checkbox'
             ? `${rowNumWidth.value}px`
             : `${rowNumWidth.value + selectableWidth.value}px`
-      if (!isHeader) base.zIndex = 2
+      if (!isHeader) base.zIndex = 4
     }
 
     return base

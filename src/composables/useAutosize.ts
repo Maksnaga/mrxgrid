@@ -128,6 +128,36 @@ export function useAutosize(opts: UseAutosizeOptions) {
       }
     }
 
+    // Custom renderer fallback — canvas `measureText` only knows about the
+    // raw string value. A column whose cells render a badge, icon, avatar,
+    // tag chip, etc. has a true visual width that's wider than the text
+    // alone (chip padding, icon size, gap). For these columns we also
+    // probe the rendered DOM cells via `scrollWidth` (which includes the
+    // overflow content + padding) and keep the max of canvas-derived
+    // width and DOM-measured width. Only the currently rendered cells
+    // are probed (virtual scroll renders ~30 rows at a time) — that's
+    // enough to catch typical custom-renderer overhead without forcing a
+    // full DOM re-render.
+    if (def.renderer != null) {
+      const escaped = cssEscape(field)
+      const renderedCells = wrapper.querySelectorAll<HTMLElement>(
+        `.mrx-grid-cell[data-field="${escaped}"]`,
+      )
+      for (const cell of renderedCells) {
+        // `scrollWidth` measures the content's intrinsic width — for a
+        // cell with overflow:hidden + text-overflow:ellipsis it returns
+        // the full content width before clipping (which is what we want).
+        const w = cell.scrollWidth + borderX + SAFETY_PAD
+        if (w > max) {
+          max = w
+          if (max >= cap) {
+            max = cap
+            break
+          }
+        }
+      }
+    }
+
     return Math.max(min, Math.min(cap, Math.ceil(max)))
   }
 

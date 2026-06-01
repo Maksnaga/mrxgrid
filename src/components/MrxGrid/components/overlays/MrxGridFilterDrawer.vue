@@ -159,33 +159,44 @@ function onCancel(): void {
 </script>
 
 <template>
-  <MDrawer
-    :open="open"
-    title="Filters"
-    :extended="true"
-    :close-on-overlay="true"
-    position="right"
-    @update:open="emit('update:open', $event)"
-  >
-    <div class="mrx-filter-drawer">
-      <MrxGridFilterBuilder
-        :conditions="draft"
-        :columns="columns"
-        @add="onAdd"
-        @update="onUpdate"
-        @remove="onRemove"
-        @reorder="onReorder"
-        @clear="onClear"
-      />
-    </div>
-
-    <template v-if="mode === 'manual'" #footer>
-      <div class="mrx-filter-drawer__footer">
-        <MButton appearance="accent" @click="onApply">Apply</MButton>
-        <MButton :outlined="true" @click="onCancel">Cancel</MButton>
+  <!--
+    Teleport the drawer to <body> so it sits OUTSIDE the grid's stacking
+    context. Without this the MDrawer renders as a descendant of
+    `.mrx-grid-root` and shares its (numerically tied) z-index with the
+    grid's sticky header + pinned columns (both z-index 5). Because the
+    pinned cells follow the drawer in DOM order, they would paint on top
+    of the dialog and the user would see status badges / column headers
+    "bleed" through the drawer panel.
+  -->
+  <Teleport to="body">
+    <MDrawer
+      :open="open"
+      title="Filters"
+      :extended="true"
+      :close-on-overlay="true"
+      position="right"
+      @update:open="emit('update:open', $event)"
+    >
+      <div class="mrx-filter-drawer">
+        <MrxGridFilterBuilder
+          :conditions="draft"
+          :columns="columns"
+          @add="onAdd"
+          @update="onUpdate"
+          @remove="onRemove"
+          @reorder="onReorder"
+          @clear="onClear"
+        />
       </div>
-    </template>
-  </MDrawer>
+
+      <template v-if="mode === 'manual'" #footer>
+        <div class="mrx-filter-drawer__footer">
+          <MButton appearance="accent" @click="onApply">Apply</MButton>
+          <MButton :outlined="true" @click="onCancel">Cancel</MButton>
+        </div>
+      </template>
+    </MDrawer>
+  </Teleport>
 </template>
 
 <style scoped>

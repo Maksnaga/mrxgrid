@@ -114,14 +114,6 @@ const props = withDefaults(
     selectionBarCompact?: boolean
     expandable?: boolean
     /**
-     * Hauteur (px) ajoutée par chaque row expandée (slot `#expand-row`).
-     * Utilisée par le virtual-scroll pour ajuster `offsetY` et le sizer —
-     * sinon les rows en dessous d'une row expandée flottent au mauvais
-     * pixel et flickerent au scroll. Approximation fixe ; le proper
-     * variable-height engine est `useVariableHeightVirtualScroll` (TBD).
-     */
-    expandedRowHeight?: number
-    /**
      * Nombre de skeleton rows affichées quand `loading === true`. Si non
      * fourni, le grid en déduit un nombre raisonnable basé sur la
      * hauteur visible (`containerHeight / rowHeight`), clampé entre 4 et
@@ -297,8 +289,8 @@ const emit = defineEmits<{
    *  (row or cell selection) so a single listener can branch on it. */
   selectionEdit: [
     payload:
-      | { mode: 'row'; selection: SelectionModel }
-      | { mode: 'cell'; ranges: ReadonlyArray<{ r1: number; r2: number; c1: number; c2: number }> },
+    | { mode: 'row'; selection: SelectionModel }
+    | { mode: 'cell'; ranges: ReadonlyArray<{ r1: number; r2: number; c1: number; c2: number }> },
   ]
   /** Emitted when the user clicks Retry from the `#error` slot. Wire to your refetch. */
   retry: []
@@ -1752,16 +1744,35 @@ const { expanded: expandedRowSet, isExpanded, toggleExpansion } = useRowExpansio
 // math (offsetY / startIndex / endIndex / totalHeight). Defined here so
 // the value is available at `useVirtualGrid` call site.
 //
-// `props.expandedRowHeight` is the TOTAL height of an expanded row
-// (detail panel included). The virtualizer needs the DELTA on top of a
-// regular row, so we subtract `rowHeight`. Clamped at zero to guard
-// against custom consumers that pass `expandedRowHeight < rowHeight`.
-const EXPANDED_ROW_DEFAULT_HEIGHT = 320
+/**
+ * Live-measured detail row height (from `<MrxGridDetailRow>`'s
+ * ResizeObserver — see that file's `emit('measure')` path). This is the
+ * single source of truth fed to the virtual scroll, the row-position
+ * math in `useActiveCell`, and the sizer height. The fallback `0` only
+ * applies when no detail row has been mounted yet (e.g. expandable
+ * disabled, or no row currently expanded) — once the user expands a
+ * row the measurement kicks in within the same frame.
+ *
+ * Pre-measure, the virtualizer treats expanded rows as having the same
+ * height as a regular row; once a real detail panel is rendered, the
+ * sizer + scroll math snap to its real height with no flicker (the
+ * `scrollTop` clamp on the wrapper absorbs the height change).
+ */
+const measuredDetailRowHeight = ref<number | null>(null)
+
+function onDetailRowMeasured(h: number): void {
+  // Only update when the new measurement differs by more than 1 px from
+  // the previous value — avoids spurious re-renders on sub-pixel
+  // fluctuations (some browsers' RO fires with fractional changes
+  // during layout settle).
+  const cur = measuredDetailRowHeight.value
+  if (cur != null && Math.abs(cur - h) < 1) return
+  measuredDetailRowHeight.value = h
+}
 
 const expandedRowExtraForVirtual = computed(() => {
   if (!props.expandable) return 0
-  const total = props.expandedRowHeight ?? EXPANDED_ROW_DEFAULT_HEIGHT
-  return Math.max(0, total - rowHeight.value)
+  return measuredDetailRowHeight.value ?? 0
 })
 
 // --- Column Resize ---
@@ -1922,6 +1933,36 @@ const { autosizeColumn, autosizeAllColumns } = useAutosize({
   rows: renderableRows,
 })
 
+// Auto-size on mount — fires once when the first batch of REAL rows
+// has rendered. Async data sources (server fetch, lazy loaded) leave
+// `renderableRows` empty during the initial mount; running autosize
+// then would only see skeletons and the header. We watch for the first
+// non-empty / non-skeleton render and fire once. Two `nextTick`s so any
+// cell-level Vue renderer (badges, MTag, MAvatar, etc.) has finished
+// its own paint before we measure its `scrollWidth` from the DOM probe
+// path.
+//
+// This behaviour is intrinsic — there's intentionally no prop to disable
+// it, the consumer's declared `ColumnDef.width` is used as the floor
+// (autosize only ever grows columns past their declared width) and the
+// user can still drag-resize anything after.
+let _autoSizeFired = false
+watch(
+  renderableRows,
+  (rs) => {
+    if (_autoSizeFired) return
+    if (!rs || rs.length === 0) return
+    if (rs.every((r) => r.__mrxSkeleton)) return
+    _autoSizeFired = true
+    nextTick(() => {
+      nextTick(() => {
+        autosizeAllColumns()
+      })
+    })
+  },
+  { immediate: true },
+)
+
 // --- Active cell ---
 const pinnedLeftCount = computed(() => leftColumns.value.length)
 const pinnedRightCount = computed(() => rightColumns.value.length)
@@ -1943,6 +1984,12 @@ const activeCell_ = useActiveCell({
   endColIndex,
   pinnedLeftCount,
   pinnedRightCount,
+  // Expansion-aware scroll: without these, `scrollCellIntoView` would
+  // place row N at `N * rowHeight`, which is wrong as soon as any row
+  // before N has its detail panel deployed. Clicking a cell below an
+  // expanded row would scroll the viewport upward (bounce).
+  expandedRowIndices: expandedRowSet,
+  expandedRowExtraHeight: expandedRowExtraForVirtual,
 })
 
 const {
@@ -2062,7 +2109,7 @@ function applyFills(fills: Array<{ rowIndex: number; field: string; value: unkno
   for (const f of fills) {
     const row = renderableRows.value[f.rowIndex]
     if (row && !isGroupRow(row) && !(row as Record<string, unknown>).__mrxSkeleton) {
-      ;(row as Record<string, unknown>)[f.field] = f.value
+      ; (row as Record<string, unknown>)[f.field] = f.value
     }
   }
 }
@@ -3068,32 +3115,16 @@ defineExpose({
 </script>
 
 <template>
-  <div
-    class="mrx-grid-root"
-    :class="{ 'mrx-grid-root--fullscreen': fsState }"
-    :style="
-      fsState
-        ? undefined
-        : { height: typeof props.height === 'number' ? `${props.height}px` : props.height }
-    "
-  >
+  <div class="mrx-grid-root" :class="{ 'mrx-grid-root--fullscreen': fsState }" :style="fsState
+      ? undefined
+      : { height: typeof props.height === 'number' ? `${props.height}px` : props.height }
+    ">
     <slot name="toolbar">
-      <MrxGridSmartToolbar
-        :grid="toolbarGridApi"
-        :columns="mergedColumns"
-        v-model:fullscreen="fsState"
-        v-model:density="densityState"
-        v-model:hidden-fields="hiddenFieldsState"
-        v-model:column-order="columnOrderState"
-        v-model:active-groups="toolbarGroups"
-        v-model:filter-model="toolbarFilterModel"
-        :show-fullscreen="true"
-        :show-settings="true"
-        :show-filters="hasFilterableColumn"
-        :show-group="hasGroupableColumn"
-        :show-export="true"
-        :show-keyboard="true"
-      />
+      <MrxGridSmartToolbar :grid="toolbarGridApi" :columns="mergedColumns" v-model:fullscreen="fsState"
+        v-model:density="densityState" v-model:hidden-fields="hiddenFieldsState" v-model:column-order="columnOrderState"
+        v-model:active-groups="toolbarGroups" v-model:filter-model="toolbarFilterModel" :show-fullscreen="true"
+        :show-settings="true" :show-filters="hasFilterableColumn" :show-group="hasGroupableColumn" :show-export="true"
+        :show-keyboard="true" />
     </slot>
 
     <!-- Hidden default slot — render-less <MrxColumn> children live here.
@@ -3122,51 +3153,24 @@ defineExpose({
     <slot v-if="props.loading || props.refreshing" name="loading" />
 
     <!-- Sprint 3 — unified Mozaic tag bars (HIDDEN / GROUPED / FILTERED) -->
-    <MrxGridTagBar
-      v-if="!props.error && hiddenTags.length > 0"
-      label="HIDDEN COLUMNS"
-      :items="hiddenTags"
-      action-label="Restore all"
-      @remove="onShowColumn"
-      @action="showAllColumns"
-    />
-    <MrxGridTagBar
-      v-if="!props.error && hasGroups"
-      label="GROUPED BY"
-      :items="groupTags"
-      action-label="Remove all"
-      @remove="removeGroup"
-      @action="clearGroups"
-    />
-    <MrxGridTagBar
-      v-if="!props.error && activeFilterTags.length > 0"
-      label="FILTERED BY"
-      :items="activeFilterTags"
-      action-label="Remove all"
-      @remove="onRemoveFilter"
-      @action="onRemoveAllFilters"
-    />
+    <MrxGridTagBar v-if="!props.error && hiddenTags.length > 0" label="HIDDEN COLUMNS" :items="hiddenTags"
+      action-label="Restore all" @remove="onShowColumn" @action="showAllColumns" />
+    <MrxGridTagBar v-if="!props.error && hasGroups" label="GROUPED BY" :items="groupTags" action-label="Remove all"
+      @remove="removeGroup" @action="clearGroups" />
+    <MrxGridTagBar v-if="!props.error && activeFilterTags.length > 0" label="FILTERED BY" :items="activeFilterTags"
+      action-label="Remove all" @remove="onRemoveFilter" @action="onRemoveAllFilters" />
 
-    <div
-      ref="wrapperRef"
-      class="mrx-grid-wrapper"
-      :class="{
-        'mrx-grid-wrapper--virtual': isVirtual,
-        'mrx-grid-wrapper--compact': densityState === 'compact',
-        'mrx-grid-wrapper--comfortable': densityState === 'comfortable',
-        'mrx-grid-wrapper--paginated': paginationEnabled,
-      }"
-      :style="{
+    <div ref="wrapperRef" class="mrx-grid-wrapper" :class="{
+      'mrx-grid-wrapper--virtual': isVirtual,
+      'mrx-grid-wrapper--compact': densityState === 'compact',
+      'mrx-grid-wrapper--comfortable': densityState === 'comfortable',
+      'mrx-grid-wrapper--paginated': paginationEnabled,
+    }" :style="{
         '--mrx-row-height': `${rowHeight}px`,
         ...((virtualScroll || paginationEnabled) && !fsState
           ? { height: `${containerHeight}px` }
           : {}),
-      }"
-      tabindex="0"
-      role="grid"
-      @scroll="handleScroll"
-      @keydown="onGridKeyDown"
-    >
+      }" tabindex="0" role="grid" @scroll="handleScroll" @keydown="onGridKeyDown">
       <!--
       The grid is structured as:
       1. Sticky header (position: sticky, top: 0)
@@ -3183,118 +3187,55 @@ defineExpose({
            and `filtered` variants) — same condition as the empty-state
            `<slot>` below, inverted. Headers stay visible during
            loading / error so the user keeps the column context. -->
-      <div
-        v-if="props.loading || props.error || (props.rows.length > 0 && renderableRows.length > 0)"
-        class="mrx-grid-sticky-header"
-        :class="{ 'mrx-grid-sticky-header--with-filter-row': hasFilterRow }"
-      >
+      <div v-if="props.loading || props.error || (props.rows.length > 0 && renderableRows.length > 0)"
+        class="mrx-grid-sticky-header" :class="{ 'mrx-grid-sticky-header--with-filter-row': hasFilterRow }">
         <!-- A / B / C / … strip — auto-on when any column has `allowFormula`. -->
-        <MrxGridSpreadsheetHeader
-          v-if="hasFormulaColumns"
-          :columns="renderCenterColumns"
-          :pinned-left-columns="leftColumns"
-          :pinned-right-columns="rightColumns"
-          :has-pinned="hasPinned"
-          :show-row-numbers="hasFormulaColumns"
-          :selectable="selectable"
-          :expandable="expandable"
-          :get-column-width="getColumnWidth"
-          :get-pinned-style="getPinnedStyle"
-          :get-utility-style="getUtilityStyle"
-          :left-spacer-width="leftSpacerWidth"
-          :right-spacer-width="rightSpacerWidth"
-          :content-min-width="gridContentWidth"
-          :center-start-index="leftColumns.length + startColIndex"
-          :center-total-count="centerColumns.length"
-          :fill-field="fillField"
-        />
+        <MrxGridSpreadsheetHeader v-if="hasFormulaColumns" :columns="renderCenterColumns"
+          :pinned-left-columns="leftColumns" :pinned-right-columns="rightColumns" :has-pinned="hasPinned"
+          :show-row-numbers="hasFormulaColumns" :selectable="selectable" :expandable="expandable"
+          :get-column-width="getColumnWidth" :get-pinned-style="getPinnedStyle" :get-utility-style="getUtilityStyle"
+          :left-spacer-width="leftSpacerWidth" :right-spacer-width="rightSpacerWidth"
+          :content-min-width="gridContentWidth" :center-start-index="leftColumns.length + startColIndex"
+          :center-total-count="centerColumns.length" :fill-field="fillField" />
 
-        <MrxGridHeader
-          :columns="renderCenterColumns"
-          :pinned-left-columns="leftColumns"
-          :pinned-right-columns="rightColumns"
-          :has-pinned="hasPinned"
-          :selectable="selectable"
-          :expandable="expandable"
-          :show-row-numbers="hasFormulaColumns"
-          :selection-state="headerSelectionState"
-          :get-column-width="getColumnWidth"
-          :on-resize-start="onResizeStart"
-          :get-pinned-style="getPinnedStyle"
-          :get-utility-style="getUtilityStyle"
-          :left-spacer-width="leftSpacerWidth"
-          :right-spacer-width="rightSpacerWidth"
-          :get-sort-direction="getSortDirection"
-          :get-sort-index="getSortIndex"
-          :get-pinning="getPinning"
-          :content-min-width="gridContentWidth"
-          :fill-field="fillField"
-          :filterable-columns="filterableColumns"
-          @toggle-all="toggleAll"
-          @column-menu-action="onColumnMenuAction"
-          @column-drag-start="startColumnDrag"
-          @column-filter-apply="onColumnFilterApply"
-          @column-filter-remove="onColumnFilterRemove"
-          @column-filter-reorder="onColumnFilterReorder"
-          @column-sort="onColumnSort"
-        />
+        <MrxGridHeader :columns="renderCenterColumns" :pinned-left-columns="leftColumns"
+          :pinned-right-columns="rightColumns" :has-pinned="hasPinned" :selectable="selectable" :expandable="expandable"
+          :show-row-numbers="hasFormulaColumns" :selection-state="headerSelectionState"
+          :get-column-width="getColumnWidth" :on-resize-start="onResizeStart" :get-pinned-style="getPinnedStyle"
+          :get-utility-style="getUtilityStyle" :left-spacer-width="leftSpacerWidth"
+          :right-spacer-width="rightSpacerWidth" :get-sort-direction="getSortDirection" :get-sort-index="getSortIndex"
+          :get-pinning="getPinning" :content-min-width="gridContentWidth" :fill-field="fillField"
+          :filterable-columns="filterableColumns" @toggle-all="toggleAll" @column-menu-action="onColumnMenuAction"
+          @column-drag-start="startColumnDrag" @column-filter-apply="onColumnFilterApply"
+          @column-filter-remove="onColumnFilterRemove" @column-filter-reorder="onColumnFilterReorder"
+          @column-sort="onColumnSort" />
 
-        <MrxGridFilterRow
-          v-if="hasFilterRow"
-          :columns="renderCenterColumns"
-          :pinned-left-columns="leftColumns"
-          :pinned-right-columns="rightColumns"
-          :has-pinned="hasPinned"
-          :selectable="selectable"
-          :expandable="expandable"
-          :show-row-numbers="hasFormulaColumns"
-          :filters="filters"
-          :get-column-width="getColumnWidth"
-          :get-pinned-style="getPinnedStyle"
-          :get-utility-style="getUtilityStyle"
-          :left-spacer-width="leftSpacerWidth"
-          :right-spacer-width="rightSpacerWidth"
-          :content-min-width="gridContentWidth"
-          :fill-field="fillField"
-          @filter-change="setFilter"
-        />
+        <MrxGridFilterRow v-if="hasFilterRow" :columns="renderCenterColumns" :pinned-left-columns="leftColumns"
+          :pinned-right-columns="rightColumns" :has-pinned="hasPinned" :selectable="selectable" :expandable="expandable"
+          :show-row-numbers="hasFormulaColumns" :filters="filters" :get-column-width="getColumnWidth"
+          :get-pinned-style="getPinnedStyle" :get-utility-style="getUtilityStyle" :left-spacer-width="leftSpacerWidth"
+          :right-spacer-width="rightSpacerWidth" :content-min-width="gridContentWidth" :fill-field="fillField"
+          @filter-change="setFilter" />
       </div>
 
       <!-- Skeleton body — affichée pendant le chargement, à la place du
            body et de l'empty state. On garde le header visible (cf. condition
            plus haut) pour conserver le contexte des colonnes. Ne s'affiche
            pas si le consumer a explicitement mis `skeletonRowCount = 0`. -->
-      <MrxGridSkeletonBody
-        v-if="props.loading && skeletonRowCountResolved > 0"
-        :count="skeletonRowCountResolved"
-        :grid-content-width="gridContentWidth"
-        :columns="renderCenterColumns"
-        :left-columns="leftColumns"
-        :right-columns="rightColumns"
-        :has-pinned="hasPinned"
-        :selectable="selectable"
-        :expandable="expandable"
-        :show-row-numbers="hasFormulaColumns"
-        :get-column-width="getColumnWidth"
-        :get-pinned-style="getPinnedStyle"
-        :get-utility-style="getUtilityStyle"
-        :left-spacer-width="leftSpacerWidth"
-        :right-spacer-width="rightSpacerWidth"
-        :fill-field="fillField"
-      />
+      <MrxGridSkeletonBody v-if="props.loading && skeletonRowCountResolved > 0" :count="skeletonRowCountResolved"
+        :grid-content-width="gridContentWidth" :columns="renderCenterColumns" :left-columns="leftColumns"
+        :right-columns="rightColumns" :has-pinned="hasPinned" :selectable="selectable" :expandable="expandable"
+        :show-row-numbers="hasFormulaColumns" :get-column-width="getColumnWidth" :get-pinned-style="getPinnedStyle"
+        :get-utility-style="getUtilityStyle" :left-spacer-width="leftSpacerWidth" :right-spacer-width="rightSpacerWidth"
+        :fill-field="fillField" />
 
       <!-- Empty state — fires both when the input array is empty AND when
          filters reduce the visible set to zero. The variant in the card
          (pristine vs filtered) is driven by `hasActiveFilters` so the
          user sees the right call-to-action. -->
-      <slot
-        v-else-if="
-          !props.loading && !props.error && (props.rows.length === 0 || renderableRows.length === 0)
-        "
-        name="empty"
-        :has-filters="hasActiveFilters"
-        :clear-filters="clearFilters"
-      >
+      <slot v-else-if="
+        !props.loading && !props.error && (props.rows.length === 0 || renderableRows.length === 0)
+      " name="empty" :has-filters="hasActiveFilters" :clear-filters="clearFilters">
         <MrxGridEmptyState :has-filters="hasActiveFilters" @clear-filters="clearFilters">
           <template #actions="actionsScope">
             <!-- Consumer hook: drop "Add row" / "Import CSV" / etc. here.
@@ -3305,46 +3246,22 @@ defineExpose({
         </MrxGridEmptyState>
       </slot>
 
-      <MrxGridBody
-        v-else
-        :virtual="virtualScroll || paginationEnabled"
-        :grid-content-width="gridContentWidth"
-        :total-height="totalHeight"
-        :offset-y="offsetY"
-        :render-range="renderRange"
-        :columns="renderCenterColumns"
-        :left-columns="leftColumns"
-        :right-columns="rightColumns"
-        :has-pinned="hasPinned"
-        :selectable="selectable"
-        :expandable="expandable"
-        :show-row-numbers="hasFormulaColumns"
-        :get-render-row="getRenderRow"
-        :is-row-selected="isRowSelected"
-        :is-row-pending="isRowPending"
-        :is-expanded="isExpanded"
-        :is-group-expanded="isGroupExpanded"
-        :active-field-for-row="activeFieldForRow"
-        :editing-field-for-row="editingFieldForRow"
-        :editing-draft="editingCell?.draftValue"
-        :get-cell-flags="getCellFlags"
-        :get-column-width="getColumnWidth"
-        :get-pinned-style="getPinnedStyle"
-        :get-utility-style="getUtilityStyle"
-        :left-spacer-width="leftSpacerWidth"
-        :right-spacer-width="rightSpacerWidth"
-        :fill-field="fillField"
-        @toggle-select="(i: number, e?: MouseEvent) => handleToggleRow(getRenderRow(i), i, e)"
+      <MrxGridBody v-else :virtual="virtualScroll || paginationEnabled" :grid-content-width="gridContentWidth"
+        :total-height="totalHeight" :offset-y="offsetY" :render-range="renderRange" :columns="renderCenterColumns"
+        :left-columns="leftColumns" :right-columns="rightColumns" :has-pinned="hasPinned" :selectable="selectable"
+        :expandable="expandable" :show-row-numbers="hasFormulaColumns" :get-render-row="getRenderRow"
+        :is-row-selected="isRowSelected" :is-row-pending="isRowPending" :is-expanded="isExpanded"
+        :is-group-expanded="isGroupExpanded" :active-field-for-row="activeFieldForRow"
+        :editing-field-for-row="editingFieldForRow" :editing-draft="editingCell?.draftValue"
+        :get-cell-flags="getCellFlags" :get-column-width="getColumnWidth" :get-pinned-style="getPinnedStyle"
+        :get-utility-style="getUtilityStyle" :left-spacer-width="leftSpacerWidth" :right-spacer-width="rightSpacerWidth"
+        :fill-field="fillField" @toggle-select="(i: number, e?: MouseEvent) => handleToggleRow(getRenderRow(i), i, e)"
         @toggle-expand="(i: number) => toggleExpansion(i)"
         @activate-cell="(i: number, field: string, e: MouseEvent) => onActivateCell(i, field, e)"
-        @edit-start="(i: number, field: string) => onEditStart(i, field)"
-        @edit-input="onEditInput"
-        @edit-commit="onEditCommit"
-        @edit-cancel="onEditCancel"
-        @edit-blur="onEditBlur"
-        @fill-handle-mousedown="onFillHandleMousedown"
-        @toggle-group="toggleGroupExpand"
-      >
+        @edit-start="(i: number, field: string) => onEditStart(i, field)" @edit-input="onEditInput"
+        @edit-commit="onEditCommit" @edit-cancel="onEditCancel" @edit-blur="onEditBlur"
+        @fill-handle-mousedown="onFillHandleMousedown" @toggle-group="toggleGroupExpand"
+        @detail-row-measured="onDetailRowMeasured">
         <template v-if="$slots.cell" #cell="cellSlot">
           <slot name="cell" v-bind="cellSlot" />
         </template>
@@ -3355,46 +3272,24 @@ defineExpose({
     </div>
 
     <!-- Floating selection bar -->
-    <MrxGridSelectionBar
-      v-if="showActionBar"
-      :selected-count="actionBarCount"
-      :mode="actionBarMode"
-      :selection-model="selectionModel"
-      :total-count="selectionTotalCount"
-      :page-count="visiblePageRowCount"
-      :page-fully-selected="isPageFullySelected"
-      :compact="props.selectionBarCompact"
-      show-edit
-      :show-copy="true"
+    <MrxGridSelectionBar v-if="showActionBar" :selected-count="actionBarCount" :mode="actionBarMode"
+      :selection-model="selectionModel" :total-count="selectionTotalCount" :page-count="visiblePageRowCount"
+      :page-fully-selected="isPageFullySelected" :compact="props.selectionBarCompact" show-edit :show-copy="true"
       :show-paste="mergedColumns.some((c) => c.editable)"
-      :show-delete="actionBarMode === 'cell' || hasBulkDeleteListener"
-      @clear="onActionBarClear"
-      @edit="onActionBarEdit"
-      @copy="onActionBarCopy"
-      @paste="onActionBarPaste"
-      @delete="onActionBarDelete"
-      @select-all="selectAll"
-    >
+      :show-delete="actionBarMode === 'cell' || hasBulkDeleteListener" @clear="onActionBarClear" @edit="onActionBarEdit"
+      @copy="onActionBarCopy" @paste="onActionBarPaste" @delete="onActionBarDelete" @select-all="selectAll">
       <template v-if="$slots['selection-actions']" #actions="slotProps">
         <slot name="selection-actions" v-bind="slotProps" />
       </template>
     </MrxGridSelectionBar>
 
     <!-- Footer (pagination + async loading indicator) -->
-    <MrxGridFooter
-      :show-pagination="paginationEnabled"
-      :current-page="paginationState.currentPage.value"
-      :page-size="paginationState.pageSize.value"
-      :total-pages="paginationState.totalPages.value"
-      :total-rows="paginationState.totalRows.value"
-      :range-start="paginationState.rangeStart.value"
-      :range-end="paginationState.rangeEnd.value"
-      :page-size-options="paginationState.pageSizeOptions"
-      @update:page-size="paginationState.setPageSize"
-      @update:current-page="paginationState.setPage"
-      @prev="paginationState.prevPage"
-      @next="paginationState.nextPage"
-    />
+    <MrxGridFooter :show-pagination="paginationEnabled" :current-page="paginationState.currentPage.value"
+      :page-size="paginationState.pageSize.value" :total-pages="paginationState.totalPages.value"
+      :total-rows="paginationState.totalRows.value" :range-start="paginationState.rangeStart.value"
+      :range-end="paginationState.rangeEnd.value" :page-size-options="paginationState.pageSizeOptions"
+      @update:page-size="paginationState.setPageSize" @update:current-page="paginationState.setPage"
+      @prev="paginationState.prevPage" @next="paginationState.nextPage" />
   </div>
 </template>
 
@@ -3408,6 +3303,15 @@ defineExpose({
   display: flex;
   flex-direction: column;
   min-height: 0;
+  // Confine the grid in its own stacking context so internal high z-index
+  // elements (sticky header z-index: 5, pinned cells z-index: 4–5, fill
+  // handle, marching ants…) never compete with overlay components rendered
+  // by the host (e.g. `MDrawer` from Mozaic also uses z-index: 5).
+  // Without `isolation: isolate` the pinned columns paint OVER the drawer's
+  // dialog because they share the same z-index numeric and the grid is
+  // later in the DOM, producing the "drawer is transparent" bug where
+  // status badges show through the panel.
+  isolation: isolate;
 }
 
 
@@ -3462,7 +3366,7 @@ defineExpose({
 .mrx-grid-sticky-header {
   position: sticky;
   top: 0;
-  z-index: 3;
+  z-index: 5;
 }
 
 // Quand une filter row est rendue juste sous le header, le label (haut)

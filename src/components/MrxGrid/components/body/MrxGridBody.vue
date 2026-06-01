@@ -86,6 +86,13 @@ const emit = defineEmits<{
   editBlur: []
   fillHandleMousedown: [event: MouseEvent]
   toggleGroup: [key: string]
+  /**
+   * Propagated from `MrxGridDetailRow` whenever a detail row's intrinsic
+   * height is measured. The parent grid stores this to feed the virtual
+   * scroller's `expandedRowExtraHeight` dynamically — no need for the
+   * consumer to pass `:expanded-row-height` matching the slot content.
+   */
+  detailRowMeasured: [height: number]
 }>()
 </script>
 
@@ -171,7 +178,10 @@ const emit = defineEmits<{
               <slot name="cell" v-bind="cellSlot" />
             </template>
           </MrxGridRow>
-          <MrxGridDetailRow v-if="expandable && isExpanded(i)">
+          <MrxGridDetailRow
+            v-if="expandable && isExpanded(i)"
+            @measure="(h: number) => emit('detailRowMeasured', h)"
+          >
             <slot name="expand-row" :row="getRenderRow(i)" :index="i" />
           </MrxGridDetailRow>
         </template>
