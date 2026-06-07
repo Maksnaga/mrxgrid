@@ -165,13 +165,28 @@ export function useClipboard(options: ClipboardOptions) {
       return fills
     }
 
+    // Hoist editability + validation OUT of the row loop: both predicates
+    // depend only on the column (`isEditable(field)` is a flag lookup,
+    // `isValueValid(col, '')` is a per-column user function). Running them
+    // inside the inner loop costs `range.height × range.width` calls —
+    // on Ctrl+A (100k rows × 200 cols → 20 M calls) that's a 1.4 s
+    // synchronous freeze before a single cell is even cleared. Precomputing
+    // the editable column subset per range collapses this to
+    // `range.width + range.height × editableCols`, with the constant work
+    // amortised over every row.
     for (const range of ranges) {
+      const editableFields: string[] = []
+      for (let c = range.c1; c <= range.c2; c++) {
+        const col = cols[c]
+        if (!col || !isEditable(col.field)) continue
+        if (!isValueValid(col, '')) continue
+        editableFields.push(col.field)
+      }
+      if (editableFields.length === 0) continue
+
       for (let r = range.r1; r <= range.r2; r++) {
-        for (let c = range.c1; c <= range.c2; c++) {
-          const col = cols[c]
-          if (!col || !isEditable(col.field)) continue
-          if (!isValueValid(col, '')) continue
-          fills.push({ rowIndex: r, field: col.field, value: '' })
+        for (const field of editableFields) {
+          fills.push({ rowIndex: r, field, value: '' })
         }
       }
     }

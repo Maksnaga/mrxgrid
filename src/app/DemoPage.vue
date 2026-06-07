@@ -32,6 +32,7 @@ import BulkStatusModal from './components/BulkStatusModal.vue'
 import BulkActionBar from './components/BulkActionBar.vue'
 import { MTabs } from '@mozaic-ds/vue'
 import ShowCodePanel from './components/ShowCodePanel.vue'
+import AdeoPimGrid from './components/AdeoPimGrid.vue'
 import StatusCell from './components/cells/StatusCell.vue'
 import BrandCell from './components/cells/BrandCell.vue'
 import BrandComboEditor from './components/cells/BrandComboEditor.vue'
@@ -121,6 +122,7 @@ const gridRef = ref<InstanceType<typeof MrxGrid> | null>(null)
 const activeTab = ref<number>(0)
 const TABS = [
   { id: 'demo', label: 'Démo' },
+  { id: 'adeo', label: 'Adeo PIM' },
   { id: 'tutorial', label: 'Tutoriel' },
 ]
 
@@ -368,6 +370,84 @@ async function onCellEdit(e: {
 }
 
 // ---------------------------------------------------------------------------
+// Bulk cell edit — Ctrl+A → Delete, range clear, paste clear. Le grid
+// émet un seul event avec TOUTES les changes au lieu de fan-out un
+// `cellEdit` par cellule (sinon 1 M emits × handler async = freeze de
+// plusieurs secondes). On regroupe les changes par champ pour faire au
+// plus une dizaine d'appels API (un par champ touché), au lieu de
+// 1 M roundtrips. Le visuel de "data is being refreshed" passe par la
+// barre `refreshing` (pas de shimmer cellule per-cell — il y en aurait
+// trop pour que ce soit utile).
+// ---------------------------------------------------------------------------
+
+async function onBulkCellEdit(event: {
+  changes: ReadonlyArray<{
+    rowIndex: number
+    field: string
+    oldValue: unknown
+    newValue: unknown
+  }>
+}): Promise<void> {
+  // Group `(rowId, newValue)` by field. Pour `Delete` la newValue est
+  // toujours '' donc une seule entrée par field — on garde un Map au
+  // cas où un futur callsite passerait des valeurs hétérogènes (paste
+  // par exemple) ; on bucket alors par `(field, value)`.
+  const baseByField = new Map<
+    string,
+    Map<string, { ids: number[]; value: unknown }>
+  >()
+  const stressOverrides: Array<{ rowId: number; field: string; value: unknown }> = []
+
+  for (const c of event.changes) {
+    const row = list.rows.value[c.rowIndex] as LMProduct | undefined
+    if (!row) continue
+    if (BASE_FIELDS.has(c.field)) {
+      let perField = baseByField.get(c.field)
+      if (!perField) {
+        perField = new Map()
+        baseByField.set(c.field, perField)
+      }
+      const key = JSON.stringify(c.newValue)
+      let bucket = perField.get(key)
+      if (!bucket) {
+        bucket = { ids: [], value: c.newValue }
+        perField.set(key, bucket)
+      }
+      bucket.ids.push(row.id)
+    } else {
+      stressOverrides.push({ rowId: row.id, field: c.field, value: c.newValue })
+    }
+  }
+
+  // Bumper `refreshing` manuellement pendant qu'on fait les appels —
+  // sinon le user ne sait pas que quelque chose tourne en arrière-plan.
+  // On enchaîne ensuite un refetch silencieux pour resync les rows.
+  list.refreshing.value = true
+  try {
+    if (stressOverrides.length > 0) {
+      stress.setManyOverrides(stressOverrides)
+    }
+    if (baseByField.size > 0) {
+      const promises: Array<Promise<unknown>> = []
+      for (const [field, byValue] of baseByField) {
+        for (const bucket of byValue.values()) {
+          promises.push(updateProducts(bucket.ids, { [field]: bucket.value } as Partial<LMProduct>))
+        }
+      }
+      await Promise.all(promises)
+      toasts.success(`${event.changes.length.toLocaleString('fr-FR')} cellules effacées`)
+      await list.refetch({ silent: true })
+    } else if (stressOverrides.length > 0) {
+      toasts.success(`${event.changes.length.toLocaleString('fr-FR')} cellules effacées`)
+    }
+  } catch (err) {
+    toasts.error((err as Error).message)
+  } finally {
+    list.refreshing.value = false
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Recherche — la toolbar binde sur la même ref `searchInput` que le
 // composable expose ; le composable applique le debounce 300ms.
 // ---------------------------------------------------------------------------
@@ -446,11 +526,14 @@ async function onFill(event: {
         }
       })
       toasts.success(`${event.fills.length} cellules mises à jour`)
-      await list.refetch()
+      // `silent` — le shimmer cell vient juste de s'éteindre, refetch en
+      // mode skeleton plein écran ferait clignoter toute la grille pour
+      // rien (les valeurs sont déjà optimistiquement à jour côté mock).
+      await list.refetch({ silent: true })
       return
     } catch (err) {
       toasts.error((err as Error).message)
-      await list.refetch()
+      await list.refetch({ silent: true })
       return
     }
   }
@@ -481,7 +564,10 @@ function onEditProduct(product: LMProduct): void {
 
 async function onProductCreated(p: LMProduct): Promise<void> {
   toasts.success(`Produit "${p.name}" créé`)
-  await list.refetch()
+  // `silent` — la création est déjà finalisée côté drawer, on resync juste
+  // pour faire apparaître la nouvelle ligne. Pas besoin du skeleton plein
+  // écran : le toast de succès suffit comme feedback.
+  await list.refetch({ silent: true })
 }
 
 async function onProductUpdated(p: LMProduct): Promise<void> {
@@ -490,7 +576,7 @@ async function onProductUpdated(p: LMProduct): Promise<void> {
   // Si l'app était structurée avec le save côté DemoPage, on wrapperait
   // ici avec `pending.withRowPending([String(p.id)], () => updateProduct(...))`.
   toasts.success(`Produit "${p.name}" mis à jour`)
-  await list.refetch()
+  await list.refetch({ silent: true })
 }
 
 // ---------------------------------------------------------------------------
@@ -530,7 +616,10 @@ async function confirmDelete(): Promise<void> {
     deleteModalOpen.value = false
     drawerOpen.value = false
     selectionIds.value = []
-    await list.refetch()
+    // `silent` — le row-level pending vient de se relâcher (les lignes
+    // grisées disparaissent). Le skeleton plein écran ferait croire à un
+    // rechargement complet, alors que c'est juste un re-sync.
+    await list.refetch({ silent: true })
   } catch (err) {
     toasts.error((err as Error).message)
   } finally {
@@ -598,7 +687,10 @@ async function confirmBulkStatus(status: LMProduct['status']): Promise<void> {
       `Statut modifié pour ${selectionIds.value.length} produit${selectionIds.value.length > 1 ? 's' : ''}`,
     )
     bulkStatusModalOpen.value = false
-    await list.refetch()
+    // `silent` — le cell-level pending vient de s'éteindre sur les badges
+    // `status`. Le user a vu son shimmer, le toast confirme : pas besoin
+    // du skeleton plein écran par-dessus.
+    await list.refetch({ silent: true })
   } catch (err) {
     toasts.error((err as Error).message)
   } finally {
@@ -639,10 +731,12 @@ function retryFetch(): void {
       <MrxGrid ref="gridRef" class="demo-page__grid" :columns="columns" :rows="list.rows.value"
         :row-id="(row) => String((row as LMProduct).id)" :total-count="list.total.value" :pagination="paginationConfig"
         :virtual-columns="true" :multi-sort="false" :height="640" :loading="list.loading.value"
+        :refreshing="list.refreshing.value"
         :pending-cells="pendingCells" :pending-row-ids="pendingRowIds" :error="list.error.value" selectable
         selection-bar-compact expandable :filter-mode="'server'" v-model:filter-model="list.filterModel.value"
         :density="density" :hidden-fields="hiddenFields" :column-order="columnOrder" :group-fields="groupFields"
         :fullscreen="fullscreen" @page-change="list.onPageChange" @cell-edit="onCellEdit"
+        @bulk-cell-edit="onBulkCellEdit"
         @filter-change="list.onFilterChange" @fill="onFill" @update:selection="onSelectionChange"
         @cell-selection-change="onCellSelectionChange">
         <template #toolbar>
@@ -716,7 +810,10 @@ function retryFetch(): void {
         @edit-status="onBulkEditStatus" @delete="onBulkDelete" @clear="onBulkClear" />
     </template>
 
-    <!-- Vue 2 — Tutoriel pas-à-pas. -->
+    <!-- Vue 2 — PIM Adeo (vraies données wallpaper INSPIRE × 58 cols). -->
+    <AdeoPimGrid v-else-if="activeTab === 1" />
+
+    <!-- Vue 3 — Tutoriel pas-à-pas. -->
     <ShowCodePanel v-else />
   </section>
 </template>

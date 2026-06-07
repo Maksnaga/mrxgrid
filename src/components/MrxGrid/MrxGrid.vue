@@ -263,6 +263,22 @@ const emit = defineEmits<{
   'update:hiddenFields': [fields: string[]]
   columnMenuAction: [action: ColumnMenuAction]
   cellEdit: [event: CellEditEvent]
+  /**
+   * Emitted ONCE for bulk-clear operations (Ctrl+A → Delete, range
+   * clear, paste clear) where the per-cell `cellEdit` fan-out would
+   * choke the consumer — 1 M emits × an async handler is enough to
+   * freeze the page for several seconds on huge selections.
+   *
+   * When present and wired, this event fires INSTEAD of the per-cell
+   * `cellEdit` stream for that one operation. If the consumer doesn't
+   * wire it, the lib falls back to per-cell emits to keep small-clear
+   * semantics backwards compatible.
+   *
+   * The consumer is expected to apply the changes in one batch — e.g.
+   * one bulk API call + a single `refreshing` re-sync, rather than
+   * `withCellPending` per cell (which would queue 1 M Promises).
+   */
+  bulkCellEdit: [event: { changes: ReadonlyArray<{ rowIndex: number; field: string; oldValue: unknown; newValue: unknown }> }]
   fill: [event: FillEvent]
   /** Emitted when the pagination page or page size changes. */
   pageChange: [range: { page: number; pageSize: number; startIndex: number; endIndex: number }]
@@ -1145,9 +1161,19 @@ const isServerFilter = computed(
 // Bypass client-side filtering quand le serveur s'en charge. Le filter UI
 // continue de marcher : on émet `filterChange` pour que le consumer
 // déclenche son refetch.
-const filteredRows = computed(() =>
-  isServerFilter.value ? props.rows : gridEngine.filter.filterData(props.rows),
-)
+//
+// Lecture explicite de `dataVersion` : c'est la dépendance manuelle
+// qu'`applyFills` bump après chaque mutation in-place d'une row. Sans
+// cette lecture, le computed ne dépend que de la référence du tableau
+// `props.rows` (parce que `filterEngine.filterData` court-circuite sur
+// "no filter" et retourne `data` sans itérer → aucun track sur les
+// propriétés des rows). Conséquence : tout en aval (sort, groupTree)
+// reste sur cache stale après une cell-edit / fill / bulk-clear.
+const filteredRows = computed(() => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+  gridState.dataVersion.value
+  return isServerFilter.value ? props.rows : gridEngine.filter.filterData(props.rows)
+})
 
 function setFilter(field: string, value: unknown) {
   rawSetFilter(field, value)
@@ -2106,12 +2132,24 @@ const {
 // --- Fill Handle ---
 
 function applyFills(fills: Array<{ rowIndex: number; field: string; value: unknown }>): void {
+  let mutated = 0
   for (const f of fills) {
     const row = renderableRows.value[f.rowIndex]
     if (row && !isGroupRow(row) && !(row as Record<string, unknown>).__mrxSkeleton) {
       ; (row as Record<string, unknown>)[f.field] = f.value
+      mutated++
     }
   }
+  // Bump the data version so the filter / sort / group cascade
+  // invalidates even when there's no active filter or sort. Without
+  // this, mutating `row[field]` in place updates the rendered cell
+  // (cell renderer tracks `row[field]` directly) but `filteredRows`
+  // and `sortedRows` short-circuit on "no filter / no sort" and
+  // return `props.rows` unchanged — Vue then sees no dep change and
+  // `buildGroupTree` never re-buckets the mutated row. Visible
+  // symptom : grouping by a field then editing an empty cell to a
+  // value leaves the row stuck in the original (empty) bucket.
+  if (mutated > 0) gridState.dataVersion.value++
 }
 
 const lastSelectionRange = computed(() => {
@@ -2201,29 +2239,58 @@ const clipboard = useClipboard({
     }
   },
   onClear(fills) {
+    // Single-pass change collection: previously we built `changes`, then
+    // re-allocated a `changes.map(...)` array just to pass to `applyFills`.
+    // For 1 M-cell clears that doubled the GC pressure; keep one array
+    // and reuse a typed `{rowIndex, field, value: ''}` shape so the same
+    // entries feed `applyFills` directly.
     const changes: { rowIndex: number; field: string; before: unknown; after: unknown }[] = []
+    const validFills: { rowIndex: number; field: string; value: unknown }[] = []
     for (const fill of fills) {
       const row = renderableRows.value[fill.rowIndex]
       if (!row) continue
       const oldValue = row[fill.field]
       if (oldValue === '') continue
       changes.push({ rowIndex: fill.rowIndex, field: fill.field, before: oldValue, after: '' })
+      validFills.push({ rowIndex: fill.rowIndex, field: fill.field, value: '' })
     }
 
-    // Auto-apply the clear directly so getCellFlags sees '' on the same tick.
-    applyFills(changes.map((c) => ({ rowIndex: c.rowIndex, field: c.field, value: '' })))
+    // Auto-apply the clear directly so `getCellFlags` sees '' on the
+    // same tick.
+    applyFills(validFills)
 
-    for (const c of changes) {
-      emit('cellEdit', {
-        rowIndex: c.rowIndex,
-        field: c.field,
-        oldValue: c.before,
-        newValue: '',
+    if (changes.length === 0) return
+
+    // Bulk-clear path — Ctrl+A → Delete on a huge range can collect
+    // hundreds of thousands of changes. Emitting `cellEdit` per change
+    // would freeze the consumer (each emit triggers the consumer's
+    // sync handler before returning); we emit ONE `bulkCellEdit`
+    // instead so the consumer can batch the API call + a single
+    // `refreshing` re-sync. We only switch above ~1 K changes so
+    // small clears keep the per-cell semantics — consumers that wired
+    // `@cell-edit` per-cell logic (validation, optimistic update,
+    // shimmer per field) keep working unchanged.
+    const BULK_THRESHOLD = 1000
+    if (changes.length > BULK_THRESHOLD) {
+      emit('bulkCellEdit', {
+        changes: changes.map((c) => ({
+          rowIndex: c.rowIndex,
+          field: c.field,
+          oldValue: c.before,
+          newValue: '',
+        })),
       })
+    } else {
+      for (const c of changes) {
+        emit('cellEdit', {
+          rowIndex: c.rowIndex,
+          field: c.field,
+          oldValue: c.before,
+          newValue: '',
+        })
+      }
     }
-    if (changes.length > 0) {
-      gridEngine.history.record('edit', changes)
-    }
+    gridEngine.history.record('edit', changes)
   },
 })
 
@@ -2979,16 +3046,75 @@ function getSelectedRows(): RowData[] {
 //   grid.value.undo()
 //   grid.value.scrollToRow(1234)
 
-/** Export current display rows as CSV (download triggered). */
-function exportCsv(options?: { filename?: string; separator?: string; columns?: string[] }) {
-  const data = renderableRows.value.filter((r) => !isGroupRow(r) && !r.__mrxSkeleton) as RowData[]
-  gridEngine.export.exportCsv(data, options)
+/** Export rows as CSV (download triggered).
+ *
+ *  Scope resolution :
+ *    • `scope: 'selection'`   → only checked rows. Honours the current
+ *      row selection (`selectionModel`). Useful for "export selected".
+ *    • `scope: 'visible'`     → all rendered rows (filtered, sorted,
+ *      paginated, grouping flattened). Skips group + skeleton rows.
+ *    • `scope: 'all'`         → the full `props.rows` source array,
+ *      independent of any client-side filter / sort / grouping.
+ *
+ *  When `scope` is omitted, defaults to **`selection` if any row is
+ *  selected**, otherwise `visible`. Prevents the classic "I selected
+ *  2 rows, hit Export, and now Chrome is eating 1 M rows" crash.
+ */
+function exportCsv(options?: {
+  filename?: string
+  separator?: string
+  columns?: string[]
+  scope?: 'selection' | 'visible' | 'all'
+}) {
+  gridEngine.export.exportCsv(resolveExportData(options?.scope), options)
 }
 
-/** Export current display rows as JSON (download triggered). */
-function exportJson(options?: { filename?: string; columns?: string[] }) {
-  const data = renderableRows.value.filter((r) => !isGroupRow(r) && !r.__mrxSkeleton) as RowData[]
-  gridEngine.export.exportJson(data, options)
+/** Export rows as JSON (download triggered). Same scope semantics as
+ *  `exportCsv`. */
+function exportJson(options?: {
+  filename?: string
+  columns?: string[]
+  scope?: 'selection' | 'visible' | 'all'
+}) {
+  gridEngine.export.exportJson(resolveExportData(options?.scope), options)
+}
+
+/** Resolve the row set to export given an explicit scope, or the
+ *  default (selection if present, else visible). */
+function resolveExportData(scope?: 'selection' | 'visible' | 'all'): RowData[] {
+  const sel = selectionModel.value
+  const hasSelection =
+    sel.allSelected || (sel.selectedIds && sel.selectedIds.size > 0)
+  const effective: 'selection' | 'visible' | 'all' =
+    scope ?? (hasSelection ? 'selection' : 'visible')
+
+  if (effective === 'all') {
+    return (props.rows as RowData[]).filter(
+      (r) => !isGroupRow(r) && !(r as RowData).__mrxSkeleton,
+    )
+  }
+  if (effective === 'visible') {
+    return renderableRows.value.filter(
+      (r) => !isGroupRow(r) && !r.__mrxSkeleton,
+    ) as RowData[]
+  }
+  // selection — collect rows from `props.rows` matching the selection.
+  // We hit `props.rows` (not `renderableRows`) so users can export
+  // selected items that are currently paginated off-screen. `allSelected`
+  // mode honours the `deselectedIds` exclusion list.
+  const rowIdFn = props.rowId
+  const out: RowData[] = []
+  for (let i = 0; i < props.rows.length; i++) {
+    const r = props.rows[i]!
+    if (isGroupRow(r) || (r as RowData).__mrxSkeleton) continue
+    const id = rowIdFn ? rowIdFn(r, i) : String(i)
+    if (sel.allSelected) {
+      if (!sel.deselectedIds.has(id)) out.push(r as RowData)
+    } else if (sel.selectedIds.has(id)) {
+      out.push(r as RowData)
+    }
+  }
+  return out
 }
 
 /** Undo the last cell-change group (clipboard / inline-edit driven). */
@@ -3144,12 +3270,16 @@ defineExpose({
       </div>
     </slot>
 
-    <!-- Loading slot — le grid ne rend AUCUN visuel par défaut quand
-         `loading` ou `refreshing` est true. Le full skeleton est posé en
-         bas dans `<MrxGridSkeletonBody>` (quand `loading=true`), et c'est
-         le seul signal d'activité de longue durée. Les consumers qui
-         veulent un indicateur custom (top bar, spinner, …) peuvent
-         remplir le slot `#loading`. -->
+    <!-- Loading slot — la lib ne peint AUCUN visuel par défaut.
+         • `loading=true`    → le squelette plein écran posé plus bas
+           dans `<MrxGridSkeletonBody>` suffit comme signal "données
+           vides / reload utilisateur".
+         • `refreshing=true` → activation seule du slot, sans visuel
+           default. Les consumers qui veulent une barre fine / spinner
+           / toast pendant un resync silencieux remplissent eux-mêmes
+           le slot `#loading` (1.5 ligne de CSS si vraiment besoin).
+         Ce minimalisme évite que la lib impose un look qui ne s'aligne
+         pas avec le brand côté consumer. -->
     <slot v-if="props.loading || props.refreshing" name="loading" />
 
     <!-- Sprint 3 — unified Mozaic tag bars (HIDDEN / GROUPED / FILTERED) -->

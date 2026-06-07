@@ -29,10 +29,19 @@ export interface UseProductListReturn {
   rows: Ref<LMProduct[]>
   total: Ref<number>
   /**
-   * `true` pendant TOUS les fetches (initial + page change + sort + filter
-   * + search). Drive le skeleton plein écran sur `<MrxGrid :loading>`.
+   * `true` pendant les fetches "user-driven" qui repartent d'une grille
+   * vide ou d'un changement majeur d'input (initial, page, sort, filter,
+   * search). Drive le squelette plein écran sur `<MrxGrid :loading>`.
    */
   loading: Ref<boolean>
+  /**
+   * `true` pendant les re-syncs silencieux derrière une mutation (cell
+   * edit, fill, bulk action, delete). Les rows sont déjà visibles ; on
+   * ne veut pas effacer le tableau — juste signaler qu'un fetch est en
+   * vol. Drive la barre de progression discrète sur
+   * `<MrxGrid :refreshing>`. Indépendant de `loading`.
+   */
+  refreshing: Ref<boolean>
   error: Ref<Error | null>
 
   // Input refs — bindable au grid via v-model ou listeners.
@@ -49,8 +58,16 @@ export interface UseProductListReturn {
   /** À binder sur un `<MTextInput v-model>` — debounce 300 ms appliqué en interne. */
   searchInput: Ref<string>
 
-  /** Re-fetch impératif (utilisé après création / édition / suppression). */
-  refetch: () => Promise<void>
+  /**
+   * Re-fetch impératif (utilisé après création / édition / suppression).
+   *
+   * `silent: true` → utilise `refreshing` au lieu de `loading`. Le tableau
+   * reste affiché, l'utilisateur voit une barre de progression discrète
+   * en haut au lieu d'un squelette plein écran. À utiliser après une
+   * mutation déjà matérialisée par un pending shimmer cell / row : le
+   * feedback localisé suffit, on resync juste les données canoniques.
+   */
+  refetch: (opts?: { silent?: boolean }) => Promise<void>
 
   /** Handlers à câbler sur les évents du grid. */
   onPageChange: (e: { page: number; pageSize: number }) => void
@@ -62,6 +79,7 @@ export function useProductList(): UseProductListReturn {
   const rows = ref<LMProduct[]>([])
   const total = ref(0)
   const loading = ref(false)
+  const refreshing = ref(false)
   const error = ref<Error | null>(null)
 
   const page = ref(0)
@@ -79,13 +97,24 @@ export function useProductList(): UseProductListReturn {
    */
   let fetchToken = 0
 
-  async function refetch(): Promise<void> {
+  async function refetch(opts?: { silent?: boolean }): Promise<void> {
     const myToken = ++fetchToken
-    // Toujours `loading: true` — le skeleton plein écran sort à chaque
-    // fetch (initial, page change, sort, filter, search). Visuellement
-    // c'est plus brut qu'un "refresh silencieux" mais plus lisible : le
-    // user voit clairement que ses données changent.
-    loading.value = true
+    // Deux états distincts, mutuellement exclusifs pendant un fetch :
+    //   • `loading`     → squelette plein écran (fetch user-driven :
+    //                     initial, page, sort, filter, search) ; la
+    //                     grille est conceptuellement vide le temps que
+    //                     les nouvelles rows arrivent.
+    //   • `refreshing`  → barre fine en haut (`silent: true`, après une
+    //                     mutation déjà confirmée par un shimmer cell /
+    //                     row) ; les rows restent visibles, on resync
+    //                     juste les valeurs canoniques côté serveur.
+    // Sans cette séparation, chaque fill / cell edit / bulk action
+    // efface l'écran pendant le re-sync — le shimmer cellule clignote
+    // brièvement puis le squelette plein écran prend le relais, ce que
+    // l'utilisateur perçoit comme "la grille recharge tout".
+    const silent = opts?.silent === true
+    if (silent) refreshing.value = true
+    else loading.value = true
     error.value = null
 
     const params: FetchProductsParams = {
@@ -106,7 +135,10 @@ export function useProductList(): UseProductListReturn {
       if (myToken !== fetchToken) return
       error.value = e as Error
     } finally {
-      if (myToken === fetchToken) loading.value = false
+      if (myToken === fetchToken) {
+        if (silent) refreshing.value = false
+        else loading.value = false
+      }
     }
   }
 
@@ -145,6 +177,7 @@ export function useProductList(): UseProductListReturn {
     rows,
     total,
     loading,
+    refreshing,
     error,
     page,
     pageSize,

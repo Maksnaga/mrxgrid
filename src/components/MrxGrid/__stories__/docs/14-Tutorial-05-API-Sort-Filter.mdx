@@ -1,0 +1,253 @@
+import { Meta } from '@storybook/addon-docs/blocks'
+import './_styles.css'
+
+<Meta title="Documentation/Tutoriel/5. Tri et filtre serveur" />
+
+<div className="mrx-doc">
+
+# Tutoriel — 5. Tri et filtre serveur
+
+> Le client n'a pas toute la donnée — il ne peut pas trier ni filtrer
+> localement. On dit au grid "envoie-moi un événement quand l'utilisateur
+> change le tri / filtre, je m'occupe de re-fetch".
+
+## Le contrat
+
+Côté client, on flip deux props :
+
+- `:sort-mode="'server'"` → le grid n'évalue pas le tri, il émet juste
+  `sort-change` avec le nouveau state.
+- `:filter-mode="'server'"` → idem pour le filtre.
+
+Côté API, on étend le contrat :
+
+```http
+GET /api/products?page=0&pageSize=50
+                 &sort=adeoKey:asc                       ← single sort
+                 &sort=productBrand:desc&sort=price:asc  ← multi-sort
+                 &filter[colour]=red                      ← inline filter row
+                 &filter[productBrand][in]=INSPIRE,LUMENA ← builder set
+                 &filter[price][gte]=100&filter[price][lte]=500 ← range
+```
+
+C'est à l'API de parser ces query params et de renvoyer la page filtrée
++ triée + le nouveau `total`.
+
+## 1. Étendre le composable
+
+```ts
+// src/composables/useProductList.ts
+import { ref, watch } from 'vue'
+import type { FilterModel } from '@mrx/grid'
+
+export function useProductList() {
+  // … état existant (rows, total, loading, page, pageSize)
+  
+  // NOUVEAU : sort + filter state
+  const sort = ref<{ field: string; direction: 'asc' | 'desc' } | null>(null)
+  const filterModel = ref<FilterModel>({ conditions: [] })
+  const quickFilters = ref<Record<string, unknown>>({})
+
+  async function refetch(opts?: { silent?: boolean }): Promise<void> {
+    // … début du refetch (token, loading)
+
+    const params = new URLSearchParams()
+    params.set('page', String(page.value))
+    params.set('pageSize', String(pageSize.value))
+    if (sort.value) {
+      params.set('sort', `${sort.value.field}:${sort.value.direction}`)
+    }
+    for (const [field, value] of Object.entries(quickFilters.value)) {
+      if (value != null && value !== '') {
+        params.set(`filter[${field}]`, String(value))
+      }
+    }
+    for (const c of filterModel.value.conditions) {
+      // Encoding dépend de ton API. Exemple générique :
+      if (c.value?.value != null) {
+        params.set(`filter[${c.field}][${c.operator}]`, String(c.value.value))
+      }
+    }
+
+    const resp = await fetch(`/api/products?${params}`)
+    // … parse + écrire dans rows / total
+  }
+
+  // Watchers — toute mutation de sort/filter re-fetch.
+  watch([sort], () => void refetch())
+  watch([filterModel, quickFilters], () => {
+    // Filter change → revenir à la page 1, sinon la page courante
+    // peut être hors borne (filtré → total < page * pageSize).
+    page.value = 0
+    void refetch()
+  }, { deep: true })
+
+  // Handlers wired aux events grid
+  function onSortChange(next: { field: string; direction: 'asc' | 'desc' } | null) {
+    sort.value = next
+  }
+
+  function onFilterChange(filters: Record<string, unknown>) {
+    quickFilters.value = { ...filters }
+  }
+
+  return {
+    // … existant
+    sort, filterModel, quickFilters,
+    onSortChange, onFilterChange,
+  }
+}
+```
+
+<div className="callout callout--warn">
+
+**⚠️ Piège — reset à la page 1.** Si l'utilisateur est en page 5 et
+applique un filtre qui réduit le résultat à 30 lignes, la page 5
+n'existe plus. Sans le `page.value = 0` dans le watcher, l'API renvoie
+une page vide et l'utilisateur croit que son filtre a tout supprimé.
+
+</div>
+
+## 2. Brancher dans le composant
+
+```vue
+<script setup lang="ts">
+import { MrxGrid, type FilterModel } from '@mrx/grid'
+import { useProductList } from '@/composables/useProductList'
+import { adeoColumns } from '@/columns'
+
+const list = useProductList()
+</script>
+
+<template>
+  <MrxGrid
+    :columns="adeoColumns"
+    :rows="list.rows.value"
+    :total-count="list.total.value"
+    :loading="list.loading.value"
+    :pagination="{ pageSize: list.pageSize.value, pageSizeOptions: [25, 50, 100] }"
+
+    sort-mode="server"
+    :sort="list.sort.value"
+
+    filter-mode="server"
+    v-model:filter-model="list.filterModel.value"
+
+    :height="640"
+    @page-change="(e) => { list.page.value = Math.max(0, e.page - 1); list.pageSize.value = e.pageSize }"
+    @sort-change="list.onSortChange"
+    @filter-change="list.onFilterChange"
+  />
+</template>
+```
+
+Trois nouveaux bindings :
+
+- **`sort-mode="server"` + `:sort` + `@sort-change`** — le grid affiche
+  les flèches de tri sur les headers, mais n'évalue rien. Au clic, il
+  émet `@sort-change` avec le nouveau state, et tu pousses dans `sort.value`.
+  Le watcher déclenche le refetch.
+- **`filter-mode="server"` + `v-model:filter-model` + `@filter-change`** —
+  pareil pour le filtre. Le `v-model:filter-model` gère le builder
+  drawer (formal conditions), `@filter-change` gère la filter row
+  inline (quick filters). Les deux co-existent.
+- **`:total-count`** — toujours obligatoire en server mode pour que le
+  footer affiche le bon total.
+
+## 3. Le footer de pagination
+
+Le footer affiche automatiquement :
+
+```
+Rows per page: [25 ▼]   1-50 of 4231 items                Page [1 ▼] of 85  ‹  ›
+```
+
+C'est généré à partir de :
+
+- `pagination.pageSize` → "Rows per page"
+- `rows.length` et l'offset interne → "1-50"
+- `totalCount` → "of 4231"
+- `Math.ceil(totalCount / pageSize)` → "of 85"
+
+Tu n'as rien à faire de plus que de passer les 3 props et de wirer
+`@page-change`.
+
+## 4. Reset des filtres
+
+Au-delà de l'UI native, tu veux peut-être un bouton "Effacer les
+filtres" custom :
+
+```ts
+const gridRef = ref<InstanceType<typeof MrxGrid> | null>(null)
+
+function clearAllFilters() {
+  gridRef.value?.clearFilters?.()
+  // OU explicitement :
+  list.quickFilters.value = {}
+  list.filterModel.value = { conditions: [] }
+}
+```
+
+`grid.value.clearFilters()` est exposé par l'API impérative — il
+remet à zéro **les deux** surfaces (inline filter row + builder
+drawer).
+
+## 5. Cas particulier — recherche libre
+
+La recherche libre (texte plein) n'est ni un sort ni un filter
+structuré. On expose une `searchInput: Ref<string>` à part :
+
+```ts
+import { useDebouncedRef } from '@/composables/useDebouncedRef'
+
+const { input: searchInput, debounced: searchDebounced } = useDebouncedRef('', 300)
+
+watch(searchDebounced, () => {
+  page.value = 0
+  void refetch()
+})
+
+// Dans refetch :
+if (searchDebounced.value) params.set('q', searchDebounced.value)
+```
+
+Le **debounce à 300 ms** évite de hammer l'API à chaque keystroke.
+Le composant binde la `MTextInput` sur `searchInput` (non debouncée),
+le watcher écoute la version debouncée.
+
+```vue
+<MTextInput
+  v-model="list.searchInput.value"
+  input-type="search"
+  placeholder="ADEO key, GTIN, couleur…"
+/>
+```
+
+<div className="callout callout--warn">
+
+**⚠️ Piège — race condition sur la recherche.** Si l'utilisateur tape
+"abc" puis efface tout de suite "abcd", l'API peut renvoyer les
+résultats de "abc" après ceux de "abcd". Le `fetchToken` du tuto 4
+gère ça — vérifie qu'il est bien en place.
+
+</div>
+
+## 6. Test rapide
+
+1. **Trier une colonne** → le grid émet `@sort-change`, le watcher
+   refetch, footer revient à page 1
+2. **Taper "Stanley" dans le filter row** → `@filter-change` → refetch
+   avec `filter[brand]=Stanley`
+3. **Ouvrir le builder drawer** → ajouter "price > 100" → le
+   `filter-model` v-model met à jour `filterModel.value` → refetch
+4. **Effacer la recherche** → la liste revient au complet
+5. **Combiner sort + filter** → l'API doit recevoir tous les params
+   en même temps, pas en 2 requêtes successives
+
+## Prochaine étape
+
+[Tutoriel 6 — Édition + persistance optimiste](?path=/docs/documentation-tutoriel-6-edition-persistance-optimiste--docs) :
+on rend le grid mutable, avec persistance API et pending shimmer
+sur les cellules en cours d'écriture.
+
+</div>

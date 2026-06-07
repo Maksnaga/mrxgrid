@@ -42,6 +42,20 @@ export interface GridState<T = RowData> {
   // --- Source data ---
   readonly sourceData: Ref<T[]>
   readonly totalItems: Ref<number>
+  /**
+   * Monotonically increasing counter bumped by the grid every time it
+   * mutates a row's field in place (cell edit, fill handle, bulk clear,
+   * paste). Acts as a manual reactivity trigger : the filter / sort /
+   * group computeds read it so they invalidate even when their normal
+   * short-circuits (no filter / no sort) would otherwise return the
+   * input array unchanged — which would prevent Vue from tracking any
+   * read on the mutated row's properties.
+   *
+   * Consumers don't need to touch this. It's exposed on the public
+   * `GridState` shape only because the downstream computeds in
+   * `MrxGrid.vue` and the engine layer need to reference it.
+   */
+  readonly dataVersion: Ref<number>
 
   // --- Mode ---
   readonly mode: Ref<'client' | 'server'>
@@ -185,6 +199,9 @@ export function useGridState<T = RowData>(): GridState<T> {
   // --- Source data ---
   const sourceData = ref([]) as Ref<T[]>
   const totalItems = ref(0)
+  // Manual reactivity trigger for in-place row mutations.
+  // See the comment on `GridState.dataVersion` for the full rationale.
+  const dataVersion = ref(0)
 
   // --- Mode ---
   const mode = ref<'client' | 'server'>('client')
@@ -399,6 +416,7 @@ export function useGridState<T = RowData>(): GridState<T> {
 
   return {
     sourceData,
+    dataVersion,
     totalItems,
     mode,
     loadingStrategy,

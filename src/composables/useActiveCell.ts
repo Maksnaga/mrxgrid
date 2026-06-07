@@ -336,29 +336,40 @@ export function useActiveCell(options: ActiveCellOptions) {
       el.querySelector<HTMLElement>('.mrx-grid-sticky-header')?.offsetHeight ??
       0
 
-    // Comfort margin — keep one row of breathing space around the focused
-    // cell during keyboard navigation.
+    // Trigger vs. target — the comfort margin only pads the scroll
+    // TARGET. The trigger fires strictly when the cell is OUTSIDE the
+    // visible row area; otherwise pressing Up from a middle row would
+    // shift the viewport even though the previous row is right there
+    // on screen.
     //
-    // Math (S = scrollTop, all values in sizer-coords for the cell, in
-    // wrapper-coords for `clientHeight`):
-    //   • the visible row area starts BELOW the sticky chunk and ends at
-    //     the wrapper bottom → its sizer-range is `(S, S + clientHeight
-    //     - stickyTop)`
-    //   • for `cellTop` we want at least `margin` of space above it →
-    //     S ≤ cellTop − margin − stickyTop
-    //     (subtract stickyTop because the cell would otherwise slip
-    //      behind the sticky chunk before crossing `viewTop`)
-    //   • for `cellBottom` we want at least `margin` of space below it →
-    //     S ≥ cellBottom + margin − clientHeight + stickyTop
-    //     (this is the one we kept incorrect previously — without
-    //      `+ stickyTop` the cell ended up clipped by the wrapper bottom)
+    // Coordinate frame — the sticky header chunk lives INSIDE the
+    // wrapper, at `position: sticky; top: 0`. The body sizer is the
+    // sibling block where the rows render in normal flow. Crucially
+    // `cellTop = topOfRow(rowIndex)` is the row's offset INSIDE the
+    // sizer (so the first row has cellTop = 0), and the wrapper's
+    // `scrollTop` is the offset BETWEEN the sizer's origin and the
+    // wrapper viewport's top.
+    //
+    // A row's visible wrapper-y is `stickyTop + cellTop − scrollTop`.
+    // For the row to sit BELOW the sticky chunk we need
+    // `wrapper-y ≥ stickyTop` ⇔ `cellTop ≥ scrollTop`. The previously
+    // used `cellTop < scrollTop + stickyTop` double-counted the
+    // sticky offset and triggered on rows that were perfectly
+    // visible.
+    //
+    // Visible sizer range:
+    //   top    = scrollTop                                  (just below sticky)
+    //   bottom = scrollTop + clientHeight − stickyTop        (wrapper bottom)
+    //
+    // Targets keep the margin so the cell lands with one row of
+    // breathing space on the relevant side after the scroll lands.
     const margin = rowHeight.value
-    const visibleTop = viewTop + stickyTop
-    const visibleBottom = viewTop + el.clientHeight
+    const visibleTop = viewTop
+    const visibleBottom = viewTop + el.clientHeight - stickyTop
 
-    if (cellTop - margin < visibleTop) {
-      el.scrollTop = Math.max(0, cellTop - margin - stickyTop)
-    } else if (cellBottom + margin > visibleBottom) {
+    if (cellTop < visibleTop) {
+      el.scrollTop = Math.max(0, cellTop - margin)
+    } else if (cellBottom > visibleBottom) {
       el.scrollTop = cellBottom + margin - el.clientHeight + stickyTop
     }
 
@@ -389,31 +400,51 @@ export function useActiveCell(options: ActiveCellOptions) {
       const scrollLeft = el.scrollLeft
       const availableWidth = el.clientWidth - pinnedLeftWidth - pinnedRightWidth
 
-      // Horizontal comfort margin — same idea as the vertical one: keep
-      // some breathing space around the focused column so the user sees
-      // at least a slice of the neighbouring column before reaching the
-      // pinned edge. Without this, the cell would only scroll into view
-      // once it's strictly under a pinned column, leaving it pinned to
-      // the edge mid-navigation. We use the focused column's own width
-      // (clamped to avoid overshooting on very wide columns) so the
-      // margin scales naturally with the dataset's typography.
+      // Horizontal comfort margin — same trigger-vs-target split as
+      // the vertical branch. The margin must only pad the scroll
+      // TARGET, not the trigger: otherwise clicking the first or last
+      // visible center column shifts the viewport horizontally for
+      // breathing room the user didn't ask for. We use the focused
+      // column's own width (clamped to 120 px) as the margin so the
+      // amount of slack scales naturally with the dataset's typography.
       const hMargin = Math.min(colW, 120)
 
-      // Math mirrors the vertical branch (with `pinnedLeftWidth` playing
-      // the role of `stickyTop` and `pinnedRightWidth` reducing the
-      // bottom of the visible area). The visible center range in
-      // scroll-content coords is `(scrollLeft, scrollLeft + availableWidth)`.
-      if (colLeft - hMargin < scrollLeft) {
+      // Visible center range in scroll-content coords:
+      // `(scrollLeft, scrollLeft + availableWidth)`. Trigger only when
+      // the cell strictly straddles or crosses one of the bounds.
+      if (colLeft < scrollLeft) {
         el.scrollLeft = Math.max(0, colLeft - hMargin)
-      } else if (colRight + hMargin > scrollLeft + availableWidth) {
+      } else if (colRight > scrollLeft + availableWidth) {
         el.scrollLeft = colRight + hMargin - availableWidth
       }
     }
   }
 
-  // Watch active cell changes and auto-scroll
+  // Watch active cell changes and auto-scroll.
+  //
+  // `activeCell` is a computed whose getter returns `{ rowIndex, field }` —
+  // a fresh object literal on every evaluation. Vue's `watch` compares
+  // values with `Object.is`, which always fails for new literals, so the
+  // handler would fire on every re-evaluation of the computed — even when
+  // the cell hasn't actually moved. That bites during column resize: the
+  // drag bumps `colPositions`, which transitively invalidates the
+  // computed; the watcher fires and `scrollCellIntoView` yanks the
+  // viewport back to the focused cell mid-drag (visible as a jarring
+  // horizontal "snap" the moment you grab a resize handle while a cell
+  // off-screen is still active).
+  //
+  // We dedupe with a string key (`rowIndex:field`). Identity changes that
+  // don't move the focused cell are silently swallowed; real moves still
+  // call `scrollCellIntoView` exactly once.
+  let _lastScrollKey: string | null = null
   watch(activeCell, (cell) => {
-    if (!cell) return
+    if (!cell) {
+      _lastScrollKey = null
+      return
+    }
+    const key = `${cell.rowIndex}:${cell.field}`
+    if (key === _lastScrollKey) return
+    _lastScrollKey = key
     scrollCellIntoView(cell.rowIndex, colIndex(cell.field))
   })
 

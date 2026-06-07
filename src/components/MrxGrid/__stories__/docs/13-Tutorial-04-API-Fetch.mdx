@@ -1,0 +1,291 @@
+import { Meta } from '@storybook/addon-docs/blocks'
+import './_styles.css'
+
+<Meta title="Documentation/Tutoriel/4. Fetch + pagination serveur" />
+
+<div className="mrx-doc">
+
+# Tutoriel — 4. Fetch + pagination serveur
+
+> On passe du JSON statique à une vraie API REST paginée. États
+> `loading` / `error` / `empty` câblés proprement. Architecture
+> composable inspirée d'`useProductList` qu'on utilise en interne.
+
+## Le contrat API
+
+On suppose une API REST qui répond à ce contrat :
+
+```http
+GET /api/products?page=0&pageSize=50&sort=adeoKey:asc
+
+200 OK
+{
+  "rows": [
+    { "id": 1, "adeoKey": "82023619", "productBrand": "INSPIRE", ... },
+    ...
+  ],
+  "total": 4231
+}
+```
+
+Le `total` est le nombre **total** de produits côté serveur (toutes
+pages confondues). Le grid s'en sert pour calculer le footer de
+pagination (`X de Y items`, nb de pages, etc.).
+
+## 1. Le composable `useProductList`
+
+C'est le pattern qu'on recommande : **séparer la fetch logic du
+composant**. Un composable qui expose des refs + une fonction
+`refetch` impérative. Le grid n'a pas à connaître l'API, il consomme
+juste des refs.
+
+```ts
+// src/composables/useProductList.ts
+import { ref, watch, type Ref } from 'vue'
+import type { AdeoProduct } from '@/types'
+
+export interface UseProductListReturn {
+  rows: Ref<AdeoProduct[]>
+  total: Ref<number>
+  loading: Ref<boolean>
+  refreshing: Ref<boolean>
+  error: Ref<Error | null>
+
+  page: Ref<number>
+  pageSize: Ref<number>
+
+  refetch: (opts?: { silent?: boolean }) => Promise<void>
+}
+
+export function useProductList(): UseProductListReturn {
+  const rows = ref<AdeoProduct[]>([])
+  const total = ref(0)
+  const loading = ref(false)
+  const refreshing = ref(false)
+  const error = ref<Error | null>(null)
+
+  const page = ref(0)
+  const pageSize = ref(50)
+
+  // Token pour ignorer les réponses tardives (race condition classique).
+  let fetchToken = 0
+
+  async function refetch(opts?: { silent?: boolean }): Promise<void> {
+    const myToken = ++fetchToken
+    const silent = opts?.silent === true
+
+    // `silent` = re-sync silencieux après mutation. On affiche la
+    // barre `refreshing` (slot `#loading`), pas le squelette plein.
+    if (silent) refreshing.value = true
+    else loading.value = true
+    error.value = null
+
+    try {
+      const resp = await fetch(
+        `/api/products?page=${page.value}&pageSize=${pageSize.value}`,
+      )
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`)
+      const data: { rows: AdeoProduct[]; total: number } = await resp.json()
+      if (myToken !== fetchToken) return // une requête plus récente a gagné
+      rows.value = data.rows
+      total.value = data.total
+    } catch (e) {
+      if (myToken !== fetchToken) return
+      error.value = e as Error
+    } finally {
+      if (myToken === fetchToken) {
+        if (silent) refreshing.value = false
+        else loading.value = false
+      }
+    }
+  }
+
+  // Re-fetch automatique sur changement de page / pageSize.
+  watch([page, pageSize], () => void refetch())
+
+  // Bootstrap.
+  void refetch()
+
+  return { rows, total, loading, refreshing, error, page, pageSize, refetch }
+}
+```
+
+<div className="callout callout--info">
+
+**ℹ️ Pourquoi le fetchToken ?** Sans, si l'utilisateur change vite de
+page (page 1 → page 2 → page 3), les réponses peuvent arriver dans
+le désordre (page 3 arrive avant page 2 si page 2 est lente). Sans
+token, tu écris le contenu de page 2 par-dessus page 3 et l'utilisateur
+voit la mauvaise donnée. Le token garantit que **seule la dernière
+requête en vol gagne le droit d'écrire `rows.value`**.
+
+</div>
+
+## 2. Brancher dans le composant
+
+```vue
+<!-- src/views/PimList.vue -->
+<script setup lang="ts">
+import { MrxGrid } from '@mrx/grid'
+import { useProductList } from '@/composables/useProductList'
+import { adeoColumns } from '@/columns'
+
+const list = useProductList()
+
+function onPageChange(e: { page: number; pageSize: number }): void {
+  // L'événement page-change émet 1-based (footer parle en "page 1 / 200")
+  // alors que l'API attend 0-based. Conversion ici.
+  list.page.value = Math.max(0, e.page - 1)
+  list.pageSize.value = e.pageSize
+}
+
+function retryFetch(): void {
+  void list.refetch()
+}
+</script>
+
+<template>
+  <MrxGrid
+    :columns="adeoColumns"
+    :rows="list.rows.value"
+    :total-count="list.total.value"
+    :row-id="(row) => String(row.id)"
+    :loading="list.loading.value"
+    :refreshing="list.refreshing.value"
+    :error="list.error.value"
+    :height="640"
+    :pagination="{ pageSize: list.pageSize.value, pageSizeOptions: [25, 50, 100, 200] }"
+    @page-change="onPageChange"
+  >
+    <!-- Slot error : custom le retry -->
+    <template #error="{ error, retry }">
+      <div class="error-box">
+        <p>{{ error.message }}</p>
+        <button @click="retry ?? retryFetch">Réessayer</button>
+      </div>
+    </template>
+
+    <!-- Slot empty : custom le message vide -->
+    <template #empty>
+      <div class="empty-box">
+        <p>Aucun produit dans le catalogue.</p>
+      </div>
+    </template>
+  </MrxGrid>
+</template>
+```
+
+## 3. Les états expliqués
+
+- **`:loading`** — `true` quand on attend la **première** réponse OU
+  quand on change de page / pageSize (l'utilisateur s'attend à voir
+  un feedback visible). Le grid remplace le body par un squelette
+  plein.
+- **`:refreshing`** — `true` quand on resync **silencieusement** après
+  une mutation (cell-edit, bulk action). Pas de squelette : la lib
+  active juste le slot `#loading` que tu peux remplir avec un spinner /
+  barre fine custom. **Par défaut, aucun visuel.**
+- **`:error`** — un `Error` quand la dernière requête a échoué. Le
+  grid affiche le slot `#error` avec un retry.
+- **`:total-count`** — décorrèle la hauteur de la scrollbar du
+  `rows.length` réel. Crucial en pagination serveur : avec `rows.value`
+  qui a 50 items et `total: 4231`, le footer affiche "1-50 de 4231"
+  correctement.
+
+<div className="callout callout--warn">
+
+**⚠️ Piège — différence `loading` vs `refreshing`.** Si tu mets
+`loading: true` à chaque refetch (même après cell-edit), l'utilisateur
+voit le squelette plein écran clignoter à chaque modification. C'est
+brutal. **Règle :** `loading` pour les fetches user-driven (page,
+filter, search, premier load), `refreshing` pour les re-syncs
+post-mutation où les données sont déjà visibles.
+
+</div>
+
+## 4. Avec Pinia (recommandé sur les vrais projets)
+
+Sur un projet réel, tu veux pouvoir partager le store entre plusieurs
+vues. Pinia est l'idiom Vue 3.
+
+```ts
+// src/stores/products.ts
+import { defineStore } from 'pinia'
+import { ref } from 'vue'
+import type { AdeoProduct } from '@/types'
+
+export const useProductsStore = defineStore('products', () => {
+  const rows = ref<AdeoProduct[]>([])
+  const total = ref(0)
+  const loading = ref(false)
+  const refreshing = ref(false)
+  const error = ref<Error | null>(null)
+
+  const page = ref(0)
+  const pageSize = ref(50)
+
+  let fetchToken = 0
+
+  async function refetch(opts?: { silent?: boolean }): Promise<void> {
+    // … même implémentation que `useProductList` ci-dessus
+  }
+
+  return { rows, total, loading, refreshing, error, page, pageSize, refetch }
+})
+```
+
+Dans le composant :
+
+```vue
+<script setup lang="ts">
+import { useProductsStore } from '@/stores/products'
+import { storeToRefs } from 'pinia'
+
+const store = useProductsStore()
+const { rows, total, loading, refreshing, error, page, pageSize } = storeToRefs(store)
+</script>
+
+<template>
+  <MrxGrid
+    :rows="rows"
+    :total-count="total"
+    :loading="loading"
+    :refreshing="refreshing"
+    :error="error"
+    …
+  />
+</template>
+```
+
+`storeToRefs` garde la réactivité quand tu destructures un store
+Pinia. Sans, tu perds la réactivité et le grid ne se met jamais à jour.
+
+<div className="callout callout--info">
+
+**ℹ️ `storeToRefs` vs `toRefs`.** `toRefs` marche aussi mais sur un
+state réactif générique. `storeToRefs` est spécifique Pinia et
+ignore les actions (qu'on veut pas wrapper en refs).
+
+</div>
+
+## 5. Test rapide
+
+Mock l'API avec [MSW](https://mswjs.io/) ou ton mock préféré, puis :
+
+1. **Premier load** → squelette plein écran ~1s → rows visibles
+2. **Changer de page** → squelette plein écran ~1s → rows visibles
+3. **Erreur réseau** (coupe le wifi) → slot `#error` apparaît avec le
+   message + bouton Retry
+4. **Liste vide** (mock retourne `{rows: [], total: 0}`) → slot
+   `#empty` affiche le message
+5. **Race condition** : clique très vite page 1 → 2 → 3 → la donnée
+   affichée doit toujours correspondre à la dernière page demandée
+   (jamais "page 2 affiche le contenu de page 1 car arrivé après")
+
+## Prochaine étape
+
+[Tutoriel 5 — Tri et filtre serveur](?path=/docs/documentation-tutoriel-5-tri-et-filtre-serveur--docs) :
+on délègue le tri et le filtrage au serveur via `sortMode='server'` /
+`filterMode='server'`. Le grid émet les events, le store re-fetch.
+
+</div>

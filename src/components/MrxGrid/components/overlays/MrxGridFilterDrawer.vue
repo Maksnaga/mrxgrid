@@ -169,11 +169,16 @@ function onCancel(): void {
     "bleed" through the drawer panel.
   -->
   <Teleport to="body">
+    <!-- `close-on-overlay` explicitly false. Mozaic's MDrawer defaults
+         to true and treats clicks on the dialog body whitespace as
+         overlay clicks — the panel would shut while the user clicks
+         between filter rows / fields. The user dismisses via the close
+         button. -->
     <MDrawer
       :open="open"
       title="Filters"
       :extended="true"
-      :close-on-overlay="true"
+      :close-on-overlay="false"
       position="right"
       @update:open="emit('update:open', $event)"
     >

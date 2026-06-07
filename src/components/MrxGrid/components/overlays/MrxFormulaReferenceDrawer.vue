@@ -192,11 +192,13 @@ function close() {
 <template>
   <!-- See MrxGridFilterDrawer.vue for why we Teleport to <body>. -->
   <Teleport to="body">
+  <!-- See MrxGroupingDrawer.vue for why `close-on-overlay` stays
+       disabled (Mozaic's MDrawer fires it on dialog-body whitespace). -->
   <MDrawer
     :open="open"
-    :close-on-overlay="true"
     title="Formula reference"
     position="right"
+    :close-on-overlay="false"
     @update:open="(v) => (v ? null : close())"
   >
     <div class="formula-reference__body">

@@ -217,12 +217,14 @@ function onDrop(field: string, e: DragEvent) {
 <template>
   <!-- See MrxGridFilterDrawer.vue for why we Teleport to <body>. -->
   <Teleport to="body">
+  <!-- See MrxGroupingDrawer.vue for why `close-on-overlay` stays
+       disabled (Mozaic's MDrawer fires it on dialog-body whitespace). -->
   <MDrawer
     :open="open"
     :title="drawerTitle"
     :back="showBack"
     position="right"
-    :close-on-overlay="true"
+    :close-on-overlay="false"
     @update:open="emit('update:open', $event)"
     @back="onBack"
   >

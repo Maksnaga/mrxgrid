@@ -16,7 +16,13 @@ const SAFETY_PAD = 4
 // Sampling uniformly hits the longest values in real-world data with very
 // high probability; the user can still drag-resize if their data has an
 // extreme outlier outside the sample.
-const SAMPLE_CAP = 5000
+//
+// 1 000 used to be 5 000 — at 1 M rows × 58 cols the old cap meant 290 k
+// `measureText` calls plus 58 `getComputedStyle` reads + 58 querySelector
+// scans which kept the main thread busy for several seconds on
+// "Autosize all columns". 1 000 samples × 58 cols = 58 k calls (~30 ms)
+// and visually-equivalent results on real-world catalog data.
+const SAMPLE_CAP = 1000
 
 export interface UseAutosizeOptions {
   gridState: GridState<RowData>
@@ -63,40 +69,71 @@ export function useAutosize(opts: UseAutosizeOptions) {
   }
 
   function autosizeColumn(field: string): void {
-    const width = measureColumn(field)
+    const ctx = getMeasurementCtx()
+    const wrapper = opts.wrapperRef.value
+    if (!ctx || !wrapper) return
+    const env = sampleCellEnv(wrapper, field, ctx)
+    const width = measureColumn(field, env, ctx)
     if (width == null) return
     opts.gridState.updateColumnState(field, { currentWidth: width })
   }
 
   function autosizeAllColumns(): void {
+    const ctx = getMeasurementCtx()
+    const wrapper = opts.wrapperRef.value
+    if (!ctx || !wrapper) return
+
+    // Hoist the layout-flush work out of the per-column loop. The
+    // canvas font and padding/border reserve are derived from a real
+    // `.mrx-grid-cell` via `getComputedStyle` — every call forces a
+    // synchronous style recalc. Doing it once per column at 200+ cols
+    // accumulates to seconds of layout time; doing it once for the
+    // whole batch is sub-millisecond.
+    //
+    // Cells share the same font / padding regardless of which column
+    // they belong to (all `.mrx-grid-cell` get the same styling). A
+    // single sample is faithful for the body measure. The header
+    // affordance is added per-column as a constant on top so it
+    // doesn't depend on the sample either.
+    const env = sampleCellEnv(wrapper, null, ctx)
     for (const c of opts.gridState.visibleColumns.value) {
-      autosizeColumn(c.field)
+      const width = measureColumn(c.field, env, ctx)
+      if (width != null) opts.gridState.updateColumnState(c.field, { currentWidth: width })
     }
   }
 
-  function measureColumn(field: string): number | null {
-    const wrapper = opts.wrapperRef.value
-    if (!wrapper) return null
-    const def = opts.gridState.columnDefMap.value.get(field)
-    if (!def) return null
-    const ctx = getMeasurementCtx()
-    if (!ctx) return null
-
-    const sample = pickStyleSample(wrapper, field)
+  /**
+   * Sample a real `.mrx-grid-cell` to derive the canvas font + the
+   * padding/border reserve. Hoisted out of `measureColumn` so the
+   * "autosize all" path can do it once and reuse the result across
+   * every column.
+   */
+  function sampleCellEnv(
+    wrapper: HTMLElement,
+    field: string | null,
+    ctx: CanvasRenderingContext2D,
+  ): { reserve: number; borderX: number } {
+    const sample = field ? pickStyleSample(wrapper, field) : pickStyleSample(wrapper, '')
     const cs = window.getComputedStyle(sample)
-
-    // Build the canvas font shorthand from the sample's computed style. The
-    // sample is a real `.mrx-grid-cell` so font/weight/size/family match
-    // exactly what the user sees.
     ctx.font = `${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`
-
-    // Padding + border eat into the content area under `box-sizing: border-box`.
-    // Reserve those pixels so the column width includes them.
     const padX =
       (parseFloat(cs.paddingLeft) || 0) + (parseFloat(cs.paddingRight) || 0)
     const borderX =
       (parseFloat(cs.borderLeftWidth) || 0) + (parseFloat(cs.borderRightWidth) || 0)
-    const reserve = padX + borderX + SAFETY_PAD
+    return { reserve: padX + borderX + SAFETY_PAD, borderX }
+  }
+
+  function measureColumn(
+    field: string,
+    env: { reserve: number; borderX: number },
+    ctx: CanvasRenderingContext2D,
+  ): number | null {
+    const wrapper = opts.wrapperRef.value
+    if (!wrapper) return null
+    const def = opts.gridState.columnDefMap.value.get(field)
+    if (!def) return null
+
+    const { reserve, borderX } = env
 
     const minDef = def.minWidth ? parseInt(def.minWidth, 10) : NaN
     const maxDef = def.maxWidth ? parseInt(def.maxWidth, 10) : NaN

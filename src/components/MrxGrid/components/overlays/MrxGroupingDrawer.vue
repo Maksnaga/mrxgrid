@@ -106,11 +106,16 @@ function onReset() {
 <template>
   <!-- See MrxGridFilterDrawer.vue for why we Teleport to <body>. -->
   <Teleport to="body">
+  <!-- `close-on-overlay` MUST be explicitly false. Mozaic's MDrawer
+       defaults the prop to true AND mis-handles inner-body whitespace
+       clicks as "overlay" clicks — the user clicks between list items
+       inside the dialog and the panel shuts. The user dismisses via
+       the close button or Apply / Reset in the footer instead. -->
   <MDrawer
     :open="open"
     title="Group by"
-    :close-on-overlay="true"
     :extended="true"
+    :close-on-overlay="false"
     position="right"
     @update:open="emit('update:open', $event)"
   >

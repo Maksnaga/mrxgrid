@@ -23,6 +23,7 @@ import { computed, type CSSProperties } from 'vue'
 import { Settings20, SortDown20, SortTop20 } from '@mozaic-ds/icons-vue'
 import type { ColumnDef, SortDirection } from '../../types'
 import { injectMrxGridSlots, resolveHeaderSlot } from '../../state/MrxGridSlots'
+import { wasResizingRecently } from '@/composables/useColumnResize'
 
 const props = defineProps<{
   column: ColumnDef
@@ -113,6 +114,15 @@ function onHeaderClick(e: MouseEvent): void {
   if (target.closest('.mrx-grid-resize-handle') || target.closest('.mrx-grid-menu-trigger')) {
     return
   }
+  // Suppress the synthetic click fired by the browser right after a
+  // resize-handle mouseup. The mousedown landed on the handle but the
+  // mouseup landed elsewhere (the cursor follows the column edge during
+  // the drag), so the common-ancestor click fires on the *header cell*
+  // and `e.target` is no longer the handle — the `closest()` guard
+  // above can't catch it. `wasResizingRecently()` consults a module
+  // flag set by `useColumnResize` in mouseup; the 200 ms window covers
+  // the click-after-mouseup dispatch without being perceptible.
+  if (wasResizingRecently()) return
   if (!isSortable.value) return
   emit('sort', props.column.field, e.shiftKey)
 }
@@ -173,15 +183,17 @@ function onResizeMouseDown(e: MouseEvent): void {
   background-color: var(--color-background-primary);
   border-bottom: m.get-token('border-width', 's') solid var(--color-border-primary);
   border-right: m.get-token('border-width', 's') solid var(--color-border-primary);
-  // Allow the column name to wrap onto multiple lines instead of being
-  // truncated with an ellipsis (the truncated `…` reads visually as the
-  // column separator next to it).
-  white-space: normal;
-  word-break: break-word;
   user-select: none;
   position: relative;
   box-sizing: border-box;
   flex-shrink: 0;
+  // Clip any internal overflow within the cell. Without this, when a
+  // consumer declares a tight `ColumnDef.width` (below the 120 px floor
+  // that the resize handle enforces — see `useColumnResize.MIN_WIDTH`),
+  // the sort arrow + kebab trigger overflow into the next column's
+  // header. The resize floor is the primary defense; this is the
+  // safety net for declared widths.
+  overflow: hidden;
   // Stretch to the row's 47px height (set on `.mrx-grid-header`) and
   // vertically center the inline content (label + sort indicator + kebab).
   // Padding stays for horizontal spacing — overflow stays inside the cell.
@@ -212,12 +224,23 @@ function onResizeMouseDown(e: MouseEvent): void {
 }
 
 .mrx-grid-header-label {
-  flex: 1;
-  // Multi-line wrap — drops the previous `text-overflow: ellipsis` so
-  // long column names are fully readable. `line-height` tightened so a
-  // 2-line label still fits within roughly two row heights.
+  // `flex: 1 1 0` + `min-width: 0` is the canonical recipe for a
+  // shrinkable flex child whose content would otherwise set a non-zero
+  // min-content. Without `min-width: 0` the label refuses to shrink
+  // below its longest word and pushes the sort + kebab out of the cell.
+  flex: 1 1 0;
+  min-width: 0;
+  // Single-line ellipsis. We previously used `overflow-wrap: anywhere`
+  // for multi-line readability of long column names, but combined with
+  // the now-mandatory `min-width: 0` it wrapped the label INSIDE the
+  // flex row, dropping the kebab icon between the wrapped pieces of
+  // text ("MAINTENANCE OF [⚙] THE WALLPAPER") which is unreadable. A
+  // truncated `…` is the lesser evil — the full label is one column
+  // resize / hover away.
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   line-height: 1.25;
-  overflow-wrap: anywhere;
 }
 
 .mrx-grid-sort-indicator {
