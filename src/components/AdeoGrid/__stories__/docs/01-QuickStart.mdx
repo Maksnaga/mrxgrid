@@ -45,7 +45,7 @@ createApp(App).mount('#app')
 ```vue
 <script setup lang="ts">
 import { ref } from 'vue'
-import { MrxGrid, type ColumnDef } from '@/components/MrxGrid'
+import { MrxGrid, type ColumnDef } from '@/components/AdeoGrid'
 
 const columns: ColumnDef[] = [
   { field: 'sku',   headerName: 'Référence', width: '120px', pinned: 'start' },
@@ -124,7 +124,7 @@ import {
   MrxTableMenuDrawer,
   MrxGroupingDrawer,
   MrxGridFilterDrawer,
-} from '@/components/MrxGrid'
+} from '@/components/AdeoGrid'
 
 const settingsOpen = ref(false)
 const groupingOpen = ref(false)

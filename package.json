@@ -1,5 +1,5 @@
 {
-  "name": "mrxgrid",
+  "name": "@adeo/grid-vue",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -8,7 +8,7 @@
     "dev:all": "concurrently --kill-others-on-fail -n app,storybook -c blue,magenta \"npm run dev\" \"npm run storybook\"",
     "build": "run-p type-check \"build-only {@}\" --",
     "build:app": "vue-tsc --build && vite build",
-    "build:all": "VITE_BASE=/mrxgrid/mrxgrid-app/ npm run build:app && STORYBOOK_BASE_PATH=/mrxgrid/ npm run build-storybook",
+    "build:all": "VITE_BASE=/adeo-grid/adeo-grid-app/ npm run build:app && STORYBOOK_BASE_PATH=/adeo-grid/ npm run build-storybook",
     "preview": "vite preview",
     "test:unit": "vitest",
     "test:e2e": "playwright test",
