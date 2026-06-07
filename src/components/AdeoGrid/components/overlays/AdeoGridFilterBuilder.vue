@@ -283,9 +283,9 @@ function onDrop(index: number): void {
     >
       <!-- Combinator: "Where" for first row, AND/OR picker otherwise -->
       <span v-if="index === 0" class="adeo-grid-filter-builder__where">Where</span>
-      <div v-else class="adeo-grid-filter-builder__slot mrx-filter-builder__slot--combinator">
+      <div v-else class="adeo-grid-filter-builder__slot adeo-grid-filter-builder__slot--combinator">
         <MSelect
-          :id="`mrx-filter-builder-comb-${condition.id}`"
+          :id="`adeo-grid-filter-builder-comb-${condition.id}`"
           size="s"
           :options="COMBINATOR_OPTIONS"
           :model-value="condition.combinator"
@@ -294,9 +294,9 @@ function onDrop(index: number): void {
       </div>
 
       <!-- Field picker -->
-      <div class="adeo-grid-filter-builder__slot mrx-filter-builder__slot--field">
+      <div class="adeo-grid-filter-builder__slot adeo-grid-filter-builder__slot--field">
         <MSelect
-          :id="`mrx-filter-builder-field-${condition.id}`"
+          :id="`adeo-grid-filter-builder-field-${condition.id}`"
           size="s"
           :options="fieldOptions()"
           :model-value="condition.field"
@@ -307,10 +307,10 @@ function onDrop(index: number): void {
       <!-- Operator picker — hidden for 'custom' filters, which own their semantics -->
       <div
         v-if="descriptorFor(condition.field)?.filterType !== 'custom'"
-        class="adeo-grid-filter-builder__slot mrx-filter-builder__slot--operator"
+        class="adeo-grid-filter-builder__slot adeo-grid-filter-builder__slot--operator"
       >
         <MSelect
-          :id="`mrx-filter-builder-op-${condition.id}`"
+          :id="`adeo-grid-filter-builder-op-${condition.id}`"
           size="s"
           :options="operatorOptions(condition.field)"
           :model-value="condition.operator"
@@ -341,7 +341,7 @@ function onDrop(index: number): void {
           <MCheckbox
             v-for="opt in descriptorFor(condition.field)?.options ?? []"
             :key="String(opt.value)"
-            :id="`mrx-filter-builder-set-${condition.id}-${String(opt.value)}`"
+            :id="`adeo-grid-filter-builder-set-${condition.id}-${String(opt.value)}`"
             :model-value="isSetChecked(condition, opt.value)"
             :label="opt.label"
             @update:modelValue="(v: boolean) => onSetToggle(condition, opt.value, v)"
@@ -351,10 +351,10 @@ function onDrop(index: number): void {
         <!-- boolean -->
         <div
           v-else-if="descriptorFor(condition.field)?.filterType === 'boolean'"
-          class="adeo-grid-filter-builder__slot mrx-filter-builder__slot--value"
+          class="adeo-grid-filter-builder__slot adeo-grid-filter-builder__slot--value"
         >
           <MSelect
-            :id="`mrx-filter-builder-bool-${condition.id}`"
+            :id="`adeo-grid-filter-builder-bool-${condition.id}`"
             size="s"
             :options="BOOLEAN_OPTIONS"
             :model-value="booleanSelectValue(condition)"
@@ -364,9 +364,9 @@ function onDrop(index: number): void {
 
         <!-- range: value + valueTo -->
         <template v-else-if="isRange(condition.operator)">
-          <div class="adeo-grid-filter-builder__slot mrx-filter-builder__slot--value">
+          <div class="adeo-grid-filter-builder__slot adeo-grid-filter-builder__slot--value">
             <MTextInput
-              :id="`mrx-filter-builder-val-${condition.id}`"
+              :id="`adeo-grid-filter-builder-val-${condition.id}`"
               size="s"
               :type="inputTypeFor(descriptorFor(condition.field))"
               :model-value="asString(condition.value.value)"
@@ -375,9 +375,9 @@ function onDrop(index: number): void {
             />
           </div>
           <span class="adeo-grid-filter-builder__range-sep">–</span>
-          <div class="adeo-grid-filter-builder__slot mrx-filter-builder__slot--value">
+          <div class="adeo-grid-filter-builder__slot adeo-grid-filter-builder__slot--value">
             <MTextInput
-              :id="`mrx-filter-builder-val-to-${condition.id}`"
+              :id="`adeo-grid-filter-builder-val-to-${condition.id}`"
               size="s"
               :type="inputTypeFor(descriptorFor(condition.field))"
               :model-value="asString(condition.value.valueTo)"
@@ -388,9 +388,9 @@ function onDrop(index: number): void {
         </template>
 
         <!-- scalar -->
-        <div v-else class="adeo-grid-filter-builder__slot mrx-filter-builder__slot--value">
+        <div v-else class="adeo-grid-filter-builder__slot adeo-grid-filter-builder__slot--value">
           <MTextInput
-            :id="`mrx-filter-builder-val-${condition.id}`"
+            :id="`adeo-grid-filter-builder-val-${condition.id}`"
             size="s"
             :type="inputTypeFor(descriptorFor(condition.field))"
             :model-value="asString(condition.value.value)"

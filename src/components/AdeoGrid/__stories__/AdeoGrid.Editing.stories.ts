@@ -132,11 +132,11 @@ L'input force \`type="number"\`, parse en \`Number()\` au commit, rejette les no
       return { lmColumns, rows, onCellEdit, lastEdit, plugins }
     },
     template: `
-      <div class="sb-mrx-shell">
+      <div class="sb-adeo-grid-shell">
         <h2>Inline edit (text + number editors)</h2>
         <p><kbd>F2</kbd> ou tape directement pour éditer. <kbd>Enter</kbd> commit, <kbd>Esc</kbd> annule, <kbd>Tab</kbd> commit + cellule suivante. <kbd>⌘Z</kbd> / <kbd>⌘⇧Z</kbd> undo / redo (plugin <code>useUndoRedoPlugin</code>, persisté en <code>localStorage</code>).</p>
-        <div class="sb-mrx-toolbar">Dernier edit : <code>{{ lastEdit }}</code></div>
-        <div class="sb-mrx-frame">
+        <div class="sb-adeo-grid-toolbar">Dernier edit : <code>{{ lastEdit }}</code></div>
+        <div class="sb-adeo-grid-frame">
           <AdeoGrid :height="560" :columns="lmColumns" :rows="rows" :plugins="plugins" history-id="lm-editing-inline-text" @cell-edit="onCellEdit" />
         </div>
       </div>
@@ -249,10 +249,10 @@ Le select edit-mode différe du display-mode. Combinez avec \`renderer: 'tag'\` 
       return { cols, rows, onCellEdit, plugins }
     },
     template: `
-      <div class="sb-mrx-shell">
+      <div class="sb-adeo-grid-shell">
         <h2>Select / dropdown editor</h2>
         <p>Configure <code>cellEditor: 'select'</code> + <code>cellEditorOptions</code>. Le menu est rendu via Mozaic MSelect.</p>
-        <div class="sb-mrx-frame">
+        <div class="sb-adeo-grid-frame">
           <AdeoGrid :height="560" :columns="cols" :rows="rows" :plugins="plugins" history-id="lm-editing" @cell-edit="onCellEdit" />
         </div>
       </div>
@@ -360,10 +360,10 @@ Pas supporté nativement — \`cellValidator\` doit être synchrone. Pour de l'a
       return { cols, rows, onCellEdit, plugins }
     },
     template: `
-      <div class="sb-mrx-shell">
+      <div class="sb-adeo-grid-shell">
         <h2>Cell validators (display + edit)</h2>
         <p>Les cellules invalides apparaissent en rouge ; le message s'affiche au hover. Validators identiques au commit.</p>
-        <div class="sb-mrx-frame">
+        <div class="sb-adeo-grid-frame">
           <AdeoGrid :height="560" :columns="cols" :rows="rows" :plugins="plugins" history-id="lm-editing" @cell-edit="onCellEdit" />
         </div>
       </div>
@@ -448,11 +448,11 @@ Pas de \`fillable\` flag — le handle apparaît dès qu'une cellule est éditab
       return { lmColumns, rows, onCellEdit, onFill, lastFill, plugins }
     },
     template: `
-      <div class="sb-mrx-shell">
+      <div class="sb-adeo-grid-shell">
         <h2>Excel-style fill handle</h2>
         <p>Sélectionne une cellule (ou un range) puis tire le carré bleu en bas-droite pour répliquer la valeur. L'évent <code>fill</code> remonte les écritures à appliquer. Le double-click sur une cellule l'édite et émet <code>cell-edit</code>.</p>
-        <div class="sb-mrx-toolbar">Dernier fill : <code>{{ lastFill }}</code></div>
-        <div class="sb-mrx-frame">
+        <div class="sb-adeo-grid-toolbar">Dernier fill : <code>{{ lastFill }}</code></div>
+        <div class="sb-adeo-grid-frame">
           <AdeoGrid :height="560" :columns="lmColumns" :rows="rows" :plugins="plugins" history-id="lm-editing-fill" @cell-edit="onCellEdit" @fill="onFill" />
         </div>
       </div>
@@ -536,10 +536,10 @@ Vous pouvez avoir l'un, l'autre ou les deux. Sans \`#edit-*\`, c'est l'editor d�
       return { cols, rows, onCellEdit, plugins }
     },
     template: `
-      <div class="sb-mrx-shell">
+      <div class="sb-adeo-grid-shell">
         <h2>Custom <code>#cell</code> slot</h2>
         <p>Le slot <code>#cell</code> reçoit <code>{ value, editing, editValue, updateValue, commit, cancel, startEdit }</code> pour piloter affichage + édition à 100%.</p>
-        <div class="sb-mrx-frame">
+        <div class="sb-adeo-grid-frame">
           <AdeoGrid :height="560" :columns="cols" :rows="rows" :plugins="plugins" history-id="lm-editing-custom-slot" @cell-edit="onCellEdit">
             <template #cell-rating="{ value, editing, editValue, updateValue, commit, cancel, startEdit }">
               <input

@@ -92,10 +92,10 @@ const accordion = (state) => {
     components: { AdeoGrid },
     setup: () => ({ lmColumns, lmProducts }),
     template: `
-      <div class="sb-mrx-shell">
+      <div class="sb-adeo-grid-shell">
         <h2>Expandable rows</h2>
         <p>Active <code>:expandable</code>. Une chevron apparaît en début de ligne pour toggle la row de détail (slot <code>#expand-row</code>).</p>
-        <div class="sb-mrx-frame">
+        <div class="sb-adeo-grid-frame">
           <AdeoGrid :height="560" :columns="lmColumns" :rows="lmProducts" expandable>
             <template #expand-row="{ row }">
               <div style="padding: 16px; background: #fafbfc; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; font-size: 13px;">
@@ -174,10 +174,10 @@ Le slot reçoit la \`row\` complète — vous y posez librement vos CTA (réappr
       return { lmColumns, lmProducts, reorder }
     },
     template: `
-      <div class="sb-mrx-shell">
+      <div class="sb-adeo-grid-shell">
         <h2>Detail row with actions</h2>
         <p>Le slot reçoit la <code>row</code> complète : tu peux y poser des CTA contextuels (réappro, fiche fournisseur, etc.).</p>
-        <div class="sb-mrx-frame">
+        <div class="sb-adeo-grid-frame">
           <AdeoGrid :height="560" :columns="lmColumns" :rows="lmProducts" expandable>
             <template #expand-row="{ row }">
               <div style="padding: 14px 16px; display: flex; gap: 12px; align-items: center; background: #f8fafc;">

@@ -175,7 +175,7 @@ function centerCellStyle(field: string): Record<string, string | undefined> {
 <style scoped lang="scss">
 .adeo-grid-grid-row {
   display: flex;
-  height: var(--mrx-row-height, 48px);
+  height: var(--adeo-grid-row-height, 48px);
   background-color: var(--color-background-primary);
   min-width: 100%;
 }
@@ -235,7 +235,7 @@ function centerCellStyle(field: string): Record<string, string | undefined> {
 // ---------------------------------------------------------------------------
 // Shimmer primitives
 // ---------------------------------------------------------------------------
-// `--adeo-grid-skel-base` / `--mrx-skel-highlight` are pulled from Mozaic tokens
+// `--adeo-grid-skel-base` / `--adeo-grid-skel-highlight` are pulled from Mozaic tokens
 // with safe fallbacks so the skeleton renders correctly even outside the
 // design system context (e.g. isolated component tests).
 .adeo-grid-grid-skeleton-bar {
@@ -245,7 +245,7 @@ function centerCellStyle(field: string): Record<string, string | undefined> {
   background: linear-gradient(
     90deg,
     var(--adeo-grid-skel-base, var(--color-background-secondary, #eef0f3)) 0%,
-    var(--mrx-skel-highlight, var(--color-background-primary, #f8fafc)) 50%,
+    var(--adeo-grid-skel-highlight, var(--color-background-primary, #f8fafc)) 50%,
     var(--adeo-grid-skel-base, var(--color-background-secondary, #eef0f3)) 100%
   );
   background-size: 200% 100%;
@@ -260,7 +260,7 @@ function centerCellStyle(field: string): Record<string, string | undefined> {
   background: linear-gradient(
     90deg,
     var(--adeo-grid-skel-base, var(--color-background-secondary, #eef0f3)) 0%,
-    var(--mrx-skel-highlight, var(--color-background-primary, #f8fafc)) 50%,
+    var(--adeo-grid-skel-highlight, var(--color-background-primary, #f8fafc)) 50%,
     var(--adeo-grid-skel-base, var(--color-background-secondary, #eef0f3)) 100%
   );
   background-size: 200% 100%;

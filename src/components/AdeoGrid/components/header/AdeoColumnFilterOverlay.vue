@@ -672,7 +672,7 @@ onBeforeUnmount(() => {
         <span v-if="idx === 0" class="adeo-grid-column-filter-overlay__where">Where</span>
         <div v-else class="adeo-grid-column-filter-overlay__combinator-slot">
           <MSelect
-            :id="`mrx-col-filter-comb-${draft.id}`"
+            :id="`adeo-grid-col-filter-comb-${draft.id}`"
             size="s"
             :options="COMBINATOR_OPTIONS"
             :model-value="draft.combinator"
@@ -682,7 +682,7 @@ onBeforeUnmount(() => {
 
         <div class="adeo-grid-column-filter-overlay__field-slot">
           <MSelect
-            :id="`mrx-col-filter-field-${draft.id}`"
+            :id="`adeo-grid-col-filter-field-${draft.id}`"
             size="s"
             :options="fieldOptions"
             :model-value="draft.field"
@@ -695,7 +695,7 @@ onBeforeUnmount(() => {
           class="adeo-grid-column-filter-overlay__operator-slot"
         >
           <MSelect
-            :id="`mrx-col-filter-op-${draft.id}`"
+            :id="`adeo-grid-col-filter-op-${draft.id}`"
             size="s"
             :options="getOperatorOptions(draft.field)"
             :model-value="draft.operator"
@@ -722,7 +722,7 @@ onBeforeUnmount(() => {
         <div v-else-if="!isValueless(draft.operator)" class="adeo-grid-column-filter-overlay__value-slot">
           <MSelect
             v-if="getValueOptions(draft.field)"
-            :id="`mrx-col-filter-val-${draft.id}`"
+            :id="`adeo-grid-col-filter-val-${draft.id}`"
             size="s"
             :options="getValueOptions(draft.field)!"
             :model-value="selectValue(draft.value)"
@@ -730,7 +730,7 @@ onBeforeUnmount(() => {
           />
           <template v-else>
             <MTextInput
-              :id="`mrx-col-filter-val-${draft.id}`"
+              :id="`adeo-grid-col-filter-val-${draft.id}`"
               size="s"
               :type="getInputType(draft.field)"
               :model-value="draft.value == null ? '' : String(draft.value)"
@@ -738,7 +738,7 @@ onBeforeUnmount(() => {
             />
             <MTextInput
               v-if="isRange(draft.operator)"
-              :id="`mrx-col-filter-val-to-${draft.id}`"
+              :id="`adeo-grid-col-filter-val-to-${draft.id}`"
               size="s"
               :type="getInputType(draft.field)"
               :model-value="draft.valueTo == null ? '' : String(draft.valueTo)"

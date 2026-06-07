@@ -90,11 +90,11 @@ Pas d'API \`grid.goToPage()\` exposée actuellement — utilisez le footer ou la
       return { lmColumns, rows: generateLMProducts(523), lastPage, onPageChange }
     },
     template: `
-      <div class="sb-mrx-shell">
+      <div class="sb-adeo-grid-shell">
         <h2>Pagination par défaut</h2>
         <p>Pass <code>:pagination="true"</code> pour activer le footer pagination avec les tailles standard. L'évent <code>pageChange</code> remonte page courante + indices.</p>
-        <div class="sb-mrx-toolbar">Dernier <code>pageChange</code> : <code>{{ lastPage }}</code></div>
-        <div class="sb-mrx-frame">
+        <div class="sb-adeo-grid-toolbar">Dernier <code>pageChange</code> : <code>{{ lastPage }}</code></div>
+        <div class="sb-adeo-grid-frame">
           <AdeoGrid :height="560" :columns="lmColumns" :rows="rows" :pagination="true" virtual-scroll :container-height="500" @page-change="onPageChange" />
         </div>
       </div>
@@ -151,10 +151,10 @@ Si vous avez 1M de rows et faites du server-side, combinez avec \`:total-count="
       pagination: { pageSizeOptions: [10, 25, 50, 100, 250], defaultPageSize: 25 },
     }),
     template: `
-      <div class="sb-mrx-shell">
+      <div class="sb-adeo-grid-shell">
         <h2>Custom page sizes</h2>
         <p>Pass <code>:pagination="{ pageSizeOptions, defaultPageSize }"</code> pour customiser le dropdown "Rows per page".</p>
-        <div class="sb-mrx-frame">
+        <div class="sb-adeo-grid-frame">
           <AdeoGrid :height="560" :columns="lmColumns" :rows="rows" :pagination="pagination" virtual-scroll :container-height="500" />
         </div>
       </div>

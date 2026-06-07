@@ -2978,7 +2978,7 @@ function onFillHandleMousedown(e: MouseEvent) {
 let resizeObserver: ResizeObserver | undefined
 
 function syncViewportWidth(width: number) {
-  wrapperRef.value?.style.setProperty('--mrx-viewport-width', `${width}px`)
+  wrapperRef.value?.style.setProperty('--adeo-grid-viewport-width', `${width}px`)
 }
 
 onMounted(() => {
@@ -3296,7 +3296,7 @@ defineExpose({
       'adeo-grid-grid-wrapper--comfortable': densityState === 'comfortable',
       'adeo-grid-grid-wrapper--paginated': paginationEnabled,
     }" :style="{
-        '--mrx-row-height': `${rowHeight}px`,
+        '--adeo-grid-row-height': `${rowHeight}px`,
         ...((virtualScroll || paginationEnabled) && !fsState
           ? { height: `${containerHeight}px` }
           : {}),

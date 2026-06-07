@@ -90,10 +90,10 @@ Empilez-les dans l'ordre voulu — les left-pinned apparaissent dans l'ordre dé
     components: { AdeoGrid },
     setup: () => ({ wide, rows: generateLMProducts(60) }),
     template: `
-      <div class="sb-mrx-shell">
+      <div class="sb-adeo-grid-shell">
         <h2>Pinned columns (start + end)</h2>
         <p>Référence à gauche, État à droite — restent visibles pendant le scroll horizontal. Use <code>pinned: 'start' | 'end'</code> dans la def colonne.</p>
-        <div class="sb-mrx-frame">
+        <div class="sb-adeo-grid-frame">
           <AdeoGrid :height="560" :columns="wide" :rows="rows" />
         </div>
       </div>
@@ -146,10 +146,10 @@ Le \`pinned\` flag mute via \`grid.persistView()\` (manuel) ou la prop \`persist
       return { cols, rows: generateLMProducts(60) }
     },
     template: `
-      <div class="sb-mrx-shell">
+      <div class="sb-adeo-grid-shell">
         <h2>Toggle pin via header menu</h2>
         <p>Avec <code>freezable: true</code>, le menu kebab d'une colonne expose Pin left / Pin right / Unpin. Click le menu d'une colonne pour essayer.</p>
-        <div class="sb-mrx-frame">
+        <div class="sb-adeo-grid-frame">
           <AdeoGrid :height="560" :columns="cols" :rows="rows" />
         </div>
       </div>

@@ -395,7 +395,7 @@ function onCellKeydown(e: KeyboardEvent) {
 // `.adeo-grid-grid-cell--editing` sets `overflow: visible` + drops `paint`).
 // We mirror that escape on `.adeo-grid-grid-cell--invalid` so the tooltip is
 // visible on hover whether or not the cell is being edited.
-const tooltipId = computed(() => `mrx-cell-error-${props.field}-${props.rowIndex}`)
+const tooltipId = computed(() => `adeo-grid-cell-error-${props.field}-${props.rowIndex}`)
 
 function onEditKeydown(e: KeyboardEvent) {
   // F4 cycles the ref token at the caret: A1 → $A$1 → A$1 → $A1 → A1.
@@ -507,7 +507,7 @@ function onEditKeydown(e: KeyboardEvent) {
         <!-- 2. Mozaic select editor (Sprint 1 — REFONTE-PLAN-V2 §2.7) -->
         <MSelect
           v-else-if="column.cellEditor === 'select'"
-          :id="`mrx-cell-select-${field}-${rowIndex}`"
+          :id="`adeo-grid-cell-select-${field}-${rowIndex}`"
           :options="selectOptions"
           :model-value="(localEditValue as string | number | undefined) ?? ''"
           size="s"

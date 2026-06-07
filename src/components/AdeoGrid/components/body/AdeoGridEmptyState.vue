@@ -89,7 +89,7 @@ const subtitle = computed(() => {
   align-items: center;
   justify-content: center;
   padding: 32px 24px;
-  animation: mrx-empty-in 240ms ease-out;
+  animation: adeo-grid-empty-in 240ms ease-out;
 }
 
 .adeo-grid-empty__card {
@@ -178,7 +178,7 @@ const subtitle = computed(() => {
   display: none;
 }
 
-@keyframes mrx-empty-in {
+@keyframes adeo-grid-empty-in {
   from {
     opacity: 0;
     transform: translateY(8px) scale(0.98);

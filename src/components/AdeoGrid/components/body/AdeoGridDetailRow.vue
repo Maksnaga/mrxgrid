@@ -10,7 +10,7 @@
  * row is intentionally a block container (NOT `display: flex`) because
  * `position: sticky` inside a flex item is buggy on Webkit/Chromium —
  * the sticky never sticks. Width is clamped to the actual visible viewport
- * via the `--mrx-viewport-width` CSS custom property set by the parent grid.
+ * via the `--adeo-grid-viewport-width` CSS custom property set by the parent grid.
  *
  * **Auto-measure of intrinsic height.** A `ResizeObserver` reports the
  * outer row's offsetHeight up to the parent grid via the `@measure` event.
@@ -86,7 +86,7 @@ onBeforeUnmount(() => {
      the grid is scrolled horizontally. */
   position: sticky;
   left: 0;
-  width: var(--mrx-viewport-width, 100%);
+  width: var(--adeo-grid-viewport-width, 100%);
   max-width: 100%;
   padding: 12px 16px;
   box-sizing: border-box;

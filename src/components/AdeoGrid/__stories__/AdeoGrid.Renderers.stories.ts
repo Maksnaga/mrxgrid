@@ -95,10 +95,10 @@ const columns: ColumnDef[] = [
       return { cols, rows: lmProducts.slice(0, 10) }
     },
     template: `
-      <div class="sb-mrx-shell">
+      <div class="sb-adeo-grid-shell">
         <h2>Default <code>'text'</code> renderer</h2>
         <p>Aucun <code>renderer</code> spécifié = texte brut. <code>valueFormatter</code> reste appliqué.</p>
-        <div class="sb-mrx-frame">
+        <div class="sb-adeo-grid-frame">
           <AdeoGrid :height="560" :columns="cols" :rows="rows" />
         </div>
       </div>
@@ -173,10 +173,10 @@ Toutes les valeurs rendues en bleu \`info\`.
       return { cols, rows: lmProducts.slice(0, 10) }
     },
     template: `
-      <div class="sb-mrx-shell">
+      <div class="sb-adeo-grid-shell">
         <h2>Built-in <code>'tag'</code> renderer</h2>
         <p>Pour rendre une catégorie en MTag sans typer chaque valeur. Ajoute un <code>labelMap</code> dans <code>rendererProps</code> pour des couleurs par valeur.</p>
-        <div class="sb-mrx-frame">
+        <div class="sb-adeo-grid-frame">
           <AdeoGrid :height="560" :columns="cols" :rows="rows" />
         </div>
       </div>
@@ -242,10 +242,10 @@ Identique fonctionnellement. \`defineStatusRenderer\` ajoute :
       return { cols, rows: lmProducts.slice(0, 12) }
     },
     template: `
-      <div class="sb-mrx-shell">
+      <div class="sb-adeo-grid-shell">
         <h2><code>defineStatusRenderer()</code></h2>
         <p>Helper qui mappe une valeur enum vers <code>{ label, appearance }</code> et rend un MTag typé. La sortie est <code>markRaw</code>'d pour ne pas être proxy-ée par Vue.</p>
-        <div class="sb-mrx-frame">
+        <div class="sb-adeo-grid-frame">
           <AdeoGrid :height="560" :columns="cols" :rows="rows" />
         </div>
       </div>
@@ -337,10 +337,10 @@ Marche aussi : \`import StarRating from './StarRating.vue'\`. Pas besoin de \`ma
       return { cols, rows: lmProducts.slice(0, 10) }
     },
     template: `
-      <div class="sb-mrx-shell">
+      <div class="sb-adeo-grid-shell">
         <h2>Custom Vue renderer component</h2>
         <p>Pass un component Vue dans <code>renderer</code>. Il reçoit les <code>CellRendererProps</code> (<code>value, row, field, rowIndex, column</code>).</p>
-        <div class="sb-mrx-frame">
+        <div class="sb-adeo-grid-frame">
           <AdeoGrid :height="560" :columns="cols" :rows="rows" />
         </div>
       </div>
@@ -416,10 +416,10 @@ Si slot ET renderer sont définis pour la même colonne, le **slot l'emporte** �
       return { cols, rows: lmProducts.slice(0, 10) }
     },
     template: `
-      <div class="sb-mrx-shell">
+      <div class="sb-adeo-grid-shell">
         <h2>Per-field cell slot · <code>#cell-promo</code></h2>
         <p>Plus rapide qu'un component custom pour des renderers ad-hoc. Le slot <code>#cell-{field}</code> reçoit <code>{ value, row, rowIndex }</code>.</p>
-        <div class="sb-mrx-frame">
+        <div class="sb-adeo-grid-frame">
           <AdeoGrid :height="560" :columns="cols" :rows="rows">
             <template #cell-promo="{ value }">
               <span :style="{

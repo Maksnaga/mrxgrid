@@ -98,11 +98,11 @@ Ne réutilisez pas la même clé sur deux grilles à dataset différent — l'é
     components: { AdeoGrid },
     setup: () => ({ lmColumns, lmProducts }),
     template: `
-      <div class="sb-mrx-shell">
+      <div class="sb-adeo-grid-shell">
         <h2>Persisted layout · <code>:persist-key</code></h2>
         <p>Le grid sauve largeur / ordre / visibilité / pin / sort / filtres dans <code>localStorage</code> sous la clé fournie. Reload, retrouve l'état.</p>
-        <div class="sb-mrx-toolbar">Trie / pin / cache une colonne, recharge la page → l'état est restauré depuis <code>localStorage["lm-products-v1"]</code>.</div>
-        <div class="sb-mrx-frame">
+        <div class="sb-adeo-grid-toolbar">Trie / pin / cache une colonne, recharge la page → l'état est restauré depuis <code>localStorage["lm-products-v1"]</code>.</div>
+        <div class="sb-adeo-grid-frame">
           <AdeoGrid :height="560" :columns="lmColumns" :rows="lmProducts" persist-key="lm-products-v1" />
         </div>
       </div>
@@ -224,10 +224,10 @@ Utilisez \`<AdeoGridSmartToolbar>\` qui bundle ce wiring (voir story *Devtools /
       }
     },
     template: `
-      <div class="sb-mrx-shell">
+      <div class="sb-adeo-grid-shell">
         <h2>Toolbar + Settings drawer combo</h2>
         <p><code>AdeoGridToolbar</code> est rendu via le slot <code>#toolbar</code> du grid : il reste donc visible quand on passe en plein écran. Le drawer ferme via la croix ou en cliquant l'overlay.</p>
-        <div class="sb-mrx-frame">
+        <div class="sb-adeo-grid-frame">
           <AdeoGrid :height="560"
             :columns="lmColumns"
             :rows="lmProducts"
@@ -351,14 +351,14 @@ Voir story suivante.
       return { lmColumns, lmProducts, log, plugins: [auditPlugin] }
     },
     template: `
-      <div class="sb-mrx-shell">
+      <div class="sb-adeo-grid-shell">
         <h2>Plugins (<code>:plugins</code>)</h2>
         <p>Un plugin reçoit <code>{ state, engine }</code>. Idéal pour l'audit, l'analytics, des keybindings custom — tout sans toucher le core.</p>
-        <div class="sb-mrx-toolbar">Audit log :
+        <div class="sb-adeo-grid-toolbar">Audit log :
           <code v-for="(l, i) in log.slice(-3)" :key="i" style="margin-left: 6px">{{ l }}</code>
           <code v-if="!log.length">vide</code>
         </div>
-        <div class="sb-mrx-frame">
+        <div class="sb-adeo-grid-frame">
           <AdeoGrid :height="560" :columns="lmColumns" :rows="lmProducts" :plugins="plugins" />
         </div>
       </div>
@@ -434,14 +434,14 @@ Cell edits, fills, bulk deletes — pas le sort/filter/pin/hide (transitions UX,
       return { rows, editableColumns, plugins: [undoPlugin], onCellEdit }
     },
     template: `
-      <div class="sb-mrx-shell">
+      <div class="sb-adeo-grid-shell">
         <h2>Undo / Redo plugin</h2>
         <p>
           Drop-in <code>useUndoRedoPlugin({ storageKey })</code>. Edits, paste, fill, cut, delete are
           recorded automatically; <kbd>⌘Z</kbd>&nbsp;/&nbsp;<kbd>⌘⇧Z</kbd> (or <kbd>⌘Y</kbd>) revert / replay
           them. Stacks survive a reload via <code>localStorage["adeo-grid-grid-history:lm-undo-demo"]</code>.
         </p>
-        <div class="sb-mrx-frame">
+        <div class="sb-adeo-grid-frame">
           <AdeoGrid :height="560"
             :columns="editableColumns"
             :rows="rows"
@@ -508,10 +508,10 @@ Chaque \`<AdeoColumn>\` s'enregistre via \`provide(MRX_COLUMN_REGISTRY_KEY)\`. \
     components: { AdeoGrid, AdeoColumn },
     setup: () => ({ lmProducts }),
     template: `
-      <div class="sb-mrx-shell">
+      <div class="sb-adeo-grid-shell">
         <h2>Declarative columns via <code>&lt;AdeoColumn&gt;</code></h2>
         <p>Alternative à la prop <code>:columns</code>. Pratique quand chaque colonne porte des slots ou des règles spécifiques au template.</p>
-        <div class="sb-mrx-frame">
+        <div class="sb-adeo-grid-frame">
           <AdeoGrid :height="560" :rows="lmProducts">
             <AdeoColumn field="sku" headerName="Réf" width="120px" pinned="start" />
             <AdeoColumn field="name" headerName="Produit" width="260px" :editable="true" />

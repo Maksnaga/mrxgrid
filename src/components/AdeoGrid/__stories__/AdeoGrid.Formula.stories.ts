@@ -151,7 +151,7 @@ Le DAG est indexé par \`(rowId, field)\` — sans \`rowId\`, le moteur perd le 
       return { cols, rows, gridRef, barRef, onCellEdit }
     },
     template: `
-      <div class="sb-mrx-shell">
+      <div class="sb-adeo-grid-shell">
         <h2>Same-row formulas (<code>allowFormula: true</code>)</h2>
         <p>
           Dès qu'une colonne a <code>allowFormula: true</code>, le grid passe en
@@ -166,7 +166,7 @@ Le DAG est indexé par \`(rowId, field)\` — sans \`rowId\`, le moteur perd le 
           <li>Erreurs de calcul (<code>#DIV/0!</code>, <code>#REF!</code>…) rendues en rouge avec tooltip</li>
         </ul>
         <AdeoFormulaBar ref="barRef" :all-columns="cols" :rows="rows" />
-        <div class="sb-mrx-frame">
+        <div class="sb-adeo-grid-frame">
           <AdeoGrid :height="560"
             ref="gridRef"
             :columns="cols"
@@ -251,10 +251,10 @@ Pendant l'édition d'une formule, placez le curseur sur une ref et appuyez F4 �
       return { cols, rows, onCellEdit }
     },
     template: `
-      <div class="sb-mrx-shell">
+      <div class="sb-adeo-grid-shell">
         <h2>Cross-row references (<code>=A1</code>, <code>=B2+C3</code>…)</h2>
         <p>Le moteur supporte les références A1 entre lignes. Edite la cellule "Cumul" → la barre formule affiche la formule originale, le grid affiche la valeur évaluée.</p>
-        <div class="sb-mrx-frame">
+        <div class="sb-adeo-grid-frame">
           <AdeoGrid :height="560" :columns="cols" :rows="rows" :row-id="(r) => String(r.id)" @cell-edit="onCellEdit" />
         </div>
       </div>

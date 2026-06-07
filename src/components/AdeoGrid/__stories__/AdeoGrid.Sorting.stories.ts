@@ -73,10 +73,10 @@ Combinez avec \`server-filter\` ou \`server-grouping\` ; au lieu de re-trier en 
     components: { AdeoGrid },
     setup: () => ({ lmColumns, lmProducts }),
     template: `
-      <div class="sb-mrx-shell">
+      <div class="sb-adeo-grid-shell">
         <h2>Single-column sort</h2>
         <p>Click sur le header → asc / desc / unsort. Toutes les colonnes <code>sortable: true</code> sont triables ; le sort indicator s'affiche dans le header.</p>
-        <div class="sb-mrx-frame">
+        <div class="sb-adeo-grid-frame">
           <AdeoGrid :height="560" :columns="lmColumns" :rows="lmProducts" />
         </div>
       </div>
@@ -127,11 +127,11 @@ grid.clearSort()  // wipes the stack
     components: { AdeoGrid },
     setup: () => ({ lmColumns, lmProducts }),
     template: `
-      <div class="sb-mrx-shell">
+      <div class="sb-adeo-grid-shell">
         <h2>Multi-column sort (sort stack)</h2>
         <p><kbd>Shift</kbd>+click sur les headers pour empiler. L'ordre du stack pilote la priorité (premier ajouté = primaire).</p>
-        <div class="sb-mrx-toolbar">Essaie : Shift+click sur <code>Rayon</code>, puis Shift+click sur <code>Prix</code>.</div>
-        <div class="sb-mrx-frame">
+        <div class="sb-adeo-grid-toolbar">Essaie : Shift+click sur <code>Rayon</code>, puis Shift+click sur <code>Prix</code>.</div>
+        <div class="sb-adeo-grid-frame">
           <AdeoGrid :height="560" :columns="lmColumns" :rows="lmProducts" />
         </div>
       </div>
@@ -211,10 +211,10 @@ const collator = new Intl.Collator('fr', { sensitivity: 'base' })
       return { cols, lmProducts }
     },
     template: `
-      <div class="sb-mrx-shell">
+      <div class="sb-adeo-grid-shell">
         <h2>Custom sort comparator</h2>
         <p>Définis <code>sortComparator(a, b)</code> sur la colonne pour overrider le tri par défaut. Pratique pour des grades (A→G), des locales spécifiques (collation FR), des dates ISO.</p>
-        <div class="sb-mrx-frame">
+        <div class="sb-adeo-grid-frame">
           <AdeoGrid :height="560" :columns="cols" :rows="lmProducts" />
         </div>
       </div>

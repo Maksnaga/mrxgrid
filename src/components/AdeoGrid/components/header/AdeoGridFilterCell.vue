@@ -111,7 +111,7 @@ function onDateTo(v: string | number) {
          with the icon slot to render the magnifier inside the field). -->
     <MTextInput
       v-if="inlineFilter.type === 'text'"
-      :id="`mrx-filter-${column.field}`"
+      :id="`adeo-grid-filter-${column.field}`"
       size="s"
       input-type="search"
       :placeholder="inlineFilter.placeholder ?? 'Filter...'"
@@ -124,7 +124,7 @@ function onDateTo(v: string | number) {
     <!-- Select — MSelect with placeholder "All" entry. -->
     <MSelect
       v-else-if="inlineFilter.type === 'select'"
-      :id="`mrx-filter-${column.field}`"
+      :id="`adeo-grid-filter-${column.field}`"
       size="s"
       :options="selectOptionsWithPlaceholder"
       :model-value="(value as string | number) ?? ''"
@@ -134,13 +134,13 @@ function onDateTo(v: string | number) {
     <!-- Date range — paired MDatepickers. -->
     <div v-else-if="inlineFilter.type === 'date'" class="adeo-grid-filter-cell__date-range">
       <MDatepicker
-        :id="`mrx-filter-${column.field}-from`"
+        :id="`adeo-grid-filter-${column.field}-from`"
         size="s"
         :model-value="dateRange.from"
         @update:modelValue="onDateFrom"
       />
       <MDatepicker
-        :id="`mrx-filter-${column.field}-to`"
+        :id="`adeo-grid-filter-${column.field}-to`"
         size="s"
         :model-value="dateRange.to"
         @update:modelValue="onDateTo"

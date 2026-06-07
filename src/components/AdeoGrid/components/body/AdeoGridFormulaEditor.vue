@@ -69,7 +69,7 @@ function tokensToHtml(text: string): string {
   for (const t of tokens) {
     if (t.start > cursor) out += escapeHtml(text.slice(cursor, t.start))
     const piece = escapeHtml(text.slice(t.start, t.end))
-    const cls = `mrx-tok mrx-tok--${t.kind}`
+    const cls = `adeo-grid-tok adeo-grid-tok--${t.kind}`
     if (t.kind === 'ref' && piece) {
       const resolver = props.colorFor ?? fallbackColorFor
       const { cssVar } = resolver(piece)

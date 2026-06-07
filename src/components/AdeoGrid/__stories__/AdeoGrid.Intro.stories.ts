@@ -103,10 +103,10 @@ Un grid minimal avec les colonnes Mozaic Design : Référence, Produit, Rayon, M
       return { datasets, args }
     },
     template: `
-      <div class="sb-mrx-shell">
+      <div class="sb-adeo-grid-shell">
         <h2>Default · Leroy Merlin · 20 produits</h2>
         <p>Ouvre le menu kebab d'une colonne pour Sort / Pin / Hide / Filter. Les colonnes Référence + Magasin sont épinglées.</p>
-        <div class="sb-mrx-frame">
+        <div class="sb-adeo-grid-frame">
           <AdeoGrid :height="560" :columns="datasets[args.dataset || 'leroymerlin'].columns" :rows="datasets[args.dataset || 'leroymerlin'].rows" />
         </div>
       </div>
@@ -161,10 +161,10 @@ Sans slot, la grille affiche \`<AdeoGridEmptyState>\` qui distingue les deux var
       return { lmColumns, onAdd, onImport }
     },
     template: `
-      <div class="sb-mrx-shell">
+      <div class="sb-adeo-grid-shell">
         <h2>Empty state — variante <code>pristine</code></h2>
         <p>Carte centrée avec icône Mozaic + zone d'actions custom via le slot <code>#empty-actions</code>.</p>
-        <div class="sb-mrx-frame">
+        <div class="sb-adeo-grid-frame">
           <AdeoGrid :height="560" :columns="lmColumns" :rows="[]">
             <template #empty-actions>
               <button type="button" class="sb-empty-btn sb-empty-btn--primary" @click="onAdd">+ Ajouter une ligne</button>
@@ -211,10 +211,10 @@ Reset à la fois la filter row inline ET le filterModel du drawer. Pour reset un
       return { lmColumns, lmProducts, gridRef }
     },
     template: `
-      <div class="sb-mrx-shell">
+      <div class="sb-adeo-grid-shell">
         <h2>Empty state — variante <code>filtered</code></h2>
         <p>Quand des filtres sont actifs mais aucune ligne ne matche : variant ambré + bouton « Effacer les filtres » natif. Le slot <code>#empty-actions</code> reste disponible pour des actions complémentaires.</p>
-        <div class="sb-mrx-frame">
+        <div class="sb-adeo-grid-frame">
           <AdeoGrid :height="560" ref="gridRef" :columns="lmColumns" :rows="lmProducts">
             <template #empty-actions="{ variant }">
               <button v-if="variant === 'filtered'" type="button" class="sb-empty-btn" @click="(e) => e.preventDefault()">↗ Voir tous les rayons</button>
@@ -274,10 +274,10 @@ async function refetch() {
     components: { AdeoGrid },
     setup: () => ({ lmColumns, lmProducts }),
     template: `
-      <div class="sb-mrx-shell">
+      <div class="sb-adeo-grid-shell">
         <h2>Loading overlay</h2>
         <p>Le grid garde les lignes existantes visibles sous l'overlay pour ne pas perdre le contexte utilisateur.</p>
-        <div class="sb-mrx-frame">
+        <div class="sb-adeo-grid-frame">
           <AdeoGrid :height="560" :columns="lmColumns" :rows="lmProducts" :loading="true" />
         </div>
       </div>
@@ -341,10 +341,10 @@ Sans slot, la grille affiche \`<div class="adeo-grid-grid-error">\` avec \`{{ er
       err: new Error('Impossible de charger les produits — réessayer ?'),
     }),
     template: `
-      <div class="sb-mrx-shell">
+      <div class="sb-adeo-grid-shell">
         <h2>Error state</h2>
         <p>Pass an Error to <code>:error</code> — le grid émet <code>retry</code> si l'utilisateur clique le bouton de relance.</p>
-        <div class="sb-mrx-frame">
+        <div class="sb-adeo-grid-frame">
           <AdeoGrid :height="560" :columns="lmColumns" :rows="[]" :error="err" />
         </div>
       </div>

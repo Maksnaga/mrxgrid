@@ -68,7 +68,7 @@ function onUpdate(v: string | number | null | (string | number)[]): void {
 
 <template>
   <MCombobox
-    :id="`mrx-cell-combo-${field}-${rowIndex}`"
+    :id="`adeo-grid-cell-combo-${field}-${rowIndex}`"
     size="s"
     searchable
     clearable

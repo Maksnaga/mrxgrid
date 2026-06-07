@@ -279,10 +279,10 @@ const columns: ColumnDef[] = [
     components: { AdeoGrid },
     setup: () => ({ lmColumns, lmProducts }),
     template: `
-      <div class="sb-mrx-shell">
+      <div class="sb-adeo-grid-shell">
         <h2>Inline filter row</h2>
         <p>Chaque colonne marquée <code>filterable: true</code> avec un <code>filterType</code> expose son input dans la rangée de filtres juste sous le header. Text, number, date et set sont built-in.</p>
-        <div class="sb-mrx-frame">
+        <div class="sb-adeo-grid-frame">
           <AdeoGrid :height="560" :columns="lmColumns" :rows="lmProducts" />
         </div>
       </div>
@@ -397,7 +397,7 @@ const filteredRows = computed(() =>
       }
     },
     template: `
-      <div class="sb-mrx-shell">
+      <div class="sb-adeo-grid-shell">
         <h2>Custom <code>#filter-{field}</code> slots</h2>
         <p>
           Le slot <code>#filter-{field}</code> reçoit <code>{ column, value, setValue, clear }</code>
@@ -406,7 +406,7 @@ const filteredRows = computed(() =>
           <code>name</code>, select avec valeur <em>All</em> sur <code>category</code>,
           input "Max price" sur <code>price</code>.
         </p>
-        <div class="sb-mrx-frame">
+        <div class="sb-adeo-grid-frame">
           <AdeoGrid :height="560" :columns="lmColumns" :rows="filteredRows">
             <!-- Name: text search filling the cell width. -->
             <template #filter-name>
@@ -596,10 +596,10 @@ Pour éviter de wirer le drawer + le model + filterColumns à la main, utilisez 
       }
     },
     template: `
-      <div class="sb-mrx-shell">
+      <div class="sb-adeo-grid-shell">
         <h2>Multi-condition filter drawer</h2>
         <p>Le drawer permet d'empiler des conditions par colonne (text contains / number between / set in…) et de les appliquer en bloc. Le drawer se ferme via la croix ou l'overlay (<code>@update:open</code>).</p>
-        <div class="sb-mrx-frame">
+        <div class="sb-adeo-grid-frame">
           <AdeoGrid :height="560" ref="gridRef" :columns="lmColumns" :rows="lmProducts">
             <template #toolbar>
               <AdeoGridToolbar
@@ -691,11 +691,11 @@ Si vous avez aussi du sort ou de la pagination server-side, écoutez \`@page-cha
       return { lmColumns, filtered, lastQuery, onFilterChange }
     },
     template: `
-      <div class="sb-mrx-shell">
+      <div class="sb-adeo-grid-shell">
         <h2>Server-side filtering</h2>
         <p>Avec <code>:server-filter="true"</code>, le grid n'applique pas le filtre lui-même : il émet <code>filterChange</code>, à toi de re-fetch et de repasser <code>:rows</code>.</p>
-        <div class="sb-mrx-toolbar">Dernier query envoyé : <code>{{ lastQuery }}</code></div>
-        <div class="sb-mrx-frame">
+        <div class="sb-adeo-grid-toolbar">Dernier query envoyé : <code>{{ lastQuery }}</code></div>
+        <div class="sb-adeo-grid-frame">
           <AdeoGrid :height="560"
             :columns="lmColumns"
             :rows="filtered"
@@ -898,7 +898,7 @@ Combinaison nouvelle (impossible avant) : **grouping serveur + filtrage client**
       }
     },
     template: `
-      <div class="sb-mrx-shell">
+      <div class="sb-adeo-grid-shell">
         <h2>Custom filter components</h2>
         <p>
           Deux colonnes ont un <code>filter: { component, doesFilterPass }</code> custom :
@@ -906,7 +906,7 @@ Combinaison nouvelle (impossible avant) : **grouping serveur + filtrage client**
           (dual-range slider). Ouvre le drawer via la toolbar, ajoute une condition sur
           l'une des deux colonnes — l'éditeur de valeur est remplacé et l'opérateur est masqué.
         </p>
-        <div class="sb-mrx-toolbar">
+        <div class="sb-adeo-grid-toolbar">
           <label style="display: inline-flex; align-items: center; gap: 8px;">
             <strong>filter-mode :</strong>
             <select :value="mode" @change="mode = $event.target.value">
@@ -916,7 +916,7 @@ Combinaison nouvelle (impossible avant) : **grouping serveur + filtrage client**
           </label>
           <span style="margin-left: 16px;">Dernier <code>filterChange</code> : <code>{{ lastEvent }}</code></span>
         </div>
-        <div class="sb-mrx-frame">
+        <div class="sb-adeo-grid-frame">
           <AdeoGrid
             :height="560"
             ref="gridRef"

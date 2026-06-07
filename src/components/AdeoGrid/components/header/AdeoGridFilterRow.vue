@@ -76,7 +76,7 @@ function widthFor(col: ColumnDef, getter?: (f: string) => string | undefined): s
     <!-- Row number spacer -->
     <div
       v-if="showRowNumbers"
-      class="adeo-grid-filter-cell mrx-filter-cell--rownum"
+      class="adeo-grid-filter-cell adeo-grid-filter-cell--rownum"
       :class="{ 'adeo-grid-grid-cell--pinned': hasPinned }"
       :style="getUtilityStyle('rownum', true)"
     />
@@ -84,7 +84,7 @@ function widthFor(col: ColumnDef, getter?: (f: string) => string | undefined): s
     <!-- Checkbox spacer -->
     <div
       v-if="selectable"
-      class="adeo-grid-filter-cell mrx-filter-cell--utility"
+      class="adeo-grid-filter-cell adeo-grid-filter-cell--utility"
       :class="{ 'adeo-grid-grid-cell--pinned': hasPinned }"
       :style="getUtilityStyle('checkbox', true)"
     />
@@ -92,7 +92,7 @@ function widthFor(col: ColumnDef, getter?: (f: string) => string | undefined): s
     <!-- Expand spacer -->
     <div
       v-if="expandable"
-      class="adeo-grid-filter-cell mrx-filter-cell--utility"
+      class="adeo-grid-filter-cell adeo-grid-filter-cell--utility"
       :class="{ 'adeo-grid-grid-cell--pinned': hasPinned }"
       :style="getUtilityStyle('expand', true)"
     />

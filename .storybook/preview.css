@@ -22,13 +22,13 @@
   background: transparent;
 }
 
-.sb-mrx-shell {
+.sb-adeo-grid-shell {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.sb-mrx-shell h2 {
+.sb-adeo-grid-shell h2 {
   margin: 0;
   font-size: 14px;
   font-weight: 600;
@@ -36,14 +36,14 @@
   color: var(--color-grey-800, #2b313b);
 }
 
-.sb-mrx-shell p {
+.sb-adeo-grid-shell p {
   margin: 0;
   font-size: 13px;
   color: var(--color-grey-700, #4a5364);
   max-width: 720px;
 }
 
-.sb-mrx-toolbar {
+.sb-adeo-grid-toolbar {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
@@ -56,7 +56,7 @@
   color: #2b313b;
 }
 
-.sb-mrx-toolbar code {
+.sb-adeo-grid-toolbar code {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 11px;
   background: #f3f4f6;
@@ -64,7 +64,7 @@
   border-radius: 4px;
 }
 
-.sb-mrx-frame {
+.sb-adeo-grid-frame {
   display: flex;
   flex-direction: column;
 }

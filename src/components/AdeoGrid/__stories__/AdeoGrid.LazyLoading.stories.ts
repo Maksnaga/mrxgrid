@@ -154,13 +154,13 @@ const onVisible = debounce(handler, 60)
       return { lmColumns, rows, totalCount: SERVER_TOTAL, loading, requested, onVisibleRangeChange }
     },
     template: `
-      <div class="sb-mrx-shell">
+      <div class="sb-adeo-grid-shell">
         <h2>Infinite scroll via <code>onVisibleRangeChange</code></h2>
         <p>Le grid signale la fenêtre visible ; on fetch la page correspondante. <code>:total-count</code> garde la scrollbar stable indépendamment des lignes déjà chargées.</p>
-        <div class="sb-mrx-toolbar">
+        <div class="sb-adeo-grid-toolbar">
           {{ loading ? '⏳ chargement…' : '✓ idle' }} · dernière requête : <code>{{ requested }}</code>
         </div>
-        <div class="sb-mrx-frame" style="height: 560px">
+        <div class="sb-adeo-grid-frame" style="height: 560px">
           <AdeoGrid :height="560"
             :columns="lmColumns"
             :rows="rows"
@@ -244,11 +244,11 @@ Si vous filtrez ou triez côté serveur, écoutez aussi \`@filter-change\` et ut
       return { lmColumns, rows, lastChange, onPageChange, totalCount: SERVER_TOTAL }
     },
     template: `
-      <div class="sb-mrx-shell">
+      <div class="sb-adeo-grid-shell">
         <h2>Page-based lazy fetch (no infinite scroll)</h2>
         <p>Avec <code>:pagination="true"</code> + <code>:total-count</code>, on écoute <code>pageChange</code> pour fetch uniquement la page courante.</p>
-        <div class="sb-mrx-toolbar">{{ lastChange }}</div>
-        <div class="sb-mrx-frame" style="height: 560px">
+        <div class="sb-adeo-grid-toolbar">{{ lastChange }}</div>
+        <div class="sb-adeo-grid-frame" style="height: 560px">
           <AdeoGrid :height="560"
             :columns="lmColumns"
             :rows="rows"

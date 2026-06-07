@@ -427,7 +427,7 @@ Toute interaction avec la grille (click, drag, edit, hover sur un menu, ouvertur
       }
     },
     template: `
-      <div class="sb-mrx-shell">
+      <div class="sb-adeo-grid-shell">
         <h2>Event console — all features</h2>
         <p>
           Toutes les features actives. La console reproduit le comportement
@@ -437,7 +437,7 @@ Toute interaction avec la grille (click, drag, edit, hover sur un menu, ouvertur
           syntaxique.
         </p>
 
-        <div class="sb-mrx-frame">
+        <div class="sb-adeo-grid-frame">
           <AdeoGrid
             ref="gridRef"
             :height="500"

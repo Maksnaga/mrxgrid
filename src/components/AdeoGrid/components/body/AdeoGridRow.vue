@@ -142,7 +142,7 @@ const emit = defineEmits<{
     <div v-if="selectable" class="adeo-grid-grid-cell adeo-grid-checkbox-cell" :class="{ 'adeo-grid-grid-cell--pinned': hasPinned }"
       :style="getUtilityStyle('checkbox', false)" role="gridcell"
       @click.capture="(e: MouseEvent) => emit('toggleSelect', e)">
-      <MCheckbox :id="`mrx-row-cb-${rowIndex}`" :model-value="selected" />
+      <MCheckbox :id="`adeo-grid-row-cb-${rowIndex}`" :model-value="selected" />
     </div>
 
     <!-- Expand button (sticky left when pinned) -->
@@ -245,7 +245,7 @@ const emit = defineEmits<{
 <style scoped lang="scss">
 .adeo-grid-grid-row {
   display: flex;
-  height: var(--mrx-row-height, 48px);
+  height: var(--adeo-grid-row-height, 48px);
   background-color: var(--color-background-primary);
   contain: style;
   min-width: 100%;
@@ -411,10 +411,10 @@ const emit = defineEmits<{
       var(--color-background-primary) 50%,
       var(--color-background-secondary) 75%);
   background-size: 200% 100%;
-  animation: mrx-shimmer 1.4s infinite linear;
+  animation: adeo-grid-shimmer 1.4s infinite linear;
 }
 
-@keyframes mrx-shimmer {
+@keyframes adeo-grid-shimmer {
   0% {
     background-position: 200% 0;
   }

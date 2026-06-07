@@ -78,11 +78,11 @@ Le \`<AdeoTableMenuDrawer>\` expose un toggle de density natif — branchez son 
     components: { AdeoGrid },
     setup: () => ({ lmColumns, lmProducts, args }),
     template: `
-      <div class="sb-mrx-shell">
+      <div class="sb-adeo-grid-shell">
         <h2>Density</h2>
         <p>Switch via prop <code>:density</code>. Hauteurs ligne : compact <code>25px</code>, default <code>37px</code>, comfortable <code>45px</code>.</p>
-        <div class="sb-mrx-toolbar">Density actuelle : <code>{{ args.density }}</code></div>
-        <div class="sb-mrx-frame">
+        <div class="sb-adeo-grid-toolbar">Density actuelle : <code>{{ args.density }}</code></div>
+        <div class="sb-adeo-grid-frame">
           <AdeoGrid :height="560" :columns="lmColumns" :rows="lmProducts" :density="args.density" />
         </div>
       </div>
@@ -133,13 +133,13 @@ Combinez avec un \`<Teleport>\` parent si votre layout principal a un \`overflow
       return { lmColumns, lmProducts, fs }
     },
     template: `
-      <div class="sb-mrx-shell">
+      <div class="sb-adeo-grid-shell">
         <h2>Fullscreen</h2>
         <p>Quand <code>:fullscreen</code> est <code>true</code> le grid couvre tout le viewport. Place tes contrôles (et la toolbar) dans le slot <code>#toolbar</code> pour qu'ils restent visibles.</p>
-        <div class="sb-mrx-frame">
+        <div class="sb-adeo-grid-frame">
           <AdeoGrid :height="560" :columns="lmColumns" :rows="lmProducts" :fullscreen="fs">
             <template #toolbar>
-              <div class="sb-mrx-toolbar" style="border-radius: 0; border-left: 0; border-right: 0; border-top: 0">
+              <div class="sb-adeo-grid-toolbar" style="border-radius: 0; border-left: 0; border-right: 0; border-top: 0">
                 <button type="button" @click="fs = !fs">
                   {{ fs ? '↩ Quitter plein écran' : '⛶ Passer en plein écran' }}
                 </button>
@@ -210,10 +210,10 @@ Si \`rowId\` n'est pas passé, la grille utilise :
       rowId: (row: Record<string, unknown>) => String(row.sku),
     }),
     template: `
-      <div class="sb-mrx-shell">
+      <div class="sb-adeo-grid-shell">
         <h2>Row identity via <code>:rowId</code></h2>
         <p>Indispensable pour persister la sélection / les formules / l'expansion à travers un re-tri ou un lazy-load. Ici, on utilise la <code>sku</code> du produit.</p>
-        <div class="sb-mrx-frame">
+        <div class="sb-adeo-grid-frame">
           <AdeoGrid :height="560" :columns="lmColumns" :rows="lmProducts" :row-id="rowId" />
         </div>
       </div>

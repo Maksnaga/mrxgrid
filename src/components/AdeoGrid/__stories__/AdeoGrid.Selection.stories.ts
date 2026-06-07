@@ -152,7 +152,7 @@ Toujours pointer vers une clé domain (\`sku\`, \`uuid\`, \`id\`).
       }
     },
     template: `
-      <div class="sb-mrx-shell">
+      <div class="sb-adeo-grid-shell">
         <h2>Row checkbox selection</h2>
         <p>Active <code>:selectable</code>. La case master du header gère <code>none / some / all</code>. Le banner de sélection est géré dans la toolbar via <code>:selected-count</code> / <code>:total-count</code> / <code>:all-selected</code> + <code>@select-all-rows</code> / <code>@clear-selection</code>.</p>
         <AdeoGridToolbar
@@ -165,7 +165,7 @@ Toujours pointer vers une clé domain (\`sku\`, \`uuid\`, \`id\`).
           @select-all-rows="onSelectAllRows"
           @clear-selection="onClearSelection"
         />
-        <div class="sb-mrx-frame">
+        <div class="sb-adeo-grid-frame">
           <AdeoGrid
             ref="gridRef"
             :height="560"
@@ -220,10 +220,10 @@ Pas de prop pour off — si vous ne voulez pas de cell selection, ne fournissez 
     components: { AdeoGrid },
     setup: () => ({ lmColumns, lmProducts }),
     template: `
-      <div class="sb-mrx-shell">
+      <div class="sb-adeo-grid-shell">
         <h2>Cell range selection</h2>
         <p>Comme Excel : click → cellule active, drag → range, <kbd>Shift</kbd>+click → étend, <kbd>Ctrl</kbd>+<kbd>A</kbd> → tout. Le sélecteur range est natif.</p>
-        <div class="sb-mrx-frame">
+        <div class="sb-adeo-grid-frame">
           <AdeoGrid :height="560" :columns="lmColumns" :rows="lmProducts" />
         </div>
       </div>
@@ -341,10 +341,10 @@ La barre flottante ne montre alors plus que les boutons d'action.
       }
     },
     template: `
-      <div class="sb-mrx-shell">
+      <div class="sb-adeo-grid-shell">
         <h2>Bulk delete via action bar</h2>
         <p>Sélectionne plusieurs cellules ou lignes puis <kbd>Delete</kbd>. L'évent <code>bulkDelete</code> remonte le payload pour appliquer le clear côté state.</p>
-        <div class="sb-mrx-toolbar">Dernière action : <code>{{ lastBulk }}</code></div>
+        <div class="sb-adeo-grid-toolbar">Dernière action : <code>{{ lastBulk }}</code></div>
         <AdeoGridToolbar
           show-fullscreen
           show-export
@@ -357,7 +357,7 @@ La barre flottante ne montre alors plus que les boutons d'action.
           @select-all-rows="onSelectAllRows"
           @clear-selection="onClearSelection"
         />
-        <div class="sb-mrx-frame">
+        <div class="sb-adeo-grid-frame">
           <AdeoGrid
             ref="gridRef"
             :height="560"

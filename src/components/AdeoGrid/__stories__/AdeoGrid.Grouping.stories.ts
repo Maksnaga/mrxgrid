@@ -81,10 +81,10 @@ Le pipeline insère une "group header row" par valeur distincte de \`category\`.
     components: { AdeoGrid },
     setup: () => ({ lmColumns, lmProducts, groupFields: ['category'] }),
     template: `
-      <div class="sb-mrx-shell">
+      <div class="sb-adeo-grid-shell">
         <h2>Single-field grouping (par Rayon)</h2>
         <p>Pass <code>:group-fields="['category']"</code>. Une row "header de groupe" s'insère par valeur, click pour expand/collapse.</p>
-        <div class="sb-mrx-frame">
+        <div class="sb-adeo-grid-frame">
           <AdeoGrid :height="560" :columns="lmColumns" :rows="lmProducts" :group-fields="groupFields" />
         </div>
       </div>
@@ -128,10 +128,10 @@ Chaque group row porte sa profondeur 0-indexed. Le padding-left du label est cal
       groupFields: ['category', 'brand'],
     }),
     template: `
-      <div class="sb-mrx-shell">
+      <div class="sb-adeo-grid-shell">
         <h2>Nested grouping (Rayon → Marque)</h2>
         <p>Plusieurs niveaux dans <code>:group-fields</code> donnent un arbre. La méta des rows groupes (<code>__mrxDepth</code>, <code>__mrxCount</code>) est posée par le pipeline.</p>
-        <div class="sb-mrx-frame">
+        <div class="sb-adeo-grid-frame">
           <AdeoGrid :height="560" :columns="lmColumns" :rows="rows" :group-fields="groupFields" />
         </div>
       </div>
@@ -210,10 +210,10 @@ Pour éviter le wiring manuel, \`<AdeoGridSmartToolbar v-model:active-groups="ac
       return { lmColumns, lmProducts, drawerOpen, groupFields, activeGroups, onApply, onReset }
     },
     template: `
-      <div class="sb-mrx-shell">
+      <div class="sb-adeo-grid-shell">
         <h2>Grouping drawer</h2>
         <p>Le drawer permet de drag-n-drop l'ordre des champs de groupage et de toggler chacun. Idéal pour des dashboards où l'utilisateur change la dimension d'analyse.</p>
-        <div class="sb-mrx-frame">
+        <div class="sb-adeo-grid-frame">
           <AdeoGrid :height="560" :columns="lmColumns" :rows="lmProducts" :group-fields="groupFields">
             <template #toolbar>
               <AdeoGridToolbar show-group @group="drawerOpen = !drawerOpen" />
@@ -319,10 +319,10 @@ const serverGrouping: ServerGroupingOptions = {
       return { lmColumns, serverGrouping }
     },
     template: `
-      <div class="sb-mrx-shell">
+      <div class="sb-adeo-grid-shell">
         <h2>Server-side grouping</h2>
         <p>Le grid demande <code>fetchGroups</code> à l'activation puis <code>fetchGroupRows</code> par page quand un groupe est expandé. 10 000 produits LM côté "serveur", aucun ne traverse le réseau tant que rien n'est ouvert.</p>
-        <div class="sb-mrx-frame">
+        <div class="sb-adeo-grid-frame">
           <AdeoGrid :height="560"
             :columns="lmColumns"
             :rows="[]"

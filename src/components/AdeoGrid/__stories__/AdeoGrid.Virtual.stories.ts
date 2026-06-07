@@ -89,10 +89,10 @@ Pour un wrapper parent \`flex\`/\`grid\` qui contraint la hauteur, mettez \`:hei
     components: { AdeoGrid },
     setup: () => ({ lmColumns, rows: generateLMProducts(100_000) }),
     template: `
-      <div class="sb-mrx-shell">
+      <div class="sb-adeo-grid-shell">
         <h2>Vertical virtual scroll · 100 000 lignes</h2>
         <p>Active <code>:virtual-scroll="true"</code> et passe une <code>:container-height</code>. Seules les lignes visibles + overscan sont rendues.</p>
-        <div class="sb-mrx-frame" style="height: 600px">
+        <div class="sb-adeo-grid-frame" style="height: 600px">
           <AdeoGrid :height="560" :columns="lmColumns" :rows="rows" virtual-scroll :container-height="600" />
         </div>
       </div>
@@ -159,10 +159,10 @@ export const HorizontalManyColumns: Story = {
       return { cols, rows }
     },
     template: `
-      <div class="sb-mrx-shell">
+      <div class="sb-adeo-grid-shell">
         <h2>Horizontal virtual scroll · 200 colonnes</h2>
         <p>Active <code>:virtual-columns="true"</code>. Les colonnes hors viewport ne sont pas rendues, les pinned restent collées.</p>
-        <div class="sb-mrx-frame" style="height: 520px">
+        <div class="sb-adeo-grid-frame" style="height: 520px">
           <AdeoGrid :height="560" :columns="cols" :rows="rows" virtual-columns virtual-scroll :container-height="520" />
         </div>
       </div>
@@ -226,10 +226,10 @@ Ouvrez la story, scrollez bestially. La courbe FPS dans les DevTools doit rester
       return { cols, rows }
     },
     template: `
-      <div class="sb-mrx-shell">
+      <div class="sb-adeo-grid-shell">
         <h2>50 000 × 100 cellules virtualisées</h2>
         <p>Le grid combine <code>useVirtualScroll</code> + <code>useVirtualColumns</code> pour ne jamais rendre plus de ~80 lignes × ~30 colonnes en simultané.</p>
-        <div class="sb-mrx-frame" style="height: 560px">
+        <div class="sb-adeo-grid-frame" style="height: 560px">
           <AdeoGrid :height="560" :columns="cols" :rows="rows" virtual-scroll virtual-columns :container-height="560" />
         </div>
       </div>

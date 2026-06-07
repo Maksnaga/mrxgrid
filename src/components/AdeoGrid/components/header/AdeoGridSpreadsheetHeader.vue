@@ -61,21 +61,21 @@ function widthFor(col: ColumnDef): string {
     <!-- Top-left "corner" cell (above row-number column) — empty -->
     <div
       v-if="showRowNumbers"
-      class="adeo-grid-spreadsheet-header__cell mrx-spreadsheet-header__cell--corner"
+      class="adeo-grid-spreadsheet-header__cell adeo-grid-spreadsheet-header__cell--corner"
       :style="{ ...(getUtilityStyle('rownum', true) ?? {}), width: '56px', minWidth: '56px' }"
     />
 
     <!-- Above checkbox (no letter) -->
     <div
       v-if="selectable"
-      class="adeo-grid-spreadsheet-header__cell mrx-spreadsheet-header__cell--utility"
+      class="adeo-grid-spreadsheet-header__cell adeo-grid-spreadsheet-header__cell--utility"
       :style="getUtilityStyle('checkbox', true)"
     />
 
     <!-- Above expand (no letter) -->
     <div
       v-if="expandable"
-      class="adeo-grid-spreadsheet-header__cell mrx-spreadsheet-header__cell--utility"
+      class="adeo-grid-spreadsheet-header__cell adeo-grid-spreadsheet-header__cell--utility"
       :style="getUtilityStyle('expand', true)"
     />
 
@@ -100,7 +100,7 @@ function widthFor(col: ColumnDef): string {
     <!-- Left spacer for virtual center scroll -->
     <div
       v-if="leftSpacerWidth && leftSpacerWidth !== '0px'"
-      class="adeo-grid-spreadsheet-header__cell mrx-spreadsheet-header__cell--spacer"
+      class="adeo-grid-spreadsheet-header__cell adeo-grid-spreadsheet-header__cell--spacer"
       :style="{ width: leftSpacerWidth, minWidth: leftSpacerWidth }"
     />
 
@@ -125,7 +125,7 @@ function widthFor(col: ColumnDef): string {
     <!-- Right spacer for virtual center scroll -->
     <div
       v-if="rightSpacerWidth && rightSpacerWidth !== '0px'"
-      class="adeo-grid-spreadsheet-header__cell mrx-spreadsheet-header__cell--spacer"
+      class="adeo-grid-spreadsheet-header__cell adeo-grid-spreadsheet-header__cell--spacer"
       :style="{ width: rightSpacerWidth, minWidth: rightSpacerWidth }"
     />
 
