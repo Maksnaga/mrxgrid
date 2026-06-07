@@ -1,6 +1,6 @@
 import { computed, shallowRef, type ComputedRef, type Ref } from 'vue'
-import type { RowData, SelectionRange } from '@/components/MrxGrid/types'
-import type { GridState } from '@/components/MrxGrid/state/useGridState'
+import type { RowData, SelectionRange } from '@/components/AdeoGrid/types'
+import type { GridState } from '@/components/AdeoGrid/state/useGridState'
 
 // ---------------------------------------------------------------------------
 // Helpers

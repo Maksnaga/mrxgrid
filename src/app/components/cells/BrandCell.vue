@@ -9,7 +9,7 @@
 
 import { computed } from 'vue'
 import { MAvatar } from '@mozaic-ds/vue'
-import type { CellRendererProps } from '@/components/MrxGrid'
+import type { CellRendererProps } from '@/components/AdeoGrid'
 
 const props = defineProps<CellRendererProps>()
 

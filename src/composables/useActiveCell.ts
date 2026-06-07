@@ -1,7 +1,7 @@
 import { computed, isRef, watch, type Ref, type WritableComputedRef } from 'vue'
-import type { CellPosition, ColumnDef, RowData } from '@/components/MrxGrid/types'
-import { isGroupRow } from '@/components/MrxGrid/types'
-import type { GridState } from '@/components/MrxGrid/state/useGridState'
+import type { CellPosition, ColumnDef, RowData } from '@/components/AdeoGrid/types'
+import { isGroupRow } from '@/components/AdeoGrid/types'
+import type { GridState } from '@/components/AdeoGrid/state/useGridState'
 
 export interface ActiveCellOptions {
   /** Central grid state — owns the canonical `focusedCell` `{row, col}` shape. */

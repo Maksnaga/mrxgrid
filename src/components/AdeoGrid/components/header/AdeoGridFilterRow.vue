@@ -3,17 +3,17 @@
  * Filter row — Sprint 6 (REFONTE-PLAN-V2 §2.5).
  *
  * Lays out the per-column filter cells under the header. Each cell is
- * delegated to `MrxGridFilterCell`, which resolves slot → filterRenderer
+ * delegated to `AdeoGridFilterCell`, which resolves slot → filterRenderer
  * → built-in Mozaic input. This component only handles layout (left-pinned
  * / center / right-pinned, virtual-scroll spacers, utility cells) and
  * per-field debounce of free-typed text input.
  *
- * Visibility of the row itself is controlled upstream by `MrxGrid.hasFilterRow`.
+ * Visibility of the row itself is controlled upstream by `AdeoGrid.hasFilterRow`.
  */
 
 import { reactive, type CSSProperties } from 'vue'
 import type { ColumnDef } from '../../types'
-import MrxGridFilterCell from './MrxGridFilterCell.vue'
+import AdeoGridFilterCell from './AdeoGridFilterCell.vue'
 
 defineProps<{
   /** Center (unpinned) columns — may be a virtualized slice. */
@@ -110,7 +110,7 @@ function widthFor(col: ColumnDef, getter?: (f: string) => string | undefined): s
         minWidth: widthFor(col, getColumnWidth),
       }"
     >
-      <MrxGridFilterCell
+      <AdeoGridFilterCell
         :column="col"
         :value="filters[col.field]"
         @input="(v) => onInput(col.field, v)"
@@ -138,7 +138,7 @@ function widthFor(col: ColumnDef, getter?: (f: string) => string | undefined): s
           : { width: widthFor(col, getColumnWidth), minWidth: widthFor(col, getColumnWidth) }
       "
     >
-      <MrxGridFilterCell
+      <AdeoGridFilterCell
         :column="col"
         :value="filters[col.field]"
         @input="(v) => onInput(col.field, v)"
@@ -170,7 +170,7 @@ function widthFor(col: ColumnDef, getter?: (f: string) => string | undefined): s
         minWidth: widthFor(col, getColumnWidth),
       }"
     >
-      <MrxGridFilterCell
+      <AdeoGridFilterCell
         :column="col"
         :value="filters[col.field]"
         @input="(v) => onInput(col.field, v)"
@@ -207,7 +207,7 @@ function widthFor(col: ColumnDef, getter?: (f: string) => string | undefined): s
 
 // Dernière colonne right-pinned : bord externe sur la limite de la table,
 // donc on supprime le `border-right` qui doublerait le bord du wrapper.
-// Mirror exact du même fix sur `MrxGridHeaderCell` et `MrxGridRow`.
+// Mirror exact du même fix sur `AdeoGridHeaderCell` et `AdeoGridRow`.
 .mrx-filter-cell.mrx-grid-cell--pinned-row-end {
   border-right: none;
 }

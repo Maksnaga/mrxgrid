@@ -4,7 +4,7 @@ import type {
   FillEvent,
   RowData,
   SelectionRange,
-} from '@/components/MrxGrid/types'
+} from '@/components/AdeoGrid/types'
 
 export interface FillHandleOptions {
   /** All columns in flat display order. */
@@ -39,7 +39,7 @@ export interface FillDragState {
  * ## How it works
  *
  * 1. The fill handle is a small 6×6 square at the bottom-right corner of
- *    the active selection. MrxGridCell renders it when `fillHandle` is true.
+ *    the active selection. AdeoGridCell renders it when `fillHandle` is true.
  *
  * 2. On mousedown on the fill handle, this composable captures the source
  *    range and starts tracking mouse movement.
@@ -247,7 +247,7 @@ export function useFillHandle(options: FillHandleOptions) {
 
   /**
    * Read a cell's value honouring `col.valueGetter` when present.
-   * Same routing as the clipboard `buildTsv` / `MrxGridRow.cellValue` —
+   * Same routing as the clipboard `buildTsv` / `AdeoGridRow.cellValue` —
    * without it, fill on synthetic / derived columns propagates `undefined`
    * and the user sees nothing happen on drag-fill.
    */

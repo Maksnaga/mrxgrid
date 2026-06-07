@@ -1,12 +1,12 @@
 import type { Meta, StoryObj } from '@storybook/vue3-vite'
 import { ref } from 'vue'
-import { MrxGrid, useUndoRedoPlugin } from '@/components/MrxGrid'
-import type { CellEditEvent, ColumnDef, FillEvent } from '@/components/MrxGrid'
+import { AdeoGrid, useUndoRedoPlugin } from '@/components/AdeoGrid'
+import type { CellEditEvent, ColumnDef, FillEvent } from '@/components/AdeoGrid'
 import { lmColumns, lmProducts, type LMProduct } from './_fixtures'
 
 const meta = {
   title: 'Stories/Editing/Inline · Editors · Validation · Fill',
-  component: MrxGrid,
+  component: AdeoGrid,
   tags: ['autodocs'],
   args: { rows: [] },
   parameters: {
@@ -64,7 +64,7 @@ Deux options :
       },
     },
   },
-} satisfies Meta<typeof MrxGrid>
+} satisfies Meta<typeof AdeoGrid>
 
 export default meta
 type Story = StoryObj<typeof meta>
@@ -83,7 +83,7 @@ Le pattern le plus courant : marquez \`editable: true\` sur la \`ColumnDef\`, é
 \`\`\`vue
 <script setup lang="ts">
 import { ref } from 'vue'
-import type { CellEditEvent } from '@/components/MrxGrid'
+import type { CellEditEvent } from '@/components/AdeoGrid'
 
 const rows = ref<Product[]>(initialRows)
 
@@ -94,7 +94,7 @@ function onCellEdit(e: CellEditEvent) {
 </script>
 
 <template>
-  <MrxGrid
+  <AdeoGrid
     :columns="columns"
     :rows="rows"
     history-id="my-grid"
@@ -119,7 +119,7 @@ L'input force \`type="number"\`, parse en \`Number()\` au commit, rejette les no
     },
   },
   render: () => ({
-    components: { MrxGrid },
+    components: { AdeoGrid },
     setup() {
       const rows = ref<LMProduct[]>(JSON.parse(JSON.stringify(lmProducts)))
       const lastEdit = ref('—')
@@ -137,7 +137,7 @@ L'input force \`type="number"\`, parse en \`Number()\` au commit, rejette les no
         <p><kbd>F2</kbd> ou tape directement pour éditer. <kbd>Enter</kbd> commit, <kbd>Esc</kbd> annule, <kbd>Tab</kbd> commit + cellule suivante. <kbd>⌘Z</kbd> / <kbd>⌘⇧Z</kbd> undo / redo (plugin <code>useUndoRedoPlugin</code>, persisté en <code>localStorage</code>).</p>
         <div class="sb-mrx-toolbar">Dernier edit : <code>{{ lastEdit }}</code></div>
         <div class="sb-mrx-frame">
-          <MrxGrid :height="560" :columns="lmColumns" :rows="rows" :plugins="plugins" history-id="lm-editing-inline-text" @cell-edit="onCellEdit" />
+          <AdeoGrid :height="560" :columns="lmColumns" :rows="rows" :plugins="plugins" history-id="lm-editing-inline-text" @cell-edit="onCellEdit" />
         </div>
       </div>
     `,
@@ -202,7 +202,7 @@ Le select edit-mode différe du display-mode. Combinez avec \`renderer: 'tag'\` 
     },
   },
   render: () => ({
-    components: { MrxGrid },
+    components: { AdeoGrid },
     setup() {
       const cols: ColumnDef[] = [
         { field: 'sku', headerName: 'Réf', width: '120px', pinned: 'start' },
@@ -253,7 +253,7 @@ Le select edit-mode différe du display-mode. Combinez avec \`renderer: 'tag'\` 
         <h2>Select / dropdown editor</h2>
         <p>Configure <code>cellEditor: 'select'</code> + <code>cellEditorOptions</code>. Le menu est rendu via Mozaic MSelect.</p>
         <div class="sb-mrx-frame">
-          <MrxGrid :height="560" :columns="cols" :rows="rows" :plugins="plugins" history-id="lm-editing" @cell-edit="onCellEdit" />
+          <AdeoGrid :height="560" :columns="cols" :rows="rows" :plugins="plugins" history-id="lm-editing" @cell-edit="onCellEdit" />
         </div>
       </div>
     `,
@@ -312,7 +312,7 @@ Pas supporté nativement — \`cellValidator\` doit être synchrone. Pour de l'a
     },
   },
   render: () => ({
-    components: { MrxGrid },
+    components: { AdeoGrid },
     setup() {
       const cols: ColumnDef[] = [
         { field: 'sku', headerName: 'Réf', width: '120px', pinned: 'start' },
@@ -364,7 +364,7 @@ Pas supporté nativement — \`cellValidator\` doit être synchrone. Pour de l'a
         <h2>Cell validators (display + edit)</h2>
         <p>Les cellules invalides apparaissent en rouge ; le message s'affiche au hover. Validators identiques au commit.</p>
         <div class="sb-mrx-frame">
-          <MrxGrid :height="560" :columns="cols" :rows="rows" :plugins="plugins" history-id="lm-editing" @cell-edit="onCellEdit" />
+          <AdeoGrid :height="560" :columns="cols" :rows="rows" :plugins="plugins" history-id="lm-editing" @cell-edit="onCellEdit" />
         </div>
       </div>
     `,
@@ -413,7 +413,7 @@ function onFill(e: FillEvent) {
 </script>
 
 <template>
-  <MrxGrid :columns="columns" :rows="rows" history-id="my-grid" @fill="onFill" />
+  <AdeoGrid :columns="columns" :rows="rows" history-id="my-grid" @fill="onFill" />
 </template>
 \`\`\`
 
@@ -429,7 +429,7 @@ Pas de \`fillable\` flag — le handle apparaît dès qu'une cellule est éditab
     },
   },
   render: () => ({
-    components: { MrxGrid },
+    components: { AdeoGrid },
     setup() {
       const rows = ref<LMProduct[]>(JSON.parse(JSON.stringify(lmProducts)))
       const lastFill = ref('—')
@@ -453,7 +453,7 @@ Pas de \`fillable\` flag — le handle apparaît dès qu'une cellule est éditab
         <p>Sélectionne une cellule (ou un range) puis tire le carré bleu en bas-droite pour répliquer la valeur. L'évent <code>fill</code> remonte les écritures à appliquer. Le double-click sur une cellule l'édite et émet <code>cell-edit</code>.</p>
         <div class="sb-mrx-toolbar">Dernier fill : <code>{{ lastFill }}</code></div>
         <div class="sb-mrx-frame">
-          <MrxGrid :height="560" :columns="lmColumns" :rows="rows" :plugins="plugins" history-id="lm-editing-fill" @cell-edit="onCellEdit" @fill="onFill" />
+          <AdeoGrid :height="560" :columns="lmColumns" :rows="rows" :plugins="plugins" history-id="lm-editing-fill" @cell-edit="onCellEdit" @fill="onFill" />
         </div>
       </div>
     `,
@@ -486,7 +486,7 @@ Quand les editors built-in (\`text\` / \`number\` / \`select\` / \`date\`) ne co
 ### Implémentation
 
 \`\`\`vue
-<MrxGrid :columns="columns" :rows="rows" @cell-edit="onCellEdit">
+<AdeoGrid :columns="columns" :rows="rows" @cell-edit="onCellEdit">
   <template #edit-color="{ value, setValue, commit, cancel }">
     <div style="display:flex; gap:6px; align-items:center; padding:0 8px">
       <input
@@ -498,7 +498,7 @@ Quand les editors built-in (\`text\` / \`number\` / \`select\` / \`date\`) ne co
       <button @click="cancel">✕</button>
     </div>
   </template>
-</MrxGrid>
+</AdeoGrid>
 \`\`\`
 
 ### Différence avec \`#cell-{field}\`
@@ -514,7 +514,7 @@ Vous pouvez avoir l'un, l'autre ou les deux. Sans \`#edit-*\`, c'est l'editor d�
     },
   },
   render: () => ({
-    components: { MrxGrid },
+    components: { AdeoGrid },
     setup() {
       const cols: ColumnDef[] = [
         { field: 'sku', headerName: 'Réf', width: '120px', pinned: 'start' },
@@ -540,7 +540,7 @@ Vous pouvez avoir l'un, l'autre ou les deux. Sans \`#edit-*\`, c'est l'editor d�
         <h2>Custom <code>#cell</code> slot</h2>
         <p>Le slot <code>#cell</code> reçoit <code>{ value, editing, editValue, updateValue, commit, cancel, startEdit }</code> pour piloter affichage + édition à 100%.</p>
         <div class="sb-mrx-frame">
-          <MrxGrid :height="560" :columns="cols" :rows="rows" :plugins="plugins" history-id="lm-editing-custom-slot" @cell-edit="onCellEdit">
+          <AdeoGrid :height="560" :columns="cols" :rows="rows" :plugins="plugins" history-id="lm-editing-custom-slot" @cell-edit="onCellEdit">
             <template #cell-rating="{ value, editing, editValue, updateValue, commit, cancel, startEdit }">
               <input
                 v-if="editing"
@@ -558,7 +558,7 @@ Vous pouvez avoir l'un, l'autre ou les deux. Sans \`#edit-*\`, c'est l'editor d�
                 <span v-for="n in 5" :key="n" :style="{ opacity: Number(value) >= n ? 1 : 0.2 }">★</span>
               </button>
             </template>
-          </MrxGrid>
+          </AdeoGrid>
         </div>
       </div>
     `,

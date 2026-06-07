@@ -18,12 +18,12 @@
 
 import { computed, markRaw, ref } from 'vue'
 import {
-  MrxGrid,
+  AdeoGrid,
   type ColumnDef,
   type DataDensity,
   type GroupingItem,
-  type MrxDoesFilterPassParams,
-} from '@/components/MrxGrid'
+  type AdeoDoesFilterPassParams,
+} from '@/components/AdeoGrid'
 
 import ToolbarActions from './components/ToolbarActions.vue'
 import ProductDrawer from './components/ProductDrawer.vue'
@@ -110,13 +110,13 @@ const list = useProductList()
 // On destructure les refs en top-level — sans ça, le binding
 // `:pending-cells="pending.pendingCells.value"` n'enregistre pas la dep
 // dans le render effect de DemoPage et la mutation côté composable ne
-// déclenche pas le re-render parent → MrxGrid reçoit toujours `[]`.
+// déclenche pas le re-render parent → AdeoGrid reçoit toujours `[]`.
 // Top-level refs en `:pending-cells="pendingCells"` profitent de
 // l'auto-unwrap Vue et de la dep correctement tracée.
 const pending = usePendingMutations()
 const pendingCells = pending.pendingCells
 const pendingRowIds = pending.pendingRowIds
-const gridRef = ref<InstanceType<typeof MrxGrid> | null>(null)
+const gridRef = ref<InstanceType<typeof AdeoGrid> | null>(null)
 
 // Tabs principales — bascule entre la démo et le tutoriel pas-à-pas.
 const activeTab = ref<number>(0)
@@ -190,14 +190,14 @@ const baseColumns: ColumnDef[] = [
     filterable: true,
     filterType: 'set',
     // Les casts `as any` ferment la variance entre nos types stricts
-    // (`MrxDoesFilterPassParams<LMProduct, string[]>`) et le slot
-    // `MrxFilterConfig<unknown, unknown>` côté ColumnDef. TS refuse
+    // (`AdeoDoesFilterPassParams<LMProduct, string[]>`) et le slot
+    // `AdeoFilterConfig<unknown, unknown>` côté ColumnDef. TS refuse
     // l'élargissement automatique sur les positions contravariantes.
     filter: {
       component: markRaw(CategoryComboFilter),
       filterParams: LM_CATEGORIES,
 
-      doesFilterPass: ((p: MrxDoesFilterPassParams<LMProduct, string[]>) => {
+      doesFilterPass: ((p: AdeoDoesFilterPassParams<LMProduct, string[]>) => {
         if (!Array.isArray(p.model) || p.model.length === 0) return true
         const v = p.getValue('category')
         return typeof v === 'string' && p.model.includes(v)
@@ -213,7 +213,7 @@ const baseColumns: ColumnDef[] = [
     // Colonne éditable avec un MCombobox Mozaic — démontre le pattern
     // "custom editor via slot #edit-{field}". `cellEditor: 'custom'`
     // bascule l'engine en mode édition au double-clic / Enter, et le
-    // slot `#edit-brand` côté `<MrxGrid>` rend le combobox.
+    // slot `#edit-brand` côté `<AdeoGrid>` rend le combobox.
     // `cellEditorOptions` est la source des options consommée par le slot.
     field: 'brand',
     headerName: 'Marque',
@@ -728,7 +728,7 @@ function retryFetch(): void {
 
     <!-- Vue 1 — la démo complète (grid + drawers + bulk action bar). -->
     <template v-if="activeTab === 0">
-      <MrxGrid ref="gridRef" class="demo-page__grid" :columns="columns" :rows="list.rows.value"
+      <AdeoGrid ref="gridRef" class="demo-page__grid" :columns="columns" :rows="list.rows.value"
         :row-id="(row) => String((row as LMProduct).id)" :total-count="list.total.value" :pagination="paginationConfig"
         :virtual-columns="true" :multi-sort="false" :height="640" :loading="list.loading.value"
         :refreshing="list.refreshing.value"
@@ -791,7 +791,7 @@ function retryFetch(): void {
         <template #expand-row="{ row }">
           <ProductDetailExpand :product="row as LMProduct" @edit="onEditProduct(row as LMProduct)" />
         </template>
-      </MrxGrid>
+      </AdeoGrid>
 
       <!-- Drawer création / édition produit. -->
       <ProductDrawer v-model:open="drawerOpen" :product="drawerProduct" @created="onProductCreated"

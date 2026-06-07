@@ -192,7 +192,7 @@ const eur = new Intl.NumberFormat('fr-FR', {
 })
 
 // Exported as `ColumnDef[]` (default `RowData`) rather than `ColumnDef<LMProduct>[]`
-// so the array is freely assignable to `MrxGrid`'s `columns` prop. `ColumnDef<T>`
+// so the array is freely assignable to `AdeoGrid`'s `columns` prop. `ColumnDef<T>`
 // is contravariant in `T` (callbacks like `valueGetter`/`sortComparator` take
 // `row: T`), so a narrower `ColumnDef<LMProduct>[]` is NOT assignable to
 // `ColumnDef<RowData>[]`. Consumers that need the narrower type (e.g. typed

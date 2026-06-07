@@ -3,7 +3,7 @@
  * FILTERED BY tag-bar — Angular parity (`moz-grid-filter-tags-bar`).
  *
  * Displays each active `FilterCondition` as a removable tag. Visually matches
- * `MrxGridGroupBar` / `MrxGridHiddenBar` so the three bars sit consistently
+ * `AdeoGridGroupBar` / `AdeoGridHiddenBar` so the three bars sit consistently
  * under the toolbar.
  *
  * Labels are produced by the filter engine's `toLabel` so the bar doesn't

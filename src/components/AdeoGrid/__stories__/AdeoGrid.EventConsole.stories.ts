@@ -1,13 +1,13 @@
 import type { Meta, StoryObj } from '@storybook/vue3-vite'
 import { computed, ref } from 'vue'
-import { MrxGrid, MrxGridSmartToolbar } from '@/components/MrxGrid'
-import type { DataDensity, GroupingItem } from '@/components/MrxGrid'
-import type { FilterModel } from '@/components/MrxGrid/models/filter.model'
+import { AdeoGrid, AdeoGridSmartToolbar } from '@/components/AdeoGrid'
+import type { DataDensity, GroupingItem } from '@/components/AdeoGrid'
+import type { FilterModel } from '@/components/AdeoGrid/models/filter.model'
 import { generateLMProducts, lmColumns } from './_fixtures'
 
 const meta = {
   title: 'Stories/Devtools/Event console',
-  component: MrxGrid,
+  component: AdeoGrid,
   tags: ['autodocs'],
   args: { rows: [] },
   parameters: {
@@ -16,7 +16,7 @@ const meta = {
         component: `
 # Event console
 
-Une story "all features ON" avec une console DevTools-like qui trace en temps réel chaque évent émis par \`<MrxGrid>\`. Utilisée comme outil de debug ou comme référence des évents disponibles.
+Une story "all features ON" avec une console DevTools-like qui trace en temps réel chaque évent émis par \`<AdeoGrid>\`. Utilisée comme outil de debug ou comme référence des évents disponibles.
 
 ### Évents tracés
 
@@ -52,7 +52,7 @@ Cette story logge en plus les actions toolbar/drawer pour visualiser le flow com
       },
     },
   },
-} satisfies Meta<typeof MrxGrid>
+} satisfies Meta<typeof AdeoGrid>
 
 export default meta
 type Story = StoryObj<typeof meta>
@@ -112,13 +112,13 @@ function severityIcon(s: Severity): string {
   }
 }
 
-// Most events come from <MrxGrid> itself; toolbar:* and drawer:* are
+// Most events come from <AdeoGrid> itself; toolbar:* and drawer:* are
 // surfaced from the demo wiring around it. The "source" string mimics
-// DevTools' right-aligned source link (e.g. `MrxGrid.vue:209`).
+// DevTools' right-aligned source link (e.g. `AdeoGrid.vue:209`).
 function sourceFor(name: string): string {
-  if (name.startsWith('toolbar:')) return 'MrxGridToolbar.vue'
+  if (name.startsWith('toolbar:')) return 'AdeoGridToolbar.vue'
   if (name.startsWith('drawer:')) return 'demo-drawer'
-  return 'MrxGrid.vue'
+  return 'AdeoGrid.vue'
 }
 
 function escapeHtml(s: string): string {
@@ -156,7 +156,7 @@ export const AllEvents: Story = {
         story: `
 ## All events with smart toolbar
 
-Active **toutes** les features du grid (\`selectable\`, \`expandable\`, \`virtual-scroll\`, \`virtual-columns\`, \`pagination\`, \`history-id\`, \`selection-bar-compact\`) et utilise \`<MrxGridSmartToolbar>\` pour le wiring batteries-included.
+Active **toutes** les features du grid (\`selectable\`, \`expandable\`, \`virtual-scroll\`, \`virtual-columns\`, \`pagination\`, \`history-id\`, \`selection-bar-compact\`) et utilise \`<AdeoGridSmartToolbar>\` pour le wiring batteries-included.
 
 ### Le pattern minimal
 
@@ -164,14 +164,14 @@ Active **toutes** les features du grid (\`selectable\`, \`expandable\`, \`virtua
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import {
-  MrxGrid,
-  MrxGridSmartToolbar,
+  AdeoGrid,
+  AdeoGridSmartToolbar,
   type DataDensity,
   type GroupingItem,
-} from '@/components/MrxGrid'
-import type { FilterModel } from '@/components/MrxGrid/models/filter.model'
+} from '@/components/AdeoGrid'
+import type { FilterModel } from '@/components/AdeoGrid/models/filter.model'
 
-const gridRef = ref<InstanceType<typeof MrxGrid> | null>(null)
+const gridRef = ref<InstanceType<typeof AdeoGrid> | null>(null)
 
 // State piloted by the smart toolbar
 const isFullscreen = ref(false)
@@ -184,7 +184,7 @@ const groupFields  = computed(() => activeGroups.value.map((g) => g.field))
 </script>
 
 <template>
-  <MrxGrid
+  <AdeoGrid
     ref="gridRef"
     :columns="columns"
     :rows="rows"
@@ -206,7 +206,7 @@ const groupFields  = computed(() => activeGroups.value.map((g) => g.field))
     @bulk-delete="onBulkDelete"
   >
     <template #toolbar>
-      <MrxGridSmartToolbar
+      <AdeoGridSmartToolbar
         :grid="gridRef"
         :columns="columns"
         v-model:fullscreen="isFullscreen"
@@ -225,7 +225,7 @@ const groupFields  = computed(() => activeGroups.value.map((g) => g.field))
         <p>SKU {{ row.sku }} · stock {{ row.stock }} · {{ row.price }} €</p>
       </div>
     </template>
-  </MrxGrid>
+  </AdeoGrid>
 </template>
 \`\`\`
 
@@ -256,9 +256,9 @@ Toute interaction avec la grille (click, drag, edit, hover sur un menu, ouvertur
     },
   },
   render: () => ({
-    components: { MrxGrid, MrxGridSmartToolbar },
+    components: { AdeoGrid, AdeoGridSmartToolbar },
     setup() {
-      const gridRef = ref<InstanceType<typeof MrxGrid> | null>(null)
+      const gridRef = ref<InstanceType<typeof AdeoGrid> | null>(null)
       const rows = ref([...generateLMProducts(80)])
       const events = ref<LoggedEvent[]>([])
       let nextId = 0
@@ -438,7 +438,7 @@ Toute interaction avec la grille (click, drag, edit, hover sur un menu, ouvertur
         </p>
 
         <div class="sb-mrx-frame">
-          <MrxGrid
+          <AdeoGrid
             ref="gridRef"
             :height="500"
             :columns="lmColumns"
@@ -475,7 +475,7 @@ Toute interaction avec la grille (click, drag, edit, hover sur un menu, ouvertur
                  toolbar bundles the four feature drawers + their wiring
                  internally — the consumer just picks the show-* features. -->
             <template #toolbar>
-              <MrxGridSmartToolbar
+              <AdeoGridSmartToolbar
                 :grid="gridRef"
                 :columns="lmColumns"
                 v-model:fullscreen="isFullscreen"
@@ -502,7 +502,7 @@ Toute interaction avec la grille (click, drag, edit, hover sur un menu, ouvertur
                 <span>· {{ row.store }}</span>
               </div>
             </template>
-          </MrxGrid>
+          </AdeoGrid>
         </div>
 
         <div class="sb-evlog">

@@ -1,11 +1,11 @@
 import type { Meta, StoryObj } from '@storybook/vue3-vite'
 import { ref } from 'vue'
-import { MrxGrid, MrxFormulaBar } from '@/components/MrxGrid'
-import type { CellEditEvent, ColumnDef, RowData } from '@/components/MrxGrid'
+import { AdeoGrid, AdeoFormulaBar } from '@/components/AdeoGrid'
+import type { CellEditEvent, ColumnDef, RowData } from '@/components/AdeoGrid'
 
 const meta = {
   title: 'Stories/Formula Engine/Basics · Custom functions · Refs',
-  component: MrxGrid,
+  component: AdeoGrid,
   tags: ['autodocs'],
   args: { rows: [] },
   parameters: {
@@ -37,8 +37,8 @@ Quand le formula engine est actif, la grille bascule visuellement :
 
 ### Composants associés
 
-- \`<MrxFormulaBar>\` — barre de formule type Excel, en haut de la grille
-- \`<MrxFormulaReferenceDrawer>\` — popup help avec la liste des fonctions
+- \`<AdeoFormulaBar>\` — barre de formule type Excel, en haut de la grille
+- \`<AdeoFormulaReferenceDrawer>\` — popup help avec la liste des fonctions
 
 ### API impérative
 
@@ -51,7 +51,7 @@ grid.getFormulaValue(rowId, field)          // returns the evaluated value
       },
     },
   },
-} satisfies Meta<typeof MrxGrid>
+} satisfies Meta<typeof AdeoGrid>
 
 export default meta
 type Story = StoryObj<typeof meta>
@@ -121,7 +121,7 @@ Le DAG est indexé par \`(rowId, field)\` — sans \`rowId\`, le moteur perd le 
     },
   },
   render: () => ({
-    components: { MrxGrid, MrxFormulaBar },
+    components: { AdeoGrid, AdeoFormulaBar },
     setup() {
       const cols: ColumnDef[] = [
         { field: 'id', headerName: 'ID', width: '60px', pinned: 'start' },
@@ -134,8 +134,8 @@ Le DAG est indexé par \`(rowId, field)\` — sans \`rowId\`, le moteur perd le 
       ]
       const rows = ref<OrderRow[]>(makeOrders())
 
-      const gridRef = ref<InstanceType<typeof MrxGrid>>()
-      const barRef = ref<InstanceType<typeof MrxFormulaBar>>()
+      const gridRef = ref<InstanceType<typeof AdeoGrid>>()
+      const barRef = ref<InstanceType<typeof AdeoFormulaBar>>()
 
       function onCellEdit(e: CellEditEvent) {
         const row = rows.value[e.rowIndex] as Record<string, unknown> | undefined
@@ -165,9 +165,9 @@ Le DAG est indexé par \`(rowId, field)\` — sans \`rowId\`, le moteur perd le 
           <li><strong>F4</strong> sur la ref au curseur → cycle <code>A1</code> → <code>$A$1</code> → <code>A$1</code> → <code>$A1</code></li>
           <li>Erreurs de calcul (<code>#DIV/0!</code>, <code>#REF!</code>…) rendues en rouge avec tooltip</li>
         </ul>
-        <MrxFormulaBar ref="barRef" :all-columns="cols" :rows="rows" />
+        <AdeoFormulaBar ref="barRef" :all-columns="cols" :rows="rows" />
         <div class="sb-mrx-frame">
-          <MrxGrid :height="560"
+          <AdeoGrid :height="560"
             ref="gridRef"
             :columns="cols"
             :rows="rows"
@@ -222,7 +222,7 @@ Pendant l'édition d'une formule, placez le curseur sur une ref et appuyez F4 �
     },
   },
   render: () => ({
-    components: { MrxGrid, MrxFormulaBar },
+    components: { AdeoGrid, AdeoFormulaBar },
     setup() {
       const cols: ColumnDef[] = [
         { field: 'id', headerName: 'ID', width: '60px', pinned: 'start' },
@@ -255,7 +255,7 @@ Pendant l'édition d'une formule, placez le curseur sur une ref et appuyez F4 �
         <h2>Cross-row references (<code>=A1</code>, <code>=B2+C3</code>…)</h2>
         <p>Le moteur supporte les références A1 entre lignes. Edite la cellule "Cumul" → la barre formule affiche la formule originale, le grid affiche la valeur évaluée.</p>
         <div class="sb-mrx-frame">
-          <MrxGrid :height="560" :columns="cols" :rows="rows" :row-id="(r) => String(r.id)" @cell-edit="onCellEdit" />
+          <AdeoGrid :height="560" :columns="cols" :rows="rows" :row-id="(r) => String(r.id)" @cell-edit="onCellEdit" />
         </div>
       </div>
     `,

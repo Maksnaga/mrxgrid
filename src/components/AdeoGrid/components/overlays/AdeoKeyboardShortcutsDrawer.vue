@@ -107,9 +107,9 @@ function close() {
 </script>
 
 <template>
-  <!-- See MrxGridFilterDrawer.vue for why we Teleport to <body>. -->
+  <!-- See AdeoGridFilterDrawer.vue for why we Teleport to <body>. -->
   <Teleport to="body">
-  <!-- See MrxGroupingDrawer.vue for why `close-on-overlay` stays
+  <!-- See AdeoGroupingDrawer.vue for why `close-on-overlay` stays
        disabled (Mozaic's MDrawer fires it on dialog-body whitespace). -->
   <MDrawer
     :open="open"

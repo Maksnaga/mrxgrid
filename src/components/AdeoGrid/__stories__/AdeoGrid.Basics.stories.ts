@@ -1,11 +1,11 @@
 import type { Meta, StoryObj } from '@storybook/vue3-vite'
 import { ref } from 'vue'
-import { MrxGrid } from '@/components/MrxGrid'
+import { AdeoGrid } from '@/components/AdeoGrid'
 import { lmColumns, lmProducts } from './_fixtures'
 
 const meta = {
   title: 'Stories/Basics/Density · Fullscreen · Row identity',
-  component: MrxGrid,
+  component: AdeoGrid,
   tags: ['autodocs'],
   args: { rows: [] },
   parameters: {
@@ -25,7 +25,7 @@ Trois props transversales que toute intégration touche tôt ou tard : la densit
       },
     },
   },
-} satisfies Meta<typeof MrxGrid>
+} satisfies Meta<typeof AdeoGrid>
 
 export default meta
 type Story = StoryObj<typeof meta>
@@ -37,7 +37,7 @@ export const Density: Story = {
         story: `
 ## Density
 
-Trois variantes au choix via \`:density\`. Les hauteurs de ligne sont définies dans \`MrxGrid.vue\` (\`DENSITY_ROW_HEIGHT\` constant) :
+Trois variantes au choix via \`:density\`. Les hauteurs de ligne sont définies dans \`AdeoGrid.vue\` (\`DENSITY_ROW_HEIGHT\` constant) :
 
 | Variant | Row height |
 |---------|-----------|
@@ -51,18 +51,18 @@ Les paddings des cellules suivent en SCSS (\`.mrx-grid-wrapper--compact\`, \`.mr
 
 \`\`\`vue
 <script setup>
-import type { DataDensity } from '@/components/MrxGrid'
+import type { DataDensity } from '@/components/AdeoGrid'
 const density = ref<DataDensity>('default')
 </script>
 
 <template>
-  <MrxGrid :columns="columns" :rows="rows" :density="density" />
+  <AdeoGrid :columns="columns" :rows="rows" :density="density" />
 </template>
 \`\`\`
 
 ### Tip
 
-Le \`<MrxTableMenuDrawer>\` expose un toggle de density natif — branchez son \`@apply\` pour piloter cette prop sans roll-your-own.
+Le \`<AdeoTableMenuDrawer>\` expose un toggle de density natif — branchez son \`@apply\` pour piloter cette prop sans roll-your-own.
         `,
       },
     },
@@ -75,7 +75,7 @@ Le \`<MrxTableMenuDrawer>\` expose un toggle de density natif — branchez son \
   },
   args: { density: 'default' },
   render: (args) => ({
-    components: { MrxGrid },
+    components: { AdeoGrid },
     setup: () => ({ lmColumns, lmProducts, args }),
     template: `
       <div class="sb-mrx-shell">
@@ -83,7 +83,7 @@ Le \`<MrxTableMenuDrawer>\` expose un toggle de density natif — branchez son \
         <p>Switch via prop <code>:density</code>. Hauteurs ligne : compact <code>25px</code>, default <code>37px</code>, comfortable <code>45px</code>.</p>
         <div class="sb-mrx-toolbar">Density actuelle : <code>{{ args.density }}</code></div>
         <div class="sb-mrx-frame">
-          <MrxGrid :height="560" :columns="lmColumns" :rows="lmProducts" :density="args.density" />
+          <AdeoGrid :height="560" :columns="lmColumns" :rows="lmProducts" :density="args.density" />
         </div>
       </div>
     `,
@@ -101,23 +101,23 @@ export const Fullscreen: Story = {
 
 ### Gotcha #1 — la toolbar disparaît
 
-Si vous rendez votre toolbar en *sibling* de \`<MrxGrid>\`, le mode fullscreen va la cacher derrière le grid. **Mettez-la dans le slot \`#toolbar\`** :
+Si vous rendez votre toolbar en *sibling* de \`<AdeoGrid>\`, le mode fullscreen va la cacher derrière le grid. **Mettez-la dans le slot \`#toolbar\`** :
 
 \`\`\`vue
-<MrxGrid :fullscreen="isFullscreen" :columns="cols" :rows="rows">
+<AdeoGrid :fullscreen="isFullscreen" :columns="cols" :rows="rows">
   <template #toolbar>
-    <MrxGridToolbar
+    <AdeoGridToolbar
       show-fullscreen
       :fullscreen="isFullscreen"
       @toggle-fullscreen="isFullscreen = !isFullscreen"
     />
   </template>
-</MrxGrid>
+</AdeoGrid>
 \`\`\`
 
 ### Gotcha #2 — la prop est unidirectionnelle
 
-\`fullscreen\` est une *prop* lue par la grille — pas un v-model. Le toolbar émet \`@toggle-fullscreen\`, à vous de flip la \`ref\`. Si vous voulez l'auto-câbler, utilisez \`<MrxGridSmartToolbar v-model:fullscreen="isFullscreen">\`.
+\`fullscreen\` est une *prop* lue par la grille — pas un v-model. Le toolbar émet \`@toggle-fullscreen\`, à vous de flip la \`ref\`. Si vous voulez l'auto-câbler, utilisez \`<AdeoGridSmartToolbar v-model:fullscreen="isFullscreen">\`.
 
 ### Tip
 
@@ -127,7 +127,7 @@ Combinez avec un \`<Teleport>\` parent si votre layout principal a un \`overflow
     },
   },
   render: () => ({
-    components: { MrxGrid },
+    components: { AdeoGrid },
     setup() {
       const fs = ref(false)
       return { lmColumns, lmProducts, fs }
@@ -137,7 +137,7 @@ Combinez avec un \`<Teleport>\` parent si votre layout principal a un \`overflow
         <h2>Fullscreen</h2>
         <p>Quand <code>:fullscreen</code> est <code>true</code> le grid couvre tout le viewport. Place tes contrôles (et la toolbar) dans le slot <code>#toolbar</code> pour qu'ils restent visibles.</p>
         <div class="sb-mrx-frame">
-          <MrxGrid :height="560" :columns="lmColumns" :rows="lmProducts" :fullscreen="fs">
+          <AdeoGrid :height="560" :columns="lmColumns" :rows="lmProducts" :fullscreen="fs">
             <template #toolbar>
               <div class="sb-mrx-toolbar" style="border-radius: 0; border-left: 0; border-right: 0; border-top: 0">
                 <button type="button" @click="fs = !fs">
@@ -145,7 +145,7 @@ Combinez avec un \`<Teleport>\` parent si votre layout principal a un \`overflow
                 </button>
               </div>
             </template>
-          </MrxGrid>
+          </AdeoGrid>
         </div>
       </div>
     `,
@@ -171,7 +171,7 @@ type RowIdResolver = (row: Record<string, unknown>, index: number) => string | n
 ### Implémentation
 
 \`\`\`vue
-<MrxGrid
+<AdeoGrid
   :columns="columns"
   :rows="rows"
   :row-id="(row) => String(row.sku)"
@@ -202,7 +202,7 @@ Si \`rowId\` n'est pas passé, la grille utilise :
     },
   },
   render: () => ({
-    components: { MrxGrid },
+    components: { AdeoGrid },
     setup: () => ({
       lmColumns,
       lmProducts,
@@ -214,7 +214,7 @@ Si \`rowId\` n'est pas passé, la grille utilise :
         <h2>Row identity via <code>:rowId</code></h2>
         <p>Indispensable pour persister la sélection / les formules / l'expansion à travers un re-tri ou un lazy-load. Ici, on utilise la <code>sku</code> du produit.</p>
         <div class="sb-mrx-frame">
-          <MrxGrid :height="560" :columns="lmColumns" :rows="lmProducts" :row-id="rowId" />
+          <AdeoGrid :height="560" :columns="lmColumns" :rows="lmProducts" :row-id="rowId" />
         </div>
       </div>
     `,

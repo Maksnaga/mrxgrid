@@ -23,8 +23,8 @@ export const DEFAULT_PAGE_SIZE_OPTIONS = [10, 25, 50, 100]
 export const DEFAULT_PAGE_SIZE = 25
 
 /**
- * Density → row height map. Matches `MrxTableMenuDrawer.vue` + the legacy
- * `DENSITY_ROW_HEIGHT` table in `MrxGrid.vue`. Source of truth — anyone reading
+ * Density → row height map. Matches `AdeoTableMenuDrawer.vue` + the legacy
+ * `DENSITY_ROW_HEIGHT` table in `AdeoGrid.vue`. Source of truth — anyone reading
  * a row height should derive from this when given a density.
  */
 export const DENSITY_ROW_HEIGHT: Record<GridDensity, number> = {

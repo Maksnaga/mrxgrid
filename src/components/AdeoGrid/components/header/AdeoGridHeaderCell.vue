@@ -2,8 +2,8 @@
 /**
  * Header cell — Angular parity (`moz-grid-header-cell`).
  *
- * One header cell, as rendered by `MrxGridHeader`. Formerly the cell markup
- * was duplicated three times in `MrxGridHeader.vue` (left-pinned / center /
+ * One header cell, as rendered by `AdeoGridHeader`. Formerly the cell markup
+ * was duplicated three times in `AdeoGridHeader.vue` (left-pinned / center /
  * right-pinned). This component consolidates the three copies into a single
  * definition; the parent keeps control of positioning (pinning offsets,
  * spacers, sticky layers, edge shadows) via the `cellStyle` / `cellClass`
@@ -22,7 +22,7 @@
 import { computed, type CSSProperties } from 'vue'
 import { Settings20, SortDown20, SortTop20 } from '@mozaic-ds/icons-vue'
 import type { ColumnDef, SortDirection } from '../../types'
-import { injectMrxGridSlots, resolveHeaderSlot } from '../../state/MrxGridSlots'
+import { injectAdeoGridSlots, resolveHeaderSlot } from '../../state/AdeoGridSlots'
 import { wasResizingRecently } from '@/composables/useColumnResize'
 
 const props = defineProps<{
@@ -78,8 +78,8 @@ const sortIcon = computed(() => {
   return null
 })
 
-// Phase 3.3 — resolve `#header-{field}` / `<MrxColumn> #header` / `#header` slot.
-const _gridSlots = injectMrxGridSlots()
+// Phase 3.3 — resolve `#header-{field}` / `<AdeoColumn> #header` / `#header` slot.
+const _gridSlots = injectAdeoGridSlots()
 const resolvedHeaderSlot = computed(() => resolveHeaderSlot(_gridSlots, props.column.field))
 
 /** True while this header is the column being drag-reordered — drives the

@@ -1,5 +1,5 @@
 import { ref, computed, isRef, onBeforeUnmount, type Ref } from 'vue'
-import type { ColumnDef, RowData } from '@/components/MrxGrid/types'
+import type { ColumnDef, RowData } from '@/components/AdeoGrid/types'
 
 export interface MouseSelectionOptions {
   allColumns: Ref<ColumnDef[]>

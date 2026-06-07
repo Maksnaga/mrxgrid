@@ -2,14 +2,14 @@
 /**
  * Mini-grid embarqué qui affiche les mouvements de stock d'un produit.
  *
- * Démontre le pattern "grid dans grid" : la même `<MrxGrid>` est
+ * Démontre le pattern "grid dans grid" : la même `<AdeoGrid>` est
  * réutilisable en lecture seule, compacte, sans toolbar et avec ses
  * propres colonnes — typique d'une vue "détail" qui contient ses
  * sous-tableaux.
  */
 
 import { markRaw, onMounted, ref, watch } from 'vue'
-import { MrxGrid, type ColumnDef } from '@/components/MrxGrid'
+import { AdeoGrid, type ColumnDef } from '@/components/AdeoGrid'
 import { getProductMovements } from '../../mock/api'
 import type { StockMovement } from '../../mock/seed'
 import MovementTypeCell from './MovementTypeCell.vue'
@@ -77,7 +77,7 @@ const columns: ColumnDef[] = [
 </script>
 
 <template>
-  <MrxGrid
+  <AdeoGrid
     class="product-movements-grid"
     :columns="columns"
     :rows="rows"
@@ -89,7 +89,7 @@ const columns: ColumnDef[] = [
   >
     <!-- Pas de toolbar — vue lecture seule purement informative. -->
     <template #toolbar><span /></template>
-  </MrxGrid>
+  </AdeoGrid>
 </template>
 
 <style scoped lang="scss">

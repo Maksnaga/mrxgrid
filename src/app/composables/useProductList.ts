@@ -5,10 +5,10 @@
  *
  * Tous les changements d'input (page, sort, filterModel, search)
  * déclenchent automatiquement un re-fetch. Le consumer câble juste les
- * refs sur le `<MrxGrid>` :
+ * refs sur le `<AdeoGrid>` :
  *
  *   const list = useProductList()
- *   <MrxGrid
+ *   <AdeoGrid
  *     :rows="list.rows"
  *     :total-rows="list.total"
  *     :loading="list.loading"
@@ -20,7 +20,7 @@
  */
 
 import { computed, ref, watch, type Ref } from 'vue'
-import type { FilterModel } from '@/components/MrxGrid'
+import type { FilterModel } from '@/components/AdeoGrid'
 import { fetchProducts, type FetchProductsParams, type FetchProductsResult } from '../mock/api'
 import type { LMProduct } from '../mock/seed'
 import { useDebouncedRef } from './useDebouncedRef'
@@ -31,7 +31,7 @@ export interface UseProductListReturn {
   /**
    * `true` pendant les fetches "user-driven" qui repartent d'une grille
    * vide ou d'un changement majeur d'input (initial, page, sort, filter,
-   * search). Drive le squelette plein écran sur `<MrxGrid :loading>`.
+   * search). Drive le squelette plein écran sur `<AdeoGrid :loading>`.
    */
   loading: Ref<boolean>
   /**
@@ -39,7 +39,7 @@ export interface UseProductListReturn {
    * edit, fill, bulk action, delete). Les rows sont déjà visibles ; on
    * ne veut pas effacer le tableau — juste signaler qu'un fetch est en
    * vol. Drive la barre de progression discrète sur
-   * `<MrxGrid :refreshing>`. Indépendant de `loading`.
+   * `<AdeoGrid :refreshing>`. Indépendant de `loading`.
    */
   refreshing: Ref<boolean>
   error: Ref<Error | null>

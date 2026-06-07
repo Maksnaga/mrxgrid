@@ -15,7 +15,7 @@
  */
 
 import { computed, markRaw, ref, h, defineComponent, type PropType } from 'vue'
-import { MrxGrid, type ColumnDef, type CellEditEvent } from '@/components/MrxGrid'
+import { AdeoGrid, type ColumnDef, type CellEditEvent } from '@/components/AdeoGrid'
 import { MTag, MTextInput } from '@mozaic-ds/vue'
 import { Search24 } from '@mozaic-ds/icons-vue'
 import productsData from '../mock/adeo-products.json'
@@ -411,7 +411,7 @@ function onCellEdit(e: CellEditEvent): void {
       </MTextInput>
     </header>
 
-    <MrxGrid
+    <AdeoGrid
       class="adeo-pim__grid"
       :columns="columns"
       :rows="visibleRows"
@@ -434,7 +434,7 @@ function onCellEdit(e: CellEditEvent): void {
   gap: 12px;
   min-height: 0;
   /* Pas de `flex: 1` ici : ça override la `height: 640px` inline que
-     `<MrxGrid>` applique à sa racine et le grid mange toute la viewport.
+     `<AdeoGrid>` applique à sa racine et le grid mange toute la viewport.
      On laisse le flow vertical naturel — la section grandit selon le
      contenu, et la grille respecte son `:height="640"`. */
 }

@@ -5,7 +5,7 @@
  * - `state.activeSorts` — ordered multi-sort stack of `SortDef`
  * - `state.columnStates[i].sort` / `.sortIndex` — kept in sync for header UI
  *
- * Consumed by `useGridEngine.sortedData` (pipeline first stage). `MrxGrid.vue`
+ * Consumed by `useGridEngine.sortedData` (pipeline first stage). `AdeoGrid.vue`
  * exposes the methods on the template via the returned handle.
  */
 

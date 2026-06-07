@@ -1,5 +1,5 @@
 import { ref, shallowRef, type Ref } from 'vue'
-import type { RowData } from '@/components/MrxGrid/types'
+import type { RowData } from '@/components/AdeoGrid/types'
 
 export interface LazyRowsOptions {
   /**

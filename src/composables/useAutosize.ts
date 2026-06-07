@@ -1,11 +1,11 @@
 import type { Ref } from 'vue'
 
-import type { GridState } from '@/components/MrxGrid/state/useGridState'
-import type { ColumnDef, RowData } from '@/components/MrxGrid/types'
+import type { GridState } from '@/components/AdeoGrid/state/useGridState'
+import type { ColumnDef, RowData } from '@/components/AdeoGrid/types'
 
 const MIN_WIDTH = 50
 // Header overhead: sort indicator (~14px) + gap + kebab trigger (~28px with
-// padding) — measured against `MrxGridHeaderCell.vue`.
+// padding) — measured against `AdeoGridHeaderCell.vue`.
 const HEADER_AFFORDANCE = 52
 // Tiny safety pad to absorb canvas-vs-DOM measurement divergence (kerning,
 // ligatures, font fallbacks). Without it, a column tuned to the very last

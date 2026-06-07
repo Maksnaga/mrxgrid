@@ -1,5 +1,5 @@
 import { computed, onUnmounted, shallowRef, watch, type ComputedRef, type Ref } from 'vue'
-import type { ColumnDef } from '@/components/MrxGrid/types'
+import type { ColumnDef } from '@/components/AdeoGrid/types'
 
 const DEFAULT_COL_WIDTH = 150
 

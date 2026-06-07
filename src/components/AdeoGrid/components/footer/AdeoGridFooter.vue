@@ -2,18 +2,18 @@
 /**
  * Grid footer — Angular parity (`moz-grid-footer`).
  *
- * Thin composition that stacks `MrxGridLoadingIndicator` (shown while more
- * rows are being fetched) above `MrxGridPagination`. All pagination props
+ * Thin composition that stacks `AdeoGridLoadingIndicator` (shown while more
+ * rows are being fetched) above `AdeoGridPagination`. All pagination props
  * and events are forwarded 1-for-1; the footer has no logic of its own.
  *
  * The footer is only the *shell*. The parent grid continues to own the
  * pagination/loading state and wires it back via the engine — this component
- * just groups the two pieces so the root `MrxGrid.vue` can render a single
- * `<MrxGridFooter>` block instead of two siblings.
+ * just groups the two pieces so the root `AdeoGrid.vue` can render a single
+ * `<AdeoGridFooter>` block instead of two siblings.
  */
 
-import MrxGridPagination from './MrxGridPagination.vue'
-import MrxGridLoadingIndicator from './MrxGridLoadingIndicator.vue'
+import AdeoGridPagination from './AdeoGridPagination.vue'
+import AdeoGridLoadingIndicator from './AdeoGridLoadingIndicator.vue'
 
 defineProps<{
   /** Show pagination controls (parent already decides based on loadingStrategy). */
@@ -23,7 +23,7 @@ defineProps<{
   /** Optional label override for the loading indicator. */
   loadingText?: string
 
-  // ——— forwarded to MrxGridPagination ——————————————————————————————————
+  // ——— forwarded to AdeoGridPagination ——————————————————————————————————
   currentPage: number
   pageSize: number
   totalPages: number
@@ -43,9 +43,9 @@ const emit = defineEmits<{
 
 <template>
   <div class="mrx-grid-footer">
-    <MrxGridLoadingIndicator v-if="loading" :text="loadingText" />
+    <AdeoGridLoadingIndicator v-if="loading" :text="loadingText" />
 
-    <MrxGridPagination
+    <AdeoGridPagination
       v-if="showPagination"
       :current-page="currentPage"
       :page-size="pageSize"

@@ -1,7 +1,7 @@
 /**
  * Central grid state — Angular parity (moz-grid / `GridStateManager`).
  *
- * Each `<MrxGrid>` instance creates one `GridState` via `useGridState()` and
+ * Each `<AdeoGrid>` instance creates one `GridState` via `useGridState()` and
  * provides it under `GRID_STATE_KEY`. Feature composables read/write through
  * the returned refs/computeds. Names match Angular 1-for-1: when in doubt,
  * read `projects/mozaic-ng/src/lib/grid/state/grid-state.ts` side-by-side.
@@ -53,7 +53,7 @@ export interface GridState<T = RowData> {
    *
    * Consumers don't need to touch this. It's exposed on the public
    * `GridState` shape only because the downstream computeds in
-   * `MrxGrid.vue` and the engine layer need to reference it.
+   * `AdeoGrid.vue` and the engine layer need to reference it.
    */
   readonly dataVersion: Ref<number>
 
@@ -76,7 +76,7 @@ export interface GridState<T = RowData> {
   readonly filterModel: Ref<FilterModel>
   /**
    * Filter evaluation mode, decoupled from the grid-level `mode`. Default `'client'`.
-   * `MrxGrid.vue` derives it from the `filterMode` prop (falling back to `serverFilter`).
+   * `AdeoGrid.vue` derives it from the `filterMode` prop (falling back to `serverFilter`).
    */
   readonly filterMode: Ref<FilterMode>
 
@@ -146,7 +146,7 @@ export interface GridState<T = RowData> {
    * Resolves the stable row id from a row + its index in `sourceData`. Used
    * by the formula engine and any downstream feature that needs row ids
    * without assuming a specific field name. Default reads `row[rowIdField]`,
-   * but `MrxGrid` overrides this with the user-supplied `rowId` function
+   * but `AdeoGrid` overrides this with the user-supplied `rowId` function
    * prop so grids whose row data has no `id` field still work end-to-end.
    */
   readonly rowIdResolver: Ref<
@@ -194,7 +194,7 @@ export interface GridState<T = RowData> {
   updateColumnState(field: string, updates: Partial<ColumnStateEntry>): void
 }
 
-/** Create a fresh grid state. Call once per `<MrxGrid>` instance. */
+/** Create a fresh grid state. Call once per `<AdeoGrid>` instance. */
 export function useGridState<T = RowData>(): GridState<T> {
   // --- Source data ---
   const sourceData = ref([]) as Ref<T[]>

@@ -1,6 +1,6 @@
 import { computed, type ComputedRef, type Ref } from 'vue'
-import type { GridState } from '@/components/MrxGrid/state/useGridState'
-import type { ColumnDef, RowData } from '@/components/MrxGrid/types'
+import type { GridState } from '@/components/AdeoGrid/state/useGridState'
+import type { ColumnDef, RowData } from '@/components/AdeoGrid/types'
 
 export interface GroupEntry {
   field: string
@@ -155,11 +155,11 @@ function flattenTree(
  *
  * Phase 2.7: state lives on `gridState.groupColumns` + `gridState.expandedGroups`
  * (the single source of truth). The legacy `groupFields` / `expandedGroups`
- * shapes are exposed as derived computeds so consumers (`MrxGridGroupBar`,
- * `MrxGridBody`, etc.) keep their existing API.
+ * shapes are exposed as derived computeds so consumers (`AdeoGridGroupBar`,
+ * `AdeoGridBody`, etc.) keep their existing API.
  *
  * Group keys preserve the legacy `field::value|nested::value` format
- * — `MrxGridGroupRow` reads these via `__mrxKey`. Server-side grouping
+ * — `AdeoGridGroupRow` reads these via `__mrxKey`. Server-side grouping
  * (`useServerGrouping`) keeps its own state, deliberately, since it has a
  * different async lifecycle.
  */

@@ -1,6 +1,6 @@
 import type { Ref } from 'vue'
-import type { ColumnDef, RowData, SelectionRange } from '@/components/MrxGrid/types'
-import type { GridState } from '@/components/MrxGrid/state/useGridState'
+import type { ColumnDef, RowData, SelectionRange } from '@/components/AdeoGrid/types'
+import type { GridState } from '@/components/AdeoGrid/state/useGridState'
 
 export interface ClipboardOptions {
   /** Central grid state — owns `cutSource` for the marching-ants outline. */

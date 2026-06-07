@@ -12,9 +12,9 @@ import {
 import { Danger24 } from '@mozaic-ds/icons-vue'
 import { MSelect, MTooltip } from '@mozaic-ds/vue'
 import type { ColumnDef, RowData } from '../../types'
-import { injectMrxGridSlots, resolveCellSlot, resolveEditSlot } from '../../state/MrxGridSlots'
+import { injectAdeoGridSlots, resolveCellSlot, resolveEditSlot } from '../../state/AdeoGridSlots'
 import { BUILTIN_RENDERERS, type BuiltinRendererName } from '../../features/renderers/builtin'
-import MrxGridFormulaEditor from './MrxGridFormulaEditor.vue'
+import AdeoGridFormulaEditor from './AdeoGridFormulaEditor.vue'
 
 /**
  * `<SlotInvoker>` — functional wrapper qui invoque une `Slot` (resolved
@@ -81,11 +81,11 @@ const emit = defineEmits<{
 }>()
 
 // --- Slot resolution (Phase 3.3) ---
-// Per-field slots from <MrxGrid> root, or <MrxColumn>-attached slots, are
-// resolved dynamically via the injected `MrxGridSlots` context. The local
-// default slot (passed by MrxGridRow) wins when present — that's how the
+// Per-field slots from <AdeoGrid> root, or <AdeoColumn>-attached slots, are
+// resolved dynamically via the injected `AdeoGridSlots` context. The local
+// default slot (passed by AdeoGridRow) wins when present — that's how the
 // row forwards explicit overrides, and is the path used in tests today.
-const _gridSlots = injectMrxGridSlots()
+const _gridSlots = injectAdeoGridSlots()
 const resolvedCellSlot = computed(() => resolveCellSlot(_gridSlots, props.field))
 const resolvedEditSlot = computed(() => resolveEditSlot(_gridSlots, props.field))
 
@@ -460,9 +460,9 @@ function onEditKeydown(e: KeyboardEvent) {
     @keydown="onCellKeydown"
   >
     <!-- Slot resolution (most specific → least specific):
-         1. Local <slot> override (forwarded explicitly by MrxGridRow)
-         2. <MrxColumn> #cell slot, or <MrxGrid> #cell-{field} slot
-         3. <MrxGrid> #cell generic slot
+         1. Local <slot> override (forwarded explicitly by AdeoGridRow)
+         2. <AdeoColumn> #cell slot, or <AdeoGrid> #cell-{field} slot
+         3. <AdeoGrid> #cell generic slot
          4. column.renderer
          5. column.valueFormatter / String(value)
     -->
@@ -542,7 +542,7 @@ function onEditKeydown(e: KeyboardEvent) {
           @blur="emit('editBlur')"
         />
         <!-- 4. Spreadsheet-style editor for formula columns -->
-        <MrxGridFormulaEditor
+        <AdeoGridFormulaEditor
           v-else-if="column.allowFormula"
           :model-value="(localEditValue as string) ?? ''"
           :field-order="formulaFieldOrder"
@@ -759,7 +759,7 @@ function onEditKeydown(e: KeyboardEvent) {
 //
 // The 5th slot (`--mrx-cell-outer-shadow`) is reserved for cell-level
 // outer shadows (set by `.mrx-grid-cell--pinned-left-edge` /
-// `--pinned-right-edge` in `MrxGridRow.vue`). Composing all five in a
+// `--pinned-right-edge` in `AdeoGridRow.vue`). Composing all five in a
 // single `box-shadow` declaration is what lets the pinned drop-shadow
 // and the selection range outline coexist — declaring them in separate
 // rules used to clobber each other.
@@ -796,8 +796,8 @@ function onEditKeydown(e: KeyboardEvent) {
 }
 
 // Pinned drop-shadow lives on the same `box-shadow` slot stack so it
-// composes with the selection edges. Declared here (in `MrxGridCell.vue`)
-// rather than in the parent `MrxGridRow.vue` to keep the cascade order
+// composes with the selection edges. Declared here (in `AdeoGridCell.vue`)
+// rather than in the parent `AdeoGridRow.vue` to keep the cascade order
 // deterministic — the variable defaults above are overridden by these
 // rules within the same stylesheet.
 .mrx-grid-cell--pinned-left-edge {
@@ -1047,7 +1047,7 @@ function onEditKeydown(e: KeyboardEvent) {
   }
 }
 
-/* Skeleton shimmer — partagée entre le full-skeleton (`MrxGridSkeletonRow`)
+/* Skeleton shimmer — partagée entre le full-skeleton (`AdeoGridSkeletonRow`)
  * et le cell-level pending (`.mrx-grid-cell--pending::after`). Unscoped
  * pour rester accessible aux scoped styles des autres SFC qui réfèrent
  * `animation: mrx-skeleton-shimmer ...` par nom. (`_animations.scss`

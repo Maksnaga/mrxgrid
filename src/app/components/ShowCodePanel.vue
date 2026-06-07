@@ -1,7 +1,7 @@
 <script setup lang="ts">
 /**
  * Panneau "Tutoriel" — guide pas-à-pas pour construire une datagrid pro
- * avec MrxGrid + Mozaic. 19 étapes groupées en 6 phases.
+ * avec AdeoGrid + Mozaic. 19 étapes groupées en 6 phases.
  *
  * Layout split horizontal :
  *   • Sidebar 300px — étapes numérotées, groupées par phase

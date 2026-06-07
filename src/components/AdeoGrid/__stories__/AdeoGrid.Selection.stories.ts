@@ -1,12 +1,12 @@
 import type { Meta, StoryObj } from '@storybook/vue3-vite'
 import { computed, ref } from 'vue'
-import { MrxGrid, MrxGridToolbar } from '@/components/MrxGrid'
-import type { SelectionModel } from '@/components/MrxGrid'
+import { AdeoGrid, AdeoGridToolbar } from '@/components/AdeoGrid'
+import type { SelectionModel } from '@/components/AdeoGrid'
 import { lmColumns, lmProducts } from './_fixtures'
 
 const meta = {
   title: 'Stories/Selection/Row · Cell · Bulk',
-  component: MrxGrid,
+  component: AdeoGrid,
   tags: ['autodocs'],
   args: { rows: [] },
   parameters: {
@@ -39,7 +39,7 @@ Cette représentation supporte le pattern Gmail "select all + uncheck a few" san
 Pour afficher "X rows selected · Select all N rows · Clear" dans la toolbar :
 
 \`\`\`vue
-<MrxGridToolbar
+<AdeoGridToolbar
   :selected-count="grid?.selectedCount ?? 0"
   :total-count="grid?.selectionTotalCount ?? 0"
   :all-selected="grid?.selectionModel?.allSelected ?? false"
@@ -48,7 +48,7 @@ Pour afficher "X rows selected · Select all N rows · Clear" dans la toolbar :
 />
 \`\`\`
 
-Combinez avec \`<MrxGrid selection-bar-compact>\` pour que la barre flottante n'affiche plus que les boutons d'action (Edit / Copy / Paste / Delete) sans le compteur.
+Combinez avec \`<AdeoGrid selection-bar-compact>\` pour que la barre flottante n'affiche plus que les boutons d'action (Edit / Copy / Paste / Delete) sans le compteur.
 
 ### API impérative
 
@@ -61,7 +61,7 @@ Combinez avec \`<MrxGrid selection-bar-compact>\` pour que la barre flottante n'
       },
     },
   },
-} satisfies Meta<typeof MrxGrid>
+} satisfies Meta<typeof AdeoGrid>
 
 export default meta
 type Story = StoryObj<typeof meta>
@@ -80,7 +80,7 @@ export const RowSelection: Story = {
 \`\`\`vue
 <script setup lang="ts">
 import { ref } from 'vue'
-import type { SelectionModel } from '@/components/MrxGrid'
+import type { SelectionModel } from '@/components/AdeoGrid'
 
 const selection = ref<SelectionModel>({
   allSelected: false,
@@ -90,7 +90,7 @@ const selection = ref<SelectionModel>({
 </script>
 
 <template>
-  <MrxGrid
+  <AdeoGrid
     :columns="columns"
     :rows="rows"
     selectable
@@ -122,9 +122,9 @@ Toujours pointer vers une clé domain (\`sku\`, \`uuid\`, \`id\`).
     },
   },
   render: () => ({
-    components: { MrxGrid, MrxGridToolbar },
+    components: { AdeoGrid, AdeoGridToolbar },
     setup() {
-      const gridRef = ref<InstanceType<typeof MrxGrid> | null>(null)
+      const gridRef = ref<InstanceType<typeof AdeoGrid> | null>(null)
       const selection = ref<SelectionModel>({
         allSelected: false,
         selectedIds: new Set<string>(),
@@ -155,7 +155,7 @@ Toujours pointer vers une clé domain (\`sku\`, \`uuid\`, \`id\`).
       <div class="sb-mrx-shell">
         <h2>Row checkbox selection</h2>
         <p>Active <code>:selectable</code>. La case master du header gère <code>none / some / all</code>. Le banner de sélection est géré dans la toolbar via <code>:selected-count</code> / <code>:total-count</code> / <code>:all-selected</code> + <code>@select-all-rows</code> / <code>@clear-selection</code>.</p>
-        <MrxGridToolbar
+        <AdeoGridToolbar
           show-filters
           show-settings
           show-keyboard
@@ -166,7 +166,7 @@ Toujours pointer vers une clé domain (\`sku\`, \`uuid\`, \`id\`).
           @clear-selection="onClearSelection"
         />
         <div class="sb-mrx-frame">
-          <MrxGrid
+          <AdeoGrid
             ref="gridRef"
             :height="560"
             :columns="lmColumns"
@@ -211,20 +211,20 @@ grid.cellSelection.allRanges   // ReadonlyArray<Range>
 
 ### Désactiver
 
-Pas de prop pour off — si vous ne voulez pas de cell selection, ne fournissez pas de \`@cell-edit\`/\`@fill\` listeners et n'utilisez pas \`<MrxGridSelectionBar>\`. Les ranges restent calculées mais sans effet visible si vous ne stylez rien.
+Pas de prop pour off — si vous ne voulez pas de cell selection, ne fournissez pas de \`@cell-edit\`/\`@fill\` listeners et n'utilisez pas \`<AdeoGridSelectionBar>\`. Les ranges restent calculées mais sans effet visible si vous ne stylez rien.
         `,
       },
     },
   },
   render: () => ({
-    components: { MrxGrid },
+    components: { AdeoGrid },
     setup: () => ({ lmColumns, lmProducts }),
     template: `
       <div class="sb-mrx-shell">
         <h2>Cell range selection</h2>
         <p>Comme Excel : click → cellule active, drag → range, <kbd>Shift</kbd>+click → étend, <kbd>Ctrl</kbd>+<kbd>A</kbd> → tout. Le sélecteur range est natif.</p>
         <div class="sb-mrx-frame">
-          <MrxGrid :height="560" :columns="lmColumns" :rows="lmProducts" />
+          <AdeoGrid :height="560" :columns="lmColumns" :rows="lmProducts" />
         </div>
       </div>
     `,
@@ -270,7 +270,7 @@ function onBulkDelete(payload: {
 </script>
 
 <template>
-  <MrxGrid
+  <AdeoGrid
     :columns="columns"
     :rows="rows"
     selectable
@@ -284,7 +284,7 @@ function onBulkDelete(payload: {
 Quand vous voulez que le compteur + Select all + Clear vivent dans la toolbar (pas dans la barre flottante), ajoutez \`selection-bar-compact\` :
 
 \`\`\`vue
-<MrxGrid selectable selection-bar-compact ... />
+<AdeoGrid selectable selection-bar-compact ... />
 \`\`\`
 
 La barre flottante ne montre alors plus que les boutons d'action.
@@ -292,20 +292,20 @@ La barre flottante ne montre alors plus que les boutons d'action.
 ### Custom actions (#actions slot)
 
 \`\`\`vue
-<MrxGrid selectable>
+<AdeoGrid selectable>
   <template #selection-actions="{ selectedCount, mode, clearSelection, close }">
     <button @click="archive(); clearSelection(); close()">Archive {{ selectedCount }}</button>
   </template>
-</MrxGrid>
+</AdeoGrid>
 \`\`\`
         `,
       },
     },
   },
   render: () => ({
-    components: { MrxGrid, MrxGridToolbar },
+    components: { AdeoGrid, AdeoGridToolbar },
     setup() {
-      const gridRef = ref<InstanceType<typeof MrxGrid> | null>(null)
+      const gridRef = ref<InstanceType<typeof AdeoGrid> | null>(null)
       const rows = ref([...lmProducts])
       const lastBulk = ref<string>('—')
       function onBulkDelete(payload: { fills: Array<{ rowIndex: number; field: string; oldValue: unknown }> }) {
@@ -345,7 +345,7 @@ La barre flottante ne montre alors plus que les boutons d'action.
         <h2>Bulk delete via action bar</h2>
         <p>Sélectionne plusieurs cellules ou lignes puis <kbd>Delete</kbd>. L'évent <code>bulkDelete</code> remonte le payload pour appliquer le clear côté state.</p>
         <div class="sb-mrx-toolbar">Dernière action : <code>{{ lastBulk }}</code></div>
-        <MrxGridToolbar
+        <AdeoGridToolbar
           show-fullscreen
           show-export
           show-filters
@@ -358,7 +358,7 @@ La barre flottante ne montre alors plus que les boutons d'action.
           @clear-selection="onClearSelection"
         />
         <div class="sb-mrx-frame">
-          <MrxGrid
+          <AdeoGrid
             ref="gridRef"
             :height="560"
             :columns="lmColumns"

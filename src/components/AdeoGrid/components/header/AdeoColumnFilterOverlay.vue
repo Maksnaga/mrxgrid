@@ -6,7 +6,7 @@
  * Manages one or more `Draft` rows locally (one row = one operator/value
  * pair for the column). Live-applies on every change: operator picks
  * commit immediately, free-typed values debounce at 200ms. The host
- * (`MrxGrid`) routes each emit through the existing filter engine so
+ * (`AdeoGrid`) routes each emit through the existing filter engine so
  * the FILTERED BY tag bar updates without an explicit "Apply" press.
  *
  * Adding a row appends a new draft anchored to the same column. Removing
@@ -338,7 +338,7 @@ function onValueSelect(d: Draft, v: string | number) {
 }
 
 /**
- * `MrxFilterParams.onModelChange` — invoked by the filter component each
+ * `AdeoFilterParams.onModelChange` — invoked by the filter component each
  * time it announces a new model. Mirrors the model onto the draft, then
  * emits `apply` (still active) or `remove` (cleared). Idempotent: a
  * subsequent `onModelChange(null)` is a safe no-op when nothing was set.

@@ -3,7 +3,7 @@
  * Filtre custom AG-Grid sur la colonne `category` (Rayon).
  *
  * Implémente le contrat documenté dans `models/filter.model.ts` :
- *  - reçoit un seul prop `params: MrxFilterParams<…>` qui bundle
+ *  - reçoit un seul prop `params: AdeoFilterParams<…>` qui bundle
  *    `{ model, column, filterParams, getValue, onModelChange }`
  *  - expose via `defineExpose` les hooks optionnels que le builder /
  *    column overlay appellent : `isFilterActive`, `refresh`, `getModelAsString`
@@ -15,11 +15,11 @@
 
 import { computed, ref } from 'vue'
 import { MCombobox } from '@mozaic-ds/vue'
-import type { MrxFilterParams } from '@/components/MrxGrid'
+import type { AdeoFilterParams } from '@/components/AdeoGrid'
 import type { LMProduct } from '../../mock/seed'
 
 const props = defineProps<{
-  params: MrxFilterParams<LMProduct, string[]>
+  params: AdeoFilterParams<LMProduct, string[]>
 }>()
 
 // État local — la grille est source de vérité (`params.model`), on syncro
@@ -51,7 +51,7 @@ function onUpdate(value: string | number | (string | number)[] | null): void {
 
 defineExpose({
   isFilterActive: () => model.value.length > 0,
-  refresh: (newParams: MrxFilterParams<LMProduct, string[]>): boolean => {
+  refresh: (newParams: AdeoFilterParams<LMProduct, string[]>): boolean => {
     model.value = Array.isArray(newParams.model) ? newParams.model : []
     return true
   },

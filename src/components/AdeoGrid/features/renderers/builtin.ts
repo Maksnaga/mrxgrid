@@ -1,7 +1,7 @@
 /**
  * Built-in cell renderers — Sprint 4 (REFONTE-PLAN-V2 §2.8).
  *
- * Resolved by `MrxGridCell` when a column declares `renderer: '<name>'`
+ * Resolved by `AdeoGridCell` when a column declares `renderer: '<name>'`
  * with a string instead of a Component. Keeps the column definition
  * declarative for the common cases ("just render this value as a tag")
  * without forcing the consumer to reach for `defineComponent`.
@@ -15,7 +15,7 @@ import { MTag } from '@mozaic-ds/vue'
 
 const TagRenderer = markRaw(
   defineComponent({
-    name: 'MrxBuiltinTagRenderer',
+    name: 'AdeoBuiltinTagRenderer',
     props: {
       value: { type: null, required: false, default: null },
     },

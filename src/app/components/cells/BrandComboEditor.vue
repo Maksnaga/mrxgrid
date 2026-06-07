@@ -17,7 +17,7 @@
 
 import { computed } from 'vue'
 import { MCombobox } from '@mozaic-ds/vue'
-import type { ColumnDef } from '@/components/MrxGrid'
+import type { ColumnDef } from '@/components/AdeoGrid'
 
 const props = defineProps<{
   /** Champ de la colonne (utilisé pour générer un id stable). */

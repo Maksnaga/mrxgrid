@@ -1,5 +1,5 @@
-import type { GridState } from '@/components/MrxGrid/state/useGridState'
-import type { RowData } from '@/components/MrxGrid/types'
+import type { GridState } from '@/components/AdeoGrid/state/useGridState'
+import type { RowData } from '@/components/AdeoGrid/types'
 
 // Minimum width for a resizable column.
 //
@@ -24,7 +24,7 @@ const MIN_WIDTH = 120
 
 /**
  * Module-level flag — set to `true` from resize mousedown until shortly
- * after mouseup. `MrxGridHeaderCell.onHeaderClick` consults
+ * after mouseup. `AdeoGridHeaderCell.onHeaderClick` consults
  * `wasResizingRecently()` to decide whether to sort.
  *
  * The browser fires a synthetic `click` event after every mouseup whose
@@ -60,7 +60,7 @@ export function wasResizingRecently(): boolean {
  * legacy `widths: ColumnWidths` reactive map is gone (it created a second
  * source that had to be kept in sync via a watch).
  *
- * Signatures kept stable so consumers (`MrxGridHeader` → `onResizeStart`,
+ * Signatures kept stable so consumers (`AdeoGridHeader` → `onResizeStart`,
  * pinned/virtual layout → `getColumnWidth`) don't change.
  */
 export function useColumnResize<T = RowData>(gridState: GridState<T>) {

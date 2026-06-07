@@ -1,12 +1,12 @@
 import type { Meta, StoryObj } from '@storybook/vue3-vite'
 import { computed, ref } from 'vue'
-import { MrxGrid, MrxGroupingDrawer, MrxGridToolbar } from '@/components/MrxGrid'
-import type { GroupingItem, ServerGroupingOptions, RowData } from '@/components/MrxGrid'
+import { AdeoGrid, AdeoGroupingDrawer, AdeoGridToolbar } from '@/components/AdeoGrid'
+import type { GroupingItem, ServerGroupingOptions, RowData } from '@/components/AdeoGrid'
 import { lmColumns, lmProducts, generateLMProducts, type LMProduct } from './_fixtures'
 
 const meta = {
   title: 'Stories/Grouping/Single · Nested · Drawer · Server-side',
-  component: MrxGrid,
+  component: AdeoGrid,
   tags: ['autodocs'],
   args: { rows: [] },
   parameters: {
@@ -20,7 +20,7 @@ Regroupe les rows par valeur d'un (ou plusieurs) champ(s). Une "group row" s'ins
 ### Activation
 
 \`\`\`vue
-<MrxGrid :group-fields="['category', 'brand']" :columns="cols" :rows="rows" />
+<AdeoGrid :group-fields="['category', 'brand']" :columns="cols" :rows="rows" />
 \`\`\`
 
 ### Group row metadata
@@ -50,7 +50,7 @@ Utilisez \`isGroupRow(row)\` (depuis \`types.ts\`) pour filtrer si nécessaire.
       },
     },
   },
-} satisfies Meta<typeof MrxGrid>
+} satisfies Meta<typeof AdeoGrid>
 
 export default meta
 type Story = StoryObj<typeof meta>
@@ -63,7 +63,7 @@ export const SingleField: Story = {
 ## Single-field grouping
 
 \`\`\`vue
-<MrxGrid :group-fields="['category']" :columns="columns" :rows="rows" />
+<AdeoGrid :group-fields="['category']" :columns="columns" :rows="rows" />
 \`\`\`
 
 Le pipeline insère une "group header row" par valeur distincte de \`category\`. Click sur la row → toggle expand/collapse.
@@ -78,14 +78,14 @@ Le pipeline insère une "group header row" par valeur distincte de \`category\`.
     },
   },
   render: () => ({
-    components: { MrxGrid },
+    components: { AdeoGrid },
     setup: () => ({ lmColumns, lmProducts, groupFields: ['category'] }),
     template: `
       <div class="sb-mrx-shell">
         <h2>Single-field grouping (par Rayon)</h2>
         <p>Pass <code>:group-fields="['category']"</code>. Une row "header de groupe" s'insère par valeur, click pour expand/collapse.</p>
         <div class="sb-mrx-frame">
-          <MrxGrid :height="560" :columns="lmColumns" :rows="lmProducts" :group-fields="groupFields" />
+          <AdeoGrid :height="560" :columns="lmColumns" :rows="lmProducts" :group-fields="groupFields" />
         </div>
       </div>
     `,
@@ -102,7 +102,7 @@ export const NestedFields: Story = {
 Plusieurs champs dans \`group-fields\` donnent un arbre N-aire :
 
 \`\`\`vue
-<MrxGrid :group-fields="['category', 'brand']" ... />
+<AdeoGrid :group-fields="['category', 'brand']" ... />
 \`\`\`
 
 Affiche : Rayon 1 → Marques de Rayon 1 → produits ; Rayon 2 → … L'ordre des champs pilote l'imbrication (premier = level 0).
@@ -121,7 +121,7 @@ Chaque group row porte sa profondeur 0-indexed. Le padding-left du label est cal
     },
   },
   render: () => ({
-    components: { MrxGrid },
+    components: { AdeoGrid },
     setup: () => ({
       lmColumns,
       rows: generateLMProducts(60),
@@ -132,7 +132,7 @@ Chaque group row porte sa profondeur 0-indexed. Le padding-left du label est cal
         <h2>Nested grouping (Rayon → Marque)</h2>
         <p>Plusieurs niveaux dans <code>:group-fields</code> donnent un arbre. La méta des rows groupes (<code>__mrxDepth</code>, <code>__mrxCount</code>) est posée par le pipeline.</p>
         <div class="sb-mrx-frame">
-          <MrxGrid :height="560" :columns="lmColumns" :rows="rows" :group-fields="groupFields" />
+          <AdeoGrid :height="560" :columns="lmColumns" :rows="rows" :group-fields="groupFields" />
         </div>
       </div>
     `,
@@ -146,15 +146,15 @@ export const InteractiveDrawer: Story = {
         story: `
 ## Grouping drawer
 
-\`MrxGroupingDrawer\` permet à l'utilisateur de drag-n-drop l'ordre des champs et toggle chacun. Idéal pour des dashboards où la dimension d'analyse change.
+\`AdeoGroupingDrawer\` permet à l'utilisateur de drag-n-drop l'ordre des champs et toggle chacun. Idéal pour des dashboards où la dimension d'analyse change.
 
 ### Implémentation
 
 \`\`\`vue
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { MrxGroupingDrawer, MrxGridToolbar } from '@/components/MrxGrid'
-import type { GroupingItem } from '@/components/MrxGrid'
+import { AdeoGroupingDrawer, AdeoGridToolbar } from '@/components/AdeoGrid'
+import type { GroupingItem } from '@/components/AdeoGrid'
 
 const drawerOpen   = ref(false)
 const activeGroups = ref<GroupingItem[]>([])
@@ -162,13 +162,13 @@ const groupFields  = computed(() => activeGroups.value.map((g) => g.field))
 </script>
 
 <template>
-  <MrxGrid :columns="columns" :rows="rows" :group-fields="groupFields">
+  <AdeoGrid :columns="columns" :rows="rows" :group-fields="groupFields">
     <template #toolbar>
-      <MrxGridToolbar show-group @group="drawerOpen = !drawerOpen" />
+      <AdeoGridToolbar show-group @group="drawerOpen = !drawerOpen" />
     </template>
-  </MrxGrid>
+  </AdeoGrid>
 
-  <MrxGroupingDrawer
+  <AdeoGroupingDrawer
     :open="drawerOpen"
     :columns="columns"
     :active-groups="activeGroups"
@@ -190,13 +190,13 @@ interface GroupingItem {
 
 ### Smart toolbar
 
-Pour éviter le wiring manuel, \`<MrxGridSmartToolbar v-model:active-groups="activeGroups">\` bundle le drawer + le wiring.
+Pour éviter le wiring manuel, \`<AdeoGridSmartToolbar v-model:active-groups="activeGroups">\` bundle le drawer + le wiring.
         `,
       },
     },
   },
   render: () => ({
-    components: { MrxGrid, MrxGroupingDrawer, MrxGridToolbar },
+    components: { AdeoGrid, AdeoGroupingDrawer, AdeoGridToolbar },
     setup() {
       const drawerOpen = ref(false)
       const activeGroups = ref<GroupingItem[]>([])
@@ -214,13 +214,13 @@ Pour éviter le wiring manuel, \`<MrxGridSmartToolbar v-model:active-groups="act
         <h2>Grouping drawer</h2>
         <p>Le drawer permet de drag-n-drop l'ordre des champs de groupage et de toggler chacun. Idéal pour des dashboards où l'utilisateur change la dimension d'analyse.</p>
         <div class="sb-mrx-frame">
-          <MrxGrid :height="560" :columns="lmColumns" :rows="lmProducts" :group-fields="groupFields">
+          <AdeoGrid :height="560" :columns="lmColumns" :rows="lmProducts" :group-fields="groupFields">
             <template #toolbar>
-              <MrxGridToolbar show-group @group="drawerOpen = !drawerOpen" />
+              <AdeoGridToolbar show-group @group="drawerOpen = !drawerOpen" />
             </template>
-          </MrxGrid>
+          </AdeoGrid>
         </div>
-        <MrxGroupingDrawer
+        <AdeoGroupingDrawer
           :open="drawerOpen"
           :columns="lmColumns"
           :active-groups="activeGroups"
@@ -267,7 +267,7 @@ const serverGrouping: ServerGroupingOptions = {
 \`\`\`
 
 \`\`\`vue
-<MrxGrid
+<AdeoGrid
   :columns="columns"
   :rows="[]"
   :group-fields="['category']"
@@ -293,7 +293,7 @@ const serverGrouping: ServerGroupingOptions = {
     },
   },
   render: () => ({
-    components: { MrxGrid },
+    components: { AdeoGrid },
     setup() {
       // Simulate server: 10k LM products, group summaries fetched async, and pages of rows
       // come back per group when expanded. The grid never sees the full dataset.
@@ -323,7 +323,7 @@ const serverGrouping: ServerGroupingOptions = {
         <h2>Server-side grouping</h2>
         <p>Le grid demande <code>fetchGroups</code> à l'activation puis <code>fetchGroupRows</code> par page quand un groupe est expandé. 10 000 produits LM côté "serveur", aucun ne traverse le réseau tant que rien n'est ouvert.</p>
         <div class="sb-mrx-frame">
-          <MrxGrid :height="560"
+          <AdeoGrid :height="560"
             :columns="lmColumns"
             :rows="[]"
             :group-fields="['category']"

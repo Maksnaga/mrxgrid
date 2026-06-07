@@ -3,7 +3,7 @@
  * Selection bar — Angular parity (`moz-grid-selection-bar`).
  *
  * Floating toolbar shown when the current selection is non-empty. Replaces the
- * former split between `MrxGridActionBar` (toolbar) and `MrxGridSelectionBar`
+ * former split between `AdeoGridActionBar` (toolbar) and `AdeoGridSelectionBar`
  * (Gmail-style banner): both are now unified under this single component, in
  * line with the Angular implementation.
  *

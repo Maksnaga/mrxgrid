@@ -1,11 +1,11 @@
 import type { Meta, StoryObj } from '@storybook/vue3-vite'
 import { ref } from 'vue'
-import { MrxGrid } from '@/components/MrxGrid'
+import { AdeoGrid } from '@/components/AdeoGrid'
 import { generateLMProducts, lmColumns } from './_fixtures'
 
 const meta = {
   title: 'Stories/Pagination/Default · Custom page sizes',
-  component: MrxGrid,
+  component: AdeoGrid,
   tags: ['autodocs'],
   args: { rows: [] },
   parameters: {
@@ -33,7 +33,7 @@ Activez le footer pagination via la prop \`pagination\`. Compose proprement avec
       },
     },
   },
-} satisfies Meta<typeof MrxGrid>
+} satisfies Meta<typeof AdeoGrid>
 
 export default meta
 type Story = StoryObj<typeof meta>
@@ -46,7 +46,7 @@ export const Default: Story = {
 ## Pagination par défaut
 
 \`\`\`vue
-<MrxGrid
+<AdeoGrid
   :columns="columns"
   :rows="rows"
   :pagination="true"
@@ -81,7 +81,7 @@ Pas d'API \`grid.goToPage()\` exposée actuellement — utilisez le footer ou la
     },
   },
   render: () => ({
-    components: { MrxGrid },
+    components: { AdeoGrid },
     setup() {
       const lastPage = ref<string>('—')
       function onPageChange(p: { page: number; pageSize: number; startIndex: number; endIndex: number }) {
@@ -95,7 +95,7 @@ Pas d'API \`grid.goToPage()\` exposée actuellement — utilisez le footer ou la
         <p>Pass <code>:pagination="true"</code> pour activer le footer pagination avec les tailles standard. L'évent <code>pageChange</code> remonte page courante + indices.</p>
         <div class="sb-mrx-toolbar">Dernier <code>pageChange</code> : <code>{{ lastPage }}</code></div>
         <div class="sb-mrx-frame">
-          <MrxGrid :height="560" :columns="lmColumns" :rows="rows" :pagination="true" virtual-scroll :container-height="500" @page-change="onPageChange" />
+          <AdeoGrid :height="560" :columns="lmColumns" :rows="rows" :pagination="true" virtual-scroll :container-height="500" @page-change="onPageChange" />
         </div>
       </div>
     `,
@@ -127,7 +127,7 @@ const pagination = { pageSizeOptions: [10, 25, 50, 100, 250], defaultPageSize: 2
 \`\`\`
 
 \`\`\`vue
-<MrxGrid
+<AdeoGrid
   :columns="columns"
   :rows="rows"
   :pagination="pagination"
@@ -144,7 +144,7 @@ Si vous avez 1M de rows et faites du server-side, combinez avec \`:total-count="
     },
   },
   render: () => ({
-    components: { MrxGrid },
+    components: { AdeoGrid },
     setup: () => ({
       lmColumns,
       rows: generateLMProducts(523),
@@ -155,7 +155,7 @@ Si vous avez 1M de rows et faites du server-side, combinez avec \`:total-count="
         <h2>Custom page sizes</h2>
         <p>Pass <code>:pagination="{ pageSizeOptions, defaultPageSize }"</code> pour customiser le dropdown "Rows per page".</p>
         <div class="sb-mrx-frame">
-          <MrxGrid :height="560" :columns="lmColumns" :rows="rows" :pagination="pagination" virtual-scroll :container-height="500" />
+          <AdeoGrid :height="560" :columns="lmColumns" :rows="rows" :pagination="pagination" virtual-scroll :container-height="500" />
         </div>
       </div>
     `,

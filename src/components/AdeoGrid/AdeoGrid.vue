@@ -20,7 +20,7 @@ import type {
   ServerGroupingOptions,
 } from './types'
 import type { SelectionModel } from '@/composables/useRowSelection'
-import type { DataDensity } from './components/overlays/MrxTableMenuDrawer.vue'
+import type { DataDensity } from './components/overlays/AdeoTableMenuDrawer.vue'
 import { isGroupRow } from './types'
 import { useRowSelection } from '@/composables/useRowSelection'
 import { useRowExpansion } from '@/composables/useRowExpansion'
@@ -46,10 +46,10 @@ import { useFiltering } from '@/composables/useFiltering'
 import { GRID_STATE_KEY, useGridState } from './state/useGridState'
 import {
   MRX_COLUMN_REGISTRY_KEY,
-  type MrxColumnRegistration,
-  type MrxColumnRegistry,
-} from './state/MrxColumnRegistry'
-import { MRX_GRID_SLOTS_KEY, type MrxGridSlotsContext } from './state/MrxGridSlots'
+  type AdeoColumnRegistration,
+  type AdeoColumnRegistry,
+} from './state/AdeoColumnRegistry'
+import { MRX_GRID_SLOTS_KEY, type AdeoGridSlotsContext } from './state/AdeoGridSlots'
 import { useGridEngine } from './engine/useGridEngine'
 import { useRefHighlight } from './features/formula/useRefHighlight'
 import { columnIndexToLetters } from './features/formula/formula-ast'
@@ -57,17 +57,17 @@ import { a1ToLongForm, longFormToA1 } from './features/formula/formula-ref-mappe
 import { extractEditorRefTokens, tokenizeFormulaEditor } from './features/formula/formula-tokenizer'
 import type { GridDensity } from './models/grid-events.model'
 
-import MrxGridHeader from './components/header/MrxGridHeader.vue'
-import MrxGridSpreadsheetHeader from './components/header/MrxGridSpreadsheetHeader.vue'
-import MrxGridFilterRow from './components/header/MrxGridFilterRow.vue'
-import MrxGridFooter from './components/footer/MrxGridFooter.vue'
-import MrxGridBody from './components/body/MrxGridBody.vue'
-import MrxGridSkeletonBody from './components/body/MrxGridSkeletonBody.vue'
-import MrxGridEmptyState from './components/body/MrxGridEmptyState.vue'
-import MrxGridTagBar from './components/header/MrxGridTagBar.vue'
-import MrxGridSelectionBar from './components/overlays/MrxGridSelectionBar.vue'
-import MrxGridSmartToolbar from './components/overlays/MrxGridSmartToolbar.vue'
-import type { GroupingItem } from './components/overlays/MrxGroupingDrawer.vue'
+import AdeoGridHeader from './components/header/AdeoGridHeader.vue'
+import AdeoGridSpreadsheetHeader from './components/header/AdeoGridSpreadsheetHeader.vue'
+import AdeoGridFilterRow from './components/header/AdeoGridFilterRow.vue'
+import AdeoGridFooter from './components/footer/AdeoGridFooter.vue'
+import AdeoGridBody from './components/body/AdeoGridBody.vue'
+import AdeoGridSkeletonBody from './components/body/AdeoGridSkeletonBody.vue'
+import AdeoGridEmptyState from './components/body/AdeoGridEmptyState.vue'
+import AdeoGridTagBar from './components/header/AdeoGridTagBar.vue'
+import AdeoGridSelectionBar from './components/overlays/AdeoGridSelectionBar.vue'
+import AdeoGridSmartToolbar from './components/overlays/AdeoGridSmartToolbar.vue'
+import type { GroupingItem } from './components/overlays/AdeoGroupingDrawer.vue'
 import { OPERATOR_LABELS, VALUELESS_OPERATORS, RANGE_OPERATORS } from './models/filter.model'
 import type { FilterCondition, FilterMode, FilterModel } from './models/filter.model'
 
@@ -92,7 +92,7 @@ const props = withDefaults(
   defineProps<{
     /**
      * Imperative column list. Optional when using the declarative
-     * `<MrxColumn>` children API (Phase 3.2). When both are provided the
+     * `<AdeoColumn>` children API (Phase 3.2). When both are provided the
      * registered columns override the prop on matching `field`.
      */
     columns?: ColumnDef[]
@@ -235,7 +235,7 @@ const props = withDefaults(
      * on mount; its return value (if any) is called on unmount as cleanup.
      * Use plugins for cross-cutting behaviour the core grid doesn't ship.
      */
-    plugins?: import('./models/plugin.model').MrxGridPlugin[]
+    plugins?: import('./models/plugin.model').AdeoGridPlugin[]
     /**
      * Disable the FLIP slide animation when columns reorder during drag.
      * Mirrors AG Grid's `suppressColumnMoveAnimation`. Disable if you have
@@ -287,7 +287,7 @@ const emit = defineEmits<{
   /**
    * Emitted whenever the formal filter model changes — from the per-column
    * overlay, the filter drawer, programmatic `setFilterModel`, or any tag-bar
-   * remove. Wire `v-model:filter-model="filterModel"` on `<MrxGrid>` to keep
+   * remove. Wire `v-model:filter-model="filterModel"` on `<AdeoGrid>` to keep
    * a consumer-owned `filterModel` ref in sync with what the grid actually
    * filters on.
    */
@@ -342,11 +342,11 @@ const refHighlight = useRefHighlight()
 const movingField = ref<string | null>(null)
 provide(GRID_STATE_KEY, gridState)
 
-// --- Declarative column registry (<MrxColumn> children) ---
+// --- Declarative column registry (<AdeoColumn> children) ---
 // Children call register/unregister on mount/dispose. The grid combines
 // these with the imperative `:columns` prop in `mergedColumns` below.
-const declarativeColumns = ref<Map<string, MrxColumnRegistration>>(new Map())
-const columnRegistry: MrxColumnRegistry = {
+const declarativeColumns = ref<Map<string, AdeoColumnRegistration>>(new Map())
+const columnRegistry: AdeoColumnRegistry = {
   register(reg) {
     const next = new Map(declarativeColumns.value)
     next.set(reg.id, reg)
@@ -368,7 +368,7 @@ provide(MRX_COLUMN_REGISTRY_KEY, columnRegistry)
 // `#cell-{field}` / `#header-{field}` / `#filter-{field}` / `#edit-{field}`
 // without prop-drilling.
 const _rootSlots = useSlots()
-const _slotsContext: MrxGridSlotsContext = {
+const _slotsContext: AdeoGridSlotsContext = {
   get cell() {
     return _rootSlots.cell
   },
@@ -760,7 +760,7 @@ watch(
 )
 
 /**
- * Merged column list: imperative `:columns` prop + declarative `<MrxColumn>`
+ * Merged column list: imperative `:columns` prop + declarative `<AdeoColumn>`
  * registrations. Declarative wins on duplicate `field` (consumer expressed
  * slot intent more explicitly). Order: prop first, then any declarative
  * columns not already in the prop, in registration order.
@@ -878,7 +878,7 @@ watch(
 )
 
 // columns → columnDefs + columnStates (via initColumns).
-// Watches `mergedColumns` so declarative `<MrxColumn>` registrations
+// Watches `mergedColumns` so declarative `<AdeoColumn>` registrations
 // also drive a re-init.
 watch(
   mergedColumns,
@@ -1138,7 +1138,7 @@ function showAllColumns() {
 // --- Filtering (first stage — before sort/group) ---
 // Phase 2.12 — `gridState.filterModel.conditions[]` is now the single source
 // of truth. `useFiltering` is a thin adapter: `filters` is a derived
-// `Record<field, value>` for `MrxGridFilterRow`; `setFilter` writes new
+// `Record<field, value>` for `AdeoGridFilterRow`; `setFilter` writes new
 // conditions into the model. The mirror watch that converted Record → Conditions
 // (~70 LOC) is gone, and `gridEngine.filter.filterData` reads the same
 // conditions for row evaluation.
@@ -1213,7 +1213,7 @@ const toolbarFilterModel = computed<FilterModel>({
 })
 
 // --- Tag-bar helpers (Sprint 3 — REFONTE-PLAN-V2 §2.3) ---
-// Build the human-readable chips fed to the unified <MrxGridTagBar> for
+// Build the human-readable chips fed to the unified <AdeoGridTagBar> for
 // the FILTERED BY / GROUPED BY / HIDDEN COLUMNS bars. Filter labels reuse
 // `OPERATOR_LABELS` so the chip stays in sync with the filter drawer wording.
 
@@ -1342,7 +1342,7 @@ const preGroupRows = computed(() =>
 // --- Grouping (operates on paginated or full data) ---
 // Phase 2.7 — `useGrouping` reads/writes `gridState.groupColumns` +
 // `gridState.expandedGroups`. The legacy `RowData` output (with `__mrx*`
-// metadata) is preserved for `MrxGridBody` / `MrxGridGroupRow`. Server-side
+// metadata) is preserved for `AdeoGridBody` / `AdeoGridGroupRow`. Server-side
 // grouping keeps its own state — different async lifecycle.
 const {
   groups: clientGroups,
@@ -1759,7 +1759,7 @@ async function pasteIntoSelectedRows() {
 
 // --- Expansion ---
 // Phase 2.4 — `gridState.expandedRowIds` (id-keyed) is now the single source
-// of truth. `useRowExpansion` is a thin index↔id adapter so `MrxGridBody`
+// of truth. `useRowExpansion` is a thin index↔id adapter so `AdeoGridBody`
 // keeps its index-based API (`isExpanded(rowIndex)`, `toggleExpansion(...)`).
 const { expanded: expandedRowSet, isExpanded, toggleExpansion } = useRowExpansion(
   gridState,
@@ -1771,7 +1771,7 @@ const { expanded: expandedRowSet, isExpanded, toggleExpansion } = useRowExpansio
 // the value is available at `useVirtualGrid` call site.
 //
 /**
- * Live-measured detail row height (from `<MrxGridDetailRow>`'s
+ * Live-measured detail row height (from `<AdeoGridDetailRow>`'s
  * ResizeObserver — see that file's `emit('measure')` path). This is the
  * single source of truth fed to the virtual scroll, the row-position
  * math in `useActiveCell`, and the sizer height. The fallback `0` only
@@ -2506,7 +2506,7 @@ function onActivateCell(rowIndex: number, field: string, e?: MouseEvent) {
   }
 }
 
-// --- Cell edit event handlers (bubbled from MrxGridCell → MrxGridRow) ---
+// --- Cell edit event handlers (bubbled from AdeoGridCell → AdeoGridRow) ---
 
 function onEditStart(rowIndex: number, field: string) {
   const row = renderableRows.value[rowIndex]
@@ -2803,7 +2803,7 @@ function onColumnMenuAction(action: ColumnMenuAction) {
       break
     case 'filter-column':
       // Sprint 5 — the per-column filter overlay handles the actual write
-      // via the `column-filter-apply` event from `MrxGridHeader`. We still
+      // via the `column-filter-apply` event from `AdeoGridHeader`. We still
       // forward the menu action so external listeners can react.
       break
     case 'group-by':
@@ -2925,13 +2925,13 @@ const fillField = computed<string | null>(() => {
 // in via either:
 //   • a built-in `filter` shape (legacy, text/select/date)
 //   • a Vue `filterRenderer` component (custom Mozaic input mix)
-//   • a `<MrxColumn> #filter` slot or root `#filter-{field}` slot
+//   • a `<AdeoColumn> #filter` slot or root `#filter-{field}` slot
 // Other columns render an empty cell on that row but the row itself
 // stays hidden when nobody opts in (matches Angular's behaviour where
 // the filter row only renders if `filterTemplate` is declared).
 const hasFilterRow = computed(() => {
   const cols = mergedColumns.value
-  // `col.filter` is a union (inline FilterDef OR custom MrxFilterConfig).
+  // `col.filter` is a union (inline FilterDef OR custom AdeoFilterConfig).
   // Only the FilterDef shape (`{ type, options, … }`) drives the inline
   // filter row; the custom-filter shape (`{ component, doesFilterPass }`)
   // is for the builder / column overlay and must NOT light up an empty
@@ -3041,7 +3041,7 @@ function getSelectedRows(): RowData[] {
 // Exposes engine methods to the consumer via `defineExpose`. The grid is
 // the public seam — engines stay private. Consumers acquire the ref:
 //
-//   const grid = ref<InstanceType<typeof MrxGrid>>()
+//   const grid = ref<InstanceType<typeof AdeoGrid>>()
 //   grid.value.exportCsv({ filename: 'rows.csv' })
 //   grid.value.undo()
 //   grid.value.scrollToRow(1234)
@@ -3165,7 +3165,7 @@ function restoreView(storageKey: string): boolean {
 }
 
 // --- Default toolbar imperative API ---
-// Plain object handed to the built-in `MrxGridSmartToolbar` as `:grid`.
+// Plain object handed to the built-in `AdeoGridSmartToolbar` as `:grid`.
 // Getters keep the live selection counts flowing without extra refs.
 const toolbarGridApi = {
   exportCsv,
@@ -3196,7 +3196,7 @@ defineExpose({
   setFilter,
   getFilterModel,
   /** Replace the entire formal filter model in one shot — used by the
-   *  multi-condition `MrxGridFilterDrawer` on Apply. */
+   *  multi-condition `AdeoGridFilterDrawer` on Apply. */
   setFilterModel: (model: { conditions: typeof gridState.filterModel.value.conditions }) =>
     gridEngine.filter.setModel(model, 'replace'),
   // Selection
@@ -3246,17 +3246,17 @@ defineExpose({
       : { height: typeof props.height === 'number' ? `${props.height}px` : props.height }
     ">
     <slot name="toolbar">
-      <MrxGridSmartToolbar :grid="toolbarGridApi" :columns="mergedColumns" v-model:fullscreen="fsState"
+      <AdeoGridSmartToolbar :grid="toolbarGridApi" :columns="mergedColumns" v-model:fullscreen="fsState"
         v-model:density="densityState" v-model:hidden-fields="hiddenFieldsState" v-model:column-order="columnOrderState"
         v-model:active-groups="toolbarGroups" v-model:filter-model="toolbarFilterModel" :show-fullscreen="true"
         :show-settings="true" :show-filters="hasFilterableColumn" :show-group="hasGroupableColumn" :show-export="true"
         :show-keyboard="true" />
     </slot>
 
-    <!-- Hidden default slot — render-less <MrxColumn> children live here.
+    <!-- Hidden default slot — render-less <AdeoColumn> children live here.
          They register themselves into the column registry on mount and
          contribute their definitions to `mergedColumns`. The slot has
-         `display: none` because <MrxColumn> already renders no DOM, but
+         `display: none` because <AdeoColumn> already renders no DOM, but
          this guarantees Vue actually instantiates them. -->
     <div style="display: none" aria-hidden="true">
       <slot />
@@ -3272,7 +3272,7 @@ defineExpose({
 
     <!-- Loading slot — la lib ne peint AUCUN visuel par défaut.
          • `loading=true`    → le squelette plein écran posé plus bas
-           dans `<MrxGridSkeletonBody>` suffit comme signal "données
+           dans `<AdeoGridSkeletonBody>` suffit comme signal "données
            vides / reload utilisateur".
          • `refreshing=true` → activation seule du slot, sans visuel
            default. Les consumers qui veulent une barre fine / spinner
@@ -3283,11 +3283,11 @@ defineExpose({
     <slot v-if="props.loading || props.refreshing" name="loading" />
 
     <!-- Sprint 3 — unified Mozaic tag bars (HIDDEN / GROUPED / FILTERED) -->
-    <MrxGridTagBar v-if="!props.error && hiddenTags.length > 0" label="HIDDEN COLUMNS" :items="hiddenTags"
+    <AdeoGridTagBar v-if="!props.error && hiddenTags.length > 0" label="HIDDEN COLUMNS" :items="hiddenTags"
       action-label="Restore all" @remove="onShowColumn" @action="showAllColumns" />
-    <MrxGridTagBar v-if="!props.error && hasGroups" label="GROUPED BY" :items="groupTags" action-label="Remove all"
+    <AdeoGridTagBar v-if="!props.error && hasGroups" label="GROUPED BY" :items="groupTags" action-label="Remove all"
       @remove="removeGroup" @action="clearGroups" />
-    <MrxGridTagBar v-if="!props.error && activeFilterTags.length > 0" label="FILTERED BY" :items="activeFilterTags"
+    <AdeoGridTagBar v-if="!props.error && activeFilterTags.length > 0" label="FILTERED BY" :items="activeFilterTags"
       action-label="Remove all" @remove="onRemoveFilter" @action="onRemoveAllFilters" />
 
     <div ref="wrapperRef" class="mrx-grid-wrapper" :class="{
@@ -3320,7 +3320,7 @@ defineExpose({
       <div v-if="props.loading || props.error || (props.rows.length > 0 && renderableRows.length > 0)"
         class="mrx-grid-sticky-header" :class="{ 'mrx-grid-sticky-header--with-filter-row': hasFilterRow }">
         <!-- A / B / C / … strip — auto-on when any column has `allowFormula`. -->
-        <MrxGridSpreadsheetHeader v-if="hasFormulaColumns" :columns="renderCenterColumns"
+        <AdeoGridSpreadsheetHeader v-if="hasFormulaColumns" :columns="renderCenterColumns"
           :pinned-left-columns="leftColumns" :pinned-right-columns="rightColumns" :has-pinned="hasPinned"
           :show-row-numbers="hasFormulaColumns" :selectable="selectable" :expandable="expandable"
           :get-column-width="getColumnWidth" :get-pinned-style="getPinnedStyle" :get-utility-style="getUtilityStyle"
@@ -3328,7 +3328,7 @@ defineExpose({
           :content-min-width="gridContentWidth" :center-start-index="leftColumns.length + startColIndex"
           :center-total-count="centerColumns.length" :fill-field="fillField" />
 
-        <MrxGridHeader :columns="renderCenterColumns" :pinned-left-columns="leftColumns"
+        <AdeoGridHeader :columns="renderCenterColumns" :pinned-left-columns="leftColumns"
           :pinned-right-columns="rightColumns" :has-pinned="hasPinned" :selectable="selectable" :expandable="expandable"
           :show-row-numbers="hasFormulaColumns" :selection-state="headerSelectionState"
           :get-column-width="getColumnWidth" :on-resize-start="onResizeStart" :get-pinned-style="getPinnedStyle"
@@ -3340,7 +3340,7 @@ defineExpose({
           @column-filter-remove="onColumnFilterRemove" @column-filter-reorder="onColumnFilterReorder"
           @column-sort="onColumnSort" />
 
-        <MrxGridFilterRow v-if="hasFilterRow" :columns="renderCenterColumns" :pinned-left-columns="leftColumns"
+        <AdeoGridFilterRow v-if="hasFilterRow" :columns="renderCenterColumns" :pinned-left-columns="leftColumns"
           :pinned-right-columns="rightColumns" :has-pinned="hasPinned" :selectable="selectable" :expandable="expandable"
           :show-row-numbers="hasFormulaColumns" :filters="filters" :get-column-width="getColumnWidth"
           :get-pinned-style="getPinnedStyle" :get-utility-style="getUtilityStyle" :left-spacer-width="leftSpacerWidth"
@@ -3352,7 +3352,7 @@ defineExpose({
            body et de l'empty state. On garde le header visible (cf. condition
            plus haut) pour conserver le contexte des colonnes. Ne s'affiche
            pas si le consumer a explicitement mis `skeletonRowCount = 0`. -->
-      <MrxGridSkeletonBody v-if="props.loading && skeletonRowCountResolved > 0" :count="skeletonRowCountResolved"
+      <AdeoGridSkeletonBody v-if="props.loading && skeletonRowCountResolved > 0" :count="skeletonRowCountResolved"
         :grid-content-width="gridContentWidth" :columns="renderCenterColumns" :left-columns="leftColumns"
         :right-columns="rightColumns" :has-pinned="hasPinned" :selectable="selectable" :expandable="expandable"
         :show-row-numbers="hasFormulaColumns" :get-column-width="getColumnWidth" :get-pinned-style="getPinnedStyle"
@@ -3366,17 +3366,17 @@ defineExpose({
       <slot v-else-if="
         !props.loading && !props.error && (props.rows.length === 0 || renderableRows.length === 0)
       " name="empty" :has-filters="hasActiveFilters" :clear-filters="clearFilters">
-        <MrxGridEmptyState :has-filters="hasActiveFilters" @clear-filters="clearFilters">
+        <AdeoGridEmptyState :has-filters="hasActiveFilters" @clear-filters="clearFilters">
           <template #actions="actionsScope">
             <!-- Consumer hook: drop "Add row" / "Import CSV" / etc. here.
                The scope exposes the variant ('filtered' | 'pristine') so
                actions can adapt their copy / icon to the situation. -->
             <slot name="empty-actions" v-bind="actionsScope" />
           </template>
-        </MrxGridEmptyState>
+        </AdeoGridEmptyState>
       </slot>
 
-      <MrxGridBody v-else :virtual="virtualScroll || paginationEnabled" :grid-content-width="gridContentWidth"
+      <AdeoGridBody v-else :virtual="virtualScroll || paginationEnabled" :grid-content-width="gridContentWidth"
         :total-height="totalHeight" :offset-y="offsetY" :render-range="renderRange" :columns="renderCenterColumns"
         :left-columns="leftColumns" :right-columns="rightColumns" :has-pinned="hasPinned" :selectable="selectable"
         :expandable="expandable" :show-row-numbers="hasFormulaColumns" :get-render-row="getRenderRow"
@@ -3398,11 +3398,11 @@ defineExpose({
         <template v-if="$slots['expand-row']" #expand-row="slotProps">
           <slot name="expand-row" v-bind="slotProps" />
         </template>
-      </MrxGridBody>
+      </AdeoGridBody>
     </div>
 
     <!-- Floating selection bar -->
-    <MrxGridSelectionBar v-if="showActionBar" :selected-count="actionBarCount" :mode="actionBarMode"
+    <AdeoGridSelectionBar v-if="showActionBar" :selected-count="actionBarCount" :mode="actionBarMode"
       :selection-model="selectionModel" :total-count="selectionTotalCount" :page-count="visiblePageRowCount"
       :page-fully-selected="isPageFullySelected" :compact="props.selectionBarCompact" show-edit :show-copy="true"
       :show-paste="mergedColumns.some((c) => c.editable)"
@@ -3411,10 +3411,10 @@ defineExpose({
       <template v-if="$slots['selection-actions']" #actions="slotProps">
         <slot name="selection-actions" v-bind="slotProps" />
       </template>
-    </MrxGridSelectionBar>
+    </AdeoGridSelectionBar>
 
     <!-- Footer (pagination + async loading indicator) -->
-    <MrxGridFooter :show-pagination="paginationEnabled" :current-page="paginationState.currentPage.value"
+    <AdeoGridFooter :show-pagination="paginationEnabled" :current-page="paginationState.currentPage.value"
       :page-size="paginationState.pageSize.value" :total-pages="paginationState.totalPages.value"
       :total-rows="paginationState.totalRows.value" :range-start="paginationState.rangeStart.value"
       :range-end="paginationState.rangeEnd.value" :page-size-options="paginationState.pageSizeOptions"

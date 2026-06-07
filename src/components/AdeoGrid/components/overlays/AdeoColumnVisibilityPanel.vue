@@ -10,7 +10,7 @@ import { GRID_STATE_KEY } from '../../state/GridContext'
  * Reads `gridState.columnStates[].visible` and `columnDefs` directly via
  * the injected `GridContext`. Emits restore intents for the host to wire.
  *
- * Tolerant to mounting outside `<MrxGrid>` — when no context is found, the
+ * Tolerant to mounting outside `<AdeoGrid>` — when no context is found, the
  * panel renders an empty list (not an error). This lets it sit beside the
  * grid in a toolbar without forcing the host to wrap everything in slots.
  */

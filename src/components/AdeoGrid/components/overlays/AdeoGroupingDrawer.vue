@@ -104,7 +104,7 @@ function onReset() {
 </script>
 
 <template>
-  <!-- See MrxGridFilterDrawer.vue for why we Teleport to <body>. -->
+  <!-- See AdeoGridFilterDrawer.vue for why we Teleport to <body>. -->
   <Teleport to="body">
   <!-- `close-on-overlay` MUST be explicitly false. Mozaic's MDrawer
        defaults the prop to true AND mis-handles inner-body whitespace

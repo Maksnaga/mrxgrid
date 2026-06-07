@@ -15,7 +15,7 @@
  * l'utilisateur n'édite pas, la valeur est calculée à la volée.
  */
 
-import type { ColumnDef } from '@/components/MrxGrid'
+import type { ColumnDef } from '@/components/AdeoGrid'
 import type { LMProduct } from '../mock/seed'
 import { useStressOverrides } from '../composables/useStressOverrides'
 

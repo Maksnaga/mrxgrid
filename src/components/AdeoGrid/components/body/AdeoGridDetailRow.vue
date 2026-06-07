@@ -3,7 +3,7 @@
  * Detail row — Angular parity (`moz-grid-detail-row`).
  *
  * Wrapper row for detail content rendered below a data row (formerly named
- * `MrxGridExpandedRow`). The inner div uses `position: sticky` so the detail
+ * `AdeoGridExpandedRow`). The inner div uses `position: sticky` so the detail
  * viewport stays glued to the visible viewport during horizontal scroll —
  * otherwise the slot content (with its own padding) would scroll off the
  * left edge and the user would see an empty band between rows. The outer

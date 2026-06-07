@@ -1,12 +1,12 @@
 import type { Meta, StoryObj } from '@storybook/vue3-vite'
 import { ref } from 'vue'
-import { MrxGrid } from '@/components/MrxGrid'
-import type { RowData } from '@/components/MrxGrid'
+import { AdeoGrid } from '@/components/AdeoGrid'
+import type { RowData } from '@/components/AdeoGrid'
 import { generateLMProducts, lmColumns, type LMProduct } from './_fixtures'
 
 const meta = {
   title: 'Stories/Lazy Loading/Page-based · Infinite scroll',
-  component: MrxGrid,
+  component: AdeoGrid,
   tags: ['autodocs'],
   args: { rows: [] },
   parameters: {
@@ -33,7 +33,7 @@ Pour l'infinite scroll, le \`rows\` array peut être **sparse** : remplissez aux
       },
     },
   },
-} satisfies Meta<typeof MrxGrid>
+} satisfies Meta<typeof AdeoGrid>
 
 export default meta
 type Story = StoryObj<typeof meta>
@@ -84,7 +84,7 @@ async function onVisibleRangeChange(start: number, end: number) {
 </script>
 
 <template>
-  <MrxGrid
+  <AdeoGrid
     :columns="columns"
     :rows="rows"
     :total-count="TOTAL"
@@ -117,7 +117,7 @@ const onVisible = debounce(handler, 60)
     },
   },
   render: () => ({
-    components: { MrxGrid },
+    components: { AdeoGrid },
     setup() {
       const PAGE = 200
       const rows = ref<LMProduct[]>([])
@@ -161,7 +161,7 @@ const onVisible = debounce(handler, 60)
           {{ loading ? '⏳ chargement…' : '✓ idle' }} · dernière requête : <code>{{ requested }}</code>
         </div>
         <div class="sb-mrx-frame" style="height: 560px">
-          <MrxGrid :height="560"
+          <AdeoGrid :height="560"
             :columns="lmColumns"
             :rows="rows"
             :total-count="totalCount"
@@ -202,7 +202,7 @@ async function onPageChange(p: {
 </script>
 
 <template>
-  <MrxGrid
+  <AdeoGrid
     :columns="columns"
     :rows="rows"
     :total-count="total"
@@ -228,7 +228,7 @@ Si vous filtrez ou triez côté serveur, écoutez aussi \`@filter-change\` et ut
     },
   },
   render: () => ({
-    components: { MrxGrid },
+    components: { AdeoGrid },
     setup() {
       const rows = ref<LMProduct[]>(allRows.slice(0, 50))
       const lastChange = ref<string>('—')
@@ -249,7 +249,7 @@ Si vous filtrez ou triez côté serveur, écoutez aussi \`@filter-change\` et ut
         <p>Avec <code>:pagination="true"</code> + <code>:total-count</code>, on écoute <code>pageChange</code> pour fetch uniquement la page courante.</p>
         <div class="sb-mrx-toolbar">{{ lastChange }}</div>
         <div class="sb-mrx-frame" style="height: 560px">
-          <MrxGrid :height="560"
+          <AdeoGrid :height="560"
             :columns="lmColumns"
             :rows="rows"
             :total-count="totalCount"

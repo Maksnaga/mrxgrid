@@ -48,7 +48,7 @@ export function defineStatusRenderer<T extends string>(
 ): Component {
   return markRaw(
     defineComponent({
-      name: 'MrxStatusRenderer',
+      name: 'AdeoStatusRenderer',
       props: {
         value: { type: null, required: false, default: null },
       },

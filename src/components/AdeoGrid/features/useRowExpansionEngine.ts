@@ -6,7 +6,7 @@
  *
  * The legacy Vue composable (`useRowExpansion`) keyed on row *index*; the
  * Angular engine keys on **row ID** (resolved via `rowIdField`). This engine
- * mirrors the Angular shape — the double-write in `MrxGrid.vue` maps the
+ * mirrors the Angular shape — the double-write in `AdeoGrid.vue` maps the
  * legacy index-set to the Angular-parity id-set.
  */
 

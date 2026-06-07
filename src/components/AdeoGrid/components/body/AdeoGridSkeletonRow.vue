@@ -2,7 +2,7 @@
 /**
  * Skeleton row — rendered while `props.loading` is true.
  *
- * Mirrors the structure of `MrxGridRow` (utility cells → left-pinned →
+ * Mirrors the structure of `AdeoGridRow` (utility cells → left-pinned →
  * spacer → center → spacer → right-pinned) so the column widths and the
  * sticky-pinned offsets stay consistent with the real rows that will
  * appear once data arrives. Each "cell" hosts a single shimmer bar
@@ -268,7 +268,7 @@ function centerCellStyle(field: string): Record<string, string | undefined> {
 }
 
 // `@keyframes mrx-skeleton-shimmer` est défini dans le `<style>` non-scopé
-// de `MrxGridCell.vue` (à côté des marching-ants) — partagé avec le
+// de `AdeoGridCell.vue` (à côté des marching-ants) — partagé avec le
 // cell-level pending (`.mrx-grid-cell--pending::after`).
 
 // Respect users who opt out of motion — keep the colour delta visible but

@@ -8,7 +8,7 @@
  * Letters reflect the GLOBAL display order across pinned-left + center +
  * pinned-right, computed once per column-set change.
  *
- * Heavily mirrors `MrxGridHeader.vue` for layout — pinned offsets, virtual
+ * Heavily mirrors `AdeoGridHeader.vue` for layout — pinned offsets, virtual
  * spacers, and content min-width handling are identical so the strip stays
  * in pixel-perfect sync with the columns underneath during scroll / resize.
  */
@@ -41,7 +41,7 @@ const props = defineProps<{
    *  not just the rendered slice. */
   centerTotalCount: number
   /** Field of the last unpinned column that should `flex: 1 1 auto` to absorb
-   *  trailing empty space — must match the value passed to MrxGridHeader so
+   *  trailing empty space — must match the value passed to AdeoGridHeader so
    *  the strip aligns pixel-perfect with the columns underneath. */
   fillField?: string | null
 }>()

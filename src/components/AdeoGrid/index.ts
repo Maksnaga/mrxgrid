@@ -1,43 +1,43 @@
-export { default as MrxGrid } from './MrxGrid.vue'
-export { default as MrxColumn } from './MrxColumn.vue'
+export { default as AdeoGrid } from './AdeoGrid.vue'
+export { default as AdeoColumn } from './AdeoColumn.vue'
 
 // Body
-export { default as MrxGridBody } from './components/body/MrxGridBody.vue'
-export { default as MrxGridSkeletonBody } from './components/body/MrxGridSkeletonBody.vue'
-export { default as MrxGridSkeletonRow } from './components/body/MrxGridSkeletonRow.vue'
-export { default as MrxGridDetailRow } from './components/body/MrxGridDetailRow.vue'
+export { default as AdeoGridBody } from './components/body/AdeoGridBody.vue'
+export { default as AdeoGridSkeletonBody } from './components/body/AdeoGridSkeletonBody.vue'
+export { default as AdeoGridSkeletonRow } from './components/body/AdeoGridSkeletonRow.vue'
+export { default as AdeoGridDetailRow } from './components/body/AdeoGridDetailRow.vue'
 
 // Header
-export { default as MrxGridHeader } from './components/header/MrxGridHeader.vue'
-export { default as MrxGridHeaderCell } from './components/header/MrxGridHeaderCell.vue'
-export { default as MrxGridHeaderMenu } from './components/header/MrxGridHeaderMenu.vue'
+export { default as AdeoGridHeader } from './components/header/AdeoGridHeader.vue'
+export { default as AdeoGridHeaderCell } from './components/header/AdeoGridHeaderCell.vue'
+export { default as AdeoGridHeaderMenu } from './components/header/AdeoGridHeaderMenu.vue'
 
 // Footer
-export { default as MrxGridFooter } from './components/footer/MrxGridFooter.vue'
-export { default as MrxGridLoadingIndicator } from './components/footer/MrxGridLoadingIndicator.vue'
+export { default as AdeoGridFooter } from './components/footer/AdeoGridFooter.vue'
+export { default as AdeoGridLoadingIndicator } from './components/footer/AdeoGridLoadingIndicator.vue'
 
 // Overlays
-export { default as MrxGridSelectionBar } from './components/overlays/MrxGridSelectionBar.vue'
-export { default as MrxGridToolbar } from './components/overlays/MrxGridToolbar.vue'
-export { default as MrxGridSmartToolbar } from './components/overlays/MrxGridSmartToolbar.vue'
-export { default as MrxGroupingDrawer } from './components/overlays/MrxGroupingDrawer.vue'
-export { default as MrxTableMenuDrawer } from './components/overlays/MrxTableMenuDrawer.vue'
-export { default as MrxGridFilterBuilder } from './components/overlays/MrxGridFilterBuilder.vue'
-export { default as MrxGridFilterDrawer } from './components/overlays/MrxGridFilterDrawer.vue'
-export { default as MrxGridFilterTagsBar } from './components/overlays/MrxGridFilterTagsBar.vue'
-export { default as MrxColumnVisibilityPanel } from './components/overlays/MrxColumnVisibilityPanel.vue'
-export { default as MrxKeyboardShortcutsDrawer } from './components/overlays/MrxKeyboardShortcutsDrawer.vue'
-export { default as MrxFormulaBar } from './components/overlays/MrxFormulaBar.vue'
-export { default as MrxFormulaReferenceDrawer } from './components/overlays/MrxFormulaReferenceDrawer.vue'
+export { default as AdeoGridSelectionBar } from './components/overlays/AdeoGridSelectionBar.vue'
+export { default as AdeoGridToolbar } from './components/overlays/AdeoGridToolbar.vue'
+export { default as AdeoGridSmartToolbar } from './components/overlays/AdeoGridSmartToolbar.vue'
+export { default as AdeoGroupingDrawer } from './components/overlays/AdeoGroupingDrawer.vue'
+export { default as AdeoTableMenuDrawer } from './components/overlays/AdeoTableMenuDrawer.vue'
+export { default as AdeoGridFilterBuilder } from './components/overlays/AdeoGridFilterBuilder.vue'
+export { default as AdeoGridFilterDrawer } from './components/overlays/AdeoGridFilterDrawer.vue'
+export { default as AdeoGridFilterTagsBar } from './components/overlays/AdeoGridFilterTagsBar.vue'
+export { default as AdeoColumnVisibilityPanel } from './components/overlays/AdeoColumnVisibilityPanel.vue'
+export { default as AdeoKeyboardShortcutsDrawer } from './components/overlays/AdeoKeyboardShortcutsDrawer.vue'
+export { default as AdeoFormulaBar } from './components/overlays/AdeoFormulaBar.vue'
+export { default as AdeoFormulaReferenceDrawer } from './components/overlays/AdeoFormulaReferenceDrawer.vue'
 
 // Declarative column registry — exposed so consumers can build their own
 // column-like components by registering directly.
 export {
   MRX_COLUMN_REGISTRY_KEY,
   injectMrxColumnRegistry,
-  type MrxColumnRegistration,
-  type MrxColumnRegistry,
-} from './state/MrxColumnRegistry'
+  type AdeoColumnRegistration,
+  type AdeoColumnRegistry,
+} from './state/AdeoColumnRegistry'
 
 // Sprint 4 — built-in cell renderers + helpers.
 // Use `renderer: 'tag'` for a generic MTag, or `defineStatusRenderer({...})`
@@ -82,7 +82,7 @@ export {
 } from '@/composables/useUndoRedoPlugin'
 
 // Plugin contract — for consumers writing their own plugins.
-export type { MrxGridPlugin, MrxGridPluginContext } from './models/plugin.model'
+export type { AdeoGridPlugin, AdeoGridPluginContext } from './models/plugin.model'
 
 // Legacy Vue types + Angular-parity models (re-exported via types.ts).
 export * from './types'
@@ -114,5 +114,5 @@ export type { GridEngine } from './engine/useGridEngine'
 export type { GroupEntry } from '@/composables/useGrouping'
 export type { CellEditEvent, CellEditState } from '@/composables/useCellEditing'
 export type { SelectionModel } from '@/composables/useRowSelection'
-export type { GroupingItem } from './components/overlays/MrxGroupingDrawer.vue'
-export type { DataDensity } from './components/overlays/MrxTableMenuDrawer.vue'
+export type { GroupingItem } from './components/overlays/AdeoGroupingDrawer.vue'
+export type { DataDensity } from './components/overlays/AdeoTableMenuDrawer.vue'

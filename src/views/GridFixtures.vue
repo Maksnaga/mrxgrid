@@ -18,8 +18,8 @@
  */
 
 import { computed, onMounted, ref } from 'vue'
-import { MrxGrid } from '@/components/MrxGrid'
-import type { ColumnDef, RowData } from '@/components/MrxGrid'
+import { AdeoGrid } from '@/components/AdeoGrid'
+import type { ColumnDef, RowData } from '@/components/AdeoGrid'
 
 // ---------------------------------------------------------------------------
 // Fixture state — read from URL query string `?fixtures=<state>`.
@@ -131,10 +131,10 @@ onMounted(() => {
 <template>
   <div :data-fixture="state" class="fixtures-root">
     <header class="fixtures-header">
-      <h1>MrxGrid fixtures · <code>{{ state }}</code></h1>
+      <h1>AdeoGrid fixtures · <code>{{ state }}</code></h1>
       <p class="fixtures-hint">Navigate via <code>?fixtures=&lt;state&gt;</code></p>
     </header>
-    <MrxGrid
+    <AdeoGrid
       :columns="columns"
       :rows="renderRows"
       :selectable="fixture.selectable"

@@ -2,9 +2,9 @@
 import { computed, ref, type CSSProperties } from 'vue'
 import type { ColumnDef, ColumnMenuAction, SelectionState, SortDirection } from '../../types'
 import { MCheckbox } from '@mozaic-ds/vue'
-import MrxGridHeaderCell from './MrxGridHeaderCell.vue'
-import MrxGridHeaderMenu from './MrxGridHeaderMenu.vue'
-import MrxColumnFilterOverlay from './MrxColumnFilterOverlay.vue'
+import AdeoGridHeaderCell from './AdeoGridHeaderCell.vue'
+import AdeoGridHeaderMenu from './AdeoGridHeaderMenu.vue'
+import AdeoColumnFilterOverlay from './AdeoColumnFilterOverlay.vue'
 import type { FilterCondition } from '../../models/filter.model'
 import { useGridContext } from '../../state/GridContext'
 
@@ -214,7 +214,7 @@ function isResizable(col: ColumnDef): boolean {
     />
 
     <!-- Left-pinned columns -->
-    <MrxGridHeaderCell
+    <AdeoGridHeaderCell
       v-for="(col, idx) in pinnedLeftColumns"
       :key="'pl-' + col.field"
       :column="col"
@@ -246,7 +246,7 @@ function isResizable(col: ColumnDef): boolean {
     />
 
     <!-- Center columns -->
-    <MrxGridHeaderCell
+    <AdeoGridHeaderCell
       v-for="col in columns"
       :key="col.field"
       :column="col"
@@ -273,7 +273,7 @@ function isResizable(col: ColumnDef): boolean {
     />
 
     <!-- Right-pinned columns -->
-    <MrxGridHeaderCell
+    <AdeoGridHeaderCell
       v-for="(col, idx) in pinnedRightColumns"
       :key="'pr-' + col.field"
       :column="col"
@@ -295,7 +295,7 @@ function isResizable(col: ColumnDef): boolean {
   </div>
 
   <!-- Column menu -->
-  <MrxGridHeaderMenu
+  <AdeoGridHeaderMenu
     v-if="openMenuField && menuTriggerRect && openMenuColumn"
     :field="openMenuField"
     :column="openMenuColumn"
@@ -307,7 +307,7 @@ function isResizable(col: ColumnDef): boolean {
   />
 
   <!-- Per-column "Filter in this column" overlay (Sprint 5) -->
-  <MrxColumnFilterOverlay
+  <AdeoColumnFilterOverlay
     v-if="openFilterField && filterTriggerRect && openFilterColumn"
     :field="openFilterField"
     :column="openFilterColumn"
@@ -331,7 +331,7 @@ function isResizable(col: ColumnDef): boolean {
 }
 
 /* Stub cells (checkbox / expand / spacers) still live in the header itself.
-   The data-header cell styles now come from `MrxGridHeaderCell`. */
+   The data-header cell styles now come from `AdeoGridHeaderCell`. */
 .mrx-grid-header-cell {
   padding: m.get-spacing('100') m.get-spacing('150');
   text-align: left;

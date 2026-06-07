@@ -18,18 +18,18 @@ export interface CellRendererProps {
 }
 
 /**
- * Props exposed by the `#cell` scoped slot on `<MrxGrid>`.
+ * Props exposed by the `#cell` scoped slot on `<AdeoGrid>`.
  *
  * Consumers can use this to build fully custom cell templates that
  * handle both display and editing in a single slot:
  *
  * ```vue
- * <MrxGrid :columns="cols" :rows="rows">
+ * <AdeoGrid :columns="cols" :rows="rows">
  *   <template #cell="{ value, editing, editValue, updateValue, commit, cancel }">
  *     <MyCustomEditor v-if="editing" :value="editValue" @change="updateValue" @save="commit" @cancel="cancel" />
  *     <span v-else>{{ value }}</span>
  *   </template>
- * </MrxGrid>
+ * </AdeoGrid>
  * ```
  */
 export interface CellSlotProps {
@@ -178,7 +178,7 @@ export interface ColumnDef<T = RowData> {
    *
    * 2. **Custom filter for the builder / column overlay** —
    *    `{ component, doesFilterPass, filterParams? }`
-   *    (see {@link import('./models/filter.model').MrxFilterConfig}).
+   *    (see {@link import('./models/filter.model').AdeoFilterConfig}).
    *    The component owns the UI + state, the predicate is column data.
    *
    * The two shapes are distinguished structurally: an object with `type` →
@@ -186,7 +186,7 @@ export interface ColumnDef<T = RowData> {
    */
   filter?:
     | FilterDef
-    | import('./models/filter.model').MrxFilterConfig<T, unknown, unknown>
+    | import('./models/filter.model').AdeoFilterConfig<T, unknown, unknown>
   /**
    * Optional validator called before paste / fill writes a value into this column.
    * Return `true` to accept, `false` to reject.
@@ -305,7 +305,7 @@ export interface SelectionRange {
   c2: number
 }
 
-/** Per-cell visual flags computed at the grid level and spread onto MrxGridCell. */
+/** Per-cell visual flags computed at the grid level and spread onto AdeoGridCell. */
 export interface CellFlags {
   selected?: boolean
   edgeTop?: boolean
@@ -332,7 +332,7 @@ export interface CellFlags {
    * True when an async mutation is in-flight for this (row, field). Drives a
    * shimmer overlay above the value (the value stays visible in filigree so
    * the user knows WHICH field is being pushed). Set via `props.pendingCells`
-   * on `<MrxGrid>` — see the `usePendingMutations` pattern in the demo.
+   * on `<AdeoGrid>` — see the `usePendingMutations` pattern in the demo.
    */
   pending?: boolean
 }
@@ -421,7 +421,7 @@ export type ColumnMenuAction =
 
 // ---------------------------------------------------------------------------
 // Angular-parity models — re-exported from ./models (Phase 0: additive).
-// Deep imports still work: `from '@/components/MrxGrid/models'`.
+// Deep imports still work: `from '@/components/AdeoGrid/models'`.
 // ---------------------------------------------------------------------------
 
 // cell.model: `CellEditEvent` and `CellEditState` collide with legacy shapes

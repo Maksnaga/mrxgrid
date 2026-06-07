@@ -2,7 +2,7 @@
  * Model barrel — Angular parity (moz-grid).
  *
  * Phase 0: additive. The legacy `types.ts` re-exports from here so existing
- * imports (`from './types'` or `from '@/components/MrxGrid'`) keep working.
+ * imports (`from './types'` or `from '@/components/AdeoGrid'`) keep working.
  */
 
 export * from './cell.model'

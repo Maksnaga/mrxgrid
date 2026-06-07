@@ -1,7 +1,7 @@
 /**
- * MrxGridSlots — provides the root `<MrxGrid>` scoped slots to deeply nested
- * subcomponents (`MrxGridCell`, `MrxGridHeaderCell`, `MrxGridGroupRow`,
- * `MrxGridDetailRow`, `MrxGridFilterRow`) without prop-drilling slot through
+ * AdeoGridSlots — provides the root `<AdeoGrid>` scoped slots to deeply nested
+ * subcomponents (`AdeoGridCell`, `AdeoGridHeaderCell`, `AdeoGridGroupRow`,
+ * `AdeoGridDetailRow`, `AdeoGridFilterRow`) without prop-drilling slot through
  * 4–5 levels of nesting.
  *
  * Resolution order — Phase 3.3 — for each rendered cell, the consumer can
@@ -14,19 +14,19 @@
  *   5. `String(value)`
  *
  * Same pattern for `#header-{field}` / `#header`, `#filter-{field}` /
- * `#filter`, `#edit-{field}` / `#edit`. The grid-level `<MrxColumn>` slots
+ * `#filter`, `#edit-{field}` / `#edit`. The grid-level `<AdeoColumn>` slots
  * (Phase 3.2) are merged in and take priority over both per-field and
- * generic slots from `<MrxGrid>` itself, since the consumer expressed slot
+ * generic slots from `<AdeoGrid>` itself, since the consumer expressed slot
  * intent against a specific column.
  */
 
 import { inject, type InjectionKey, type Slot } from 'vue'
-import type { MrxColumnRegistry } from './MrxColumnRegistry'
+import type { AdeoColumnRegistry } from './AdeoColumnRegistry'
 import type { FormulaEngine } from '../features/formula/useFormulaEngine'
 import type { RefHighlightApi } from '../features/formula/useRefHighlight'
 
-export interface MrxGridSlotsContext {
-  /** Generic `#cell` slot from the `<MrxGrid>` root, or `undefined`. */
+export interface AdeoGridSlotsContext {
+  /** Generic `#cell` slot from the `<AdeoGrid>` root, or `undefined`. */
   cell?: Slot
   /** Generic `#header` slot. */
   header?: Slot
@@ -36,12 +36,12 @@ export interface MrxGridSlotsContext {
   edit?: Slot
   /** Per-field slot map: `cell-status`, `header-status`, etc. */
   perField: Record<string, Slot>
-  /** The column registry — slots declared on a `<MrxColumn>` win over
-   *  matching generic / per-field slots from `<MrxGrid>`. */
-  registry: MrxColumnRegistry | null
+  /** The column registry — slots declared on a `<AdeoColumn>` win over
+   *  matching generic / per-field slots from `<AdeoGrid>`. */
+  registry: AdeoColumnRegistry | null
   /** Formula engine — exposed so cells can substitute raw `=…` source values
    *  with the evaluated `FormulaValue` at render time without prop-drilling
-   *  the engine through MrxGridBody → MrxGridRow → MrxGridCell. */
+   *  the engine through AdeoGridBody → AdeoGridRow → AdeoGridCell. */
   formula?: FormulaEngine | null
   /** Resolve a stable row id for an index — used to build a `CellAddress`
    *  (`{ rowId, field }`) when looking up formula values. Returns `undefined`
@@ -74,29 +74,29 @@ export interface MrxGridSlotsContext {
   }
 }
 
-export const MRX_GRID_SLOTS_KEY: InjectionKey<MrxGridSlotsContext> = Symbol(
-  'MrxGridSlots',
+export const MRX_GRID_SLOTS_KEY: InjectionKey<AdeoGridSlotsContext> = Symbol(
+  'AdeoGridSlots',
 )
 
-export function injectMrxGridSlots(): MrxGridSlotsContext | null {
+export function injectAdeoGridSlots(): AdeoGridSlotsContext | null {
   return inject(MRX_GRID_SLOTS_KEY, null)
 }
 
 /**
  * Resolve the cell slot for a given field — checks (in order):
- * 1. `<MrxColumn field={field}>` `#cell` slot via the registry
- * 2. `<MrxGrid>` `#cell-{field}` slot
- * 3. `<MrxGrid>` `#cell` generic slot
+ * 1. `<AdeoColumn field={field}>` `#cell` slot via the registry
+ * 2. `<AdeoGrid>` `#cell-{field}` slot
+ * 3. `<AdeoGrid>` `#cell` generic slot
  * Returns `undefined` if none — caller falls back to `column.renderer` or text.
  */
 export function resolveCellSlot(
-  ctx: MrxGridSlotsContext | null,
+  ctx: AdeoGridSlotsContext | null,
   field: string,
 ): Slot | undefined {
   if (!ctx) return undefined
-  // 1. Slot declared on <MrxColumn> takes priority (slot lookup happens via
+  // 1. Slot declared on <AdeoColumn> takes priority (slot lookup happens via
   //    Vue's render context — registry only knows whether it exists).
-  //    The actual slot reference is stored on the registry by MrxColumn.
+  //    The actual slot reference is stored on the registry by AdeoColumn.
   const reg = ctx.registry?.list().find((r) => r.id === field)
   if (reg?.hasCellSlot && reg.cellSlot) return reg.cellSlot
   // 2. Per-field slot on the grid root.
@@ -107,7 +107,7 @@ export function resolveCellSlot(
 }
 
 export function resolveHeaderSlot(
-  ctx: MrxGridSlotsContext | null,
+  ctx: AdeoGridSlotsContext | null,
   field: string,
 ): Slot | undefined {
   if (!ctx) return undefined
@@ -119,7 +119,7 @@ export function resolveHeaderSlot(
 }
 
 export function resolveFilterSlot(
-  ctx: MrxGridSlotsContext | null,
+  ctx: AdeoGridSlotsContext | null,
   field: string,
 ): Slot | undefined {
   if (!ctx) return undefined
@@ -131,7 +131,7 @@ export function resolveFilterSlot(
 }
 
 export function resolveEditSlot(
-  ctx: MrxGridSlotsContext | null,
+  ctx: AdeoGridSlotsContext | null,
   field: string,
 ): Slot | undefined {
   if (!ctx) return undefined

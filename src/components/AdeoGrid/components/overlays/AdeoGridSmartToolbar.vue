@@ -1,34 +1,34 @@
 <script setup lang="ts">
 /**
- * Smart toolbar — bundles `MrxGridToolbar` + the four feature drawers
+ * Smart toolbar — bundles `AdeoGridToolbar` + the four feature drawers
  * (settings / grouping / filters / keyboard) and wires them end-to-end so
  * the consumer gets a working toolbar by just enabling `show-*` flags.
  *
  * Use this when you want batteries-included behaviour. The plain
- * `MrxGridToolbar` is still available if you need fine-grained control
+ * `AdeoGridToolbar` is still available if you need fine-grained control
  * over each feature's hookup.
  *
  * Required:
- *  - `:grid="gridRef"` — the `<MrxGrid>` template ref. Used for the
+ *  - `:grid="gridRef"` — the `<AdeoGrid>` template ref. Used for the
  *    imperative export / selectAll / clearSelection / setFilterModel calls.
  *  - `:columns="columns"` — used to build filter descriptors and to drive
  *    the settings + grouping drawers.
  *
- * State that flows back to `<MrxGrid>` props is exposed via v-models:
- *  - `v-model:fullscreen` → `<MrxGrid :fullscreen>`
- *  - `v-model:hidden-fields` → `<MrxGrid :hidden-fields>`
- *  - `v-model:density` → `<MrxGrid :density>`
- *  - `v-model:column-order` → `<MrxGrid :column-order>`
+ * State that flows back to `<AdeoGrid>` props is exposed via v-models:
+ *  - `v-model:fullscreen` → `<AdeoGrid :fullscreen>`
+ *  - `v-model:hidden-fields` → `<AdeoGrid :hidden-fields>`
+ *  - `v-model:density` → `<AdeoGrid :density>`
+ *  - `v-model:column-order` → `<AdeoGrid :column-order>`
  *  - `v-model:active-groups` → derive `groupFields = activeGroups.map(g.field)`
  *  - `v-model:filter-model` (also relays to the grid via setFilterModel)
  */
 
 import { computed, ref } from 'vue'
-import MrxGridToolbar from './MrxGridToolbar.vue'
-import MrxTableMenuDrawer from './MrxTableMenuDrawer.vue'
-import MrxGroupingDrawer from './MrxGroupingDrawer.vue'
-import MrxGridFilterDrawer from './MrxGridFilterDrawer.vue'
-import MrxKeyboardShortcutsDrawer from './MrxKeyboardShortcutsDrawer.vue'
+import AdeoGridToolbar from './AdeoGridToolbar.vue'
+import AdeoTableMenuDrawer from './AdeoTableMenuDrawer.vue'
+import AdeoGroupingDrawer from './AdeoGroupingDrawer.vue'
+import AdeoGridFilterDrawer from './AdeoGridFilterDrawer.vue'
+import AdeoKeyboardShortcutsDrawer from './AdeoKeyboardShortcutsDrawer.vue'
 import {
   DEFAULT_OPERATORS,
   DEFAULT_OPERATOR_PER_TYPE,
@@ -37,13 +37,13 @@ import {
   type FilterModel,
 } from '../../models/filter.model'
 import type { ColumnDef } from '../../types'
-import type { DataDensity } from './MrxTableMenuDrawer.vue'
-import type { GroupingItem } from './MrxGroupingDrawer.vue'
+import type { DataDensity } from './AdeoTableMenuDrawer.vue'
+import type { GroupingItem } from './AdeoGroupingDrawer.vue'
 
 // Subset of the grid's `defineExpose` we touch — just enough for the
 // toolbar's batteries-included actions. Typed loosely so any grid ref
 // with these methods works without dragging the full type around.
-interface MrxGridImperativeAPI {
+interface AdeoGridImperativeAPI {
   exportCsv?: (opts?: { filename?: string }) => void
   selectAll?: () => void
   clearSelection?: () => void
@@ -56,7 +56,7 @@ interface MrxGridImperativeAPI {
 
 const props = withDefaults(
   defineProps<{
-    grid?: MrxGridImperativeAPI | null
+    grid?: AdeoGridImperativeAPI | null
     columns?: ColumnDef[]
     fullscreen?: boolean
     hiddenFields?: string[]
@@ -125,7 +125,7 @@ const filterColumns = computed<FilterColumnDescriptor[]>(() =>
       filterType,
       operators,
       defaultOperator,
-      // `col.filter` is a union (inline FilterDef OR MrxFilterConfig).
+      // `col.filter` is a union (inline FilterDef OR AdeoFilterConfig).
       // Only the inline shape carries `options`; narrow before reading.
       options:
         col.filterOptions ??
@@ -180,7 +180,7 @@ function onClearFilters() {
 </script>
 
 <template>
-  <MrxGridToolbar
+  <AdeoGridToolbar
     :show-fullscreen="showFullscreen"
     :show-export="showExport"
     :show-filters="showFilters"
@@ -212,8 +212,8 @@ function onClearFilters() {
     <template v-if="$slots['selection-actions']" #selection-actions>
       <slot name="selection-actions" />
     </template>
-  </MrxGridToolbar>
-  <MrxTableMenuDrawer
+  </AdeoGridToolbar>
+  <AdeoTableMenuDrawer
     v-if="showSettings"
     :open="settingsOpen"
     :columns="columns"
@@ -224,7 +224,7 @@ function onClearFilters() {
     @apply="onApplySettings"
     @reset="onResetSettings"
   />
-  <MrxGroupingDrawer
+  <AdeoGroupingDrawer
     v-if="showGroup"
     :open="groupingOpen"
     :columns="columns"
@@ -233,7 +233,7 @@ function onClearFilters() {
     @apply="onApplyGrouping"
     @reset="onResetGrouping"
   />
-  <MrxGridFilterDrawer
+  <AdeoGridFilterDrawer
     v-if="showFilters"
     :open="filtersOpen"
     :model="filterModel"
@@ -242,7 +242,7 @@ function onClearFilters() {
     @apply="onApplyFilters"
     @clear="onClearFilters"
   />
-  <MrxKeyboardShortcutsDrawer
+  <AdeoKeyboardShortcutsDrawer
     v-if="showKeyboard"
     :open="keyboardOpen"
     @update:open="keyboardOpen = $event"

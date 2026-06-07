@@ -173,7 +173,7 @@ const emit = defineEmits<{
   /**
    * Emitted when the user clicks a function name. The `text` payload is
    * the function name with an open paren appended (e.g. `"SUM("`) — wire
-   * this to `MrxFormulaBar.insertText(text)` so the function lands at the
+   * this to `AdeoFormulaBar.insertText(text)` so the function lands at the
    * caret with the cursor ready to type arguments.
    */
   insert: [text: string]
@@ -190,9 +190,9 @@ function close() {
 </script>
 
 <template>
-  <!-- See MrxGridFilterDrawer.vue for why we Teleport to <body>. -->
+  <!-- See AdeoGridFilterDrawer.vue for why we Teleport to <body>. -->
   <Teleport to="body">
-  <!-- See MrxGroupingDrawer.vue for why `close-on-overlay` stays
+  <!-- See AdeoGroupingDrawer.vue for why `close-on-overlay` stays
        disabled (Mozaic's MDrawer fires it on dialog-body whitespace). -->
   <MDrawer
     :open="open"

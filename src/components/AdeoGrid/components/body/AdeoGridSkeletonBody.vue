@@ -1,10 +1,10 @@
 <script setup lang="ts">
 /**
- * Skeleton body — drop-in replacement for `MrxGridBody` while loading.
+ * Skeleton body — drop-in replacement for `AdeoGridBody` while loading.
  *
- * Rendered by `MrxGrid.vue` whenever `props.loading === true`. It mirrors
+ * Rendered by `AdeoGrid.vue` whenever `props.loading === true`. It mirrors
  * the column layout (utility cells + left-pinned + center + right-pinned)
- * via `MrxGridSkeletonRow` and stacks `count` shimmer rows.
+ * via `AdeoGridSkeletonRow` and stacks `count` shimmer rows.
  *
  * Notes
  * -----
@@ -18,7 +18,7 @@
 
 import type { CSSProperties } from 'vue'
 import type { ColumnDef } from '../../types'
-import MrxGridSkeletonRow from './MrxGridSkeletonRow.vue'
+import AdeoGridSkeletonRow from './AdeoGridSkeletonRow.vue'
 
 defineProps<{
   /** Number of skeleton rows to render. */
@@ -52,7 +52,7 @@ defineProps<{
     aria-busy="true"
     aria-live="polite"
   >
-    <MrxGridSkeletonRow
+    <AdeoGridSkeletonRow
       v-for="i in count"
       :key="'skel-' + i"
       :row-index="i - 1"

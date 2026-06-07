@@ -13,12 +13,12 @@
 
 import { MIconButton, MTextInput, MButton } from '@mozaic-ds/vue'
 import {
-  MrxGridSmartToolbar,
+  AdeoGridSmartToolbar,
   type ColumnDef,
   type GroupingItem,
   type FilterModel,
   type DataDensity,
-} from '@/components/MrxGrid'
+} from '@/components/AdeoGrid'
 import {
   Download24,
   Search24,
@@ -71,7 +71,7 @@ const emit = defineEmits<{
     </div>
 
     <!-- Smart toolbar Mozaic — wraps fullscreen / filters / settings / group / keyboard / export -->
-    <MrxGridSmartToolbar :grid="grid" :columns="columns" :fullscreen="fullscreen" :density="density"
+    <AdeoGridSmartToolbar :grid="grid" :columns="columns" :fullscreen="fullscreen" :density="density"
       :hidden-fields="hiddenFields" :column-order="columnOrder" :active-groups="activeGroups"
       :filter-model="filterModel" :show-fullscreen="true" :show-export="true" :show-settings="true" :show-filters="true"
       :show-group="true" :show-keyboard="true" export-filename="catalogue"

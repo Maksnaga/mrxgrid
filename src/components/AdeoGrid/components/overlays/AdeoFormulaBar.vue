@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, inject, ref, watch } from 'vue'
 import { GRID_STATE_KEY } from '../../state/GridContext'
-import { injectMrxGridSlots } from '../../state/MrxGridSlots'
+import { injectAdeoGridSlots } from '../../state/AdeoGridSlots'
 
 /**
  * Formula bar — single-line editor that reflects the active cell value or the
@@ -16,7 +16,7 @@ import { injectMrxGridSlots } from '../../state/MrxGridSlots'
  * draft is initialised with the **A1 source string** (`displayFormula`) so
  * the user sees and edits the formula, not its evaluated value. Commits
  * starting with `=` are routed through `formula.set(addr, ...)` by the
- * grid's `flushEdit` (see `MrxGrid.vue`); this component is unaware of
+ * grid's `flushEdit` (see `AdeoGrid.vue`); this component is unaware of
  * the storage path and just emits `commit` with the typed value.
  */
 
@@ -32,11 +32,11 @@ const emit = defineEmits<{
   cancel: []
 }>()
 
-// Tolerant inject — when the bar is mounted outside `<MrxGrid>` (above it
+// Tolerant inject — when the bar is mounted outside `<AdeoGrid>` (above it
 // in the toolbar) provide/inject does not reach across siblings. Render an
 // empty disabled bar in that case rather than throwing.
 const gridState = inject(GRID_STATE_KEY, null)
-const _gridSlots = injectMrxGridSlots()
+const _gridSlots = injectAdeoGridSlots()
 const draft = ref<string>('')
 
 const activeCell = computed(() => {
@@ -140,7 +140,7 @@ const cellLabel = computed(() => {
 })
 
 // ─── Imperative API ──────────────────────────────────────────────────────
-// Used by `MrxFormulaReferenceDrawer` to insert a function name at the
+// Used by `AdeoFormulaReferenceDrawer` to insert a function name at the
 // caret while the bar has focus, e.g. clicking SUM in the reference drawer
 // inserts `SUM(` at the cursor position. The caller is responsible for
 // keeping the bar focused (or refocusing) — we don't steal focus here.

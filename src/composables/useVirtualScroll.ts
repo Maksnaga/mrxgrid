@@ -1,5 +1,5 @@
 import { computed, isRef, shallowRef, watch, type Ref } from 'vue'
-import type { RowData } from '@/components/MrxGrid/types'
+import type { RowData } from '@/components/AdeoGrid/types'
 
 // ---------------------------------------------------------------------------
 // Skeleton sentinel

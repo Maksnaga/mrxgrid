@@ -1,5 +1,5 @@
 import { type Ref } from 'vue'
-import type { ColumnDef, RowData } from '@/components/MrxGrid/types'
+import type { ColumnDef, RowData } from '@/components/AdeoGrid/types'
 
 export interface KeyboardOptions {
   /** All columns in flat display order (left-pinned + center + right-pinned). */
@@ -160,7 +160,7 @@ export function useKeyboard(options: KeyboardOptions) {
         break
 
       case 'Enter':
-        // Enter is intercepted for editing at the MrxGrid level before
+        // Enter is intercepted for editing at the AdeoGrid level before
         // reaching here. If it arrives, treat it as navigation.
         e.preventDefault()
         onEnter(!shift)

@@ -188,7 +188,7 @@ function bindAGFilterInstance(condition: FilterCondition, inst: unknown): void {
 }
 
 /**
- * `MrxFilterParams.onModelChange` handler — emit an `update` patch with
+ * `AdeoFilterParams.onModelChange` handler — emit an `update` patch with
  * the new model. The drawer's parent maps that through the filter engine.
  */
 function onModelChange(condition: FilterCondition, nextModel: unknown): void {
@@ -250,7 +250,7 @@ function inputTypeFor(descriptor: FilterColumnDescriptor | undefined): string {
   }
 }
 
-// --- Drag reorder (same pattern as MrxGroupingDrawer) ---
+// --- Drag reorder (same pattern as AdeoGroupingDrawer) ---
 const dragState = { from: null as number | null }
 
 function onDragStart(index: number, e: DragEvent): void {

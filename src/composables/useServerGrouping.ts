@@ -1,5 +1,5 @@
 import { computed, ref, shallowRef, watch, type Ref } from 'vue'
-import type { ColumnDef, GroupSummary, RowData, ServerGroupingOptions } from '@/components/MrxGrid/types'
+import type { ColumnDef, GroupSummary, RowData, ServerGroupingOptions } from '@/components/AdeoGrid/types'
 
 interface GroupCache {
   rows: RowData[]

@@ -6,7 +6,7 @@
  *   - Owns the list of `RefHighlight`s describing which cells are
  *     referenced by the formula currently being edited.
  *   - Exposes a per-cell colour lookup (`colorByCell`) consumed by
- *     `MrxGridCell` to render coloured borders.
+ *     `AdeoGridCell` to render coloured borders.
  *   - Acts as a message bus for click-to-pick: cells emit `pickCell` /
  *     `pickRange*` events, the active editor receives them through a
  *     registered `PickHandler`.

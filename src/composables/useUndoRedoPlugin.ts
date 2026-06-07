@@ -16,7 +16,7 @@
  *
  * Usage:
  *
- *   <MrxGrid
+ *   <AdeoGrid
  *     :plugins="[useUndoRedoPlugin({ storageKey: 'lm-products-v1' })]"
  *     history-id="lm-products-v1"
  *     @cell-edit="onCellEdit"
@@ -26,7 +26,7 @@
  * the same localStorage entry.)
  */
 
-import type { MrxGridPlugin } from '@/components/MrxGrid/models/plugin.model'
+import type { AdeoGridPlugin } from '@/components/AdeoGrid/models/plugin.model'
 
 export interface UndoRedoPluginOptions {
   /**
@@ -45,7 +45,7 @@ export interface UndoRedoPluginOptions {
   bindKeyboardShortcuts?: boolean
 }
 
-export function useUndoRedoPlugin(options: UndoRedoPluginOptions = {}): MrxGridPlugin {
+export function useUndoRedoPlugin(options: UndoRedoPluginOptions = {}): AdeoGridPlugin {
   const { storageKey = null, bindKeyboardShortcuts = true } = options
 
   return {

@@ -2,25 +2,25 @@
 /**
  * Filter row cell — Sprint 6 (REFONTE-PLAN-V2 §2.5).
  *
- * Single-responsibility cell rendered three times by `MrxGridFilterRow`
+ * Single-responsibility cell rendered three times by `AdeoGridFilterRow`
  * (left-pinned / center / right-pinned). Resolves the renderer in this
  * priority order:
  *
- *   1. `#filter-{field}` / `<MrxColumn> #filter` slot
+ *   1. `#filter-{field}` / `<AdeoColumn> #filter` slot
  *   2. `column.filterRenderer` Vue component
  *   3. `column.filter` built-in shape (text/select/date) → Mozaic inputs
  *      (`MTextInput` with search icon, `MSelect` for select, `MDatepicker`
  *      paired range for date)
  *
  * Centralising the rendering here removes the ~150 LOC of duplicated
- * branches that previously lived inline in `MrxGridFilterRow.vue`.
+ * branches that previously lived inline in `AdeoGridFilterRow.vue`.
  */
 
 import { computed } from 'vue'
 import { MTextInput, MSelect, MDatepicker } from '@mozaic-ds/vue'
 import { Search24 } from '@mozaic-ds/icons-vue'
 import type { ColumnDef } from '../../types'
-import { injectMrxGridSlots, resolveFilterSlot } from '../../state/MrxGridSlots'
+import { injectAdeoGridSlots, resolveFilterSlot } from '../../state/AdeoGridSlots'
 
 const props = defineProps<{
   column: ColumnDef
@@ -36,12 +36,12 @@ const emit = defineEmits<{
   commit: [value: unknown]
 }>()
 
-const _gridSlots = injectMrxGridSlots()
+const _gridSlots = injectAdeoGridSlots()
 const slot = computed(() => resolveFilterSlot(_gridSlots, props.column.field))
 
 // The inline filter row consumes the FilterDef shape only (`type`, `options`,
 // `placeholder`). Narrow the union before reading those fields — a custom
-// MrxFilterConfig (`component`, `doesFilterPass`) is a builder/overlay
+// AdeoFilterConfig (`component`, `doesFilterPass`) is a builder/overlay
 // concept and doesn't drive the inline row.
 const inlineFilter = computed(() => {
   const f = props.column.filter

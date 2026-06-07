@@ -3,28 +3,28 @@
  * Declarative column definition — alternative to the `:columns` prop.
  *
  * Mirrors Angular `<moz-grid-column-def field="…">` content children. Use
- * inside `<MrxGrid>` to attach scoped slots (`#cell`, `#edit`, `#filter`,
- * `#header`) directly to the column. The `<MrxColumn>` itself renders no
+ * inside `<AdeoGrid>` to attach scoped slots (`#cell`, `#edit`, `#filter`,
+ * `#header`) directly to the column. The `<AdeoColumn>` itself renders no
  * DOM — it only registers a `ColumnDef` (and slot presence flags) into the
- * `MrxColumnRegistry` provided by the parent grid.
+ * `AdeoColumnRegistry` provided by the parent grid.
  *
  * @example
- * <MrxGrid :rows="rows">
- *   <MrxColumn field="name" header-name="Name" />
- *   <MrxColumn field="status" header-name="Status">
+ * <AdeoGrid :rows="rows">
+ *   <AdeoColumn field="name" header-name="Name" />
+ *   <AdeoColumn field="status" header-name="Status">
  *     <template #cell="{ value }">
  *       <MozBadge>{{ value }}</MozBadge>
  *     </template>
- *   </MrxColumn>
- * </MrxGrid>
+ *   </AdeoColumn>
+ * </AdeoGrid>
  */
 
 import { computed, onMounted, onScopeDispose, useSlots, watch } from 'vue'
 import type { Component, Raw } from 'vue'
 import type { ColumnDef, FilterDef, RowData } from './types'
 import type { CellEditorType } from './models/column.model'
-import type { MrxFilterConfig } from './models/filter.model'
-import { injectMrxColumnRegistry } from './state/MrxColumnRegistry'
+import type { AdeoFilterConfig } from './models/filter.model'
+import { injectMrxColumnRegistry } from './state/AdeoColumnRegistry'
 
 let _orderSeq = 0
 
@@ -65,7 +65,7 @@ const props = withDefaults(
      * Filter config — inline filter row config ({ type, options, … }) or
      * custom filter config ({ component, doesFilterPass, filterParams }).
      */
-    filter?: FilterDef | MrxFilterConfig<RowData, unknown, unknown>
+    filter?: FilterDef | AdeoFilterConfig<RowData, unknown, unknown>
   }>(),
   {
     sortable: true,
@@ -83,7 +83,7 @@ const order = _orderSeq++
 
 if (!registry && import.meta.env?.DEV) {
   console.warn(
-    `[mrxgrid] <MrxColumn field="${props.field}"> rendered outside a <MrxGrid> — registration ignored.`,
+    `[mrxgrid] <AdeoColumn field="${props.field}"> rendered outside a <AdeoGrid> — registration ignored.`,
   )
 }
 
@@ -157,6 +157,6 @@ onScopeDispose(() => {
 
 <template>
   <!-- Render-less component: only registers itself, no DOM. The slots are
-       captured by the registry and forwarded by <MrxGrid> at render time. -->
+       captured by the registry and forwarded by <AdeoGrid> at render time. -->
   <div style="display: none"></div>
 </template>

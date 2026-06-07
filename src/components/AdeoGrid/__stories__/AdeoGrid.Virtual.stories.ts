@@ -1,11 +1,11 @@
 import type { Meta, StoryObj } from '@storybook/vue3-vite'
-import { MrxGrid } from '@/components/MrxGrid'
-import type { ColumnDef, RowData } from '@/components/MrxGrid'
+import { AdeoGrid } from '@/components/AdeoGrid'
+import type { ColumnDef, RowData } from '@/components/AdeoGrid'
 import { lmColumns, generateLMProducts } from './_fixtures'
 
 const meta = {
   title: 'Stories/Virtual Scroll/Vertical · Horizontal · Both',
-  component: MrxGrid,
+  component: AdeoGrid,
   tags: ['autodocs'],
   args: { rows: [] },
   parameters: {
@@ -14,7 +14,7 @@ const meta = {
         component: `
 # Virtual scroll
 
-Le virtual scroll est ce qui permet à MrxGrid de tenir 100k+ rows × 150+ colonnes sans crash. Deux axes indépendants :
+Le virtual scroll est ce qui permet à AdeoGrid de tenir 100k+ rows × 150+ colonnes sans crash. Deux axes indépendants :
 
 | Prop | Effet |
 |------|-------|
@@ -43,7 +43,7 @@ Pour les detail rows / group rows à hauteur dynamique, utilisez \`useVariableHe
       },
     },
   },
-} satisfies Meta<typeof MrxGrid>
+} satisfies Meta<typeof AdeoGrid>
 
 export default meta
 type Story = StoryObj<typeof meta>
@@ -57,7 +57,7 @@ export const VerticalLargeDataset: Story = {
 ## Vertical virtual scroll
 
 \`\`\`vue
-<MrxGrid
+<AdeoGrid
   :columns="columns"
   :rows="rows100k"
   virtual-scroll
@@ -80,20 +80,20 @@ export const VerticalLargeDataset: Story = {
 
 ### Tip
 
-Pour un wrapper parent \`flex\`/\`grid\` qui contraint la hauteur, mettez \`:height="'100%'"\` sur \`<MrxGrid>\` et laissez \`container-height\` à \`auto\`. Le \`ResizeObserver\` adaptera.
+Pour un wrapper parent \`flex\`/\`grid\` qui contraint la hauteur, mettez \`:height="'100%'"\` sur \`<AdeoGrid>\` et laissez \`container-height\` à \`auto\`. Le \`ResizeObserver\` adaptera.
         `,
       },
     },
   },
   render: () => ({
-    components: { MrxGrid },
+    components: { AdeoGrid },
     setup: () => ({ lmColumns, rows: generateLMProducts(100_000) }),
     template: `
       <div class="sb-mrx-shell">
         <h2>Vertical virtual scroll · 100 000 lignes</h2>
         <p>Active <code>:virtual-scroll="true"</code> et passe une <code>:container-height</code>. Seules les lignes visibles + overscan sont rendues.</p>
         <div class="sb-mrx-frame" style="height: 600px">
-          <MrxGrid :height="560" :columns="lmColumns" :rows="rows" virtual-scroll :container-height="600" />
+          <AdeoGrid :height="560" :columns="lmColumns" :rows="rows" virtual-scroll :container-height="600" />
         </div>
       </div>
     `,
@@ -109,7 +109,7 @@ export const HorizontalManyColumns: Story = {
 ## Horizontal virtual scroll
 
 \`\`\`vue
-<MrxGrid
+<AdeoGrid
   :columns="columns200"
   :rows="rows"
   virtual-columns
@@ -132,13 +132,13 @@ export const HorizontalManyColumns: Story = {
 ### Limites
 
 - Le \`columnOrder\` (drag-drop) fonctionne sur la liste *complète*, pas juste la slice — geste cohérent
-- L'expander row utilise \`grid-template-columns\` côté CSS, qui ne va pas bien avec virtual columns. Si vous combinez avec \`expandable\`, l'expand row utilise un \`<MrxGridDetailRow>\` full-width — pas affecté.
+- L'expander row utilise \`grid-template-columns\` côté CSS, qui ne va pas bien avec virtual columns. Si vous combinez avec \`expandable\`, l'expand row utilise un \`<AdeoGridDetailRow>\` full-width — pas affecté.
         `,
       },
     },
   },
   render: () => ({
-    components: { MrxGrid },
+    components: { AdeoGrid },
     setup() {
       // Wide columns = 200, plus a few "real" columns from the LM dataset on the left.
       const cols: ColumnDef[] = [
@@ -163,7 +163,7 @@ export const HorizontalManyColumns: Story = {
         <h2>Horizontal virtual scroll · 200 colonnes</h2>
         <p>Active <code>:virtual-columns="true"</code>. Les colonnes hors viewport ne sont pas rendues, les pinned restent collées.</p>
         <div class="sb-mrx-frame" style="height: 520px">
-          <MrxGrid :height="560" :columns="cols" :rows="rows" virtual-columns virtual-scroll :container-height="520" />
+          <AdeoGrid :height="560" :columns="cols" :rows="rows" virtual-columns virtual-scroll :container-height="520" />
         </div>
       </div>
     `,
@@ -179,7 +179,7 @@ export const BothAxes: Story = {
 ## Both axes (la combo "stress test")
 
 \`\`\`vue
-<MrxGrid
+<AdeoGrid
   :columns="columns100"
   :rows="rows50k"
   virtual-scroll
@@ -212,7 +212,7 @@ Ouvrez la story, scrollez bestially. La courbe FPS dans les DevTools doit rester
     },
   },
   render: () => ({
-    components: { MrxGrid },
+    components: { AdeoGrid },
     setup() {
       const cols: ColumnDef[] = [
         { field: 'sku', headerName: 'Réf', width: '120px', pinned: 'start' },
@@ -230,7 +230,7 @@ Ouvrez la story, scrollez bestially. La courbe FPS dans les DevTools doit rester
         <h2>50 000 × 100 cellules virtualisées</h2>
         <p>Le grid combine <code>useVirtualScroll</code> + <code>useVirtualColumns</code> pour ne jamais rendre plus de ~80 lignes × ~30 colonnes en simultané.</p>
         <div class="sb-mrx-frame" style="height: 560px">
-          <MrxGrid :height="560" :columns="cols" :rows="rows" virtual-scroll virtual-columns :container-height="560" />
+          <AdeoGrid :height="560" :columns="cols" :rows="rows" virtual-scroll virtual-columns :container-height="560" />
         </div>
       </div>
     `,

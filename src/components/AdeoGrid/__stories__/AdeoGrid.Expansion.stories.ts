@@ -1,10 +1,10 @@
 import type { Meta, StoryObj } from '@storybook/vue3-vite'
-import { MrxGrid } from '@/components/MrxGrid'
+import { AdeoGrid } from '@/components/AdeoGrid'
 import { lmColumns, lmProducts, type LMProduct } from './_fixtures'
 
 const meta = {
   title: 'Stories/Row Expansion/Detail row',
-  component: MrxGrid,
+  component: AdeoGrid,
   tags: ['autodocs'],
   args: { rows: [] },
   parameters: {
@@ -31,12 +31,12 @@ Pas exposée actuellement — les toggles passent par le clic chevron uniquement
 
 ### Styling
 
-Le detail row utilise \`<MrxGridDetailRow>\` qui pose un \`grid-column: 1 / -1\` (couvre toute la largeur). Le content est libre : graph, table secondaire, formulaire d'édition longue, etc.
+Le detail row utilise \`<AdeoGridDetailRow>\` qui pose un \`grid-column: 1 / -1\` (couvre toute la largeur). Le content est libre : graph, table secondaire, formulaire d'édition longue, etc.
         `,
       },
     },
   },
-} satisfies Meta<typeof MrxGrid>
+} satisfies Meta<typeof AdeoGrid>
 
 export default meta
 type Story = StoryObj<typeof meta>
@@ -50,14 +50,14 @@ export const ExpandableRows: Story = {
 ## Expandable rows
 
 \`\`\`vue
-<MrxGrid :columns="columns" :rows="rows" expandable>
+<AdeoGrid :columns="columns" :rows="rows" expandable>
   <template #expand-row="{ row, index }">
     <div class="my-detail-panel">
       <strong>{{ row.name }}</strong>
       <p>SKU {{ row.sku }} · marque {{ row.brand }} · stock {{ row.stock }}</p>
     </div>
   </template>
-</MrxGrid>
+</AdeoGrid>
 \`\`\`
 
 ### Comportement
@@ -89,14 +89,14 @@ const accordion = (state) => {
     },
   },
   render: () => ({
-    components: { MrxGrid },
+    components: { AdeoGrid },
     setup: () => ({ lmColumns, lmProducts }),
     template: `
       <div class="sb-mrx-shell">
         <h2>Expandable rows</h2>
         <p>Active <code>:expandable</code>. Une chevron apparaît en début de ligne pour toggle la row de détail (slot <code>#expand-row</code>).</p>
         <div class="sb-mrx-frame">
-          <MrxGrid :height="560" :columns="lmColumns" :rows="lmProducts" expandable>
+          <AdeoGrid :height="560" :columns="lmColumns" :rows="lmProducts" expandable>
             <template #expand-row="{ row }">
               <div style="padding: 16px; background: #fafbfc; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; font-size: 13px;">
                 <div>
@@ -120,7 +120,7 @@ const accordion = (state) => {
                 </div>
               </div>
             </template>
-          </MrxGrid>
+          </AdeoGrid>
         </div>
       </div>
     `,
@@ -140,7 +140,7 @@ Le slot reçoit la \`row\` complète — vous y posez librement vos CTA (réappr
 ### Implémentation
 
 \`\`\`vue
-<MrxGrid :columns="columns" :rows="rows" expandable>
+<AdeoGrid :columns="columns" :rows="rows" expandable>
   <template #expand-row="{ row }">
     <div class="detail-panel">
       <div class="info">
@@ -151,20 +151,20 @@ Le slot reçoit la \`row\` complète — vous y posez librement vos CTA (réappr
       <button @click="openSupplier(row)">Fiche fournisseur</button>
     </div>
   </template>
-</MrxGrid>
+</AdeoGrid>
 \`\`\`
 
 ### Notes UX
 
 - Évitez de mettre une grosse table secondaire dans le detail panel — la perf vire vite. Pour ça, préférez un router push vers une page dédiée.
 - Pour un panel d'édition long, considérez un \`<MDrawer>\` au lieu d'un detail row — plus d'espace + navigation clavier dédiée.
-- Le \`<MrxGridDetailRow>\` ne porte aucune ombre/border par défaut — si vous voulez le distinguer, ajoutez votre propre \`background: #fafbfc; border-bottom: ...\` côté slot.
+- Le \`<AdeoGridDetailRow>\` ne porte aucune ombre/border par défaut — si vous voulez le distinguer, ajoutez votre propre \`background: #fafbfc; border-bottom: ...\` côté slot.
         `,
       },
     },
   },
   render: () => ({
-    components: { MrxGrid },
+    components: { AdeoGrid },
     setup() {
       function reorder(row: LMProduct) {
         // Storybook actions panel will display this if the consumer wires it.
@@ -178,7 +178,7 @@ Le slot reçoit la \`row\` complète — vous y posez librement vos CTA (réappr
         <h2>Detail row with actions</h2>
         <p>Le slot reçoit la <code>row</code> complète : tu peux y poser des CTA contextuels (réappro, fiche fournisseur, etc.).</p>
         <div class="sb-mrx-frame">
-          <MrxGrid :height="560" :columns="lmColumns" :rows="lmProducts" expandable>
+          <AdeoGrid :height="560" :columns="lmColumns" :rows="lmProducts" expandable>
             <template #expand-row="{ row }">
               <div style="padding: 14px 16px; display: flex; gap: 12px; align-items: center; background: #f8fafc;">
                 <div style="flex: 1">
@@ -194,7 +194,7 @@ Le slot reçoit la \`row\` complète — vous y posez librement vos CTA (réappr
                 </button>
               </div>
             </template>
-          </MrxGrid>
+          </AdeoGrid>
         </div>
       </div>
     `,

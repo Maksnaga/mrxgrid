@@ -9,7 +9,7 @@
 import {
   generateLMProducts,
   type LMProduct,
-} from '@/components/MrxGrid/__stories__/_fixtures'
+} from '@/components/AdeoGrid/__stories__/_fixtures'
 
 export type { LMProduct }
 

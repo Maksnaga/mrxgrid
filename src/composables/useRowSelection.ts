@@ -1,6 +1,6 @@
 import { computed, type ComputedRef, type Ref } from 'vue'
-import type { GridState } from '@/components/MrxGrid/state/useGridState'
-import type { RowData, SelectionState } from '@/components/MrxGrid/types'
+import type { GridState } from '@/components/AdeoGrid/state/useGridState'
+import type { RowData, SelectionState } from '@/components/AdeoGrid/types'
 
 /**
  * Gmail-style selection state (consumer-facing shape).
@@ -12,7 +12,7 @@ import type { RowData, SelectionState } from '@/components/MrxGrid/types'
  * Phase 2.6: the storage moves to `gridState.selectAllMode` /
  * `selectedRowIds` / `excludedRowIds` (Angular parity). The Gmail-shape
  * `SelectionModel` is a derived computed; mutators write straight into
- * `gridState`. The legacy mirror watch in `MrxGrid.vue` is gone.
+ * `gridState`. The legacy mirror watch in `AdeoGrid.vue` is gone.
  *
  * Mapping (single source of truth on `gridState`):
  *   allSelected = true                    ↔ selectAllMode = 'all'   + excludedRowIds = deselectedIds

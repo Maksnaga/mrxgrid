@@ -13,16 +13,16 @@
 
 import { computed, ref } from 'vue'
 import {
-  MrxGrid,
-  MrxGridToolbar,
-  MrxFormulaBar,
-  MrxFormulaReferenceDrawer,
-  MrxKeyboardShortcutsDrawer,
-  MrxTableMenuDrawer,
-  MrxGroupingDrawer,
-  MrxGridFilterDrawer,
+  AdeoGrid,
+  AdeoGridToolbar,
+  AdeoFormulaBar,
+  AdeoFormulaReferenceDrawer,
+  AdeoKeyboardShortcutsDrawer,
+  AdeoTableMenuDrawer,
+  AdeoGroupingDrawer,
+  AdeoGridFilterDrawer,
   defineStatusRenderer,
-} from '@/components/MrxGrid'
+} from '@/components/AdeoGrid'
 import type {
   CellEditEvent,
   ColumnDef,
@@ -30,14 +30,14 @@ import type {
   FillEvent,
   DataDensity,
   GroupingItem,
-} from '@/components/MrxGrid'
+} from '@/components/AdeoGrid'
 import {
   DEFAULT_OPERATORS,
   DEFAULT_OPERATOR_PER_TYPE,
   type FilterColumnDescriptor,
   type FilterDataType,
   type FilterModel,
-} from '@/components/MrxGrid/models/filter.model'
+} from '@/components/AdeoGrid/models/filter.model'
 
 // ─── Domain ───────────────────────────────────────────────────────────────
 
@@ -208,8 +208,8 @@ const rows = ref<Product[]>(
 
 // ─── Demo wiring ──────────────────────────────────────────────────────────
 
-const gridRef = ref<InstanceType<typeof MrxGrid>>()
-const formulaBarRef = ref<InstanceType<typeof MrxFormulaBar>>()
+const gridRef = ref<InstanceType<typeof AdeoGrid>>()
+const formulaBarRef = ref<InstanceType<typeof AdeoFormulaBar>>()
 
 const formulaReferenceOpen = ref(false)
 const keyboardShortcutsOpen = ref(false)
@@ -238,7 +238,7 @@ const groupFields = computed(() => activeGroups.value.map((g) => g.field))
 const filterColumns = computed<FilterColumnDescriptor[]>(() =>
   columns.map((col) => {
     // Narrow `col.filter` to its inline shape before reading `type` /
-    // `options` — the union also covers custom MrxFilterConfig
+    // `options` — the union also covers custom AdeoFilterConfig
     // (`component` / `doesFilterPass`) which doesn't carry those.
     const inline = col.filter && 'type' in col.filter ? col.filter : undefined
     const filterType: FilterDataType =
@@ -355,7 +355,7 @@ function onClearSelection() {
 <template>
   <div class="stock-demo">
     <header class="stock-demo__header">
-      <h1>MrxGrid · Stock demo</h1>
+      <h1>AdeoGrid · Stock demo</h1>
       <p class="stock-demo__subtitle">
         1 000 produits · validations sur Nom + Prix · catégorie / fournisseur en MSelect ·
         statut rendu en MTag. Ouvre le menu kebab d'une colonne pour Sort / Pin / Hide /
@@ -363,10 +363,10 @@ function onClearSelection() {
       </p>
     </header>
 
-    <!-- Toolbar — full MrxGridToolbar with MIconButton + MButton
+    <!-- Toolbar — full AdeoGridToolbar with MIconButton + MButton
          "Filters" + Help link. The selection banner is built-in (inline,
          replaces the floating SelectionBar when rows are selected). -->
-    <MrxGridToolbar
+    <AdeoGridToolbar
       show-fullscreen
       show-export
       show-filters
@@ -391,11 +391,11 @@ function onClearSelection() {
       <template #toolbar-end>
         <a class="stock-demo__help-link" href="#" @click.prevent>Help</a>
       </template>
-    </MrxGridToolbar>
+    </AdeoGridToolbar>
 
-    <MrxFormulaBar ref="formulaBarRef" :all-columns="flatColumns" :rows="rows" />
+    <AdeoFormulaBar ref="formulaBarRef" :all-columns="flatColumns" :rows="rows" />
 
-    <MrxGrid
+    <AdeoGrid
       ref="gridRef"
       :columns="columns"
       :rows="rows"
@@ -454,10 +454,10 @@ function onClearSelection() {
           </dl>
         </div>
       </template>
-    </MrxGrid>
+    </AdeoGrid>
 
     <!-- Drawers own their MDrawer wrapper — consumers only pass `:open`. -->
-    <MrxTableMenuDrawer
+    <AdeoTableMenuDrawer
       :open="settingsOpen"
       :columns="columns"
       :hidden-fields="hiddenFields"
@@ -467,7 +467,7 @@ function onClearSelection() {
       @apply="onApplySettings"
       @reset="onResetSettings"
     />
-    <MrxGroupingDrawer
+    <AdeoGroupingDrawer
       :open="groupingOpen"
       :columns="columns"
       :active-groups="activeGroups"
@@ -475,7 +475,7 @@ function onClearSelection() {
       @apply="onApplyGrouping"
       @reset="onResetGrouping"
     />
-    <MrxGridFilterDrawer
+    <AdeoGridFilterDrawer
       :open="filtersOpen"
       :model="filterModel"
       :columns="filterColumns"
@@ -483,11 +483,11 @@ function onClearSelection() {
       @apply="onApplyFilters"
       @clear="onClearFilters"
     />
-    <MrxKeyboardShortcutsDrawer
+    <AdeoKeyboardShortcutsDrawer
       :open="keyboardShortcutsOpen"
       @update:open="keyboardShortcutsOpen = $event"
     />
-    <MrxFormulaReferenceDrawer
+    <AdeoFormulaReferenceDrawer
       :open="formulaReferenceOpen"
       @update:open="formulaReferenceOpen = $event"
       @insert="onFormulaInsert"

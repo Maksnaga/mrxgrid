@@ -2,7 +2,7 @@
 /**
  * Filter drawer — Angular parity (`moz-grid-filter-drawer`).
  *
- * Wraps `MrxGridFilterBuilder` in an `MDrawer`. Uses a **local draft** of the
+ * Wraps `AdeoGridFilterBuilder` in an `MDrawer`. Uses a **local draft** of the
  * filter model that resets every time the drawer opens, so the user can edit
  * freely and commit with Apply (or discard with Cancel). When
  * `applyMode === 'auto'`, edits are emitted immediately and the footer is
@@ -20,7 +20,7 @@
 
 import { computed, ref, watch } from 'vue'
 import { MDrawer, MButton } from '@mozaic-ds/vue'
-import MrxGridFilterBuilder from './MrxGridFilterBuilder.vue'
+import AdeoGridFilterBuilder from './AdeoGridFilterBuilder.vue'
 import {
   generateConditionId,
   type FilterApplyMode,
@@ -77,7 +77,7 @@ function cloneConditions(list: FilterCondition[]): FilterCondition[] {
     // Deep-clone the opaque AG-Grid-style filter model so two drafts don't
     // alias the same nested object. `structuredClone` falls back to a JSON
     // round-trip for older runtimes (the model is required to be
-    // JSON-serializable anyway — see MrxFilterInstance docs).
+    // JSON-serializable anyway — see AdeoFilterInstance docs).
     model: c.model == null ? c.model : cloneModel(c.model),
   }))
 }
@@ -183,7 +183,7 @@ function onCancel(): void {
       @update:open="emit('update:open', $event)"
     >
       <div class="mrx-filter-drawer">
-        <MrxGridFilterBuilder
+        <AdeoGridFilterBuilder
           :conditions="draft"
           :columns="columns"
           @add="onAdd"

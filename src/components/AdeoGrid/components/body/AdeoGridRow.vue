@@ -4,7 +4,7 @@ import type { CSSProperties } from 'vue'
 import type { CellFlags, ColumnDef, RowData } from '../../types'
 import { MButton, MCheckbox, MLoader } from '@mozaic-ds/vue'
 import { ChevronDown20, ChevronRight20 } from '@mozaic-ds/icons-vue'
-import MrxGridCell from './MrxGridCell.vue'
+import AdeoGridCell from './AdeoGridCell.vue'
 
 const EMPTY_FLAGS: CellFlags = {}
 
@@ -46,14 +46,14 @@ const props = defineProps<{
   /**
    * True quand cette row entière est en attente d'une mutation serveur
    * (bulk delete, drawer save, etc.). Drive un dim global + un mini
-   * spinner Mozaic — voir `props.pendingRowIds` côté `<MrxGrid>`.
+   * spinner Mozaic — voir `props.pendingRowIds` côté `<AdeoGrid>`.
    */
   pending?: boolean
 }>()
 
 /** Inline style for an unpinned center cell. The `fillField` column gets
  *  `min-width: declaredWidth` only — the `flex: 1 1 auto` lives on
- *  `.mrx-grid-cell--fill` (scoped to MrxGridCell) so it isn't lost in
+ *  `.mrx-grid-cell--fill` (scoped to AdeoGridCell) so it isn't lost in
  *  the parent/child `:style` fall-through merge.
  *
  *  Non-fill cells get BOTH `width` and `minWidth` set to the declared
@@ -155,7 +155,7 @@ const emit = defineEmits<{
     </div>
 
     <!-- Left-pinned columns (always rendered, sticky left) -->
-    <MrxGridCell v-for="(col, idx) in pinnedLeftColumns" :key="'pl-' + col.field" :value="cellValue(col, row)" :row="row"
+    <AdeoGridCell v-for="(col, idx) in pinnedLeftColumns" :key="'pl-' + col.field" :value="cellValue(col, row)" :row="row"
       :field="col.field" :row-index="rowIndex" :column="col" :active="activeField === col.field"
       :editing="editingField === col.field" :edit-value="editingField === col.field ? editValue : undefined"
       :selected="flags(col.field).selected" :edge-top="flags(col.field).edgeTop"
@@ -179,7 +179,7 @@ const emit = defineEmits<{
       <template v-if="$slots.cell" #default="cellSlot">
         <slot name="cell" v-bind="cellSlot" />
       </template>
-    </MrxGridCell>
+    </AdeoGridCell>
 
     <!-- Left spacer (for virtual center columns). Skip rendering when the
          width is missing or `0px` so the row doesn't carry a phantom flex
@@ -188,7 +188,7 @@ const emit = defineEmits<{
       :style="{ width: leftSpacerWidth, minWidth: leftSpacerWidth }" />
 
     <!-- Center columns (virtual slice or all unpinned) -->
-    <MrxGridCell v-for="col in columns" :key="col.field" :value="cellValue(col, row)" :row="row" :field="col.field"
+    <AdeoGridCell v-for="col in columns" :key="col.field" :value="cellValue(col, row)" :row="row" :field="col.field"
       :row-index="rowIndex" :column="col" :active="activeField === col.field" :editing="editingField === col.field"
       :edit-value="editingField === col.field ? editValue : undefined" :selected="flags(col.field).selected"
       :edge-top="flags(col.field).edgeTop" :edge-bottom="flags(col.field).edgeBottom"
@@ -207,14 +207,14 @@ const emit = defineEmits<{
       <template v-if="$slots.cell" #default="cellSlot">
         <slot name="cell" v-bind="cellSlot" />
       </template>
-    </MrxGridCell>
+    </AdeoGridCell>
 
     <!-- Right spacer (for virtual center columns). See note on left spacer. -->
     <div v-if="rightSpacerWidth && rightSpacerWidth !== '0px'" aria-hidden="true" class="mrx-grid-spacer"
       :style="{ width: rightSpacerWidth, minWidth: rightSpacerWidth }" />
 
     <!-- Right-pinned columns (always rendered, sticky right) -->
-    <MrxGridCell v-for="(col, idx) in pinnedRightColumns" :key="'pr-' + col.field" :value="cellValue(col, row)" :row="row"
+    <AdeoGridCell v-for="(col, idx) in pinnedRightColumns" :key="'pr-' + col.field" :value="cellValue(col, row)" :row="row"
       :field="col.field" :row-index="rowIndex" :column="col" :active="activeField === col.field"
       :editing="editingField === col.field" :edit-value="editingField === col.field ? editValue : undefined"
       :selected="flags(col.field).selected" :edge-top="flags(col.field).edgeTop"
@@ -238,7 +238,7 @@ const emit = defineEmits<{
       <template v-if="$slots.cell" #default="cellSlot">
         <slot name="cell" v-bind="cellSlot" />
       </template>
-    </MrxGridCell>
+    </AdeoGridCell>
   </div>
 </template>
 
@@ -324,7 +324,7 @@ const emit = defineEmits<{
 
 // `clip-path` extends the cell's painting region 4px past the pinned edge
 // so the drop-shadow (set via `--mrx-cell-outer-shadow` inside
-// `MrxGridCell.vue`'s `box-shadow` stack) is visible across the boundary.
+// `AdeoGridCell.vue`'s `box-shadow` stack) is visible across the boundary.
 .mrx-grid-cell--pinned-left-edge {
   clip-path: inset(0 -4px 0 0);
 }

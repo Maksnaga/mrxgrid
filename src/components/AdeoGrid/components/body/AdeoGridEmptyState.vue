@@ -11,9 +11,9 @@
  *     glyph, leaving the action zone open for the consumer to wire up
  *     "Add row" / "Import" / etc. via the `#actions` slot.
  *
- * Composers can either replace the whole thing via `<MrxGrid #empty>` or
+ * Composers can either replace the whole thing via `<AdeoGrid #empty>` or
  * keep the default layout and just inject custom actions through
- * `<MrxGrid #empty-actions>`. The component animates in subtly so it
+ * `<AdeoGrid #empty-actions>`. The component animates in subtly so it
  * feels intentional rather than abrupt when filters change.
  */
 import { computed } from 'vue'

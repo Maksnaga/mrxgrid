@@ -2,7 +2,7 @@
 /**
  * Grid body — Angular parity (`moz-grid-body`).
  *
- * Extracted from `MrxGrid.vue` to isolate the body rendering (virtual sizer,
+ * Extracted from `AdeoGrid.vue` to isolate the body rendering (virtual sizer,
  * top spacer, per-row alternation between group headers and data rows, detail
  * rows). The parent grid keeps ownership of the scroll container, sticky
  * header and all the composables — the body is a presentational leaf that
@@ -22,9 +22,9 @@
 import type { CSSProperties } from 'vue'
 import type { CellFlags, ColumnDef, RowData } from '../../types'
 import { isGroupRow } from '../../types'
-import MrxGridRow from './MrxGridRow.vue'
-import MrxGridGroupRow from './MrxGridGroupRow.vue'
-import MrxGridDetailRow from './MrxGridDetailRow.vue'
+import AdeoGridRow from './AdeoGridRow.vue'
+import AdeoGridGroupRow from './AdeoGridGroupRow.vue'
+import AdeoGridDetailRow from './AdeoGridDetailRow.vue'
 
 defineProps<{
   /** Use the virtual-scroll variant (sizer + top spacer). */
@@ -87,7 +87,7 @@ const emit = defineEmits<{
   fillHandleMousedown: [event: MouseEvent]
   toggleGroup: [key: string]
   /**
-   * Propagated from `MrxGridDetailRow` whenever a detail row's intrinsic
+   * Propagated from `AdeoGridDetailRow` whenever a detail row's intrinsic
    * height is measured. The parent grid stores this to feed the virtual
    * scroller's `expandedRowExtraHeight` dynamically — no need for the
    * consumer to pass `:expanded-row-height` matching the slot content.
@@ -118,7 +118,7 @@ const emit = defineEmits<{
 
       <template v-for="i in renderRange" :key="i">
         <template v-if="isGroupRow(getRenderRow(i))">
-          <MrxGridGroupRow
+          <AdeoGridGroupRow
             :header-name="String(getRenderRow(i).__mrxHeaderName)"
             :value="getRenderRow(i).__mrxValue"
             :count="Number(getRenderRow(i).__mrxCount)"
@@ -140,7 +140,7 @@ const emit = defineEmits<{
           />
         </template>
         <template v-else>
-          <MrxGridRow
+          <AdeoGridRow
             :row="getRenderRow(i)"
             :row-index="i"
             :columns="columns"
@@ -177,13 +177,13 @@ const emit = defineEmits<{
             <template v-if="$slots.cell" #cell="cellSlot">
               <slot name="cell" v-bind="cellSlot" />
             </template>
-          </MrxGridRow>
-          <MrxGridDetailRow
+          </AdeoGridRow>
+          <AdeoGridDetailRow
             v-if="expandable && isExpanded(i)"
             @measure="(h: number) => emit('detailRowMeasured', h)"
           >
             <slot name="expand-row" :row="getRenderRow(i)" :index="i" />
-          </MrxGridDetailRow>
+          </AdeoGridDetailRow>
         </template>
       </template>
     </div>
@@ -197,7 +197,7 @@ const emit = defineEmits<{
   >
     <template v-for="i in renderRange" :key="i">
       <template v-if="isGroupRow(getRenderRow(i))">
-        <MrxGridGroupRow
+        <AdeoGridGroupRow
           :header-name="String(getRenderRow(i).__mrxHeaderName)"
           :value="getRenderRow(i).__mrxValue"
           :count="Number(getRenderRow(i).__mrxCount)"
@@ -219,7 +219,7 @@ const emit = defineEmits<{
         />
       </template>
       <template v-else>
-        <MrxGridRow
+        <AdeoGridRow
           :row="getRenderRow(i)"
           :row-index="i"
           :columns="columns"
@@ -255,10 +255,10 @@ const emit = defineEmits<{
           <template v-if="$slots.cell" #cell="cellSlot">
             <slot name="cell" v-bind="cellSlot" />
           </template>
-        </MrxGridRow>
-        <MrxGridDetailRow v-if="expandable && isExpanded(i)">
+        </AdeoGridRow>
+        <AdeoGridDetailRow v-if="expandable && isExpanded(i)">
           <slot name="expand-row" :row="getRenderRow(i)" :index="i" />
-        </MrxGridDetailRow>
+        </AdeoGridDetailRow>
       </template>
     </template>
   </div>

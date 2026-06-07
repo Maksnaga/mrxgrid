@@ -1,7 +1,7 @@
 /**
- * MrxColumnRegistry — Vue equivalent of Angular `@ContentChildren(MozGridColumnDef)`.
+ * AdeoColumnRegistry — Vue equivalent of Angular `@ContentChildren(MozGridColumnDef)`.
  *
- * `<MrxGrid>` provides a registry. Each `<MrxColumn>` child registers itself
+ * `<AdeoGrid>` provides a registry. Each `<AdeoColumn>` child registers itself
  * in `onMounted` and unregisters in `onScopeDispose`. The grid merges the
  * registered columns with the imperative `:columns` prop (registered columns
  * take priority for matching `field`s, since the consumer presumably expressed
@@ -11,10 +11,10 @@
 import { inject, type InjectionKey, type Slot } from 'vue'
 import type { ColumnDef } from '../types'
 
-export interface MrxColumnRegistration {
+export interface AdeoColumnRegistration {
   /** Stable id (typically `field`) used to dedupe registrations. */
   id: string
-  /** The column definition produced by `<MrxColumn>` (reactive snapshot). */
+  /** The column definition produced by `<AdeoColumn>` (reactive snapshot). */
   def: ColumnDef
   /** Order — auto-incremented at registration time so siblings stay stable. */
   order: number
@@ -23,8 +23,8 @@ export interface MrxColumnRegistration {
   hasEditSlot: boolean
   hasFilterSlot: boolean
   hasHeaderSlot: boolean
-  /** Slot references — read by `MrxGridCell` / `MrxGridHeaderCell` via the
-   *  `MrxGridSlots` injection. Optional: when no slot is provided, the
+  /** Slot references — read by `AdeoGridCell` / `AdeoGridHeaderCell` via the
+   *  `AdeoGridSlots` injection. Optional: when no slot is provided, the
    *  generic grid-level slot (or built-in fallback) is used instead. */
   cellSlot?: Slot
   editSlot?: Slot
@@ -32,19 +32,19 @@ export interface MrxColumnRegistration {
   headerSlot?: Slot
 }
 
-export interface MrxColumnRegistry {
-  register(reg: MrxColumnRegistration): void
+export interface AdeoColumnRegistry {
+  register(reg: AdeoColumnRegistration): void
   unregister(id: string): void
   /** Read snapshot of all registered columns, sorted by `order`. */
-  list(): MrxColumnRegistration[]
+  list(): AdeoColumnRegistration[]
 }
 
-export const MRX_COLUMN_REGISTRY_KEY: InjectionKey<MrxColumnRegistry> = Symbol(
-  'MrxColumnRegistry',
+export const MRX_COLUMN_REGISTRY_KEY: InjectionKey<AdeoColumnRegistry> = Symbol(
+  'AdeoColumnRegistry',
 )
 
 /** Type-safe inject helper. Returns `null` when no registry is provided —
  *  consumers using only `:columns` prop don't need to create a registry. */
-export function injectMrxColumnRegistry(): MrxColumnRegistry | null {
+export function injectMrxColumnRegistry(): AdeoColumnRegistry | null {
   return inject(MRX_COLUMN_REGISTRY_KEY, null)
 }

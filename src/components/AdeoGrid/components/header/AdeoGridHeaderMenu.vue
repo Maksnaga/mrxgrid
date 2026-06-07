@@ -12,7 +12,7 @@
  * button's `DOMRect` (passed by the parent header). We don't use Mozaic's
  * `<MPopover>` here because its activator slot relies on the native HTML
  * popover API binding (`popovertarget`), which doesn't compose with our
- * existing `MrxGridHeader` → `MrxGridHeaderCell` → emit-up flow. Keeping
+ * existing `AdeoGridHeader` → `AdeoGridHeaderCell` → emit-up flow. Keeping
  * the teleport gives us the Mozaic-styled item list without restructuring
  * the header virtualisation.
  */

@@ -1,7 +1,7 @@
 /**
  * GridContext — Vue equivalent of the Angular `inject(GridStateManager)` pattern.
  *
- * `GRID_STATE_KEY` is the canonical InjectionKey provided once per `<MrxGrid>`
+ * `GRID_STATE_KEY` is the canonical InjectionKey provided once per `<AdeoGrid>`
  * instance. `useGridContext()` is the consumer-facing typed inject helper that
  * throws (rather than returning `undefined`) when called outside the grid —
  * matching the Angular semantics where DI failure is a hard error.
@@ -17,10 +17,10 @@ import type { InjectionKey } from 'vue'
 import type { GridState } from './useGridState'
 import type { RowData } from '../types'
 
-export const GRID_STATE_KEY: InjectionKey<GridState<RowData>> = Symbol('MrxGridState')
+export const GRID_STATE_KEY: InjectionKey<GridState<RowData>> = Symbol('AdeoGridState')
 
 /**
- * Type-safe inject helper. Throws when called outside a `<MrxGrid>` — failing
+ * Type-safe inject helper. Throws when called outside a `<AdeoGrid>` — failing
  * loud beats silently producing bad render output for a context that should be
  * unconditionally present.
  */
@@ -28,7 +28,7 @@ export function useGridContext<T = RowData>(): GridState<T> {
   const state = inject(GRID_STATE_KEY)
   if (!state) {
     throw new Error(
-      '[mrxgrid] useGridContext() must be called inside a <MrxGrid> component',
+      '[mrxgrid] useGridContext() must be called inside a <AdeoGrid> component',
     )
   }
   return state as unknown as GridState<T>

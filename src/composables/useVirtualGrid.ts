@@ -1,5 +1,5 @@
 import { computed, isRef, onMounted, ref, watch, type Ref } from 'vue'
-import type { ColumnDef, RowData } from '@/components/MrxGrid/types'
+import type { ColumnDef, RowData } from '@/components/AdeoGrid/types'
 import { useVirtualScroll, SKELETON_ROW } from './useVirtualScroll'
 import { useVirtualColumns } from './useVirtualColumns'
 
