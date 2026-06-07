@@ -528,8 +528,8 @@ export interface ColumnDef<T = unknown> {
 
 export interface RowData {
   [key: string]: unknown
-  __mrxSkeleton?: boolean
-  __mrxType?: 'group' | 'row' | 'detail'
+  __adgSkeleton?: boolean
+  __adgType?: 'group' | 'row' | 'detail'
 }
 ```
 
@@ -707,14 +707,14 @@ const config: StorybookConfig = {
       'grid-angular': {
         title: 'Grid Angular',
         url: isProd
-          ? 'https://mrx.adeo.dev/storybook-angular'
+          ? 'https://adeo-grid.adeo.dev/storybook-angular'
           : 'http://localhost:6007',
         expanded: false,
       },
       'grid-vue': {
         title: 'Grid Vue',
         url: isProd
-          ? 'https://mrx.adeo.dev/storybook-vue'
+          ? 'https://adeo-grid.adeo.dev/storybook-vue'
           : 'http://localhost:6006',
         expanded: false,
       },
@@ -886,9 +886,9 @@ Turbo build/test/lint **uniquement** `grid-vue` et `storybook-portal`
 ### 8.3 Déploiement Storybook
 
 Trois Storybooks à déployer :
-- `grid-angular/storybook-static/` → `mrx.adeo.dev/storybook-angular/`
-- `grid-vue/storybook-static/` → `mrx.adeo.dev/storybook-vue/`
-- `storybook-portal/storybook-static/` → `mrx.adeo.dev/` (root)
+- `grid-angular/storybook-static/` → `adeo-grid.adeo.dev/storybook-angular/`
+- `grid-vue/storybook-static/` → `adeo-grid.adeo.dev/storybook-vue/`
+- `storybook-portal/storybook-static/` → `adeo-grid.adeo.dev/` (root)
 
 `.github/workflows/deploy-storybook.yml` :
 
@@ -932,7 +932,7 @@ jobs:
 
 **Important** : le portal référence les SB Angular/Vue via leurs URLs.
 Au build prod (`configType === 'PRODUCTION'`), les `refs` pointent
-vers `https://mrx.adeo.dev/storybook-*/`. Donc une fois les 3 buildés
+vers `https://adeo-grid.adeo.dev/storybook-*/`. Donc une fois les 3 buildés
 et déployés sur le même domaine, la composition fonctionne en prod
 comme en dev.
 

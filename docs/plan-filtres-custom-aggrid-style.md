@@ -19,11 +19,11 @@ L'API des filtres custom AdeoGrid est passée d'un modèle **éclaté** (3 props
 ### 1. Composant filtre
 
 ```ts
-import type { MrxFilterParams } from '@/components/AdeoGrid'
+import type { AdeoFilterParams } from '@/components/AdeoGrid'
 
 const PriceRangeFilter = defineComponent({
   props: { params: { type: Object, required: true } },
-  setup(props: { params: MrxFilterParams<MyRow, PriceModel> }, { expose }) {
+  setup(props: { params: AdeoFilterParams<MyRow, PriceModel> }, { expose }) {
     // État local — la grille est source de vérité (`params.model`), le
     // composant ne fait que mirror via `refresh()` et annoncer via
     // `params.onModelChange()`.
@@ -59,17 +59,17 @@ const PriceRangeFilter = defineComponent({
 ### 2. Prédicat (pure function)
 
 ```ts
-import type { MrxDoesFilterPassParams } from '@/components/AdeoGrid'
+import type { AdeoDoesFilterPassParams } from '@/components/AdeoGrid'
 
 const priceDoesFilterPass = (
-  p: MrxDoesFilterPassParams<MyRow, PriceModel>,
+  p: AdeoDoesFilterPassParams<MyRow, PriceModel>,
 ): boolean => {
   const v = p.getValue('price') as number
   return v >= p.model.min && v <= p.model.max
 }
 ```
 
-`MrxDoesFilterPassParams` expose `{ row, rowIndex, getValue, model, column }`. Aucun lien avec le composant — c'est de la **donnée de colonne** que tu peux partager, tester, swapper.
+`AdeoDoesFilterPassParams` expose `{ row, rowIndex, getValue, model, column }`. Aucun lien avec le composant — c'est de la **donnée de colonne** que tu peux partager, tester, swapper.
 
 ### 3. Déclaration sur la `ColumnDef`
 
@@ -101,12 +101,12 @@ Le code engine + UI narrowe la bonne shape automatiquement.
 // Sur la ColumnDef
 interface MrxFilterConfig<T, M, P> {
   component: MrxFilterComponent
-  doesFilterPass?: MrxDoesFilterPass<T, M>
+  doesFilterPass?: AdeoDoesFilterPass<T, M>
   filterParams?: P
 }
 
 // Passé en props au composant
-interface MrxFilterParams<T, M, P> {
+interface AdeoFilterParams<T, M, P> {
   model: M | null
   column: ColumnDef<T>
   filterParams?: P
@@ -115,7 +115,7 @@ interface MrxFilterParams<T, M, P> {
 }
 
 // Argument du prédicat
-interface MrxDoesFilterPassParams<T, M> {
+interface AdeoDoesFilterPassParams<T, M> {
   row: T
   rowIndex: number
   getValue: (field: string) => unknown
@@ -125,7 +125,7 @@ interface MrxDoesFilterPassParams<T, M> {
 
 // Exposé par le composant (TOUS optionnels)
 interface MrxFilterInstance<M> {
-  refresh?(newParams: MrxFilterParams<unknown, M>): boolean | void
+  refresh?(newParams: AdeoFilterParams<unknown, M>): boolean | void
   afterGuiAttached?(params?: { suppressFocus?: boolean }): void
   isFilterActive?(): boolean
   getModelAsString?(model: M): string
@@ -164,7 +164,7 @@ label        tag bar appelle instance.getModelAsString?(model) ?? col.headerName
 |----|-------------|
 | 1 | Ajout du nouveau contrat en parallèle (non-breaking). `filterComponent` accepte les deux contrats, différentiés par la static `doesFilterPass`. |
 | 2 | Migration de `CategoryComboFilter` au nouveau contrat. Console-warn pour la combinaison legacy. |
-| 3 | Suppression de l'ancienne API (`filterPredicate`, `filterIsComplete`, `MrxCustomFilterProps`, `MrxCustomFilterEmits`). Le contrat AG-Grid devient le seul. |
+| 3 | Suppression de l'ancienne API (`filterPredicate`, `filterIsComplete`, `AdeoCustomFilterProps`, `AdeoCustomFilterEmits`). Le contrat AG-Grid devient le seul. |
 | 4 | **Alignement final AG Grid** : `filter: { component, doesFilterPass }` au lieu de `filterComponent` + static. Un seul prop `params` côté composant au lieu de 3. `refresh()` / `afterGuiAttached()` à la place de `getModel`/`setModel`. |
 
 ---

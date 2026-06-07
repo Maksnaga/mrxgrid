@@ -93,7 +93,7 @@ Dans `AdeoGrid.vue`, on construit un `pendingLookup: Map<string, true>` indexé
 par `${rowId}:${field}` à partir de `props.pendingCells`. `getCellFlags` consulte
 cette Map et set le flag.
 
-Côté `AdeoGridCell.vue`, le flag `pending` ajoute la classe `.mrx-cell--pending`
+Côté `AdeoGridCell.vue`, le flag `pending` ajoute la classe `.adeo-grid-cell--pending`
 qui rend un overlay shimmer **par-dessus** la valeur (et pas à la place — la
 valeur reste lisible en filigrane, ce qui aide à comprendre quel champ
 exactement est en train d'être pushé).
@@ -102,7 +102,7 @@ exactement est en train d'être pushé).
 
 Symmétrique : `pendingRowIds` devient un `pendingRowLookup: Map<rowId, true>`
 dans `AdeoGrid.vue`. `AdeoGridRow` reçoit un nouveau prop `pending: boolean` et
-applique `.mrx-row--pending` → `opacity: 0.55` + `pointer-events: none` + un
+applique `.adeo-grid-row--pending` → `opacity: 0.55` + `pointer-events: none` + un
 mini-spinner Mozaic dans la première cellule.
 
 ### 2.4 Refreshing — barre de progression
@@ -228,9 +228,9 @@ Overlay absolute sur `.adeo-grid-cell` qui hérite du gradient déjà défini da
   border-radius: 4px;
   background: linear-gradient(
     90deg,
-    rgba(var(--mrx-skel-base-rgb), 0.85) 0%,
-    rgba(var(--mrx-skel-highlight-rgb), 0.95) 50%,
-    rgba(var(--mrx-skel-base-rgb), 0.85) 100%
+    rgba(var(--adeo-grid-skel-base-rgb), 0.85) 0%,
+    rgba(var(--adeo-grid-skel-highlight-rgb), 0.95) 50%,
+    rgba(var(--adeo-grid-skel-base-rgb), 0.85) 100%
   );
   background-size: 200% 100%;
   animation: mrx-skeleton-shimmer 1.4s ease-in-out infinite;

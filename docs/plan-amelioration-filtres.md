@@ -174,21 +174,21 @@ import type { Component, Raw } from 'vue'
  * Le builder le monte via `<component :is>` et câble prop + emit — le
  * composant n'a pas besoin de connaître le builder ni le moteur.
  *
- *   defineProps<MrxCustomFilterProps>()
- *   defineEmits<MrxCustomFilterEmits>()
+ *   defineProps<AdeoCustomFilterProps>()
+ *   defineEmits<AdeoCustomFilterEmits>()
  */
-export interface MrxCustomFilterProps {
+export interface AdeoCustomFilterProps {
   /** Condition courante, injectée par le builder à chaque changement. */
   condition: FilterCondition
 }
 
-export interface MrxCustomFilterEmits {
+export interface AdeoCustomFilterEmits {
   /** À émettre à chaque changement de valeur produit par le composant. */
   (e: 'conditionChange', value: FilterValue): void
 }
 
 /** Type d'un composant de filtre custom (valeur de `ColumnDef.filterComponent`). */
-export type MrxCustomFilterComponent = Raw<Component>
+export type AdeoCustomFilterComponent = Raw<Component>
 ```
 
 > `filter.model.ts` est ré-exporté par `types.ts` (`export * from './models/filter.model'`),
@@ -202,7 +202,7 @@ export interface FilterColumnDescriptor {
   // … champs existants …
 
   /** Composant custom à rendre dans le builder à la place de l'éditeur générique. */
-  filterComponent?: MrxCustomFilterComponent
+  filterComponent?: AdeoCustomFilterComponent
 
   /**
    * Détermine si la condition est « complète » (peut participer à l'évaluation).
@@ -225,7 +225,7 @@ Ajouter, à côté des champs `filter*` existants (`filterable`, `filterType`,
 
 ```ts
 /** Composant Vue custom pour l'éditeur de valeur dans le builder de filtres. */
-filterComponent?: import('./models/filter.model').MrxCustomFilterComponent
+filterComponent?: import('./models/filter.model').AdeoCustomFilterComponent
 
 /**
  * Logique d'évaluation cliente d'un filtre custom en filterMode="client".
@@ -428,7 +428,7 @@ Si les consumers utilisent l'API déclarative `<AdeoColumn>` plutôt que la prop
 
 ```ts
 // defineProps
-filterComponent?: import('./models/filter.model').MrxCustomFilterComponent
+filterComponent?: import('./models/filter.model').AdeoCustomFilterComponent
 filterPredicate?: (row: RowData, value: FilterValue) => boolean
 filterIsComplete?: (value: FilterValue) => boolean
 
@@ -553,7 +553,7 @@ const columns: ColumnDef[] = [
 
 | Fichier | Nature du changement |
 |---|---|
-| `models/filter.model.ts` | + `FilterMode` ; + `'custom'` dans `FilterDataType` ; + `MrxCustomFilterProps` / `MrxCustomFilterEmits` / `MrxCustomFilterComponent` ; + `filterComponent` / `filterIsComplete` sur `FilterColumnDescriptor` |
+| `models/filter.model.ts` | + `FilterMode` ; + `'custom'` dans `FilterDataType` ; + `AdeoCustomFilterProps` / `AdeoCustomFilterEmits` / `AdeoCustomFilterComponent` ; + `filterComponent` / `filterIsComplete` sur `FilterColumnDescriptor` |
 | `types.ts` | + `filterComponent`, `filterPredicate`, `filterIsComplete` sur `ColumnDef` |
 | `state/useGridState.ts` | + `filterMode: Ref<FilterMode>` (interface + `ref('client')` + export) |
 | `AdeoGrid.vue` | + prop `filterMode` ; + `watch` de câblage (`filterMode ?? serverFilter`) |
