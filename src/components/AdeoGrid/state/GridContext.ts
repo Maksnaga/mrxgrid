@@ -28,7 +28,7 @@ export function useGridContext<T = RowData>(): GridState<T> {
   const state = inject(GRID_STATE_KEY)
   if (!state) {
     throw new Error(
-      '[mrxgrid] useGridContext() must be called inside a <AdeoGrid> component',
+      '[adeo-grid] useGridContext() must be called inside a <AdeoGrid> component',
     )
   }
   return state as unknown as GridState<T>

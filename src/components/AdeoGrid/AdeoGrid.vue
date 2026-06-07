@@ -1059,7 +1059,7 @@ onMounted(() => {
       const cleanup = p.init({ state: gridState, engine: gridEngine })
       if (typeof cleanup === 'function') _pluginCleanups.push(cleanup)
     } catch (err) {
-      console.error(`[mrxgrid] plugin "${p.name}" init failed:`, err)
+      console.error(`[adeo-grid] plugin "${p.name}" init failed:`, err)
     }
   }
 })
@@ -1068,7 +1068,7 @@ onBeforeUnmount(() => {
     try {
       c()
     } catch (err) {
-      console.error('[mrxgrid] plugin cleanup failed:', err)
+      console.error('[adeo-grid] plugin cleanup failed:', err)
     }
   }
   _pluginCleanups.length = 0

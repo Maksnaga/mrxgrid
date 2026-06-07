@@ -83,7 +83,7 @@ const order = _orderSeq++
 
 if (!registry && import.meta.env?.DEV) {
   console.warn(
-    `[mrxgrid] <AdeoColumn field="${props.field}"> rendered outside a <AdeoGrid> — registration ignored.`,
+    `[adeo-grid] <AdeoColumn field="${props.field}"> rendered outside a <AdeoGrid> — registration ignored.`,
   )
 }
 

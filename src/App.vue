@@ -4,7 +4,7 @@
  *
  *   • `?fixtures=<state>` dans l'URL → fixtures de régression visuelle
  *     (consommées par `e2e/visual.spec.ts`).
- *   • Sinon → `AppShell` (la vraie demo app servie à `/mrxgrid-app/`).
+ *   • Sinon → `AppShell` (la vraie demo app servie à `/adeo-grid-app/`).
  *
  * `StockDemo.vue` historique reste dispo (vues, e2e) mais n'est plus
  * l'entrée par défaut.
