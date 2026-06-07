@@ -28,7 +28,7 @@
   }
 }
 
-/* Skeleton shimmer — partagée entre le full-skeleton (`MrxGridSkeletonRow`)
+/* Skeleton shimmer — partagée entre le full-skeleton (`AdeoGridSkeletonRow`)
  * et le cell-level pending (`.adeo-grid-grid-cell--pending::after`). Globale
  * pour que les deux références au même nom résolvent. */
 @keyframes adeo-grid-skeleton-shimmer {
