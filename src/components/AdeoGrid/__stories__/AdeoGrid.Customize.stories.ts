@@ -499,7 +499,7 @@ Quand un \`field\` matche entre les deux APIs, le \`<AdeoColumn>\` enfant **over
 
 ### Sous le capot
 
-Chaque \`<AdeoColumn>\` s'enregistre via \`provide(MRX_COLUMN_REGISTRY_KEY)\`. \`AdeoGrid\` merge avec \`props.columns\` pour produire \`mergedColumns\` (le registry gagne en cas de collision sur \`field\`).
+Chaque \`<AdeoColumn>\` s'enregistre via \`provide(ADEO_GRID_COLUMN_REGISTRY_KEY)\`. \`AdeoGrid\` merge avec \`props.columns\` pour produire \`mergedColumns\` (le registry gagne en cas de collision sur \`field\`).
         `,
       },
     },

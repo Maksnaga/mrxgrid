@@ -45,11 +45,11 @@ import { useFiltering } from '@/composables/useFiltering'
 
 import { GRID_STATE_KEY, useGridState } from './state/useGridState'
 import {
-  MRX_COLUMN_REGISTRY_KEY,
+  ADEO_GRID_COLUMN_REGISTRY_KEY,
   type AdeoColumnRegistration,
   type AdeoColumnRegistry,
 } from './state/AdeoColumnRegistry'
-import { MRX_GRID_SLOTS_KEY, type AdeoGridSlotsContext } from './state/AdeoGridSlots'
+import { ADEO_GRID_SLOTS_KEY, type AdeoGridSlotsContext } from './state/AdeoGridSlots'
 import { useGridEngine } from './engine/useGridEngine'
 import { useRefHighlight } from './features/formula/useRefHighlight'
 import { columnIndexToLetters } from './features/formula/formula-ast'
@@ -362,7 +362,7 @@ const columnRegistry: AdeoColumnRegistry = {
     return [...declarativeColumns.value.values()].sort((a, b) => a.order - b.order)
   },
 }
-provide(MRX_COLUMN_REGISTRY_KEY, columnRegistry)
+provide(ADEO_GRID_COLUMN_REGISTRY_KEY, columnRegistry)
 
 // --- Provide root slots (Phase 3.3) so deeply nested components can resolve
 // `#cell-{field}` / `#header-{field}` / `#filter-{field}` / `#edit-{field}`
@@ -407,12 +407,12 @@ const _slotsContext: AdeoGridSlotsContext = {
   resolveRowId: (rowIndex) => {
     const r = renderableRows.value[rowIndex]
     if (!r || isGroupRow(r)) return undefined
-    const originalIndex = Number(r.__mrxOriginalIndex ?? rowIndex)
+    const originalIndex = Number(r.__adgOriginalIndex ?? rowIndex)
     return resolveRowId(r, originalIndex)
   },
   refHighlight,
 }
-provide(MRX_GRID_SLOTS_KEY, _slotsContext)
+provide(ADEO_GRID_SLOTS_KEY, _slotsContext)
 
 // ─── Phase 6b — Ref-highlight activation hook ──────────────────────────
 // One shared `useRefHighlight()` instance per grid. Activates whenever an
@@ -1568,26 +1568,26 @@ const {
 
 /** Check if a rendered row is selected, resolving its ID. */
 function isRowSelected(row: RowData, index: number): boolean {
-  const originalIndex = Number(row.__mrxOriginalIndex ?? index)
+  const originalIndex = Number(row.__adgOriginalIndex ?? index)
   return isIdSelected(getRowId(row, originalIndex))
 }
 
 /**
  * True quand `props.pendingRowIds` contient l'id de cette row. Lookup en
  * O(1) via la `Set` indexée par `pendingRowLookup`. Pas de pending si
- * row de groupe (les __mrxType:group rows n'ont pas d'id propre).
+ * row de groupe (les __adgType:group rows n'ont pas d'id propre).
  */
 function isRowPending(row: RowData, index: number): boolean {
   const lookup = pendingRowLookup.value
   if (lookup.size === 0) return false
   if (isGroupRow(row)) return false
-  const originalIndex = Number(row.__mrxOriginalIndex ?? index)
+  const originalIndex = Number(row.__adgOriginalIndex ?? index)
   return lookup.has(getRowId(row, originalIndex))
 }
 
 /** Resolve a rendered row's ID. */
 function resolveRowId(row: RowData, index: number): string {
-  const originalIndex = Number(row.__mrxOriginalIndex ?? index)
+  const originalIndex = Number(row.__adgOriginalIndex ?? index)
   return getRowId(row, originalIndex)
 }
 
@@ -1597,7 +1597,7 @@ const visiblePageIds = computed(() => {
   const rows = renderableRows.value
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i]!
-    if (isGroupRow(row) || row.__mrxSkeleton) continue
+    if (isGroupRow(row) || row.__adgSkeleton) continue
     ids.push(resolveRowId(row, i))
   }
   return ids
@@ -1624,7 +1624,7 @@ function handleToggleRow(row: RowData, index: number, event?: MouseEvent) {
     const rangeIds: string[] = []
     for (let i = from; i <= to; i++) {
       const r = renderableRows.value[i]
-      if (r && !isGroupRow(r) && !r.__mrxSkeleton) {
+      if (r && !isGroupRow(r) && !r.__adgSkeleton) {
         rangeIds.push(resolveRowId(r, i))
       }
     }
@@ -1663,7 +1663,7 @@ function emitBulkDelete() {
 
   for (let i = 0; i < renderableRows.value.length; i++) {
     const row = renderableRows.value[i]!
-    if (row.__mrxSkeleton || isGroupRow(row)) continue
+    if (row.__adgSkeleton || isGroupRow(row)) continue
     if (!isRowSelected(row, i)) continue
 
     for (const col of cols) {
@@ -1688,7 +1688,7 @@ async function copySelectedRows() {
 
   for (let i = 0; i < renderableRows.value.length; i++) {
     const row = renderableRows.value[i]!
-    if (row.__mrxSkeleton || isGroupRow(row)) continue
+    if (row.__adgSkeleton || isGroupRow(row)) continue
     if (!isRowSelected(row, i)) continue
 
     const cells: string[] = []
@@ -1730,7 +1730,7 @@ async function pasteIntoSelectedRows() {
   const selectedIndices: number[] = []
   for (let i = 0; i < renderableRows.value.length; i++) {
     const row = renderableRows.value[i]!
-    if (row.__mrxSkeleton || isGroupRow(row)) continue
+    if (row.__adgSkeleton || isGroupRow(row)) continue
     if (isRowSelected(row, i)) selectedIndices.push(i)
   }
 
@@ -1978,7 +1978,7 @@ watch(
   (rs) => {
     if (_autoSizeFired) return
     if (!rs || rs.length === 0) return
-    if (rs.every((r) => r.__mrxSkeleton)) return
+    if (rs.every((r) => r.__adgSkeleton)) return
     _autoSizeFired = true
     nextTick(() => {
       nextTick(() => {
@@ -2135,7 +2135,7 @@ function applyFills(fills: Array<{ rowIndex: number; field: string; value: unkno
   let mutated = 0
   for (const f of fills) {
     const row = renderableRows.value[f.rowIndex]
-    if (row && !isGroupRow(row) && !(row as Record<string, unknown>).__mrxSkeleton) {
+    if (row && !isGroupRow(row) && !(row as Record<string, unknown>).__adgSkeleton) {
       ; (row as Record<string, unknown>)[f.field] = f.value
       mutated++
     }
@@ -2462,7 +2462,7 @@ function flushEdit() {
   // index-as-string when no `rowId` resolver is provided.
   const row = renderableRows.value[event.rowIndex]
   if (!row || isGroupRow(row)) return
-  const originalIndex = Number(row.__mrxOriginalIndex ?? event.rowIndex)
+  const originalIndex = Number(row.__adgOriginalIndex ?? event.rowIndex)
   const rowId = resolveRowId(row, originalIndex)
   const addr = { rowId, field: event.field }
 
@@ -3031,7 +3031,7 @@ function getSelectedRows(): RowData[] {
   const result: RowData[] = []
   for (let i = 0; i < renderableRows.value.length; i++) {
     const row = renderableRows.value[i]!
-    if (row.__mrxSkeleton || isGroupRow(row)) continue
+    if (row.__adgSkeleton || isGroupRow(row)) continue
     if (isRowSelected(row, i)) result.push(row)
   }
   return result
@@ -3090,12 +3090,12 @@ function resolveExportData(scope?: 'selection' | 'visible' | 'all'): RowData[] {
 
   if (effective === 'all') {
     return (props.rows as RowData[]).filter(
-      (r) => !isGroupRow(r) && !(r as RowData).__mrxSkeleton,
+      (r) => !isGroupRow(r) && !(r as RowData).__adgSkeleton,
     )
   }
   if (effective === 'visible') {
     return renderableRows.value.filter(
-      (r) => !isGroupRow(r) && !r.__mrxSkeleton,
+      (r) => !isGroupRow(r) && !r.__adgSkeleton,
     ) as RowData[]
   }
   // selection — collect rows from `props.rows` matching the selection.
@@ -3106,7 +3106,7 @@ function resolveExportData(scope?: 'selection' | 'visible' | 'all'): RowData[] {
   const out: RowData[] = []
   for (let i = 0; i < props.rows.length; i++) {
     const r = props.rows[i]!
-    if (isGroupRow(r) || (r as RowData).__mrxSkeleton) continue
+    if (isGroupRow(r) || (r as RowData).__adgSkeleton) continue
     const id = rowIdFn ? rowIdFn(r, i) : String(i)
     if (sel.allSelected) {
       if (!sel.deselectedIds.has(id)) out.push(r as RowData)

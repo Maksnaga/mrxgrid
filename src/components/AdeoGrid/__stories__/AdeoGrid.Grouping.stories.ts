@@ -15,7 +15,7 @@ const meta = {
         component: `
 # Grouping
 
-Regroupe les rows par valeur d'un (ou plusieurs) champ(s). Une "group row" s'insère avant chaque cluster avec un compteur \`__mrxCount\`.
+Regroupe les rows par valeur d'un (ou plusieurs) champ(s). Une "group row" s'insère avant chaque cluster avec un compteur \`__adgCount\`.
 
 ### Activation
 
@@ -29,12 +29,12 @@ Les rows insérées par le pipeline portent des champs préfixés \`__mrx\` pour
 
 \`\`\`ts
 {
-  __mrxType: 'group',
-  __mrxKey: 'category=Outillage|brand=Bosch',
-  __mrxDepth: 1,            // 0 = top-level
-  __mrxCount: 24,
-  __mrxField: 'brand',
-  __mrxValue: 'Bosch',
+  __adgType: 'group',
+  __adgKey: 'category=Outillage|brand=Bosch',
+  __adgDepth: 1,            // 0 = top-level
+  __adgCount: 24,
+  __adgField: 'brand',
+  __adgValue: 'Bosch',
 }
 \`\`\`
 
@@ -71,7 +71,7 @@ Le pipeline insère une "group header row" par valeur distincte de \`category\`.
 ### Comportement
 
 - L'ordre des groupes suit le sort actif (si \`category\` est triée, les groupes sont triés)
-- Le compteur affiché à droite (\`__mrxCount\`) est sticky-right pour rester visible pendant le scroll horizontal
+- Le compteur affiché à droite (\`__adgCount\`) est sticky-right pour rester visible pendant le scroll horizontal
 - Les groupes sont collapsibles indépendamment ; l'état d'expand vit dans \`gridState.expandedGroups\` (\`Set<string>\`)
         `,
       },
@@ -107,7 +107,7 @@ Plusieurs champs dans \`group-fields\` donnent un arbre N-aire :
 
 Affiche : Rayon 1 → Marques de Rayon 1 → produits ; Rayon 2 → … L'ordre des champs pilote l'imbrication (premier = level 0).
 
-### \`__mrxDepth\`
+### \`__adgDepth\`
 
 Chaque group row porte sa profondeur 0-indexed. Le padding-left du label est calculé en \`depth × 24px\` pour matérialiser l'arbre.
 
@@ -130,7 +130,7 @@ Chaque group row porte sa profondeur 0-indexed. Le padding-left du label est cal
     template: `
       <div class="sb-adeo-grid-shell">
         <h2>Nested grouping (Rayon → Marque)</h2>
-        <p>Plusieurs niveaux dans <code>:group-fields</code> donnent un arbre. La méta des rows groupes (<code>__mrxDepth</code>, <code>__mrxCount</code>) est posée par le pipeline.</p>
+        <p>Plusieurs niveaux dans <code>:group-fields</code> donnent un arbre. La méta des rows groupes (<code>__adgDepth</code>, <code>__adgCount</code>) est posée par le pipeline.</p>
         <div class="sb-adeo-grid-frame">
           <AdeoGrid :height="560" :columns="lmColumns" :rows="rows" :group-fields="groupFields" />
         </div>

@@ -39,12 +39,12 @@ export interface AdeoColumnRegistry {
   list(): AdeoColumnRegistration[]
 }
 
-export const MRX_COLUMN_REGISTRY_KEY: InjectionKey<AdeoColumnRegistry> = Symbol(
+export const ADEO_GRID_COLUMN_REGISTRY_KEY: InjectionKey<AdeoColumnRegistry> = Symbol(
   'AdeoColumnRegistry',
 )
 
 /** Type-safe inject helper. Returns `null` when no registry is provided —
  *  consumers using only `:columns` prop don't need to create a registry. */
 export function injectMrxColumnRegistry(): AdeoColumnRegistry | null {
-  return inject(MRX_COLUMN_REGISTRY_KEY, null)
+  return inject(ADEO_GRID_COLUMN_REGISTRY_KEY, null)
 }

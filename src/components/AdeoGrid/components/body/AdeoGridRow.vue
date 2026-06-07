@@ -35,7 +35,7 @@ const props = defineProps<{
   ) => CSSProperties | undefined
   showRowNumbers?: boolean
   /** Display row number (1-based, in source data order). When grouping is
-   *  active this is the row's `__mrxOriginalIndex` + 1. */
+   *  active this is the row's `__adgOriginalIndex` + 1. */
   rowNumber?: number
   leftSpacerWidth?: string
   rightSpacerWidth?: string
@@ -72,7 +72,7 @@ function centerCellStyle(field: string): Record<string, string | undefined> {
   return { width: w, minWidth: w }
 }
 
-const isSkeleton = computed(() => !!props.row.__mrxSkeleton)
+const isSkeleton = computed(() => !!props.row.__adgSkeleton)
 
 /** Call getCellFlags once per cell per render (not 7×). */
 function flags(field: string): CellFlags {

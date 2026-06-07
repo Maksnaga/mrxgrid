@@ -117,7 +117,7 @@ export function useActiveCell(options: ActiveCellOptions) {
   /** Group headers (and lazy-load skeleton placeholders) are not navigable. */
   function isNavigableRow(idx: number): boolean {
     const r = rows.value[idx]
-    return !!r && !isGroupRow(r) && !r.__mrxSkeleton
+    return !!r && !isGroupRow(r) && !r.__adgSkeleton
   }
 
   /**

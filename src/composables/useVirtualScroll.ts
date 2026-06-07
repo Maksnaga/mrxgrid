@@ -6,7 +6,7 @@ import type { RowData } from '@/components/AdeoGrid/types'
 // ---------------------------------------------------------------------------
 
 /** Frozen sentinel placed at indices not yet fetched from the server. */
-export const SKELETON_ROW: RowData = Object.freeze({ __mrxSkeleton: true })
+export const SKELETON_ROW: RowData = Object.freeze({ __adgSkeleton: true })
 
 /** Shared empty array — avoids re-allocating when no row is expanded. */
 const EMPTY_INDICES: number[] = []

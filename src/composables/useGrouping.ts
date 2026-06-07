@@ -55,7 +55,7 @@ function buildGroupTree(
 
     // Skip skeleton rows (lazy-loaded but not yet fetched) — they have no
     // real data and would otherwise all land in an "(empty)" group.
-    if (row.__mrxSkeleton) continue
+    if (row.__adgSkeleton) continue
 
     root.count++
     let node = root
@@ -109,13 +109,13 @@ function flattenTree(
 
     // Emit group header row
     const groupRow: RowData = {
-      __mrxType: 'group',
-      __mrxKey: group.key,
-      __mrxField: group.field,
-      __mrxValue: group.value,
-      __mrxDepth: depth,
-      __mrxCount: group.count,
-      __mrxHeaderName: group.headerName,
+      __adgType: 'group',
+      __adgKey: group.key,
+      __adgField: group.field,
+      __adgValue: group.value,
+      __adgDepth: depth,
+      __adgCount: group.count,
+      __adgHeaderName: group.headerName,
     }
     result.push(groupRow)
 
@@ -134,9 +134,9 @@ function flattenTree(
         const originalIndex = rowIndexMap.get(row) ?? -1
         const dataRow: RowData = {
           ...row,
-          __mrxType: 'row',
-          __mrxDepth: childDepth,
-          __mrxOriginalIndex: originalIndex,
+          __adgType: 'row',
+          __adgDepth: childDepth,
+          __adgOriginalIndex: originalIndex,
         }
         result.push(dataRow)
       }
@@ -159,7 +159,7 @@ function flattenTree(
  * `AdeoGridBody`, etc.) keep their existing API.
  *
  * Group keys preserve the legacy `field::value|nested::value` format
- * — `AdeoGridGroupRow` reads these via `__mrxKey`. Server-side grouping
+ * — `AdeoGridGroupRow` reads these via `__adgKey`. Server-side grouping
  * (`useServerGrouping`) keeps its own state, deliberately, since it has a
  * different async lifecycle.
  */

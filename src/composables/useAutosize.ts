@@ -153,7 +153,7 @@ export function useAutosize(opts: UseAutosizeOptions) {
 
     for (let i = 0; i < total; i += stride) {
       const row = allRows[i]
-      if (!row || row.__mrxType === 'group' || row.__mrxSkeleton) continue
+      if (!row || row.__adgType === 'group' || row.__adgSkeleton) continue
       const w = ctx.measureText(getDisplayValue(row, def)).width + reserve
       if (w > max) {
         max = w

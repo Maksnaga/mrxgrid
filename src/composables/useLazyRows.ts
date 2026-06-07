@@ -61,7 +61,7 @@ export interface LazyRowsOptions {
  *
  * - Memory: all loaded rows are kept in memory. For truly massive datasets
  *   (millions of rows) a sliding window eviction strategy should be added.
- * - Skeleton rows: the `__mrxSkeleton` flag is used by the cell renderer
+ * - Skeleton rows: the `__adgSkeleton` flag is used by the cell renderer
  *   to show a loading placeholder instead of real content.
  */
 export function useLazyRows(options: LazyRowsOptions) {
@@ -77,14 +77,14 @@ export function useLazyRows(options: LazyRowsOptions) {
 
   /**
    * The rows array — always totalRowCount long.
-   * Unloaded rows are skeleton objects: { __mrxSkeleton: true }.
+   * Unloaded rows are skeleton objects: { __adgSkeleton: true }.
    * shallowRef so Vue detects array replacement but not deep mutations.
    */
   const rows = shallowRef<RowData[]>([])
 
   // Build the initial skeleton array.
   function buildSkeletonArray(count: number): RowData[] {
-    return Array.from({ length: count }, (_, i) => ({ __mrxSkeleton: true, __mrxIndex: i }))
+    return Array.from({ length: count }, (_, i) => ({ __adgSkeleton: true, __mrxIndex: i }))
   }
 
   // Watch totalRowCount and rebuild the skeleton array when it changes.

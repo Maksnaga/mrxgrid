@@ -33,7 +33,7 @@ export { default as AdeoFormulaReferenceDrawer } from './components/overlays/Ade
 // Declarative column registry — exposed so consumers can build their own
 // column-like components by registering directly.
 export {
-  MRX_COLUMN_REGISTRY_KEY,
+  ADEO_GRID_COLUMN_REGISTRY_KEY,
   injectMrxColumnRegistry,
   type AdeoColumnRegistration,
   type AdeoColumnRegistry,

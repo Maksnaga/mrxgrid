@@ -2,7 +2,7 @@ import { computed, ref, shallowRef, watch, type Ref } from 'vue'
 import type { RowData } from '@/components/AdeoGrid/types'
 
 /** Sentinel row shown while real data is still loading. */
-const LOADING_ROW: RowData = Object.freeze({ __mrxSkeleton: true })
+const LOADING_ROW: RowData = Object.freeze({ __adgSkeleton: true })
 
 export interface DataSourceOptions {
   /** Total number of rows in the remote dataset. */

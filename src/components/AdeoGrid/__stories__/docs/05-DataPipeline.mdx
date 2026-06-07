@@ -138,7 +138,7 @@ de virtualisation peut traiter comme un array de rows classique :
 
 Flat list après groupage [category, brand] :
 
-  __mrxType  __mrxKey                         __mrxDepth __mrxCount
+  __adgType  __adgKey                         __adgDepth __adgCount
   ─────────  ───────                          ────────── ──────────
   group      "category::A"                       0          14
   group      "category::A|brand::X"              1           5
@@ -152,7 +152,7 @@ Flat list après groupage [category, brand] :
 </div>
 
 Le composant `MrxGridGroupRow` détecte les rows groupes via `isGroupRow(row)`
-(type guard sur `__mrxType === 'group'`).
+(type guard sur `__adgType === 'group'`).
 
 ## ④ Pagination
 

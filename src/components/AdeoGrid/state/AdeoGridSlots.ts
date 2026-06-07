@@ -74,12 +74,12 @@ export interface AdeoGridSlotsContext {
   }
 }
 
-export const MRX_GRID_SLOTS_KEY: InjectionKey<AdeoGridSlotsContext> = Symbol(
+export const ADEO_GRID_SLOTS_KEY: InjectionKey<AdeoGridSlotsContext> = Symbol(
   'AdeoGridSlots',
 )
 
 export function injectAdeoGridSlots(): AdeoGridSlotsContext | null {
-  return inject(MRX_GRID_SLOTS_KEY, null)
+  return inject(ADEO_GRID_SLOTS_KEY, null)
 }
 
 /**

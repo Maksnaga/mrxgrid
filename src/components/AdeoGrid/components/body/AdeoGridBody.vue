@@ -119,11 +119,11 @@ const emit = defineEmits<{
       <template v-for="i in renderRange" :key="i">
         <template v-if="isGroupRow(getRenderRow(i))">
           <AdeoGridGroupRow
-            :header-name="String(getRenderRow(i).__mrxHeaderName)"
-            :value="getRenderRow(i).__mrxValue"
-            :count="Number(getRenderRow(i).__mrxCount)"
-            :depth="Number(getRenderRow(i).__mrxDepth)"
-            :expanded="isGroupExpanded(String(getRenderRow(i).__mrxKey))"
+            :header-name="String(getRenderRow(i).__adgHeaderName)"
+            :value="getRenderRow(i).__adgValue"
+            :count="Number(getRenderRow(i).__adgCount)"
+            :depth="Number(getRenderRow(i).__adgDepth)"
+            :expanded="isGroupExpanded(String(getRenderRow(i).__adgKey))"
             :columns="columns"
             :pinned-left-columns="leftColumns"
             :pinned-right-columns="rightColumns"
@@ -136,7 +136,7 @@ const emit = defineEmits<{
             :get-utility-style="getUtilityStyle"
             :left-spacer-width="leftSpacerWidth"
             :right-spacer-width="rightSpacerWidth"
-            @toggle="emit('toggleGroup', String(getRenderRow(i).__mrxKey))"
+            @toggle="emit('toggleGroup', String(getRenderRow(i).__adgKey))"
           />
         </template>
         <template v-else>
@@ -198,11 +198,11 @@ const emit = defineEmits<{
     <template v-for="i in renderRange" :key="i">
       <template v-if="isGroupRow(getRenderRow(i))">
         <AdeoGridGroupRow
-          :header-name="String(getRenderRow(i).__mrxHeaderName)"
-          :value="getRenderRow(i).__mrxValue"
-          :count="Number(getRenderRow(i).__mrxCount)"
-          :depth="Number(getRenderRow(i).__mrxDepth)"
-          :expanded="isGroupExpanded(String(getRenderRow(i).__mrxKey))"
+          :header-name="String(getRenderRow(i).__adgHeaderName)"
+          :value="getRenderRow(i).__adgValue"
+          :count="Number(getRenderRow(i).__adgCount)"
+          :depth="Number(getRenderRow(i).__adgDepth)"
+          :expanded="isGroupExpanded(String(getRenderRow(i).__adgKey))"
           :columns="columns"
           :pinned-left-columns="leftColumns"
           :pinned-right-columns="rightColumns"
@@ -215,7 +215,7 @@ const emit = defineEmits<{
           :get-utility-style="getUtilityStyle"
           :left-spacer-width="leftSpacerWidth"
           :right-spacer-width="rightSpacerWidth"
-          @toggle="emit('toggleGroup', String(getRenderRow(i).__mrxKey))"
+          @toggle="emit('toggleGroup', String(getRenderRow(i).__adgKey))"
         />
       </template>
       <template v-else>

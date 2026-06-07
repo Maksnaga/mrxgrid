@@ -260,33 +260,33 @@ export interface SortState {
 
 /** Metadata fields injected into group-header rows in the flat list. */
 export interface GroupRowMeta {
-  __mrxType: 'group'
+  __adgType: 'group'
   /** Composite key for this group (e.g. "status::active" or "status::active|region::EU"). */
-  __mrxKey: string
+  __adgKey: string
   /** The field this group level corresponds to. */
-  __mrxField: string
+  __adgField: string
   /** The grouped value for this level. */
-  __mrxValue: unknown
+  __adgValue: unknown
   /** Nesting depth (0-based). */
-  __mrxDepth: number
+  __adgDepth: number
   /** Total number of leaf data rows in this group (including nested). */
-  __mrxCount: number
+  __adgCount: number
   /** Column header name for display (e.g. "Status"). */
-  __mrxHeaderName: string
+  __adgHeaderName: string
 }
 
 /** Metadata fields injected into data rows in the flat list. */
 export interface DataRowMeta {
-  __mrxType: 'row'
+  __adgType: 'row'
   /** Nesting depth — matches the depth of the innermost group. */
-  __mrxDepth: number
+  __adgDepth: number
   /** Index in the original (pre-grouping) row array. */
-  __mrxOriginalIndex: number
+  __adgOriginalIndex: number
 }
 
 /** Type guard: is this row a group header? */
 export function isGroupRow(row: RowData): row is RowData & GroupRowMeta {
-  return row.__mrxType === 'group'
+  return row.__adgType === 'group'
 }
 
 // ---------------------------------------------------------------------------

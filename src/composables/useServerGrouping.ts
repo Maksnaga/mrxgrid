@@ -154,7 +154,7 @@ export function useServerGrouping(
         // Merge fetched rows at correct positions
         const rows = [...existing.rows]
         // Ensure array is large enough
-        while (rows.length < end) rows.push({ __mrxSkeleton: true })
+        while (rows.length < end) rows.push({ __adgSkeleton: true })
         for (let i = 0; i < fetched.length; i++) {
           rows[start + i] = fetched[i]!
         }
@@ -162,7 +162,7 @@ export function useServerGrouping(
         caches2.set(key, {
           ...existing,
           rows,
-          loaded: rows.filter((r) => !r.__mrxSkeleton).length,
+          loaded: rows.filter((r) => !r.__adgSkeleton).length,
         })
         groupCaches.value = caches2
       })
@@ -180,8 +180,8 @@ export function useServerGrouping(
     for (let i = startIdx; i < endIdx && i < flat.length; i++) {
       const row = flat[i]
       if (!row) continue
-      if (row.__mrxSkeleton && row.__mrxGroupKey) {
-        const key = String(row.__mrxGroupKey)
+      if (row.__adgSkeleton && row.__adgGroupKey) {
+        const key = String(row.__adgGroupKey)
         const offset = Number(row.__mrxOffsetInGroup ?? 0)
         const page = Math.floor(offset / pageSize.value)
         const field = groupFields.value[0]
@@ -226,13 +226,13 @@ export function useServerGrouping(
 
       // Group header row
       result.push({
-        __mrxType: 'group',
-        __mrxKey: key,
-        __mrxField: field,
-        __mrxValue: summary.value,
-        __mrxDepth: 0,
-        __mrxCount: summary.count,
-        __mrxHeaderName: headerName,
+        __adgType: 'group',
+        __adgKey: key,
+        __adgField: field,
+        __adgValue: summary.value,
+        __adgDepth: 0,
+        __adgCount: summary.count,
+        __adgHeaderName: headerName,
       })
 
       // If expanded: loaded rows + skeletons for unloaded
@@ -241,19 +241,19 @@ export function useServerGrouping(
         if (cache) {
           for (let i = 0; i < cache.total; i++) {
             const row = cache.rows[i]
-            if (row && !row.__mrxSkeleton) {
+            if (row && !row.__adgSkeleton) {
               result.push({
                 ...row,
-                __mrxType: 'row',
-                __mrxDepth: 1,
-                __mrxOriginalIndex: -1,
+                __adgType: 'row',
+                __adgDepth: 1,
+                __adgOriginalIndex: -1,
               })
             } else {
               result.push({
-                __mrxSkeleton: true,
-                __mrxType: 'row',
-                __mrxDepth: 1,
-                __mrxGroupKey: key,
+                __adgSkeleton: true,
+                __adgType: 'row',
+                __adgDepth: 1,
+                __adgGroupKey: key,
                 __mrxOffsetInGroup: i,
               })
             }
@@ -262,10 +262,10 @@ export function useServerGrouping(
           // Cache not ready yet — all skeletons
           for (let i = 0; i < summary.count; i++) {
             result.push({
-              __mrxSkeleton: true,
-              __mrxType: 'row',
-              __mrxDepth: 1,
-              __mrxGroupKey: key,
+              __adgSkeleton: true,
+              __adgType: 'row',
+              __adgDepth: 1,
+              __adgGroupKey: key,
               __mrxOffsetInGroup: i,
             })
           }

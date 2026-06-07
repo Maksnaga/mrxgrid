@@ -170,7 +170,7 @@ describe('useAutosize', () => {
     const rows: RowData[] = [
       // group row should be ignored even if its `name` field is huge
       {
-        __mrxType: 'group',
+        __adgType: 'group',
         name: 'this-is-a-very-very-very-long-group-header',
       },
       { name: 'Alice' }, // 5 chars
