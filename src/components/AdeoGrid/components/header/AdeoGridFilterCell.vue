@@ -132,7 +132,7 @@ function onDateTo(v: string | number) {
     />
 
     <!-- Date range — paired MDatepickers. -->
-    <div v-else-if="inlineFilter.type === 'date'" class="mrx-filter-cell__date-range">
+    <div v-else-if="inlineFilter.type === 'date'" class="adeo-grid-filter-cell__date-range">
       <MDatepicker
         :id="`mrx-filter-${column.field}-from`"
         size="s"
@@ -160,7 +160,7 @@ function onDateTo(v: string | number) {
 </template>
 
 <style scoped lang="scss">
-.mrx-filter-cell__date-range {
+.adeo-grid-filter-cell__date-range {
   display: flex;
   gap: m.get-spacing('050');
   width: 100%;

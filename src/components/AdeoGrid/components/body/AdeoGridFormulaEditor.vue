@@ -178,7 +178,7 @@ defineExpose({
 <template>
   <div
     ref="root"
-    class="mrx-formula-editor"
+    class="adeo-grid-formula-editor"
     contenteditable="plaintext-only"
     spellcheck="false"
     role="textbox"
@@ -190,7 +190,7 @@ defineExpose({
 </template>
 
 <style scoped lang="scss">
-.mrx-formula-editor {
+.adeo-grid-formula-editor {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -209,46 +209,46 @@ defineExpose({
   caret-color: var(--color-text-primary, #1f2937);
 }
 
-.mrx-formula-editor :deep(.mrx-tok) {
+.adeo-grid-formula-editor :deep(.adeo-grid-tok) {
   white-space: pre;
 }
 
-.mrx-formula-editor :deep(.mrx-tok--ref) {
+.adeo-grid-formula-editor :deep(.adeo-grid-tok--ref) {
   font-weight: 600;
 }
 
-.mrx-formula-editor :deep(.mrx-tok--fn) {
+.adeo-grid-formula-editor :deep(.adeo-grid-tok--fn) {
   color: #0071ce;
   font-weight: 700;
   text-transform: uppercase;
 }
 
-.mrx-formula-editor :deep(.mrx-tok--number) {
+.adeo-grid-formula-editor :deep(.adeo-grid-tok--number) {
   color: #b45309;
 }
 
-.mrx-formula-editor :deep(.mrx-tok--string) {
+.adeo-grid-formula-editor :deep(.adeo-grid-tok--string) {
   color: #047857;
 }
 
-.mrx-formula-editor :deep(.mrx-tok--bool) {
+.adeo-grid-formula-editor :deep(.adeo-grid-tok--bool) {
   color: #7c3aed;
   font-weight: 600;
 }
 
-.mrx-formula-editor :deep(.mrx-tok--op),
-.mrx-formula-editor :deep(.mrx-tok--comma),
-.mrx-formula-editor :deep(.mrx-tok--colon) {
+.adeo-grid-formula-editor :deep(.adeo-grid-tok--op),
+.adeo-grid-formula-editor :deep(.adeo-grid-tok--comma),
+.adeo-grid-formula-editor :deep(.adeo-grid-tok--colon) {
   color: #6b7280;
 }
 
-.mrx-formula-editor :deep(.mrx-tok--lparen),
-.mrx-formula-editor :deep(.mrx-tok--rparen) {
+.adeo-grid-formula-editor :deep(.adeo-grid-tok--lparen),
+.adeo-grid-formula-editor :deep(.adeo-grid-tok--rparen) {
   color: #1e293b;
   font-weight: 700;
 }
 
-.mrx-formula-editor :deep(.mrx-tok--unknown) {
+.adeo-grid-formula-editor :deep(.adeo-grid-tok--unknown) {
   color: var(--color-status-text-error, #d11717);
   text-decoration: underline wavy;
 }

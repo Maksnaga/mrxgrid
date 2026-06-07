@@ -127,11 +127,11 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="mrx-grid-selection-bar" role="toolbar" aria-label="Bulk actions">
+  <div class="adeo-grid-grid-selection-bar" role="toolbar" aria-label="Bulk actions">
     <template v-if="!compact">
       <!-- Close + counter -->
       <button
-        class="mrx-grid-selection-bar__close"
+        class="adeo-grid-grid-selection-bar__close"
         type="button"
         aria-label="Clear selection"
         @click="emit('clear')"
@@ -145,34 +145,34 @@ onBeforeUnmount(() => {
           />
         </svg>
       </button>
-      <span class="mrx-grid-selection-bar__count">{{ label }}</span>
+      <span class="adeo-grid-grid-selection-bar__count">{{ label }}</span>
 
       <!-- Select all prompt (Gmail-style) — row mode only. -->
       <button
         v-if="showSelectAll"
-        class="mrx-grid-selection-bar__link"
+        class="adeo-grid-grid-selection-bar__link"
         type="button"
         @click="emit('selectAll')"
       >
         Select all {{ (totalCount ?? 0).toLocaleString() }}
       </button>
-      <span v-if="showAllSelectedLabel" class="mrx-grid-selection-bar__all-label">
+      <span v-if="showAllSelectedLabel" class="adeo-grid-grid-selection-bar__all-label">
         (all {{ (totalCount ?? 0).toLocaleString() }})
       </span>
 
-      <span class="mrx-grid-selection-bar__separator" />
+      <span class="adeo-grid-grid-selection-bar__separator" />
     </template>
 
     <!-- Built-in actions -->
-    <button v-if="showEdit" class="mrx-grid-selection-bar__btn" type="button" @click="emit('edit')">
+    <button v-if="showEdit" class="adeo-grid-grid-selection-bar__btn" type="button" @click="emit('edit')">
       Edit
     </button>
-    <button v-if="showCopy" class="mrx-grid-selection-bar__btn" type="button" @click="emit('copy')">
+    <button v-if="showCopy" class="adeo-grid-grid-selection-bar__btn" type="button" @click="emit('copy')">
       Copy
     </button>
     <button
       v-if="showPaste"
-      class="mrx-grid-selection-bar__btn"
+      class="adeo-grid-grid-selection-bar__btn"
       type="button"
       @click="emit('paste')"
     >
@@ -180,7 +180,7 @@ onBeforeUnmount(() => {
     </button>
     <button
       v-if="showDelete"
-      class="mrx-grid-selection-bar__btn mrx-grid-selection-bar__btn--danger"
+      class="adeo-grid-grid-selection-bar__btn mrx-grid-selection-bar__btn--danger"
       type="button"
       @click="emit('delete')"
     >
@@ -190,10 +190,10 @@ onBeforeUnmount(() => {
     <!-- Kebab — opens a popup hosting the `#actions` slot. Hidden when the
          slot is empty so the trigger doesn't read as "always-empty menu". -->
     <template v-if="hasActionsSlot">
-      <span class="mrx-grid-selection-bar__separator" />
+      <span class="adeo-grid-grid-selection-bar__separator" />
       <button
         ref="triggerRef"
-        class="mrx-grid-selection-bar__kebab"
+        class="adeo-grid-grid-selection-bar__kebab"
         type="button"
         aria-label="More actions"
         :aria-expanded="popupOpen"
@@ -205,7 +205,7 @@ onBeforeUnmount(() => {
           <circle cx="8" cy="13" r="1.5" fill="currentColor" />
         </svg>
       </button>
-      <div v-if="popupOpen" ref="popupRef" class="mrx-grid-selection-bar__popup" role="menu">
+      <div v-if="popupOpen" ref="popupRef" class="adeo-grid-grid-selection-bar__popup" role="menu">
         <slot
           name="actions"
           :selected-count="selectedCount"
@@ -220,7 +220,7 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped lang="scss">
-.mrx-grid-selection-bar {
+.adeo-grid-grid-selection-bar {
   position: absolute;
   bottom: 64px;
   left: 50%;
@@ -240,7 +240,7 @@ onBeforeUnmount(() => {
   white-space: nowrap;
 }
 
-.mrx-grid-selection-bar__close {
+.adeo-grid-grid-selection-bar__close {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -255,17 +255,17 @@ onBeforeUnmount(() => {
   flex-shrink: 0;
 }
 
-.mrx-grid-selection-bar__close:hover {
+.adeo-grid-grid-selection-bar__close:hover {
   background: var(--color-background-accent);
   color: var(--color-text-accent);
 }
 
-.mrx-grid-selection-bar__count {
+.adeo-grid-grid-selection-bar__count {
   font-weight: m.get-font-weight('semi-bold');
   color: var(--color-text-primary);
 }
 
-.mrx-grid-selection-bar__link {
+.adeo-grid-grid-selection-bar__link {
   background: none;
   border: none;
   padding: 0;
@@ -277,16 +277,16 @@ onBeforeUnmount(() => {
   text-decoration-color: transparent;
 }
 
-.mrx-grid-selection-bar__link:hover {
+.adeo-grid-grid-selection-bar__link:hover {
   text-decoration-color: currentColor;
 }
 
-.mrx-grid-selection-bar__all-label {
+.adeo-grid-grid-selection-bar__all-label {
   font-size: m.get-font-size('50');
   color: var(--color-text-tertiary);
 }
 
-.mrx-grid-selection-bar__separator {
+.adeo-grid-grid-selection-bar__separator {
   width: 1px;
   height: 18px;
   background: var(--color-border-primary);
@@ -294,7 +294,7 @@ onBeforeUnmount(() => {
   flex-shrink: 0;
 }
 
-.mrx-grid-selection-bar__btn {
+.adeo-grid-grid-selection-bar__btn {
   background: none;
   border: none;
   padding: m.get-spacing('050') m.get-spacing('150');
@@ -305,19 +305,19 @@ onBeforeUnmount(() => {
   cursor: pointer;
 }
 
-.mrx-grid-selection-bar__btn:hover {
+.adeo-grid-grid-selection-bar__btn:hover {
   background: var(--color-background-secondary);
 }
 
-.mrx-grid-selection-bar__btn--danger {
+.adeo-grid-grid-selection-bar__btn--danger {
   color: var(--color-status-text-error);
 }
 
-.mrx-grid-selection-bar__btn--danger:hover {
+.adeo-grid-grid-selection-bar__btn--danger:hover {
   background: var(--color-status-background-error);
 }
 
-.mrx-grid-selection-bar__kebab {
+.adeo-grid-grid-selection-bar__kebab {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -332,12 +332,12 @@ onBeforeUnmount(() => {
   flex-shrink: 0;
 }
 
-.mrx-grid-selection-bar__kebab:hover {
+.adeo-grid-grid-selection-bar__kebab:hover {
   background: var(--color-background-secondary);
   color: var(--color-text-primary);
 }
 
-.mrx-grid-selection-bar__popup {
+.adeo-grid-grid-selection-bar__popup {
   position: absolute;
   bottom: calc(100% + #{m.get-spacing('050')});
   right: 0;

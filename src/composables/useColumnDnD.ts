@@ -113,7 +113,7 @@ export function useColumnDnD(options: ColumnDnDOptions) {
   function ensureGhostEl(): HTMLElement {
     if (!_ghostEl) {
       const el = document.createElement('div')
-      el.className = 'mrx-column-drag-ghost'
+      el.className = 'adeo-grid-column-drag-ghost'
       Object.assign(el.style, {
         position: 'fixed',
         pointerEvents: 'none',
@@ -166,7 +166,7 @@ export function useColumnDnD(options: ColumnDnDOptions) {
   function ensureIndicatorEl(): HTMLElement {
     if (!_indicatorEl) {
       const el = document.createElement('div')
-      el.className = 'mrx-column-drag-indicator'
+      el.className = 'adeo-grid-column-drag-indicator'
       Object.assign(el.style, {
         position: 'fixed',
         pointerEvents: 'none',
@@ -241,7 +241,7 @@ export function useColumnDnD(options: ColumnDnDOptions) {
   function isColumnVirtualized(): boolean {
     const wrapper = wrapperRef.value
     if (!wrapper) return false
-    const rendered = wrapper.querySelectorAll('.mrx-grid-header-cell[data-field]').length
+    const rendered = wrapper.querySelectorAll('.adeo-grid-grid-header-cell[data-field]').length
     const total =
       leftColumns.value.length + centerColumns.value.length + rightColumns.value.length
     return rendered < total
@@ -401,7 +401,7 @@ export function useColumnDnD(options: ColumnDnDOptions) {
    * Compute the per-field visual offsets for the current cursor position
    * and apply them as inline `transform: translateX(...)` on every cell
    * sharing that `data-field`. The CSS `transition: transform` declared
-   * on `.mrx-grid-wrapper[data-moving-field] [data-field]` (see AdeoGrid
+   * on `.adeo-grid-grid-wrapper[data-moving-field] [data-field]` (see AdeoGrid
    * styles) interpolates each change smoothly.
    *
    * Same-zone moves only — cross-zone (center → pinned) stays static

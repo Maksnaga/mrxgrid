@@ -328,12 +328,12 @@ export function useActiveCell(options: ActiveCellOptions) {
 
     // Sticky chunk height at the top of the scroll container — the grid
     // wraps the header + (optional) filter row in a single
-    // `.mrx-grid-sticky-header` block that sits sticky-top inside the
+    // `.adeo-grid-grid-sticky-header` block that sits sticky-top inside the
     // scroll viewport. Without subtracting its height from the visible
     // body region, the comfort math thinks rows behind the chunk are
     // "visible" when they're actually occluded.
     const stickyTop =
-      el.querySelector<HTMLElement>('.mrx-grid-sticky-header')?.offsetHeight ??
+      el.querySelector<HTMLElement>('.adeo-grid-grid-sticky-header')?.offsetHeight ??
       0
 
     // Trigger vs. target — the comfort margin only pads the scroll

@@ -69,31 +69,31 @@ function widthFor(col: ColumnDef, getter?: (f: string) => string | undefined): s
 
 <template>
   <div
-    class="mrx-filter-row"
+    class="adeo-grid-filter-row"
     role="row"
     :style="{ minWidth: contentMinWidth ? `max(100%, ${contentMinWidth})` : '100%' }"
   >
     <!-- Row number spacer -->
     <div
       v-if="showRowNumbers"
-      class="mrx-filter-cell mrx-filter-cell--rownum"
-      :class="{ 'mrx-grid-cell--pinned': hasPinned }"
+      class="adeo-grid-filter-cell mrx-filter-cell--rownum"
+      :class="{ 'adeo-grid-grid-cell--pinned': hasPinned }"
       :style="getUtilityStyle('rownum', true)"
     />
 
     <!-- Checkbox spacer -->
     <div
       v-if="selectable"
-      class="mrx-filter-cell mrx-filter-cell--utility"
-      :class="{ 'mrx-grid-cell--pinned': hasPinned }"
+      class="adeo-grid-filter-cell mrx-filter-cell--utility"
+      :class="{ 'adeo-grid-grid-cell--pinned': hasPinned }"
       :style="getUtilityStyle('checkbox', true)"
     />
 
     <!-- Expand spacer -->
     <div
       v-if="expandable"
-      class="mrx-filter-cell mrx-filter-cell--utility"
-      :class="{ 'mrx-grid-cell--pinned': hasPinned }"
+      class="adeo-grid-filter-cell mrx-filter-cell--utility"
+      :class="{ 'adeo-grid-grid-cell--pinned': hasPinned }"
       :style="getUtilityStyle('expand', true)"
     />
 
@@ -101,8 +101,8 @@ function widthFor(col: ColumnDef, getter?: (f: string) => string | undefined): s
     <div
       v-for="(col, idx) in pinnedLeftColumns"
       :key="'fl-' + col.field"
-      class="mrx-filter-cell mrx-grid-cell--pinned"
-      :class="{ 'mrx-grid-cell--pinned-left-edge': idx === pinnedLeftColumns.length - 1 }"
+      class="adeo-grid-filter-cell mrx-grid-cell--pinned"
+      :class="{ 'adeo-grid-grid-cell--pinned-left-edge': idx === pinnedLeftColumns.length - 1 }"
       :data-field="col.field"
       :style="{
         ...getPinnedStyle('left', idx, true),
@@ -122,7 +122,7 @@ function widthFor(col: ColumnDef, getter?: (f: string) => string | undefined): s
     <div
       v-if="leftSpacerWidth && leftSpacerWidth !== '0px'"
       aria-hidden="true"
-      class="mrx-filter-cell--spacer"
+      class="adeo-grid-filter-cell--spacer"
       :style="{ width: leftSpacerWidth, minWidth: leftSpacerWidth }"
     />
 
@@ -130,7 +130,7 @@ function widthFor(col: ColumnDef, getter?: (f: string) => string | undefined): s
     <div
       v-for="col in columns"
       :key="col.field"
-      class="mrx-filter-cell"
+      class="adeo-grid-filter-cell"
       :data-field="col.field"
       :style="
         fillField && col.field === fillField
@@ -150,7 +150,7 @@ function widthFor(col: ColumnDef, getter?: (f: string) => string | undefined): s
     <div
       v-if="rightSpacerWidth && rightSpacerWidth !== '0px'"
       aria-hidden="true"
-      class="mrx-filter-cell--spacer"
+      class="adeo-grid-filter-cell--spacer"
       :style="{ width: rightSpacerWidth, minWidth: rightSpacerWidth }"
     />
 
@@ -158,10 +158,10 @@ function widthFor(col: ColumnDef, getter?: (f: string) => string | undefined): s
     <div
       v-for="(col, idx) in pinnedRightColumns"
       :key="'fr-' + col.field"
-      class="mrx-filter-cell mrx-grid-cell--pinned"
+      class="adeo-grid-filter-cell mrx-grid-cell--pinned"
       :class="{
-        'mrx-grid-cell--pinned-right-edge': idx === 0,
-        'mrx-grid-cell--pinned-row-end': idx === pinnedRightColumns.length - 1,
+        'adeo-grid-grid-cell--pinned-right-edge': idx === 0,
+        'adeo-grid-grid-cell--pinned-row-end': idx === pinnedRightColumns.length - 1,
       }"
       :data-field="col.field"
       :style="{
@@ -181,13 +181,13 @@ function widthFor(col: ColumnDef, getter?: (f: string) => string | undefined): s
 </template>
 
 <style scoped lang="scss">
-.mrx-filter-row {
+.adeo-grid-filter-row {
   display: flex;
   min-height: 2.75rem;
   background-color: var(--color-background-primary);
 }
 
-.mrx-filter-cell {
+.adeo-grid-filter-cell {
   padding: m.get-spacing('050') m.get-spacing('100');
   border-right: m.get-token('border-width', 's') solid var(--color-border-primary);
   border-bottom: m.get-token('border-width', 's') solid var(--color-border-primary);
@@ -200,45 +200,45 @@ function widthFor(col: ColumnDef, getter?: (f: string) => string | undefined): s
 
 // Spacer cells (virtual-scroll gaps + utility columns) carry no vertical
 // separator — they're layout-only, not data columns.
-.mrx-filter-cell--spacer,
-.mrx-filter-cell--utility {
+.adeo-grid-filter-cell--spacer,
+.adeo-grid-filter-cell--utility {
   border-right: none;
 }
 
 // Dernière colonne right-pinned : bord externe sur la limite de la table,
 // donc on supprime le `border-right` qui doublerait le bord du wrapper.
 // Mirror exact du même fix sur `AdeoGridHeaderCell` et `AdeoGridRow`.
-.mrx-filter-cell.mrx-grid-cell--pinned-row-end {
+.adeo-grid-filter-cell.adeo-grid-grid-cell--pinned-row-end {
   border-right: none;
 }
 
-.mrx-filter-cell--utility {
+.adeo-grid-filter-cell--utility {
   width: 50px;
 }
 
-.mrx-filter-cell--rownum {
+.adeo-grid-filter-cell--rownum {
   width: 56px;
   background: var(--color-background-secondary, #f6f7f8);
   border-right: 1px solid var(--color-border-primary, #e3e6ea);
 }
 
-.mrx-filter-cell--spacer {
+.adeo-grid-filter-cell--spacer {
   background-color: var(--color-background-primary);
   border-bottom: m.get-token('border-width', 's') solid var(--color-border-primary);
   flex-shrink: 0;
   padding: 0;
 }
 
-.mrx-grid-cell--pinned {
+.adeo-grid-grid-cell--pinned {
   background-color: var(--color-background-primary);
 }
 
-.mrx-grid-cell--pinned-left-edge {
+.adeo-grid-grid-cell--pinned-left-edge {
   box-shadow: 2px 0 4px rgba(0, 0, 0, 0.06);
   clip-path: inset(0 -4px 0 0);
 }
 
-.mrx-grid-cell--pinned-right-edge {
+.adeo-grid-grid-cell--pinned-right-edge {
   box-shadow: -2px 0 4px rgba(0, 0, 0, 0.06);
   clip-path: inset(0 0 0 -4px);
 }

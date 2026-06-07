@@ -47,7 +47,7 @@ defineProps<{
 
 <template>
   <div
-    class="mrx-grid-body mrx-grid-body--skeleton"
+    class="adeo-grid-grid-body mrx-grid-body--skeleton"
     :style="{ minWidth: gridContentWidth ? `max(100%, ${gridContentWidth})` : '100%' }"
     aria-busy="true"
     aria-live="polite"
@@ -74,7 +74,7 @@ defineProps<{
 </template>
 
 <style scoped lang="scss">
-.mrx-grid-body {
+.adeo-grid-grid-body {
   position: relative;
 }
 </style>

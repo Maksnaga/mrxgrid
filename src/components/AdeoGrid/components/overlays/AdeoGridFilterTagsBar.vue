@@ -25,35 +25,35 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <div v-if="conditions.length" class="mrx-filter-tags-bar">
-    <span class="mrx-filter-tags-bar__label">FILTERED BY</span>
-    <div class="mrx-filter-tags-bar__tags">
+  <div v-if="conditions.length" class="adeo-grid-filter-tags-bar">
+    <span class="adeo-grid-filter-tags-bar__label">FILTERED BY</span>
+    <div class="adeo-grid-filter-tags-bar__tags">
       <span
         v-for="condition in conditions"
         :key="condition.id"
-        class="mrx-filter-tags-bar__tag"
+        class="adeo-grid-filter-tags-bar__tag"
         :class="{
-          'mrx-filter-tags-bar__tag--or':
+          'adeo-grid-filter-tags-bar__tag--or':
             condition !== conditions[0] && condition.combinator === 'or',
         }"
       >
-        <span v-if="condition !== conditions[0]" class="mrx-filter-tags-bar__combinator">
+        <span v-if="condition !== conditions[0]" class="adeo-grid-filter-tags-bar__combinator">
           {{ condition.combinator === 'or' ? 'OR' : 'AND' }}
         </span>
-        <span class="mrx-filter-tags-bar__tag-label">{{ toLabel(condition) }}</span>
+        <span class="adeo-grid-filter-tags-bar__tag-label">{{ toLabel(condition) }}</span>
         <button
           type="button"
-          class="mrx-filter-tags-bar__tag-remove"
+          class="adeo-grid-filter-tags-bar__tag-remove"
           :aria-label="`Remove filter ${toLabel(condition)}`"
           @click="emit('removeCondition', condition.id)"
         >
           &times;
         </button>
       </span>
-      <button type="button" class="mrx-filter-tags-bar__action" @click="emit('openBuilder')">
+      <button type="button" class="adeo-grid-filter-tags-bar__action" @click="emit('openBuilder')">
         Edit
       </button>
-      <button type="button" class="mrx-filter-tags-bar__action" @click="emit('clearAll')">
+      <button type="button" class="adeo-grid-filter-tags-bar__action" @click="emit('clearAll')">
         Remove all
       </button>
     </div>
@@ -61,7 +61,7 @@ const emit = defineEmits<{
 </template>
 
 <style scoped>
-.mrx-filter-tags-bar {
+.adeo-grid-filter-tags-bar {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -70,7 +70,7 @@ const emit = defineEmits<{
   font-size: 13px;
 }
 
-.mrx-filter-tags-bar__label {
+.adeo-grid-filter-tags-bar__label {
   font-size: 11px;
   font-weight: 600;
   color: #64748b;
@@ -79,14 +79,14 @@ const emit = defineEmits<{
   flex-shrink: 0;
 }
 
-.mrx-filter-tags-bar__tags {
+.adeo-grid-filter-tags-bar__tags {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 6px;
 }
 
-.mrx-filter-tags-bar__tag {
+.adeo-grid-filter-tags-bar__tag {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -99,11 +99,11 @@ const emit = defineEmits<{
   white-space: nowrap;
 }
 
-.mrx-filter-tags-bar__tag--or {
+.adeo-grid-filter-tags-bar__tag--or {
   background-color: #475569;
 }
 
-.mrx-filter-tags-bar__combinator {
+.adeo-grid-filter-tags-bar__combinator {
   font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
@@ -111,13 +111,13 @@ const emit = defineEmits<{
   opacity: 0.8;
 }
 
-.mrx-filter-tags-bar__tag-label {
+.adeo-grid-filter-tags-bar__tag-label {
   max-width: 280px;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.mrx-filter-tags-bar__tag-remove {
+.adeo-grid-filter-tags-bar__tag-remove {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -133,11 +133,11 @@ const emit = defineEmits<{
   cursor: pointer;
 }
 
-.mrx-filter-tags-bar__tag-remove:hover {
+.adeo-grid-filter-tags-bar__tag-remove:hover {
   background: rgba(255, 255, 255, 0.35);
 }
 
-.mrx-filter-tags-bar__action {
+.adeo-grid-filter-tags-bar__action {
   padding: 4px 10px;
   border: 1px solid #cbd5e1;
   background: white;
@@ -148,7 +148,7 @@ const emit = defineEmits<{
   white-space: nowrap;
 }
 
-.mrx-filter-tags-bar__action:hover {
+.adeo-grid-filter-tags-bar__action:hover {
   background-color: #f1f5f9;
 }
 </style>

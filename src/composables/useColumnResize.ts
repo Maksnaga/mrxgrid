@@ -9,7 +9,7 @@ import type { RowData } from '@/components/AdeoGrid/types'
 //   • 8 px horizontal padding × 2                        =  16 px
 //   • header label, single-line ellipsis fallback        ≈  50 px
 //   • flex gap                                           =   4 px
-//   • sort indicator (.mrx-grid-sort-icon)               =  20 px
+//   • sort indicator (.adeo-grid-grid-sort-icon)               =  20 px
 //   • flex gap                                           =   4 px
 //   • menu trigger (icon 16 px + 8 px padding × 2)       =  24 px
 //   • resize handle clear zone                           ≈   4 px
@@ -29,10 +29,10 @@ const MIN_WIDTH = 120
  *
  * The browser fires a synthetic `click` event after every mouseup whose
  * mousedown landed on the same DOM subtree. During a column resize the
- * mousedown is on the `.mrx-grid-resize-handle` (a child of the header
+ * mousedown is on the `.adeo-grid-grid-resize-handle` (a child of the header
  * cell) and the mouseup is anywhere on the document; the click event
  * therefore fires on the common ancestor — the header cell itself — and
- * the `closest('.mrx-grid-resize-handle')` guard in `onHeaderClick` can't
+ * the `closest('.adeo-grid-grid-resize-handle')` guard in `onHeaderClick` can't
  * see the resize handle (because `e.target` is no longer it).
  *
  * The flag approach is preferred over a transient capture-phase click
@@ -105,7 +105,7 @@ export function useColumnResize<T = RowData>(gridState: GridState<T>) {
       document.body.style.userSelect = savedUserSelect
 
       // Mark the resize as just-ended so the synthetic click fired by
-      // the browser on `.mrx-grid-header-cell` (common ancestor of
+      // the browser on `.adeo-grid-grid-header-cell` (common ancestor of
       // mousedown on the handle + mouseup elsewhere) is ignored by
       // `onHeaderClick` — otherwise the column gets sorted every time
       // the user resizes it.

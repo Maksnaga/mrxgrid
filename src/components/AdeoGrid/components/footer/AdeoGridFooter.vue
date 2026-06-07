@@ -42,7 +42,7 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <div class="mrx-grid-footer">
+  <div class="adeo-grid-grid-footer">
     <AdeoGridLoadingIndicator v-if="loading" :text="loadingText" />
 
     <AdeoGridPagination
@@ -63,7 +63,7 @@ const emit = defineEmits<{
 </template>
 
 <style scoped>
-.mrx-grid-footer {
+.adeo-grid-grid-footer {
   display: flex;
   flex-direction: column;
 }

@@ -100,7 +100,7 @@ const emit = defineEmits<{
   <!-- Virtual scroll body -->
   <div
     v-if="virtual"
-    class="mrx-grid-body"
+    class="adeo-grid-grid-body"
     :style="{ minWidth: gridContentWidth ? `max(100%, ${gridContentWidth})` : '100%' }"
   >
     <!--
@@ -109,10 +109,10 @@ const emit = defineEmits<{
       using `transform` (which would create a containing block that traps
       `position: sticky` children, breaking pinned columns).
     -->
-    <div class="mrx-grid-sizer" :style="{ height: `${totalHeight}px` }">
+    <div class="adeo-grid-grid-sizer" :style="{ height: `${totalHeight}px` }">
       <div
         v-if="offsetY > 0"
-        class="mrx-grid-top-spacer"
+        class="adeo-grid-grid-top-spacer"
         :style="{ height: `${offsetY}px` }"
       />
 
@@ -192,7 +192,7 @@ const emit = defineEmits<{
   <!-- Non-virtual body (plain flex list, no sizer) -->
   <div
     v-else
-    class="mrx-grid-body"
+    class="adeo-grid-grid-body"
     :style="{ minWidth: gridContentWidth ? `max(100%, ${gridContentWidth})` : '100%' }"
   >
     <template v-for="i in renderRange" :key="i">

@@ -267,23 +267,23 @@ function onDrop(index: number): void {
 </script>
 
 <template>
-  <div class="mrx-filter-builder">
-    <div v-if="!conditions.length" class="mrx-filter-builder__empty">
+  <div class="adeo-grid-filter-builder">
+    <div v-if="!conditions.length" class="adeo-grid-filter-builder__empty">
       No filters yet. Click <strong>Add filter</strong> to build one.
     </div>
 
     <div
       v-for="(condition, index) in conditions"
       :key="condition.id"
-      class="mrx-filter-builder__row"
+      class="adeo-grid-filter-builder__row"
       draggable="true"
       @dragstart="onDragStart(index, $event)"
       @dragover.prevent
       @drop.prevent="onDrop(index)"
     >
       <!-- Combinator: "Where" for first row, AND/OR picker otherwise -->
-      <span v-if="index === 0" class="mrx-filter-builder__where">Where</span>
-      <div v-else class="mrx-filter-builder__slot mrx-filter-builder__slot--combinator">
+      <span v-if="index === 0" class="adeo-grid-filter-builder__where">Where</span>
+      <div v-else class="adeo-grid-filter-builder__slot mrx-filter-builder__slot--combinator">
         <MSelect
           :id="`mrx-filter-builder-comb-${condition.id}`"
           size="s"
@@ -294,7 +294,7 @@ function onDrop(index: number): void {
       </div>
 
       <!-- Field picker -->
-      <div class="mrx-filter-builder__slot mrx-filter-builder__slot--field">
+      <div class="adeo-grid-filter-builder__slot mrx-filter-builder__slot--field">
         <MSelect
           :id="`mrx-filter-builder-field-${condition.id}`"
           size="s"
@@ -307,7 +307,7 @@ function onDrop(index: number): void {
       <!-- Operator picker — hidden for 'custom' filters, which own their semantics -->
       <div
         v-if="descriptorFor(condition.field)?.filterType !== 'custom'"
-        class="mrx-filter-builder__slot mrx-filter-builder__slot--operator"
+        class="adeo-grid-filter-builder__slot mrx-filter-builder__slot--operator"
       >
         <MSelect
           :id="`mrx-filter-builder-op-${condition.id}`"
@@ -329,14 +329,14 @@ function onDrop(index: number): void {
         "
         :is="descriptorFor(condition.field)!.filter!.component"
         :ref="bindRefFor(condition)"
-        class="mrx-filter-builder__custom"
+        class="adeo-grid-filter-builder__custom"
         :params="buildFilterParams(condition)"
       />
       <template v-else-if="!isValueless(condition.operator)">
         <!-- set / multi-select — MCheckbox-per-option -->
         <div
           v-if="descriptorFor(condition.field)?.filterType === 'set'"
-          class="mrx-filter-builder__set"
+          class="adeo-grid-filter-builder__set"
         >
           <MCheckbox
             v-for="opt in descriptorFor(condition.field)?.options ?? []"
@@ -351,7 +351,7 @@ function onDrop(index: number): void {
         <!-- boolean -->
         <div
           v-else-if="descriptorFor(condition.field)?.filterType === 'boolean'"
-          class="mrx-filter-builder__slot mrx-filter-builder__slot--value"
+          class="adeo-grid-filter-builder__slot mrx-filter-builder__slot--value"
         >
           <MSelect
             :id="`mrx-filter-builder-bool-${condition.id}`"
@@ -364,7 +364,7 @@ function onDrop(index: number): void {
 
         <!-- range: value + valueTo -->
         <template v-else-if="isRange(condition.operator)">
-          <div class="mrx-filter-builder__slot mrx-filter-builder__slot--value">
+          <div class="adeo-grid-filter-builder__slot mrx-filter-builder__slot--value">
             <MTextInput
               :id="`mrx-filter-builder-val-${condition.id}`"
               size="s"
@@ -374,8 +374,8 @@ function onDrop(index: number): void {
               @input="(e: Event) => onTextInput(condition.id, e, condition.field)"
             />
           </div>
-          <span class="mrx-filter-builder__range-sep">–</span>
-          <div class="mrx-filter-builder__slot mrx-filter-builder__slot--value">
+          <span class="adeo-grid-filter-builder__range-sep">–</span>
+          <div class="adeo-grid-filter-builder__slot mrx-filter-builder__slot--value">
             <MTextInput
               :id="`mrx-filter-builder-val-to-${condition.id}`"
               size="s"
@@ -388,7 +388,7 @@ function onDrop(index: number): void {
         </template>
 
         <!-- scalar -->
-        <div v-else class="mrx-filter-builder__slot mrx-filter-builder__slot--value">
+        <div v-else class="adeo-grid-filter-builder__slot mrx-filter-builder__slot--value">
           <MTextInput
             :id="`mrx-filter-builder-val-${condition.id}`"
             size="s"
@@ -403,7 +403,7 @@ function onDrop(index: number): void {
       <MIconButton
         ghost
         size="s"
-        class="mrx-filter-builder__remove"
+        class="adeo-grid-filter-builder__remove"
         aria-label="Remove condition"
         @click="emit('remove', condition.id)"
       >
@@ -411,7 +411,7 @@ function onDrop(index: number): void {
       </MIconButton>
     </div>
 
-    <div class="mrx-filter-builder__footer">
+    <div class="adeo-grid-filter-builder__footer">
       <MButton
         ghost
         size="s"
@@ -427,7 +427,7 @@ function onDrop(index: number): void {
         ghost
         size="s"
         appearance="danger"
-        class="mrx-filter-builder__clear"
+        class="adeo-grid-filter-builder__clear"
         @click="emit('clear')"
       >
         Clear all
@@ -437,14 +437,14 @@ function onDrop(index: number): void {
 </template>
 
 <style scoped>
-.mrx-filter-builder {
+.adeo-grid-filter-builder {
   display: flex;
   flex-direction: column;
   gap: 8px;
   font-family: system-ui, -apple-system, sans-serif;
 }
 
-.mrx-filter-builder__empty {
+.adeo-grid-filter-builder__empty {
   padding: 24px 8px;
   text-align: center;
   color: #64748b;
@@ -454,7 +454,7 @@ function onDrop(index: number): void {
   border-radius: 6px;
 }
 
-.mrx-filter-builder__row {
+.adeo-grid-filter-builder__row {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
@@ -466,11 +466,11 @@ function onDrop(index: number): void {
   cursor: grab;
 }
 
-.mrx-filter-builder__row:active {
+.adeo-grid-filter-builder__row:active {
   cursor: grabbing;
 }
 
-.mrx-filter-builder__where {
+.adeo-grid-filter-builder__where {
   font-size: 12px;
   font-weight: 600;
   color: #64748b;
@@ -481,43 +481,43 @@ function onDrop(index: number): void {
 }
 
 /* Slot widths — let each input area participate in flex layout. */
-.mrx-filter-builder__slot {
+.adeo-grid-filter-builder__slot {
   display: flex;
   align-items: center;
 }
 
-.mrx-filter-builder__slot--combinator {
+.adeo-grid-filter-builder__slot--combinator {
   flex: 0 0 auto;
   width: 88px;
 }
 
-.mrx-filter-builder__slot--field,
-.mrx-filter-builder__slot--operator {
+.adeo-grid-filter-builder__slot--field,
+.adeo-grid-filter-builder__slot--operator {
   flex: 0 0 auto;
   min-width: 140px;
 }
 
-.mrx-filter-builder__slot--value {
+.adeo-grid-filter-builder__slot--value {
   flex: 1 1 160px;
   min-width: 120px;
 }
 
-.mrx-filter-builder__slot--value > * {
+.adeo-grid-filter-builder__slot--value > * {
   flex: 1 1 0;
   min-width: 0;
 }
 
-.mrx-filter-builder__custom {
+.adeo-grid-filter-builder__custom {
   flex: 1 1 200px;
   min-width: 150px;
 }
 
-.mrx-filter-builder__range-sep {
+.adeo-grid-filter-builder__range-sep {
   font-weight: 600;
   color: #64748b;
 }
 
-.mrx-filter-builder__set {
+.adeo-grid-filter-builder__set {
   display: flex;
   flex-wrap: wrap;
   gap: 4px 12px;
@@ -525,18 +525,18 @@ function onDrop(index: number): void {
   min-width: 150px;
 }
 
-.mrx-filter-builder__remove {
+.adeo-grid-filter-builder__remove {
   margin-left: auto;
   flex-shrink: 0;
 }
 
-.mrx-filter-builder__footer {
+.adeo-grid-filter-builder__footer {
   display: flex;
   gap: 8px;
   padding-top: 4px;
 }
 
-.mrx-filter-builder__clear {
+.adeo-grid-filter-builder__clear {
   margin-left: auto;
 }
 </style>

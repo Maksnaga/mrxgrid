@@ -45,7 +45,7 @@ Trois variantes au choix via \`:density\`. Les hauteurs de ligne sont définies 
 | \`default\` | 48px |
 | \`comfortable\` | 64px |
 
-Les paddings des cellules suivent en SCSS (\`.mrx-grid-wrapper--compact\`, \`.mrx-grid-wrapper--comfortable\` modifiers).
+Les paddings des cellules suivent en SCSS (\`.adeo-grid-grid-wrapper--compact\`, \`.adeo-grid-grid-wrapper--comfortable\` modifiers).
 
 ### Implémentation
 

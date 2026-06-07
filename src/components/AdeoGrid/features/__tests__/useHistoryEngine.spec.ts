@@ -91,7 +91,7 @@ describe('useHistoryEngine', () => {
     const { history } = setup()
     history.attach('test-grid')
     history.record('edit', [{ rowIndex: 0, field: 'name', before: 'Alice', after: 'Z' }])
-    const raw = localStorage.getItem('mrx-grid-history:test-grid')
+    const raw = localStorage.getItem('adeo-grid-grid-history:test-grid')
     expect(raw).toBeTruthy()
     const parsed = JSON.parse(raw!)
     expect(parsed.past).toHaveLength(1)
@@ -100,7 +100,7 @@ describe('useHistoryEngine', () => {
 
   it('attach restores previously-persisted stacks', () => {
     localStorage.setItem(
-      'mrx-grid-history:restored',
+      'adeo-grid-grid-history:restored',
       JSON.stringify({
         past: [
           {
@@ -123,6 +123,6 @@ describe('useHistoryEngine', () => {
     history.record('edit', [{ rowIndex: 0, field: 'name', before: 'a', after: 'b' }])
     history.clear()
     expect(history.canUndo.value).toBe(false)
-    expect(localStorage.getItem('mrx-grid-history:test-grid-clear')).toBeNull()
+    expect(localStorage.getItem('adeo-grid-grid-history:test-grid-clear')).toBeNull()
   })
 })

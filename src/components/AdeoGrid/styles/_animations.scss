@@ -29,7 +29,7 @@
 }
 
 /* Skeleton shimmer — partagée entre le full-skeleton (`MrxGridSkeletonRow`)
- * et le cell-level pending (`.mrx-grid-cell--pending::after`). Globale
+ * et le cell-level pending (`.adeo-grid-grid-cell--pending::after`). Globale
  * pour que les deux références au même nom résolvent. */
 @keyframes mrx-skeleton-shimmer {
   0% {

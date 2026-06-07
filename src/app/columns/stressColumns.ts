@@ -130,7 +130,7 @@ function makeNumberCol(
     sortable: true,
     editable: opts.editable ?? true,
     cellEditor: 'number',
-    cellClass: 'mrx-cell-num',
+    cellClass: 'adeo-grid-cell-num',
     valueGetter: (row) => {
       const over = overrides.getOverride((row as LMProduct).id, field)
       if (over !== undefined) return over

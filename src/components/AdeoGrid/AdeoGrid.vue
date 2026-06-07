@@ -243,7 +243,7 @@ const props = withDefaults(
      */
     suppressColumnMoveAnimation?: boolean
     /**
-     * Height applied to `.mrx-grid-root` as inline CSS. Accepts any CSS
+     * Height applied to `.adeo-grid-grid-root` as inline CSS. Accepts any CSS
      * length (`'560px'`, `'80vh'`) or a number (interpreted as px).
      * Default `'auto'` — the grid grows to its content. Pass a fixed value
      * when embedding in a layout that doesn't constrain height itself.
@@ -448,12 +448,12 @@ function refToA1(rowIndex0: number, colIndex0: number, absolute = false): string
 type FormulaEditorEl = HTMLInputElement | HTMLDivElement
 
 /** Find the live formula editor regardless of its underlying tag — either
- *  the contenteditable (`<div class="mrx-formula-editor">` for `allowFormula`
- *  cells) or the legacy plain `<input class="mrx-grid-cell__input">`. */
+ *  the contenteditable (`<div class="adeo-grid-formula-editor">` for `allowFormula`
+ *  cells) or the legacy plain `<input class="adeo-grid-grid-cell__input">`. */
 function getActiveFormulaEditor(): FormulaEditorEl | null {
   if (typeof document === 'undefined') return null
   return document.querySelector(
-    '.mrx-grid-cell--editing .mrx-formula-editor, .mrx-grid-cell--editing .mrx-grid-cell__input',
+    '.adeo-grid-grid-cell--editing .adeo-grid-formula-editor, .adeo-grid-grid-cell--editing .adeo-grid-grid-cell__input',
   ) as FormulaEditorEl | null
 }
 
@@ -3241,7 +3241,7 @@ defineExpose({
 </script>
 
 <template>
-  <div class="mrx-grid-root" :class="{ 'mrx-grid-root--fullscreen': fsState }" :style="fsState
+  <div class="adeo-grid-grid-root" :class="{ 'adeo-grid-grid-root--fullscreen': fsState }" :style="fsState
       ? undefined
       : { height: typeof props.height === 'number' ? `${props.height}px` : props.height }
     ">
@@ -3264,7 +3264,7 @@ defineExpose({
 
     <!-- Error overlay — replaces the body entirely when set. -->
     <slot v-if="props.error" name="error" :error="props.error" :retry="() => emit('retry')">
-      <div class="mrx-grid-error" role="alert">
+      <div class="adeo-grid-grid-error" role="alert">
         <p>{{ props.error.message || 'An error occurred.' }}</p>
         <button type="button" @click="emit('retry')">Retry</button>
       </div>
@@ -3290,11 +3290,11 @@ defineExpose({
     <AdeoGridTagBar v-if="!props.error && activeFilterTags.length > 0" label="FILTERED BY" :items="activeFilterTags"
       action-label="Remove all" @remove="onRemoveFilter" @action="onRemoveAllFilters" />
 
-    <div ref="wrapperRef" class="mrx-grid-wrapper" :class="{
-      'mrx-grid-wrapper--virtual': isVirtual,
-      'mrx-grid-wrapper--compact': densityState === 'compact',
-      'mrx-grid-wrapper--comfortable': densityState === 'comfortable',
-      'mrx-grid-wrapper--paginated': paginationEnabled,
+    <div ref="wrapperRef" class="adeo-grid-grid-wrapper" :class="{
+      'adeo-grid-grid-wrapper--virtual': isVirtual,
+      'adeo-grid-grid-wrapper--compact': densityState === 'compact',
+      'adeo-grid-grid-wrapper--comfortable': densityState === 'comfortable',
+      'adeo-grid-grid-wrapper--paginated': paginationEnabled,
     }" :style="{
         '--mrx-row-height': `${rowHeight}px`,
         ...((virtualScroll || paginationEnabled) && !fsState
@@ -3318,7 +3318,7 @@ defineExpose({
            `<slot>` below, inverted. Headers stay visible during
            loading / error so the user keeps the column context. -->
       <div v-if="props.loading || props.error || (props.rows.length > 0 && renderableRows.length > 0)"
-        class="mrx-grid-sticky-header" :class="{ 'mrx-grid-sticky-header--with-filter-row': hasFilterRow }">
+        class="adeo-grid-grid-sticky-header" :class="{ 'adeo-grid-grid-sticky-header--with-filter-row': hasFilterRow }">
         <!-- A / B / C / … strip — auto-on when any column has `allowFormula`. -->
         <AdeoGridSpreadsheetHeader v-if="hasFormulaColumns" :columns="renderCenterColumns"
           :pinned-left-columns="leftColumns" :pinned-right-columns="rightColumns" :has-pinned="hasPinned"
@@ -3424,7 +3424,7 @@ defineExpose({
 </template>
 
 <style scoped lang="scss">
-.mrx-grid-root {
+.adeo-grid-grid-root {
   position: relative;
   font-family: var(--font-family), sans-serif;
   // Make the root flex-friendly so it can fill a constrained parent (e.g.
@@ -3445,7 +3445,7 @@ defineExpose({
 }
 
 
-.mrx-grid-root--fullscreen {
+.adeo-grid-grid-root--fullscreen {
   position: fixed;
   inset: 0;
   z-index: 1000;
@@ -3454,7 +3454,7 @@ defineExpose({
   background: var(--color-background-primary);
 }
 
-.mrx-grid-root--fullscreen .mrx-grid-wrapper {
+.adeo-grid-grid-root--fullscreen .adeo-grid-grid-wrapper {
   flex: 1;
   height: auto !important;
   border-radius: 0;
@@ -3463,7 +3463,7 @@ defineExpose({
   border-bottom: none;
 }
 
-.mrx-grid-wrapper {
+.adeo-grid-grid-wrapper {
   overflow: auto;
   background: var(--color-background-primary);
   border-radius: 1rem;
@@ -3472,7 +3472,7 @@ defineExpose({
   color: var(--color-text-primary);
   outline: none;
   user-select: none;
-  // Fill remaining vertical space inside `.mrx-grid-root` so the wrapper —
+  // Fill remaining vertical space inside `.adeo-grid-grid-root` so the wrapper —
   // not the page — owns vertical scrolling whenever the host constrains
   // height (fullscreen, fixed card, paginated/virtualScroll). Without this
   // the wrapper would size to its intrinsic content and the parent would
@@ -3482,18 +3482,18 @@ defineExpose({
   min-height: 0;
 }
 
-.mrx-grid-wrapper--virtual {
+.adeo-grid-grid-wrapper--virtual {
   will-change: scroll-position;
 }
 
-.mrx-grid-wrapper--paginated {
+.adeo-grid-grid-wrapper--paginated {
   // Top 16px (= 1rem, matching the default wrapper) ; bottom plat parce
   // que la barre de pagination Mozaic prend le relais juste en dessous.
   border-radius: 1rem 1rem 0 0;
   border-bottom: none;
 }
 
-.mrx-grid-sticky-header {
+.adeo-grid-grid-sticky-header {
   position: sticky;
   top: 0;
   z-index: 5;
@@ -3504,32 +3504,32 @@ defineExpose({
 // On supprime le `border-bottom` du header cell (sinon trait horizontal
 // entre LABEL et input) — seule la border-bottom de la filter cell
 // délimite alors la fin du bloc header complet.
-.mrx-grid-sticky-header--with-filter-row :deep(.mrx-grid-header-cell) {
+.adeo-grid-grid-sticky-header--with-filter-row :deep(.adeo-grid-grid-header-cell) {
   border-bottom: none;
 }
 
-.mrx-grid-body {
+.adeo-grid-grid-body {
   position: relative;
 }
 
-.mrx-grid-sizer {
+.adeo-grid-grid-sizer {
   position: relative;
 }
 
-.mrx-grid-top-spacer {
+.adeo-grid-grid-top-spacer {
   flex-shrink: 0;
 }
 
 // Density only affects body cells — the header height stays constant so
 // column controls (sort, kebab menu, filters) stay at the same vertical
 // position regardless of how dense the data rows are.
-.mrx-grid-wrapper--compact :deep(.mrx-grid-cell) {
+.adeo-grid-grid-wrapper--compact :deep(.adeo-grid-grid-cell) {
   padding-top: m.get-spacing('025');
   padding-bottom: m.get-spacing('025');
   font-size: m.get-font-size('50');
 }
 
-.mrx-grid-wrapper--comfortable :deep(.mrx-grid-cell) {
+.adeo-grid-grid-wrapper--comfortable :deep(.adeo-grid-grid-cell) {
   padding-top: m.get-spacing('150');
   padding-bottom: m.get-spacing('150');
 }
@@ -3555,8 +3555,8 @@ defineExpose({
  * Reactive class binding from each cell (via the slot context) so it
  * applies/removes atomically with the Vue render. No transition: a
  * fade-in/out would flicker on every reorder commit during the drag. */
-.mrx-grid-cell--moving,
-.mrx-grid-header-cell--moving {
+.adeo-grid-grid-cell--moving,
+.adeo-grid-grid-header-cell--moving {
   opacity: 0.45;
   outline: 1px dashed var(--color-text-accent, #2563eb);
   outline-offset: -1px;
@@ -3568,8 +3568,8 @@ defineExpose({
  * body cells with their own cursor would override the document-level
  * grabbing — making the cursor icon flicker between grab / grabbing /
  * default as the pointer moves across cell boundaries. */
-.mrx-grid-wrapper[data-moving-field],
-.mrx-grid-wrapper[data-moving-field] * {
+.adeo-grid-grid-wrapper[data-moving-field],
+.adeo-grid-grid-wrapper[data-moving-field] * {
   cursor: grabbing !important;
 }
 
@@ -3578,7 +3578,7 @@ defineExpose({
  * composable mutates `style.transform` on cells directly (no Vue
  * re-render involved) so live reorders don't trigger the cascade that
  * caused the previous flicker. */
-.mrx-grid-wrapper[data-moving-field]:not([data-col-drop-commit]) [data-field] {
+.adeo-grid-grid-wrapper[data-moving-field]:not([data-col-drop-commit]) [data-field] {
   transition: transform 220ms cubic-bezier(0.2, 0.7, 0.4, 1);
   will-change: transform;
 }
@@ -3587,7 +3587,7 @@ defineExpose({
  * disable the transition so the transform-clear + DOM reorder happen
  * atomically with no visible animation. The combined effect is that
  * cells stay at their final visual position seamlessly. */
-.mrx-grid-wrapper[data-col-drop-commit] [data-field] {
+.adeo-grid-grid-wrapper[data-col-drop-commit] [data-field] {
   transition: none !important;
 }
 </style>

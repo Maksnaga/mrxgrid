@@ -104,7 +104,7 @@ const columns: ColumnDef[] = [
     headerName: 'Prix',
     width: '110px',
     sortable: true,
-    cellClass: 'mrx-cell-num', // classe CSS appliquée à la cellule
+    cellClass: 'adeo-grid-cell-num', // classe CSS appliquée à la cellule
   },
   {
     field: 'status',

@@ -26,7 +26,7 @@ const THEME_LABELS: Record<ThemeId, string> = {
   mbrand: 'MBrand',
 }
 
-const THEME_STYLE_ID = 'mrx-active-theme-style'
+const THEME_STYLE_ID = 'adeo-grid-active-theme-style'
 
 function applyTheme(theme: ThemeId) {
   if (typeof document === 'undefined') return

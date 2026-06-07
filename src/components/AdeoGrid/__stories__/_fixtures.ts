@@ -246,7 +246,7 @@ export const lmColumns: ColumnDef[] = [
     editable: true,
     cellEditor: 'number',
     valueFormatter: (v) => (typeof v === 'number' ? eur.format(v) : ''),
-    cellClass: 'mrx-cell-num',
+    cellClass: 'adeo-grid-cell-num',
   },
   {
     field: 'stock',
@@ -258,7 +258,7 @@ export const lmColumns: ColumnDef[] = [
     editable: true,
     cellEditor: 'number',
     cellValidator: (v) => (typeof v === 'number' && v >= 0 ? true : 'Stock négatif interdit'),
-    cellClass: 'mrx-cell-num',
+    cellClass: 'adeo-grid-cell-num',
   },
   {
     field: 'status',
@@ -465,7 +465,7 @@ export const adeoColumns: ColumnDef[] = [
     editable: true,
     cellEditor: 'number',
     valueFormatter: (v) => (typeof v === 'number' ? eur.format(v) : ''),
-    cellClass: 'mrx-cell-num',
+    cellClass: 'adeo-grid-cell-num',
   },
   {
     field: 'startDate',
@@ -591,7 +591,7 @@ export const bricoColumns: ColumnDef[] = [
     filterType: 'number',
     editable: true,
     cellEditor: 'number',
-    cellClass: 'mrx-cell-num',
+    cellClass: 'adeo-grid-cell-num',
   },
   {
     field: 'defective',
@@ -600,7 +600,7 @@ export const bricoColumns: ColumnDef[] = [
     sortable: true,
     filterable: true,
     filterType: 'number',
-    cellClass: 'mrx-cell-num',
+    cellClass: 'adeo-grid-cell-num',
   },
   {
     field: 'flag',

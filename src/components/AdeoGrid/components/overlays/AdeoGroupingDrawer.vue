@@ -119,29 +119,29 @@ function onReset() {
     position="right"
     @update:open="emit('update:open', $event)"
   >
-    <div class="mrx-grouping-drawer">
+    <div class="adeo-grid-grouping-drawer">
       <!-- Active groups -->
-      <div v-if="draftGroups.length" class="mrx-grouping-drawer__section">
+      <div v-if="draftGroups.length" class="adeo-grid-grouping-drawer__section">
         <div
           v-for="(group, index) in draftGroups"
           :key="group.field"
-          class="mrx-grouping-drawer__active-item"
+          class="adeo-grid-grouping-drawer__active-item"
           draggable="true"
           @dragstart="onDragStart(index, $event)"
           @dragover.prevent="onDragOver(index)"
           @drop.prevent="onDrop(index)"
           @dragend="onDragEnd"
         >
-          <span class="mrx-grouping-drawer__drag-handle">
+          <span class="adeo-grid-grouping-drawer__drag-handle">
             <Drag24 aria-hidden="true" />
           </span>
-          <span class="mrx-grouping-drawer__field-name">{{ group.headerName || group.field }}</span>
+          <span class="adeo-grid-grouping-drawer__field-name">{{ group.headerName || group.field }}</span>
           <MSelect
             :id="`group-dir-${group.field}`"
             size="s"
             :options="sortOptions"
             :model-value="group.direction"
-            class="mrx-grouping-drawer__sort-select"
+            class="adeo-grid-grouping-drawer__sort-select"
             @update:model-value="updateDirection(group.field, $event)"
           />
           <MIconButton size="s" :ghost="true" @click="removeColumn(group.field)">
@@ -153,14 +153,14 @@ function onReset() {
       </div>
 
       <!-- Available columns -->
-      <div class="mrx-grouping-drawer__section">
-        <h3 class="mrx-grouping-drawer__section-title">AVAILABLE COLUMNS</h3>
+      <div class="adeo-grid-grouping-drawer__section">
+        <h3 class="adeo-grid-grouping-drawer__section-title">AVAILABLE COLUMNS</h3>
         <div
           v-for="col in availableColumns"
           :key="col.field"
-          class="mrx-grouping-drawer__available-item"
+          class="adeo-grid-grouping-drawer__available-item"
         >
-          <span class="mrx-grouping-drawer__field-name">{{ col.headerName }}</span>
+          <span class="adeo-grid-grouping-drawer__field-name">{{ col.headerName }}</span>
           <MIconButton size="s" :ghost="true" @click="addColumn(col)">
             <template #icon>
               <ListAdd24 aria-hidden="true" />
@@ -171,7 +171,7 @@ function onReset() {
     </div>
 
     <template #footer>
-      <div class="mrx-grouping-drawer__footer">
+      <div class="adeo-grid-grouping-drawer__footer">
         <MButton appearance="accent" @click="onApply">Apply</MButton>
         <MButton :outlined="true" @click="onReset">Reset</MButton>
       </div>
@@ -181,7 +181,7 @@ function onReset() {
 </template>
 
 <style scoped>
-.mrx-grouping-drawer {
+.adeo-grid-grouping-drawer {
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -192,7 +192,7 @@ function onReset() {
     sans-serif;
 }
 
-.mrx-grouping-drawer__section-title {
+.adeo-grid-grouping-drawer__section-title {
   font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
@@ -202,7 +202,7 @@ function onReset() {
   padding: 0 4px;
 }
 
-.mrx-grouping-drawer__active-item {
+.adeo-grid-grouping-drawer__active-item {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -210,14 +210,14 @@ function onReset() {
   border-bottom: 1px solid #e2e8f0;
 }
 
-.mrx-grouping-drawer__drag-handle {
+.adeo-grid-grouping-drawer__drag-handle {
   display: flex;
   align-items: center;
   cursor: grab;
   color: #94a3b8;
 }
 
-.mrx-grouping-drawer__field-name {
+.adeo-grid-grouping-drawer__field-name {
   flex: 1 1 0%;
   font-size: 14px;
   font-weight: 600;
@@ -228,7 +228,7 @@ function onReset() {
   text-overflow: ellipsis;
 }
 
-.mrx-grouping-drawer__sort-select {
+.adeo-grid-grouping-drawer__sort-select {
   flex: 0 0 auto;
   width: 100px;
   max-width: 100px;
@@ -236,26 +236,26 @@ function onReset() {
   overflow: hidden;
 }
 
-.mrx-grouping-drawer__sort-select :deep(.mc-select) {
+.adeo-grid-grouping-drawer__sort-select :deep(.mc-select) {
   width: 100%;
   min-width: 0;
 }
 
-.mrx-grouping-drawer__sort-select :deep(.mc-select__control) {
+.adeo-grid-grouping-drawer__sort-select :deep(.mc-select__control) {
   width: 100%;
   min-width: 0;
 }
 
-.mrx-grouping-drawer__active-item[draggable='true'] {
+.adeo-grid-grouping-drawer__active-item[draggable='true'] {
   cursor: grab;
 }
 
-.mrx-grouping-drawer__active-item[draggable='true']:active {
+.adeo-grid-grouping-drawer__active-item[draggable='true']:active {
   cursor: grabbing;
   opacity: 0.6;
 }
 
-.mrx-grouping-drawer__available-item {
+.adeo-grid-grouping-drawer__available-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -263,7 +263,7 @@ function onReset() {
   border-bottom: 1px solid #f1f5f9;
 }
 
-.mrx-grouping-drawer__footer {
+.adeo-grid-grouping-drawer__footer {
   display: flex;
   gap: 12px;
   justify-content: center;

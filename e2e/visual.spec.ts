@@ -25,7 +25,7 @@ const TOLERANCE = { maxDiffPixelRatio: 0.005 } // 0.5% — kills false positives
 async function gotoFixture(page: Page, state: string): Promise<void> {
   await page.goto(`/?fixtures=${state}`)
   await page.locator(`[data-fixture="${state}"]`).waitFor({ state: 'visible' })
-  await page.locator('.mrx-grid-root').first().waitFor({ state: 'visible' })
+  await page.locator('.adeo-grid-grid-root').first().waitFor({ state: 'visible' })
 }
 
 // ---------------------------------------------------------------------------
@@ -40,41 +40,41 @@ test.describe('Cell visual states', () => {
   })
 
   test('default cell', async ({ page }) => {
-    await expect(page.locator('.mrx-grid-cell').first()).toHaveScreenshot(
+    await expect(page.locator('.adeo-grid-grid-cell').first()).toHaveScreenshot(
       'cell-default.png',
       TOLERANCE,
     )
   })
 
   test('hover state', async ({ page }) => {
-    const cell = page.locator('.mrx-grid-cell').first()
+    const cell = page.locator('.adeo-grid-grid-cell').first()
     await cell.hover()
     await expect(cell).toHaveScreenshot('cell-hover.png', TOLERANCE)
   })
 
   test('focused (active) cell', async ({ page }) => {
-    const cell = page.locator('.mrx-grid-cell').first()
+    const cell = page.locator('.adeo-grid-grid-cell').first()
     await cell.click()
     await expect(cell).toHaveScreenshot('cell-focused.png', TOLERANCE)
   })
 
   test('cell in range (Shift+click)', async ({ page }) => {
-    const first = page.locator('.mrx-grid-cell').nth(0)
-    const last = page.locator('.mrx-grid-cell').nth(4)
+    const first = page.locator('.adeo-grid-grid-cell').nth(0)
+    const last = page.locator('.adeo-grid-grid-cell').nth(4)
     await first.click()
     await last.click({ modifiers: ['Shift'] })
-    await expect(page.locator('.mrx-grid-row').first()).toHaveScreenshot(
+    await expect(page.locator('.adeo-grid-grid-row').first()).toHaveScreenshot(
       'cell-in-range.png',
       TOLERANCE,
     )
   })
 
   test('cut source (marching ants)', async ({ page }) => {
-    await page.locator('.mrx-grid-cell').first().click()
+    await page.locator('.adeo-grid-grid-cell').first().click()
     await page.keyboard.press('Control+x')
     // Wait one animation frame so the marching-ants kicks in.
     await page.waitForTimeout(100)
-    await expect(page.locator('.mrx-grid-row').first()).toHaveScreenshot(
+    await expect(page.locator('.adeo-grid-grid-row').first()).toHaveScreenshot(
       'cell-cut-source.png',
       TOLERANCE,
     )
@@ -83,14 +83,14 @@ test.describe('Cell visual states', () => {
   test('validation error (invalid email cell)', async ({ page }) => {
     // Charlie row has an invalid email; the cellValidator paints a red border
     // and a danger icon at the cell's right edge.
-    const invalidCell = page.locator('.mrx-grid-cell--invalid').first()
+    const invalidCell = page.locator('.adeo-grid-grid-cell--invalid').first()
     await invalidCell.waitFor({ state: 'visible' })
     await expect(invalidCell).toHaveScreenshot('cell-validation-error.png', TOLERANCE)
   })
 
   test('pinned-right column (status)', async ({ page }) => {
     // The `status` column is pinned-right in the default fixture.
-    await expect(page.locator('.mrx-grid-row').first()).toHaveScreenshot(
+    await expect(page.locator('.adeo-grid-grid-row').first()).toHaveScreenshot(
       'pinned-right-column.png',
       TOLERANCE,
     )
@@ -120,11 +120,11 @@ test.describe('Cell visual states', () => {
 test.describe('Row visual states', () => {
   test('selected row (Gmail-style checkbox)', async ({ page }) => {
     await gotoFixture(page, 'selectable')
-    // First data row checkbox lives in the second `.mrx-grid-checkbox-cell`
+    // First data row checkbox lives in the second `.adeo-grid-grid-checkbox-cell`
     // (header owns the first). We click the inner `.mc-checkbox` because
     // Mozaic's `MCheckbox` listens on the input child, not the wrapper.
-    await page.locator('.mrx-grid-checkbox-cell .mc-checkbox').nth(1).click()
-    await expect(page.locator('.mrx-grid-row').nth(1)).toHaveScreenshot(
+    await page.locator('.adeo-grid-grid-checkbox-cell .mc-checkbox').nth(1).click()
+    await expect(page.locator('.adeo-grid-grid-row').nth(1)).toHaveScreenshot(
       'row-selected.png',
       TOLERANCE,
     )
@@ -132,7 +132,7 @@ test.describe('Row visual states', () => {
 
   test('expandable row (button visible)', async ({ page }) => {
     await gotoFixture(page, 'expandable')
-    await expect(page.locator('.mrx-grid-row').nth(1)).toHaveScreenshot(
+    await expect(page.locator('.adeo-grid-grid-row').nth(1)).toHaveScreenshot(
       'row-expandable.png',
       TOLERANCE,
     )
@@ -196,7 +196,7 @@ test.describe('Overlay visual states', () => {
 test.describe('Layout visual states', () => {
   test('density: compact', async ({ page }) => {
     await gotoFixture(page, 'density-compact')
-    await expect(page.locator('.mrx-grid-root').first()).toHaveScreenshot(
+    await expect(page.locator('.adeo-grid-grid-root').first()).toHaveScreenshot(
       'density-compact.png',
       TOLERANCE,
     )
@@ -204,7 +204,7 @@ test.describe('Layout visual states', () => {
 
   test('density: comfortable', async ({ page }) => {
     await gotoFixture(page, 'density-comfortable')
-    await expect(page.locator('.mrx-grid-root').first()).toHaveScreenshot(
+    await expect(page.locator('.adeo-grid-grid-root').first()).toHaveScreenshot(
       'density-comfortable.png',
       TOLERANCE,
     )

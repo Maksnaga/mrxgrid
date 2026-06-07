@@ -25,13 +25,13 @@ withDefaults(
 </script>
 
 <template>
-  <div class="mrx-grid-loading-indicator">
+  <div class="adeo-grid-grid-loading-indicator">
     <MLoader :size="size" :text="text" />
   </div>
 </template>
 
 <style scoped lang="scss">
-.mrx-grid-loading-indicator {
+.adeo-grid-grid-loading-indicator {
   display: flex;
   align-items: center;
   justify-content: center;

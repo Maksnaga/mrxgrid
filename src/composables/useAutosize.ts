@@ -85,13 +85,13 @@ export function useAutosize(opts: UseAutosizeOptions) {
 
     // Hoist the layout-flush work out of the per-column loop. The
     // canvas font and padding/border reserve are derived from a real
-    // `.mrx-grid-cell` via `getComputedStyle` — every call forces a
+    // `.adeo-grid-grid-cell` via `getComputedStyle` — every call forces a
     // synchronous style recalc. Doing it once per column at 200+ cols
     // accumulates to seconds of layout time; doing it once for the
     // whole batch is sub-millisecond.
     //
     // Cells share the same font / padding regardless of which column
-    // they belong to (all `.mrx-grid-cell` get the same styling). A
+    // they belong to (all `.adeo-grid-grid-cell` get the same styling). A
     // single sample is faithful for the body measure. The header
     // affordance is added per-column as a constant on top so it
     // doesn't depend on the sample either.
@@ -103,7 +103,7 @@ export function useAutosize(opts: UseAutosizeOptions) {
   }
 
   /**
-   * Sample a real `.mrx-grid-cell` to derive the canvas font + the
+   * Sample a real `.adeo-grid-grid-cell` to derive the canvas font + the
    * padding/border reserve. Hoisted out of `measureColumn` so the
    * "autosize all" path can do it once and reuse the result across
    * every column.
@@ -178,7 +178,7 @@ export function useAutosize(opts: UseAutosizeOptions) {
     if (def.renderer != null) {
       const escaped = cssEscape(field)
       const renderedCells = wrapper.querySelectorAll<HTMLElement>(
-        `.mrx-grid-cell[data-field="${escaped}"]`,
+        `.adeo-grid-grid-cell[data-field="${escaped}"]`,
       )
       for (const cell of renderedCells) {
         // `scrollWidth` measures the content's intrinsic width — for a
@@ -201,14 +201,14 @@ export function useAutosize(opts: UseAutosizeOptions) {
   return { autosizeColumn, autosizeAllColumns }
 }
 
-/** Picks a real `.mrx-grid-cell` so the canvas font matches the live cell. */
+/** Picks a real `.adeo-grid-grid-cell` so the canvas font matches the live cell. */
 function pickStyleSample(wrapper: HTMLElement, field: string): HTMLElement {
   const escaped = cssEscape(field)
   const colCell = wrapper.querySelector(
-    `.mrx-grid-cell[data-field="${escaped}"]`,
+    `.adeo-grid-grid-cell[data-field="${escaped}"]`,
   ) as HTMLElement | null
   if (colCell) return colCell
-  const anyCell = wrapper.querySelector('.mrx-grid-cell') as HTMLElement | null
+  const anyCell = wrapper.querySelector('.adeo-grid-grid-cell') as HTMLElement | null
   return anyCell ?? wrapper
 }
 

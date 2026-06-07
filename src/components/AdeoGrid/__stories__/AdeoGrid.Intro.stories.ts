@@ -329,7 +329,7 @@ async function load() {
 
 ### Default fallback
 
-Sans slot, la grille affiche \`<div class="mrx-grid-error">\` avec \`{{ error.message }}\` + un bouton "Retry" qui émet \`@retry\`.
+Sans slot, la grille affiche \`<div class="adeo-grid-grid-error">\` avec \`{{ error.message }}\` + un bouton "Retry" qui émet \`@retry\`.
         `,
       },
     },

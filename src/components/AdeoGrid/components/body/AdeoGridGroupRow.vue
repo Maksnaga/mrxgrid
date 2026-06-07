@@ -49,23 +49,23 @@ const INDENT_PX = 24
 </script>
 
 <template>
-  <div class="mrx-group-row" role="row" @click="emit('toggle')">
+  <div class="adeo-grid-group-row" role="row" @click="emit('toggle')">
     <!-- Sticky-left: chevron + (field above value) + count. The count
          sits right next to the title — the whole block stays anchored
          to the visible viewport during horizontal scroll. -->
-    <div class="mrx-group-row__label" :style="{ paddingLeft: `${depth * INDENT_PX + 16}px` }">
-      <component :is="expanded ? ChevronDown20 : ChevronRight20" class="mrx-group-row__toggle" aria-hidden="true" />
-      <div class="mrx-group-row__info">
-        <span class="mrx-group-row__field">{{ headerName }}</span>
-        <span class="mrx-group-row__value">{{ value ?? '(empty)' }}</span>
+    <div class="adeo-grid-group-row__label" :style="{ paddingLeft: `${depth * INDENT_PX + 16}px` }">
+      <component :is="expanded ? ChevronDown20 : ChevronRight20" class="adeo-grid-group-row__toggle" aria-hidden="true" />
+      <div class="adeo-grid-group-row__info">
+        <span class="adeo-grid-group-row__field">{{ headerName }}</span>
+        <span class="adeo-grid-group-row__value">{{ value ?? '(empty)' }}</span>
       </div>
-      <span class="mrx-group-row__count">{{ count }}</span>
+      <span class="adeo-grid-group-row__count">{{ count }}</span>
     </div>
   </div>
 </template>
 
 <style scoped lang="scss">
-.mrx-group-row {
+.adeo-grid-group-row {
   display: flex;
   align-items: center;
   min-height: 64px;
@@ -79,7 +79,7 @@ const INDENT_PX = 24
   box-sizing: border-box;
 }
 
-.mrx-group-row:hover {
+.adeo-grid-group-row:hover {
   background-color: #f1f5f9;
 }
 
@@ -88,7 +88,7 @@ const INDENT_PX = 24
 // horizontally. Background matches the row (sits above the body cells
 // it slides over) — `z-index` lifts it above any sticky pinned cell
 // the body might paint underneath.
-.mrx-group-row__label {
+.adeo-grid-group-row__label {
   position: sticky;
   left: 0;
   display: flex;
@@ -100,7 +100,7 @@ const INDENT_PX = 24
   z-index: 2;
 }
 
-.mrx-group-row__toggle {
+.adeo-grid-group-row__toggle {
   flex-shrink: 0;
   width: 20px;
   height: 20px;
@@ -110,20 +110,20 @@ const INDENT_PX = 24
   justify-content: center;
 }
 
-.mrx-group-row__toggle :deep(svg) {
+.adeo-grid-group-row__toggle :deep(svg) {
   width: 100%;
   height: 100%;
   fill: currentColor;
 }
 
-.mrx-group-row__info {
+.adeo-grid-group-row__info {
   display: flex;
   flex-direction: column;
   gap: 2px;
   min-width: 0;
 }
 
-.mrx-group-row__field {
+.adeo-grid-group-row__field {
   font-size: 12px;
   font-weight: 500;
   text-transform: uppercase;
@@ -132,7 +132,7 @@ const INDENT_PX = 24
   line-height: 1.2;
 }
 
-.mrx-group-row__value {
+.adeo-grid-group-row__value {
   font-size: 18px;
   font-weight: 700;
   color: #1e293b;
@@ -146,7 +146,7 @@ const INDENT_PX = 24
 // background so it reads as a count, not a tappable element. Lives
 // inside `__label`, so it inherits the sticky-left anchoring during
 // horizontal scroll.
-.mrx-group-row__count {
+.adeo-grid-group-row__count {
   flex-shrink: 0;
   display: inline-flex;
   align-items: center;

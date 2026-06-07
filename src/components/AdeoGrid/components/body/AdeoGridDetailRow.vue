@@ -63,15 +63,15 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div ref="rootRef" class="mrx-grid-detail-row" role="row">
-    <div class="mrx-grid-detail-row__viewport">
+  <div ref="rootRef" class="adeo-grid-grid-detail-row" role="row">
+    <div class="adeo-grid-grid-detail-row__viewport">
       <slot />
     </div>
   </div>
 </template>
 
 <style scoped>
-.mrx-grid-detail-row {
+.adeo-grid-grid-detail-row {
   /* Spans the full body width (= total grid content width) so the band sits
      visually between data rows even when the grid is horizontally scrolled. */
   display: block;
@@ -80,7 +80,7 @@ onBeforeUnmount(() => {
   border-bottom: 1px solid #e2e8f0;
 }
 
-.mrx-grid-detail-row__viewport {
+.adeo-grid-grid-detail-row__viewport {
   /* Sticks to the left edge of the scroll container so user-set padding on
      the slot content stays inside the visible viewport, no matter how far
      the grid is scrolled horizontally. */

@@ -1,8 +1,8 @@
 /* Ported from Angular `components/body/grid-body.scss`.
  * Translations applied:
  *   :host                                    → .grid-body
- *   ::ng-deep .cdk-virtual-scrollable        → .mrx-virtual-viewport
- *   ::ng-deep .cdk-virtual-scroll-content-wrapper → .mrx-virtual-viewport__content
+ *   ::ng-deep .cdk-virtual-scrollable        → .adeo-grid-virtual-viewport
+ *   ::ng-deep .cdk-virtual-scroll-content-wrapper → .adeo-grid-virtual-viewport__content
  *   ::ng-deep moz-grid-row moz-grid-cell:last-child → .grid-row .grid-cell-root:last-child
  */
 
@@ -25,12 +25,12 @@
     height: 0;
   }
 
-  .grid-body .mrx-virtual-viewport {
+  .grid-body .adeo-grid-virtual-viewport {
     overscroll-behavior: none;
   }
 
   /* Allow position:sticky for frozen columns inside rows */
-  .grid-body .mrx-virtual-viewport__content {
+  .grid-body .adeo-grid-virtual-viewport__content {
     contain: none !important;
   }
 

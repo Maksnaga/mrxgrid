@@ -76,7 +76,7 @@ export const PersistedLayout: Story = {
 
 ### Storage
 
-\`localStorage["mrx-grid-state:" + persistKey]\` — JSON sérialisé. Versionnez votre clé (\`v1\`, \`v2\`) si vous changez la shape de vos columns/données pour invalider l'ancien état.
+\`localStorage["adeo-grid-grid-state:" + persistKey]\` — JSON sérialisé. Versionnez votre clé (\`v1\`, \`v2\`) si vous changez la shape de vos columns/données pour invalider l'ancien état.
 
 ### API impérative
 
@@ -382,7 +382,7 @@ Deux options pour activer l'undo/redo des cell edits + fills + bulk deletes :
 <AdeoGrid :columns="cols" :rows="rows" history-id="my-grid" />
 \`\`\`
 
-Persiste la stack en \`localStorage["mrx-grid-history:my-grid"]\` automatiquement.
+Persiste la stack en \`localStorage["adeo-grid-grid-history:my-grid"]\` automatiquement.
 
 ### Option 2 — \`useUndoRedoPlugin\` (avancé)
 
@@ -439,7 +439,7 @@ Cell edits, fills, bulk deletes — pas le sort/filter/pin/hide (transitions UX,
         <p>
           Drop-in <code>useUndoRedoPlugin({ storageKey })</code>. Edits, paste, fill, cut, delete are
           recorded automatically; <kbd>⌘Z</kbd>&nbsp;/&nbsp;<kbd>⌘⇧Z</kbd> (or <kbd>⌘Y</kbd>) revert / replay
-          them. Stacks survive a reload via <code>localStorage["mrx-grid-history:lm-undo-demo"]</code>.
+          them. Stacks survive a reload via <code>localStorage["adeo-grid-grid-history:lm-undo-demo"]</code>.
         </p>
         <div class="sb-mrx-frame">
           <AdeoGrid :height="560"

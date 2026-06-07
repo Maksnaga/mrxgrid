@@ -53,17 +53,17 @@ const subtitle = computed(() => {
 </script>
 
 <template>
-  <div class="mrx-empty" role="status" :data-variant="variant">
-    <div class="mrx-empty__card">
-      <div class="mrx-empty__halo" aria-hidden="true">
-        <Filter48 v-if="variant === 'filtered'" class="mrx-empty__icon" />
-        <Database48 v-else class="mrx-empty__icon" />
+  <div class="adeo-grid-empty" role="status" :data-variant="variant">
+    <div class="adeo-grid-empty__card">
+      <div class="adeo-grid-empty__halo" aria-hidden="true">
+        <Filter48 v-if="variant === 'filtered'" class="adeo-grid-empty__icon" />
+        <Database48 v-else class="adeo-grid-empty__icon" />
       </div>
 
-      <h3 class="mrx-empty__title">{{ headline }}</h3>
-      <p class="mrx-empty__subtitle">{{ subtitle }}</p>
+      <h3 class="adeo-grid-empty__title">{{ headline }}</h3>
+      <p class="adeo-grid-empty__subtitle">{{ subtitle }}</p>
 
-      <div class="mrx-empty__actions">
+      <div class="adeo-grid-empty__actions">
         <!-- Built-in action when filters are active -->
         <MButton v-if="variant === 'filtered'" theme="primary" size="m" @click="emit('clearFilters')">
           Effacer les filtres
@@ -78,10 +78,10 @@ const subtitle = computed(() => {
 </template>
 
 <style scoped lang="scss">
-.mrx-empty {
+.adeo-grid-empty {
   // Center the card inside its parent (the grid wrapper area). `flex-1`
   // ensures the card takes the remaining vertical space when the grid
-  // wrapper is constrained — same reason `.mrx-grid-wrapper` itself uses
+  // wrapper is constrained — same reason `.adeo-grid-grid-wrapper` itself uses
   // `flex: 1` in the root.
   flex: 1;
   min-height: 240px;
@@ -92,7 +92,7 @@ const subtitle = computed(() => {
   animation: mrx-empty-in 240ms ease-out;
 }
 
-.mrx-empty__card {
+.adeo-grid-empty__card {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -101,7 +101,7 @@ const subtitle = computed(() => {
   padding: 32px 28px 28px;
 }
 
-.mrx-empty__halo {
+.adeo-grid-empty__halo {
   position: relative;
   width: 96px;
   height: 96px;
@@ -128,7 +128,7 @@ const subtitle = computed(() => {
   }
 }
 
-.mrx-empty[data-variant='filtered'] .mrx-empty__halo {
+.adeo-grid-empty[data-variant='filtered'] .adeo-grid-empty__halo {
   background:
     radial-gradient(circle at 30% 30%,
       #fef3c7,
@@ -140,17 +140,17 @@ const subtitle = computed(() => {
   }
 }
 
-.mrx-empty__icon {
+.adeo-grid-empty__icon {
   width: 48px;
   height: 48px;
   color: var(--color-text-accent, #0071ce);
 }
 
-.mrx-empty[data-variant='filtered'] .mrx-empty__icon {
+.adeo-grid-empty[data-variant='filtered'] .adeo-grid-empty__icon {
   color: #b45309;
 }
 
-.mrx-empty__title {
+.adeo-grid-empty__title {
   margin: 0 0 8px;
   font-size: 18px;
   font-weight: 700;
@@ -158,7 +158,7 @@ const subtitle = computed(() => {
   color: var(--color-text-primary, #0f172a);
 }
 
-.mrx-empty__subtitle {
+.adeo-grid-empty__subtitle {
   margin: 0 0 24px;
   max-width: 380px;
   font-size: 13.5px;
@@ -166,7 +166,7 @@ const subtitle = computed(() => {
   color: var(--color-text-secondary, #475569);
 }
 
-.mrx-empty__actions {
+.adeo-grid-empty__actions {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
@@ -174,7 +174,7 @@ const subtitle = computed(() => {
   justify-content: center;
 }
 
-.mrx-empty__actions:empty {
+.adeo-grid-empty__actions:empty {
   display: none;
 }
 
@@ -191,7 +191,7 @@ const subtitle = computed(() => {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .mrx-empty {
+  .adeo-grid-empty {
     animation: none;
   }
 }

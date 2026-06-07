@@ -54,14 +54,14 @@ const columns: ColumnDef[] = [
     headerName: 'Qté',
     width: '70px',
     sortable: true,
-    cellClass: 'mrx-cell-num',
+    cellClass: 'adeo-grid-cell-num',
   },
   {
     field: 'balance',
     headerName: 'Solde',
     width: '80px',
     sortable: true,
-    cellClass: 'mrx-cell-num',
+    cellClass: 'adeo-grid-cell-num',
   },
   {
     field: 'reason',

@@ -10,7 +10,7 @@
  * props.
  *
  * Responsibilities of this component:
- *   - render the header cell wrapper (`div.mrx-grid-header-cell`)
+ *   - render the header cell wrapper (`div.adeo-grid-grid-header-cell`)
  *   - render label + sort indicator + kebab menu trigger
  *   - render the resize handle when enabled
  *   - forward mousedown events for column drag (parent wires up reorder)
@@ -94,8 +94,8 @@ function onHeaderMouseDown(e: MouseEvent): void {
   // Don't start column drag from resize handle or menu button
   const target = e.target as HTMLElement
   if (
-    target.closest('.mrx-grid-resize-handle') ||
-    target.closest('.mrx-grid-menu-trigger')
+    target.closest('.adeo-grid-grid-resize-handle') ||
+    target.closest('.adeo-grid-grid-menu-trigger')
   ) {
     return
   }
@@ -111,7 +111,7 @@ function onHeaderClick(e: MouseEvent): void {
   // those have their own behaviour. Slot-rendered controls in `#header-{field}`
   // can opt out by calling `event.stopPropagation()`.
   const target = e.target as HTMLElement
-  if (target.closest('.mrx-grid-resize-handle') || target.closest('.mrx-grid-menu-trigger')) {
+  if (target.closest('.adeo-grid-grid-resize-handle') || target.closest('.adeo-grid-grid-menu-trigger')) {
     return
   }
   // Suppress the synthetic click fired by the browser right after a
@@ -133,7 +133,7 @@ function onResizeMouseDown(e: MouseEvent): void {
 </script>
 
 <template>
-  <div class="mrx-grid-header-cell" :class="[cellClass, { 'mrx-grid-header-cell--moving': isMoving }]" :style="fill
+  <div class="adeo-grid-grid-header-cell" :class="[cellClass, { 'adeo-grid-grid-header-cell--moving': isMoving }]" :style="fill
     ? {
       ...cellStyle,
       // basis 0 (not auto) so a long header label can't push the
@@ -152,27 +152,27 @@ function onResizeMouseDown(e: MouseEvent): void {
       cursor: isSortable ? 'pointer' : 'grab',
     }
     " role="columnheader" :data-field="column.field" @mousedown="onHeaderMouseDown" @click="onHeaderClick">
-    <span class="mrx-grid-header-content">
+    <span class="adeo-grid-grid-header-content">
       <component v-if="resolvedHeaderSlot" :is="resolvedHeaderSlot" :column="column"
         :sort-direction="sortDirection ?? null" />
-      <span v-else class="mrx-grid-header-label">{{ column.headerName }}</span>
-      <span v-if="sortIcon" class="mrx-grid-sort-indicator" aria-hidden="true">
-        <component :is="sortIcon" class="mrx-grid-sort-icon" />
-        <span v-if="sortIndex" class="mrx-grid-sort-index">
+      <span v-else class="adeo-grid-grid-header-label">{{ column.headerName }}</span>
+      <span v-if="sortIcon" class="adeo-grid-grid-sort-indicator" aria-hidden="true">
+        <component :is="sortIcon" class="adeo-grid-grid-sort-icon" />
+        <span v-if="sortIndex" class="adeo-grid-grid-sort-index">
           {{ sortIndex }}
         </span>
       </span>
-      <button type="button" class="mrx-grid-menu-trigger" aria-label="Menu de la colonne" @click.stop="onMenuClick">
-        <Settings20 class="mrx-grid-menu-icon" />
+      <button type="button" class="adeo-grid-grid-menu-trigger" aria-label="Menu de la colonne" @click.stop="onMenuClick">
+        <Settings20 class="adeo-grid-grid-menu-icon" />
       </button>
     </span>
-    <div v-if="resizable" class="mrx-grid-resize-handle" :class="{ 'mrx-grid-resize-handle--left': resizeFromLeft }"
+    <div v-if="resizable" class="adeo-grid-grid-resize-handle" :class="{ 'adeo-grid-grid-resize-handle--left': resizeFromLeft }"
       @mousedown.prevent="onResizeMouseDown" />
   </div>
 </template>
 
 <style scoped lang="scss">
-.mrx-grid-header-cell {
+.adeo-grid-grid-header-cell {
   padding: m.get-spacing('100') m.get-spacing('150');
   text-align: left;
   font-size: m.get-font-size('50');
@@ -194,7 +194,7 @@ function onResizeMouseDown(e: MouseEvent): void {
   // header. The resize floor is the primary defense; this is the
   // safety net for declared widths.
   overflow: hidden;
-  // Stretch to the row's 47px height (set on `.mrx-grid-header`) and
+  // Stretch to the row's 47px height (set on `.adeo-grid-grid-header`) and
   // vertically center the inline content (label + sort indicator + kebab).
   // Padding stays for horizontal spacing — overflow stays inside the cell.
   display: flex;
@@ -203,15 +203,15 @@ function onResizeMouseDown(e: MouseEvent): void {
 
 // Pinned columns at the grid extremity carry no border on their outer
 // edge — the table boundary itself is the visual separator.
-.mrx-grid-header-cell.mrx-grid-cell--pinned-row-end {
+.adeo-grid-grid-header-cell.adeo-grid-grid-cell--pinned-row-end {
   border-right: none;
 }
 
-.mrx-grid-header-cell.mrx-grid-cell--pinned-row-start {
+.adeo-grid-grid-header-cell.adeo-grid-grid-cell--pinned-row-start {
   border-left: none;
 }
 
-.mrx-grid-header-content {
+.adeo-grid-grid-header-content {
   display: flex;
   align-items: center;
   gap: m.get-spacing('050');
@@ -223,7 +223,7 @@ function onResizeMouseDown(e: MouseEvent): void {
   min-width: 0;
 }
 
-.mrx-grid-header-label {
+.adeo-grid-grid-header-label {
   // `flex: 1 1 0` + `min-width: 0` is the canonical recipe for a
   // shrinkable flex child whose content would otherwise set a non-zero
   // min-content. Without `min-width: 0` the label refuses to shrink
@@ -243,32 +243,32 @@ function onResizeMouseDown(e: MouseEvent): void {
   line-height: 1.25;
 }
 
-.mrx-grid-sort-indicator {
+.adeo-grid-grid-sort-indicator {
   display: inline-flex;
   align-items: center;
   gap: 2px;
   flex-shrink: 0;
 }
 
-.mrx-grid-sort-icon {
+.adeo-grid-grid-sort-icon {
   width: 20px;
   height: 20px;
   display: block;
   fill: currentColor;
 }
 
-.mrx-grid-sort-icon :deep(svg) {
+.adeo-grid-grid-sort-icon :deep(svg) {
   width: 100%;
   height: 100%;
 }
 
-.mrx-grid-sort-index {
+.adeo-grid-grid-sort-index {
   font-size: 9px;
   color: var(--color-text-tertiary);
   vertical-align: super;
 }
 
-.mrx-grid-menu-trigger {
+.adeo-grid-grid-menu-trigger {
   background: none;
   border: none;
   cursor: pointer;
@@ -283,27 +283,27 @@ function onResizeMouseDown(e: MouseEvent): void {
   justify-content: center;
 }
 
-.mrx-grid-menu-icon {
+.adeo-grid-grid-menu-icon {
   width: 16px;
   height: 16px;
   display: block;
   fill: currentColor;
 }
 
-.mrx-grid-menu-icon :deep(svg) {
+.adeo-grid-grid-menu-icon :deep(svg) {
   width: 100%;
   height: 100%;
 }
 
-.mrx-grid-header-cell:hover .mrx-grid-menu-trigger {
+.adeo-grid-grid-header-cell:hover .adeo-grid-grid-menu-trigger {
   opacity: 1;
 }
 
-.mrx-grid-menu-trigger:hover {
+.adeo-grid-grid-menu-trigger:hover {
   color: var(--color-text-primary);
 }
 
-.mrx-grid-resize-handle {
+.adeo-grid-grid-resize-handle {
   position: absolute;
   top: 0;
   right: 0;
@@ -312,12 +312,12 @@ function onResizeMouseDown(e: MouseEvent): void {
   cursor: col-resize;
 }
 
-.mrx-grid-resize-handle--left {
+.adeo-grid-grid-resize-handle--left {
   right: auto;
   left: 0;
 }
 
-.mrx-grid-resize-handle:hover {
+.adeo-grid-grid-resize-handle:hover {
   background-color: var(--color-border-secondary);
 }
 </style>

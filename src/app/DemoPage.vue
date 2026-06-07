@@ -239,7 +239,7 @@ const baseColumns: ColumnDef[] = [
       typeof v === 'number'
         ? new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(v)
         : '',
-    cellClass: 'mrx-cell-num',
+    cellClass: 'adeo-grid-cell-num',
   },
   {
     field: 'stock',
@@ -252,7 +252,7 @@ const baseColumns: ColumnDef[] = [
     cellEditor: 'number',
     cellValidator: (v) =>
       typeof v === 'number' && v >= 0 ? true : 'Stock négatif interdit',
-    cellClass: 'mrx-cell-num',
+    cellClass: 'adeo-grid-cell-num',
   },
   {
     field: 'rating',

@@ -12,24 +12,24 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <div class="mrx-group-bar">
-    <span class="mrx-group-bar__label">GROUPED BY</span>
-    <div class="mrx-group-bar__tags">
+  <div class="adeo-grid-group-bar">
+    <span class="adeo-grid-group-bar__label">GROUPED BY</span>
+    <div class="adeo-grid-group-bar__tags">
       <span
         v-for="group in groups"
         :key="group.field"
-        class="mrx-group-bar__tag"
+        class="adeo-grid-group-bar__tag"
       >
         {{ group.headerName }}
         <button
-          class="mrx-group-bar__tag-remove"
+          class="adeo-grid-group-bar__tag-remove"
           @click="emit('removeGroup', group.field)"
         >
           &times;
         </button>
       </span>
       <button
-        class="mrx-group-bar__action"
+        class="adeo-grid-group-bar__action"
         @click="emit('clearGroups')"
       >
         Remove all
@@ -39,7 +39,7 @@ const emit = defineEmits<{
 </template>
 
 <style scoped>
-.mrx-group-bar {
+.adeo-grid-group-bar {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -48,7 +48,7 @@ const emit = defineEmits<{
   font-size: 13px;
 }
 
-.mrx-group-bar__label {
+.adeo-grid-group-bar__label {
   font-size: 11px;
   font-weight: 600;
   color: #64748b;
@@ -57,14 +57,14 @@ const emit = defineEmits<{
   flex-shrink: 0;
 }
 
-.mrx-group-bar__tags {
+.adeo-grid-group-bar__tags {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 6px;
 }
 
-.mrx-group-bar__tag {
+.adeo-grid-group-bar__tag {
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -77,7 +77,7 @@ const emit = defineEmits<{
   white-space: nowrap;
 }
 
-.mrx-group-bar__tag-remove {
+.adeo-grid-group-bar__tag-remove {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -93,11 +93,11 @@ const emit = defineEmits<{
   cursor: pointer;
 }
 
-.mrx-group-bar__tag-remove:hover {
+.adeo-grid-group-bar__tag-remove:hover {
   background: rgba(255, 255, 255, 0.35);
 }
 
-.mrx-group-bar__action {
+.adeo-grid-group-bar__action {
   padding: 4px 10px;
   border: 1px solid #cbd5e1;
   background: white;
@@ -108,7 +108,7 @@ const emit = defineEmits<{
   white-space: nowrap;
 }
 
-.mrx-group-bar__action:hover {
+.adeo-grid-group-bar__action:hover {
   background-color: #f1f5f9;
 }
 </style>

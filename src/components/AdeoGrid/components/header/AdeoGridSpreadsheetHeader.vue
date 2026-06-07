@@ -53,7 +53,7 @@ function widthFor(col: ColumnDef): string {
 
 <template>
   <div
-    class="mrx-spreadsheet-header"
+    class="adeo-grid-spreadsheet-header"
     role="row"
     aria-hidden="true"
     :style="{ minWidth: contentMinWidth ? `max(100%, ${contentMinWidth})` : '100%' }"
@@ -61,21 +61,21 @@ function widthFor(col: ColumnDef): string {
     <!-- Top-left "corner" cell (above row-number column) — empty -->
     <div
       v-if="showRowNumbers"
-      class="mrx-spreadsheet-header__cell mrx-spreadsheet-header__cell--corner"
+      class="adeo-grid-spreadsheet-header__cell mrx-spreadsheet-header__cell--corner"
       :style="{ ...(getUtilityStyle('rownum', true) ?? {}), width: '56px', minWidth: '56px' }"
     />
 
     <!-- Above checkbox (no letter) -->
     <div
       v-if="selectable"
-      class="mrx-spreadsheet-header__cell mrx-spreadsheet-header__cell--utility"
+      class="adeo-grid-spreadsheet-header__cell mrx-spreadsheet-header__cell--utility"
       :style="getUtilityStyle('checkbox', true)"
     />
 
     <!-- Above expand (no letter) -->
     <div
       v-if="expandable"
-      class="mrx-spreadsheet-header__cell mrx-spreadsheet-header__cell--utility"
+      class="adeo-grid-spreadsheet-header__cell mrx-spreadsheet-header__cell--utility"
       :style="getUtilityStyle('expand', true)"
     />
 
@@ -83,10 +83,10 @@ function widthFor(col: ColumnDef): string {
     <div
       v-for="(col, idx) in pinnedLeftColumns"
       :key="'pl-' + col.field"
-      class="mrx-spreadsheet-header__cell"
+      class="adeo-grid-spreadsheet-header__cell"
       :class="{
-        'mrx-grid-cell--pinned': true,
-        'mrx-grid-cell--pinned-left-edge': idx === pinnedLeftColumns.length - 1,
+        'adeo-grid-grid-cell--pinned': true,
+        'adeo-grid-grid-cell--pinned-left-edge': idx === pinnedLeftColumns.length - 1,
       }"
       :style="{
         ...getPinnedStyle('left', idx, true),
@@ -100,7 +100,7 @@ function widthFor(col: ColumnDef): string {
     <!-- Left spacer for virtual center scroll -->
     <div
       v-if="leftSpacerWidth && leftSpacerWidth !== '0px'"
-      class="mrx-spreadsheet-header__cell mrx-spreadsheet-header__cell--spacer"
+      class="adeo-grid-spreadsheet-header__cell mrx-spreadsheet-header__cell--spacer"
       :style="{ width: leftSpacerWidth, minWidth: leftSpacerWidth }"
     />
 
@@ -111,8 +111,8 @@ function widthFor(col: ColumnDef): string {
     <div
       v-for="(col, idx) in columns"
       :key="col.field"
-      class="mrx-spreadsheet-header__cell"
-      :class="{ 'mrx-spreadsheet-header__cell--fill': fillField && col.field === fillField }"
+      class="adeo-grid-spreadsheet-header__cell"
+      :class="{ 'adeo-grid-spreadsheet-header__cell--fill': fillField && col.field === fillField }"
       :style="
         fillField && col.field === fillField
           ? { flex: '1 1 0', minWidth: widthFor(col) }
@@ -125,7 +125,7 @@ function widthFor(col: ColumnDef): string {
     <!-- Right spacer for virtual center scroll -->
     <div
       v-if="rightSpacerWidth && rightSpacerWidth !== '0px'"
-      class="mrx-spreadsheet-header__cell mrx-spreadsheet-header__cell--spacer"
+      class="adeo-grid-spreadsheet-header__cell mrx-spreadsheet-header__cell--spacer"
       :style="{ width: rightSpacerWidth, minWidth: rightSpacerWidth }"
     />
 
@@ -133,10 +133,10 @@ function widthFor(col: ColumnDef): string {
     <div
       v-for="(col, idx) in pinnedRightColumns"
       :key="'pr-' + col.field"
-      class="mrx-spreadsheet-header__cell"
+      class="adeo-grid-spreadsheet-header__cell"
       :class="{
-        'mrx-grid-cell--pinned': true,
-        'mrx-grid-cell--pinned-right-edge': idx === 0,
+        'adeo-grid-grid-cell--pinned': true,
+        'adeo-grid-grid-cell--pinned-right-edge': idx === 0,
       }"
       :style="{
         ...getPinnedStyle('right', idx, true),
@@ -154,7 +154,7 @@ function widthFor(col: ColumnDef): string {
 </template>
 
 <style scoped lang="scss">
-.mrx-spreadsheet-header {
+.adeo-grid-spreadsheet-header {
   display: flex;
   height: 22px;
   background: var(--color-background-secondary, #f6f7f8);
@@ -167,7 +167,7 @@ function widthFor(col: ColumnDef): string {
   user-select: none;
 }
 
-.mrx-spreadsheet-header__cell {
+.adeo-grid-spreadsheet-header__cell {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -177,22 +177,22 @@ function widthFor(col: ColumnDef): string {
   background: var(--color-background-secondary, #f6f7f8);
 }
 
-.mrx-spreadsheet-header__cell--corner,
-.mrx-spreadsheet-header__cell--utility {
+.adeo-grid-spreadsheet-header__cell--corner,
+.adeo-grid-spreadsheet-header__cell--utility {
   background: var(--color-background-secondary, #f6f7f8);
 }
 
-.mrx-spreadsheet-header__cell--spacer {
+.adeo-grid-spreadsheet-header__cell--spacer {
   border-right: none;
   background: transparent;
 }
 
-.mrx-grid-cell--pinned-left-edge {
+.adeo-grid-grid-cell--pinned-left-edge {
   box-shadow: 2px 0 4px rgba(0, 0, 0, 0.06);
   clip-path: inset(0 -4px 0 0);
 }
 
-.mrx-grid-cell--pinned-right-edge {
+.adeo-grid-grid-cell--pinned-right-edge {
   box-shadow: -2px 0 4px rgba(0, 0, 0, 0.06);
   clip-path: inset(0 0 0 -4px);
 }

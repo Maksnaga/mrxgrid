@@ -641,7 +641,7 @@ onBeforeUnmount(() => {
   <Teleport to="body">
     <div
       ref="overlayRef"
-      class="mrx-column-filter-overlay"
+      class="adeo-grid-column-filter-overlay"
       :style="{
         top: `${position.top}px`,
         left: `${position.left}px`,
@@ -650,27 +650,27 @@ onBeforeUnmount(() => {
       :aria-label="`Filter ${column.headerName}`"
     >
       <div
-        class="mrx-column-filter-overlay__header"
+        class="adeo-grid-column-filter-overlay__header"
         title="Drag to move"
         @mousedown="onHeaderMouseDown"
       >
-        <div class="mrx-column-filter-overlay__title">Filter</div>
-        <div class="mrx-column-filter-overlay__subtitle">Show rows</div>
+        <div class="adeo-grid-column-filter-overlay__title">Filter</div>
+        <div class="adeo-grid-column-filter-overlay__subtitle">Show rows</div>
       </div>
 
       <div
         v-for="(draft, idx) in drafts"
         :key="draft.id"
-        class="mrx-column-filter-overlay__row"
-        :class="{ 'mrx-column-filter-overlay__row--dragging': dragFromIndex === idx }"
+        class="adeo-grid-column-filter-overlay__row"
+        :class="{ 'adeo-grid-column-filter-overlay__row--dragging': dragFromIndex === idx }"
         draggable="true"
         @dragstart="onDragStart(idx, $event)"
         @dragover="onDragOver(idx, $event)"
         @drop.prevent="onDrop(idx)"
         @dragend="onDragEnd"
       >
-        <span v-if="idx === 0" class="mrx-column-filter-overlay__where">Where</span>
-        <div v-else class="mrx-column-filter-overlay__combinator-slot">
+        <span v-if="idx === 0" class="adeo-grid-column-filter-overlay__where">Where</span>
+        <div v-else class="adeo-grid-column-filter-overlay__combinator-slot">
           <MSelect
             :id="`mrx-col-filter-comb-${draft.id}`"
             size="s"
@@ -680,7 +680,7 @@ onBeforeUnmount(() => {
           />
         </div>
 
-        <div class="mrx-column-filter-overlay__field-slot">
+        <div class="adeo-grid-column-filter-overlay__field-slot">
           <MSelect
             :id="`mrx-col-filter-field-${draft.id}`"
             size="s"
@@ -692,7 +692,7 @@ onBeforeUnmount(() => {
 
         <div
           v-if="!customFilterFor(getColumn(draft.field))"
-          class="mrx-column-filter-overlay__operator-slot"
+          class="adeo-grid-column-filter-overlay__operator-slot"
         >
           <MSelect
             :id="`mrx-col-filter-op-${draft.id}`"
@@ -710,7 +710,7 @@ onBeforeUnmount(() => {
              builder hooks `refresh()` / `afterGuiAttached()` via the ref. -->
         <div
           v-if="customFilterFor(getColumn(draft.field))"
-          class="mrx-column-filter-overlay__value-slot"
+          class="adeo-grid-column-filter-overlay__value-slot"
         >
           <component
             :is="customFilterFor(getColumn(draft.field))!.component"
@@ -719,7 +719,7 @@ onBeforeUnmount(() => {
           />
         </div>
 
-        <div v-else-if="!isValueless(draft.operator)" class="mrx-column-filter-overlay__value-slot">
+        <div v-else-if="!isValueless(draft.operator)" class="adeo-grid-column-filter-overlay__value-slot">
           <MSelect
             v-if="getValueOptions(draft.field)"
             :id="`mrx-col-filter-val-${draft.id}`"
@@ -751,14 +751,14 @@ onBeforeUnmount(() => {
           ghost
           size="s"
           :aria-label="`Remove condition`"
-          class="mrx-column-filter-overlay__remove"
+          class="adeo-grid-column-filter-overlay__remove"
           @click="onRemoveDraft(draft)"
         >
           <template #icon><Trash24 /></template>
         </MIconButton>
 
         <span
-          class="mrx-column-filter-overlay__drag-handle"
+          class="adeo-grid-column-filter-overlay__drag-handle"
           aria-hidden="true"
           title="Drag to reorder"
         >
@@ -766,7 +766,7 @@ onBeforeUnmount(() => {
         </span>
       </div>
 
-      <div class="mrx-column-filter-overlay__add-wrapper">
+      <div class="adeo-grid-column-filter-overlay__add-wrapper">
         <MButton
           ghost
           size="s"
@@ -783,7 +783,7 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped lang="scss">
-.mrx-column-filter-overlay {
+.adeo-grid-column-filter-overlay {
   position: fixed;
   z-index: 9999;
   width: min(720px, calc(100vw - 32px));
@@ -797,7 +797,7 @@ onBeforeUnmount(() => {
 
 // Header — "Filter" title + "Show rows" subtitle. Also doubles as the drag
 // handle for the whole overlay (see `onHeaderMouseDown`).
-.mrx-column-filter-overlay__header {
+.adeo-grid-column-filter-overlay__header {
   margin-bottom: 12px;
   padding-bottom: 4px;
   cursor: grab;
@@ -808,14 +808,14 @@ onBeforeUnmount(() => {
   }
 }
 
-.mrx-column-filter-overlay__title {
+.adeo-grid-column-filter-overlay__title {
   font-size: 16px;
   font-weight: 600;
   color: var(--color-text-primary, #0f172a);
   line-height: 1.3;
 }
 
-.mrx-column-filter-overlay__subtitle {
+.adeo-grid-column-filter-overlay__subtitle {
   font-size: 13px;
   font-weight: 400;
   color: var(--color-text-secondary, #64748b);
@@ -823,7 +823,7 @@ onBeforeUnmount(() => {
   margin-top: 2px;
 }
 
-.mrx-column-filter-overlay__row {
+.adeo-grid-column-filter-overlay__row {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -831,15 +831,15 @@ onBeforeUnmount(() => {
   padding: 4px;
 }
 
-.mrx-column-filter-overlay__row + .mrx-column-filter-overlay__row {
+.adeo-grid-column-filter-overlay__row + .adeo-grid-column-filter-overlay__row {
   margin-top: 4px;
 }
 
-.mrx-column-filter-overlay__row--dragging {
+.adeo-grid-column-filter-overlay__row--dragging {
   opacity: 0.4;
 }
 
-.mrx-column-filter-overlay__where {
+.adeo-grid-column-filter-overlay__where {
   font-size: 13px;
   font-weight: 600;
   color: var(--color-text-secondary, #475569);
@@ -848,34 +848,34 @@ onBeforeUnmount(() => {
   min-width: 50px;
 }
 
-.mrx-column-filter-overlay__combinator-slot {
+.adeo-grid-column-filter-overlay__combinator-slot {
   flex: 0 0 auto;
   width: 88px;
 }
 
-.mrx-column-filter-overlay__field-slot,
-.mrx-column-filter-overlay__operator-slot {
+.adeo-grid-column-filter-overlay__field-slot,
+.adeo-grid-column-filter-overlay__operator-slot {
   flex: 0 0 auto;
   min-width: 140px;
 }
 
-.mrx-column-filter-overlay__value-slot {
+.adeo-grid-column-filter-overlay__value-slot {
   flex: 1 1 200px;
   min-width: 160px;
   display: flex;
   gap: 6px;
 }
 
-.mrx-column-filter-overlay__value-slot > * {
+.adeo-grid-column-filter-overlay__value-slot > * {
   flex: 1 1 0;
   min-width: 0;
 }
 
-.mrx-column-filter-overlay__remove {
+.adeo-grid-column-filter-overlay__remove {
   flex-shrink: 0;
 }
 
-.mrx-column-filter-overlay__drag-handle {
+.adeo-grid-column-filter-overlay__drag-handle {
   flex-shrink: 0;
   display: inline-flex;
   align-items: center;
@@ -887,13 +887,13 @@ onBeforeUnmount(() => {
   user-select: none;
 }
 
-.mrx-column-filter-overlay__drag-handle:hover {
+.adeo-grid-column-filter-overlay__drag-handle:hover {
   color: var(--color-text-secondary, #64748b);
 }
 
 // Wrapper around the `MButton`-based "Add condition" CTA — just gives it
 // the same horizontal indent as the rows above so it lines up under "Where".
-.mrx-column-filter-overlay__add-wrapper {
+.adeo-grid-column-filter-overlay__add-wrapper {
   margin-top: 8px;
   padding: 0 4px;
 }

@@ -52,32 +52,32 @@ function onPageChange(value: string | number): void {
 </script>
 
 <template>
-  <div class="mrx-pagination">
+  <div class="adeo-grid-pagination">
     <!-- Left: rows per page + range label -->
-    <div class="mrx-pagination__left">
-      <span class="mrx-pagination__label">Rows per page</span>
-      <MSelect id="mrx-pagination-page-size" size="s" :options="pageSizeSelectOptions" :model-value="pageSize"
-        class="mrx-pagination__select-mozaic" @update:modelValue="onPageSizeChange" />
-      <span class="mrx-pagination__range">
+    <div class="adeo-grid-pagination__left">
+      <span class="adeo-grid-pagination__label">Rows per page</span>
+      <MSelect id="adeo-grid-pagination-page-size" size="s" :options="pageSizeSelectOptions" :model-value="pageSize"
+        class="adeo-grid-pagination__select-mozaic" @update:modelValue="onPageSizeChange" />
+      <span class="adeo-grid-pagination__range">
         {{ rangeStart }}-{{ rangeEnd }} of {{ totalRows }} items
       </span>
     </div>
 
     <!-- Right: prev / page-of-N / next -->
-    <div class="mrx-pagination__right">
-      <MIconButton id="mrx-pagination-prev" ghost size="s" aria-label="Previous page" :disabled="currentPage <= 1"
+    <div class="adeo-grid-pagination__right">
+      <MIconButton id="adeo-grid-pagination-prev" ghost size="s" aria-label="Previous page" :disabled="currentPage <= 1"
         @click="emit('prev')">
         <template #icon>
           <ChevronLeft24 />
         </template>
       </MIconButton>
 
-      <span class="mrx-pagination__label">Page</span>
-      <MSelect id="mrx-pagination-current" size="s" :options="pageSelectOptions" :model-value="currentPage"
-        class="mrx-pagination__select-mozaic" @update:modelValue="onPageChange" />
-      <span class="mrx-pagination__label">of {{ totalPages }}</span>
+      <span class="adeo-grid-pagination__label">Page</span>
+      <MSelect id="adeo-grid-pagination-current" size="s" :options="pageSelectOptions" :model-value="currentPage"
+        class="adeo-grid-pagination__select-mozaic" @update:modelValue="onPageChange" />
+      <span class="adeo-grid-pagination__label">of {{ totalPages }}</span>
 
-      <MIconButton id="mrx-pagination-next" ghost size="s" aria-label="Next page" :disabled="currentPage >= totalPages"
+      <MIconButton id="adeo-grid-pagination-next" ghost size="s" aria-label="Next page" :disabled="currentPage >= totalPages"
         @click="emit('next')">
         <template #icon>
           <ChevronRight24 />
@@ -88,7 +88,7 @@ function onPageChange(value: string | number): void {
 </template>
 
 <style scoped lang="scss">
-.mrx-pagination {
+.adeo-grid-pagination {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -102,18 +102,18 @@ function onPageChange(value: string | number): void {
   border-radius: 0 0 m.get-spacing('200') m.get-spacing('200');
 }
 
-.mrx-pagination__left,
-.mrx-pagination__right {
+.adeo-grid-pagination__left,
+.adeo-grid-pagination__right {
   display: flex;
   align-items: center;
   gap: m.get-spacing('100');
 }
 
-.mrx-pagination__label {
+.adeo-grid-pagination__label {
   white-space: nowrap;
 }
 
-.mrx-pagination__range {
+.adeo-grid-pagination__range {
   white-space: nowrap;
   margin-left: m.get-spacing('050');
   font-weight: m.get-font-weight('semi-bold');
@@ -121,7 +121,7 @@ function onPageChange(value: string | number): void {
 }
 
 /* MSelect width — narrow it to the content (page numbers / 10/25/50/100) */
-.mrx-pagination__select-mozaic {
+.adeo-grid-pagination__select-mozaic {
   min-width: 84px;
 }
 </style>

@@ -89,7 +89,7 @@ export function useFillHandle(options: FillHandleOptions) {
   function getHeaderHeight(): number {
     const el = wrapperRef.value
     if (!el) return 0
-    const header = el.querySelector('.mrx-grid-header')
+    const header = el.querySelector('.adeo-grid-grid-header')
     if (!header) return 0
     return header.getBoundingClientRect().height
   }

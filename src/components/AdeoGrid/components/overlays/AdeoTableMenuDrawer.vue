@@ -141,19 +141,19 @@ function onDragStart(field: string, e: DragEvent) {
   }
   // Add a slight delay so the browser captures the drag image
   const target = e.currentTarget as HTMLElement
-  target.classList.add('mrx-settings__column-item--dragging')
+  target.classList.add('adeo-grid-settings__column-item--dragging')
 }
 
 function onDragEnd(e: DragEvent) {
   const target = e.currentTarget as HTMLElement
-  target.classList.remove('mrx-settings__column-item--dragging')
+  target.classList.remove('adeo-grid-settings__column-item--dragging')
   // Clear all dragover indicators
   dragField = null
   dragOverField = null
   const container = target.parentElement
   if (container) {
-    container.querySelectorAll('.mrx-settings__column-item--drag-over').forEach((el) => {
-      el.classList.remove('mrx-settings__column-item--drag-over')
+    container.querySelectorAll('.adeo-grid-settings__column-item--drag-over').forEach((el) => {
+      el.classList.remove('adeo-grid-settings__column-item--drag-over')
     })
   }
 }
@@ -167,12 +167,12 @@ function onDragOver(field: string, e: DragEvent) {
     // Remove previous indicator
     const container = (e.currentTarget as HTMLElement).parentElement
     if (container) {
-      container.querySelectorAll('.mrx-settings__column-item--drag-over').forEach((el) => {
-        el.classList.remove('mrx-settings__column-item--drag-over')
+      container.querySelectorAll('.adeo-grid-settings__column-item--drag-over').forEach((el) => {
+        el.classList.remove('adeo-grid-settings__column-item--drag-over')
       })
     }
     dragOverField = field
-    ;(e.currentTarget as HTMLElement).classList.add('mrx-settings__column-item--drag-over')
+    ;(e.currentTarget as HTMLElement).classList.add('adeo-grid-settings__column-item--drag-over')
   }
 }
 
@@ -181,7 +181,7 @@ function onDragLeave(e: DragEvent) {
   const related = e.relatedTarget as Node | null
   // Only remove if leaving the element entirely (not entering a child)
   if (related && target.contains(related)) return
-  target.classList.remove('mrx-settings__column-item--drag-over')
+  target.classList.remove('adeo-grid-settings__column-item--drag-over')
 }
 
 function onDrop(field: string, e: DragEvent) {
@@ -207,8 +207,8 @@ function onDrop(field: string, e: DragEvent) {
   // Cleanup indicators
   const container = (e.currentTarget as HTMLElement).parentElement
   if (container) {
-    container.querySelectorAll('.mrx-settings__column-item--drag-over').forEach((el) => {
-      el.classList.remove('mrx-settings__column-item--drag-over')
+    container.querySelectorAll('.adeo-grid-settings__column-item--drag-over').forEach((el) => {
+      el.classList.remove('adeo-grid-settings__column-item--drag-over')
     })
   }
 }
@@ -229,19 +229,19 @@ function onDrop(field: string, e: DragEvent) {
     @back="onBack"
   >
     <!-- Main view -->
-    <div v-if="currentView === 'main'" class="mrx-settings">
-      <div class="mrx-settings__menu">
-        <button class="mrx-settings__menu-item" @click="currentView = 'density'">
-          <div class="mrx-settings__menu-item-text">
-            <span class="mrx-settings__menu-item-label">Data density</span>
-            <span class="mrx-settings__menu-item-value">{{ densityLabel }}</span>
+    <div v-if="currentView === 'main'" class="adeo-grid-settings">
+      <div class="adeo-grid-settings__menu">
+        <button class="adeo-grid-settings__menu-item" @click="currentView = 'density'">
+          <div class="adeo-grid-settings__menu-item-text">
+            <span class="adeo-grid-settings__menu-item-label">Data density</span>
+            <span class="adeo-grid-settings__menu-item-value">{{ densityLabel }}</span>
           </div>
           <ChevronRight24 aria-hidden="true" />
         </button>
-        <button class="mrx-settings__menu-item" @click="currentView = 'columns'">
-          <div class="mrx-settings__menu-item-text">
-            <span class="mrx-settings__menu-item-label">Display columns</span>
-            <span class="mrx-settings__menu-item-value">
+        <button class="adeo-grid-settings__menu-item" @click="currentView = 'columns'">
+          <div class="adeo-grid-settings__menu-item-text">
+            <span class="adeo-grid-settings__menu-item-label">Display columns</span>
+            <span class="adeo-grid-settings__menu-item-value">
               {{ visibleCount }}/{{ columns.length }} displayed
             </span>
           </div>
@@ -251,11 +251,11 @@ function onDrop(field: string, e: DragEvent) {
     </div>
 
     <!-- Density subview -->
-    <div v-else-if="currentView === 'density'" class="mrx-settings">
-      <div class="mrx-settings__field">
-        <label class="mrx-settings__field-label" for="mrx-settings-density">Density</label>
+    <div v-else-if="currentView === 'density'" class="adeo-grid-settings">
+      <div class="adeo-grid-settings__field">
+        <label class="adeo-grid-settings__field-label" for="adeo-grid-settings-density">Density</label>
         <MSelect
-          id="mrx-settings-density"
+          id="adeo-grid-settings-density"
           :options="densityOptions"
           :model-value="draftDensity"
           @update:model-value="(v: string | number) => (draftDensity = v as DataDensity)"
@@ -264,24 +264,24 @@ function onDrop(field: string, e: DragEvent) {
     </div>
 
     <!-- Columns subview -->
-    <div v-else-if="currentView === 'columns'" class="mrx-settings">
+    <div v-else-if="currentView === 'columns'" class="adeo-grid-settings">
       <MTextInput
-        id="mrx-settings-column-search"
+        id="adeo-grid-settings-column-search"
         size="s"
         input-type="search"
         placeholder="Find a column"
         :model-value="columnSearch"
-        class="mrx-settings__search"
+        class="adeo-grid-settings__search"
         @input="(e: Event) => (columnSearch = (e.target as HTMLInputElement).value)"
       >
         <template #icon><Search24 /></template>
       </MTextInput>
 
-      <div class="mrx-settings__columns-list">
+      <div class="adeo-grid-settings__columns-list">
         <div
           v-for="col in filteredColumns"
           :key="col.field"
-          class="mrx-settings__column-item"
+          class="adeo-grid-settings__column-item"
           draggable="true"
           @dragstart="onDragStart(col.field, $event)"
           @dragend="onDragEnd"
@@ -289,7 +289,7 @@ function onDrop(field: string, e: DragEvent) {
           @dragleave="onDragLeave"
           @drop="onDrop(col.field, $event)"
         >
-          <span class="mrx-settings__column-drag-handle">&#8942;&#8942;</span>
+          <span class="adeo-grid-settings__column-drag-handle">&#8942;&#8942;</span>
           <!-- Sprint 7 §2.11 — switch from MCheckbox to MToggle so the
                visibility list reads as on/off switches (matches Angular). -->
           <MToggle
@@ -301,14 +301,14 @@ function onDrop(field: string, e: DragEvent) {
         </div>
       </div>
 
-      <div class="mrx-settings__columns-actions">
+      <div class="adeo-grid-settings__columns-actions">
         <MButton :outlined="true" @click="hideAll">Hide all</MButton>
         <MButton :outlined="true" @click="showAll">Show all</MButton>
       </div>
     </div>
 
     <template #footer>
-      <div class="mrx-settings__footer">
+      <div class="adeo-grid-settings__footer">
         <MButton appearance="accent" @click="onApply">Apply</MButton>
         <MButton :outlined="true" @click="onReset">Reset</MButton>
       </div>
@@ -318,18 +318,18 @@ function onDrop(field: string, e: DragEvent) {
 </template>
 
 <style scoped>
-.mrx-settings {
+.adeo-grid-settings {
   font-family: system-ui, -apple-system, sans-serif;
   padding: 8px 0;
 }
 
-.mrx-settings__menu {
+.adeo-grid-settings__menu {
   border: 1px solid #e2e8f0;
   border-radius: 8px;
   overflow: hidden;
 }
 
-.mrx-settings__menu-item {
+.adeo-grid-settings__menu-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -343,55 +343,55 @@ function onDrop(field: string, e: DragEvent) {
   color: #64748b;
 }
 
-.mrx-settings__menu-item:last-child {
+.adeo-grid-settings__menu-item:last-child {
   border-bottom: none;
 }
 
-.mrx-settings__menu-item:hover {
+.adeo-grid-settings__menu-item:hover {
   background-color: #f8fafc;
 }
 
-.mrx-settings__menu-item-text {
+.adeo-grid-settings__menu-item-text {
   display: flex;
   flex-direction: column;
   gap: 2px;
 }
 
-.mrx-settings__menu-item-label {
+.adeo-grid-settings__menu-item-label {
   font-size: 14px;
   font-weight: 700;
   color: #1e293b;
 }
 
-.mrx-settings__menu-item-value {
+.adeo-grid-settings__menu-item-value {
   font-size: 13px;
   color: #64748b;
 }
 
-.mrx-settings__field {
+.adeo-grid-settings__field {
   display: flex;
   flex-direction: column;
   gap: 6px;
   margin-bottom: 16px;
 }
 
-.mrx-settings__field-label {
+.adeo-grid-settings__field-label {
   font-size: 14px;
   font-weight: 700;
   color: #1e293b;
 }
 
-.mrx-settings__search {
+.adeo-grid-settings__search {
   margin-bottom: 12px;
 }
 
-.mrx-settings__columns-list {
+.adeo-grid-settings__columns-list {
   display: flex;
   flex-direction: column;
   gap: 2px;
 }
 
-.mrx-settings__columns-actions {
+.adeo-grid-settings__columns-actions {
   display: flex;
   gap: 12px;
   margin-top: 16px;
@@ -399,11 +399,11 @@ function onDrop(field: string, e: DragEvent) {
   border-top: 1px solid #e2e8f0;
 }
 
-.mrx-settings__columns-actions > * {
+.adeo-grid-settings__columns-actions > * {
   flex: 1;
 }
 
-.mrx-settings__column-item {
+.adeo-grid-settings__column-item {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -414,20 +414,20 @@ function onDrop(field: string, e: DragEvent) {
   transition: background-color 0.1s;
 }
 
-.mrx-settings__column-item:active {
+.adeo-grid-settings__column-item:active {
   cursor: grabbing;
 }
 
-.mrx-settings__column-item--dragging {
+.adeo-grid-settings__column-item--dragging {
   opacity: 0.4;
 }
 
-.mrx-settings__column-item--drag-over {
+.adeo-grid-settings__column-item--drag-over {
   border-top: 2px solid #2563eb;
   padding-top: 6px;
 }
 
-.mrx-settings__column-drag-handle {
+.adeo-grid-settings__column-drag-handle {
   color: #94a3b8;
   font-size: 12px;
   letter-spacing: -2px;
@@ -436,7 +436,7 @@ function onDrop(field: string, e: DragEvent) {
   user-select: none;
 }
 
-.mrx-settings__footer {
+.adeo-grid-settings__footer {
   display: flex;
   gap: 12px;
   justify-content: center;

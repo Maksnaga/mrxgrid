@@ -76,45 +76,45 @@ function centerCellStyle(field: string): Record<string, string | undefined> {
 </script>
 
 <template>
-  <div class="mrx-grid-row mrx-grid-skeleton-row" role="row" aria-hidden="true">
+  <div class="adeo-grid-grid-row mrx-grid-skeleton-row" role="row" aria-hidden="true">
     <!-- Row number (sticky-left, auto-on with formula columns) -->
     <div
       v-if="showRowNumbers"
-      class="mrx-grid-cell mrx-grid-rownum-cell"
-      :class="{ 'mrx-grid-cell--pinned': hasPinned }"
+      class="adeo-grid-grid-cell mrx-grid-rownum-cell"
+      :class="{ 'adeo-grid-grid-cell--pinned': hasPinned }"
       :style="getUtilityStyle('rownum', false)"
     >
-      <span class="mrx-grid-skeleton-bar" :style="{ width: '60%' }" />
+      <span class="adeo-grid-grid-skeleton-bar" :style="{ width: '60%' }" />
     </div>
 
     <!-- Checkbox utility cell -->
     <div
       v-if="selectable"
-      class="mrx-grid-cell mrx-grid-checkbox-cell"
-      :class="{ 'mrx-grid-cell--pinned': hasPinned }"
+      class="adeo-grid-grid-cell mrx-grid-checkbox-cell"
+      :class="{ 'adeo-grid-grid-cell--pinned': hasPinned }"
       :style="getUtilityStyle('checkbox', false)"
     >
-      <span class="mrx-grid-skeleton-square" />
+      <span class="adeo-grid-grid-skeleton-square" />
     </div>
 
     <!-- Expand utility cell -->
     <div
       v-if="expandable"
-      class="mrx-grid-cell mrx-grid-expand-cell"
-      :class="{ 'mrx-grid-cell--pinned': hasPinned }"
+      class="adeo-grid-grid-cell mrx-grid-expand-cell"
+      :class="{ 'adeo-grid-grid-cell--pinned': hasPinned }"
       :style="getUtilityStyle('expand', false)"
     >
-      <span class="mrx-grid-skeleton-square" />
+      <span class="adeo-grid-grid-skeleton-square" />
     </div>
 
     <!-- Left-pinned columns -->
     <div
       v-for="(col, idx) in pinnedLeftColumns"
       :key="'pl-' + col.field"
-      class="mrx-grid-cell mrx-grid-cell--pinned"
+      class="adeo-grid-grid-cell mrx-grid-cell--pinned"
       :class="{
-        'mrx-grid-cell--pinned-left-edge': idx === pinnedLeftColumns.length - 1,
-        'mrx-grid-cell--pinned-row-start': idx === 0,
+        'adeo-grid-grid-cell--pinned-left-edge': idx === pinnedLeftColumns.length - 1,
+        'adeo-grid-grid-cell--pinned-row-start': idx === 0,
       }"
       :style="{
         ...getPinnedStyle('left', idx, false),
@@ -122,14 +122,14 @@ function centerCellStyle(field: string): Record<string, string | undefined> {
         minWidth: getColumnWidth ? getColumnWidth(col.field) : undefined,
       }"
     >
-      <span class="mrx-grid-skeleton-bar" :style="{ width: shimmerWidth(col.field) }" />
+      <span class="adeo-grid-grid-skeleton-bar" :style="{ width: shimmerWidth(col.field) }" />
     </div>
 
     <!-- Left spacer (virtual horizontal scroll only). -->
     <div
       v-if="leftSpacerWidth && leftSpacerWidth !== '0px'"
       aria-hidden="true"
-      class="mrx-grid-spacer"
+      class="adeo-grid-grid-spacer"
       :style="{ width: leftSpacerWidth, minWidth: leftSpacerWidth }"
     />
 
@@ -137,18 +137,18 @@ function centerCellStyle(field: string): Record<string, string | undefined> {
     <div
       v-for="col in columns"
       :key="col.field"
-      class="mrx-grid-cell"
-      :class="{ 'mrx-grid-cell--fill': fillField && col.field === fillField }"
+      class="adeo-grid-grid-cell"
+      :class="{ 'adeo-grid-grid-cell--fill': fillField && col.field === fillField }"
       :style="centerCellStyle(col.field)"
     >
-      <span class="mrx-grid-skeleton-bar" :style="{ width: shimmerWidth(col.field) }" />
+      <span class="adeo-grid-grid-skeleton-bar" :style="{ width: shimmerWidth(col.field) }" />
     </div>
 
     <!-- Right spacer. -->
     <div
       v-if="rightSpacerWidth && rightSpacerWidth !== '0px'"
       aria-hidden="true"
-      class="mrx-grid-spacer"
+      class="adeo-grid-grid-spacer"
       :style="{ width: rightSpacerWidth, minWidth: rightSpacerWidth }"
     />
 
@@ -156,10 +156,10 @@ function centerCellStyle(field: string): Record<string, string | undefined> {
     <div
       v-for="(col, idx) in pinnedRightColumns"
       :key="'pr-' + col.field"
-      class="mrx-grid-cell mrx-grid-cell--pinned"
+      class="adeo-grid-grid-cell mrx-grid-cell--pinned"
       :class="{
-        'mrx-grid-cell--pinned-right-edge': idx === 0,
-        'mrx-grid-cell--pinned-row-end': idx === pinnedRightColumns.length - 1,
+        'adeo-grid-grid-cell--pinned-right-edge': idx === 0,
+        'adeo-grid-grid-cell--pinned-row-end': idx === pinnedRightColumns.length - 1,
       }"
       :style="{
         ...getPinnedStyle('right', idx, false),
@@ -167,26 +167,26 @@ function centerCellStyle(field: string): Record<string, string | undefined> {
         minWidth: getColumnWidth ? getColumnWidth(col.field) : undefined,
       }"
     >
-      <span class="mrx-grid-skeleton-bar" :style="{ width: shimmerWidth(col.field) }" />
+      <span class="adeo-grid-grid-skeleton-bar" :style="{ width: shimmerWidth(col.field) }" />
     </div>
   </div>
 </template>
 
 <style scoped lang="scss">
-.mrx-grid-row {
+.adeo-grid-grid-row {
   display: flex;
   height: var(--mrx-row-height, 48px);
   background-color: var(--color-background-primary);
   min-width: 100%;
 }
 
-.mrx-grid-skeleton-row {
+.adeo-grid-grid-skeleton-row {
   // Block any pointer interaction — these are inert placeholders.
   pointer-events: none;
   user-select: none;
 }
 
-.mrx-grid-cell {
+.adeo-grid-grid-cell {
   padding: m.get-spacing('100') m.get-spacing('150');
   border-bottom: m.get-token('border-width', 's') solid var(--color-border-primary);
   color: var(--color-text-primary);
@@ -196,29 +196,29 @@ function centerCellStyle(field: string): Record<string, string | undefined> {
   align-items: center;
 }
 
-.mrx-grid-cell--pinned {
+.adeo-grid-grid-cell--pinned {
   background-color: inherit;
 }
 
-.mrx-grid-cell--pinned-left-edge {
+.adeo-grid-grid-cell--pinned-left-edge {
   clip-path: inset(0 -4px 0 0);
 }
 
-.mrx-grid-cell--pinned-right-edge {
+.adeo-grid-grid-cell--pinned-right-edge {
   clip-path: inset(0 0 0 -4px);
 }
 
-.mrx-grid-cell--fill {
+.adeo-grid-grid-cell--fill {
   flex: 1 1 auto;
 }
 
-.mrx-grid-checkbox-cell,
-.mrx-grid-expand-cell {
+.adeo-grid-grid-checkbox-cell,
+.adeo-grid-grid-expand-cell {
   width: 50px;
   justify-content: center;
 }
 
-.mrx-grid-rownum-cell {
+.adeo-grid-grid-rownum-cell {
   width: 56px;
   justify-content: center;
   background: var(--color-background-secondary, #f6f7f8);
@@ -226,7 +226,7 @@ function centerCellStyle(field: string): Record<string, string | undefined> {
   padding: 0;
 }
 
-.mrx-grid-spacer {
+.adeo-grid-grid-spacer {
   flex-shrink: 0;
   padding: 0;
   border: none;
@@ -238,7 +238,7 @@ function centerCellStyle(field: string): Record<string, string | undefined> {
 // `--mrx-skel-base` / `--mrx-skel-highlight` are pulled from Mozaic tokens
 // with safe fallbacks so the skeleton renders correctly even outside the
 // design system context (e.g. isolated component tests).
-.mrx-grid-skeleton-bar {
+.adeo-grid-grid-skeleton-bar {
   display: inline-block;
   height: 12px;
   border-radius: 4px;
@@ -252,7 +252,7 @@ function centerCellStyle(field: string): Record<string, string | undefined> {
   animation: mrx-skeleton-shimmer 1.4s ease-in-out infinite;
 }
 
-.mrx-grid-skeleton-square {
+.adeo-grid-grid-skeleton-square {
   display: inline-block;
   width: 16px;
   height: 16px;
@@ -269,13 +269,13 @@ function centerCellStyle(field: string): Record<string, string | undefined> {
 
 // `@keyframes mrx-skeleton-shimmer` est défini dans le `<style>` non-scopé
 // de `AdeoGridCell.vue` (à côté des marching-ants) — partagé avec le
-// cell-level pending (`.mrx-grid-cell--pending::after`).
+// cell-level pending (`.adeo-grid-grid-cell--pending::after`).
 
 // Respect users who opt out of motion — keep the colour delta visible but
 // freeze the animation.
 @media (prefers-reduced-motion: reduce) {
-  .mrx-grid-skeleton-bar,
-  .mrx-grid-skeleton-square {
+  .adeo-grid-grid-skeleton-bar,
+  .adeo-grid-grid-skeleton-square {
     animation: none;
     background: var(--mrx-skel-base, var(--color-background-secondary, #eef0f3));
   }

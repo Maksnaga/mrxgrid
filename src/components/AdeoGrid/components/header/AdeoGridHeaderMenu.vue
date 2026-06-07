@@ -242,7 +242,7 @@ onBeforeUnmount(() => {
   <Teleport to="body">
     <div
       ref="menuRef"
-      class="mrx-grid-header-menu"
+      class="adeo-grid-grid-header-menu"
       :style="{
         top: `${placement.top}px`,
         left: `${placement.left}px`,
@@ -255,7 +255,7 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped lang="scss">
-.mrx-grid-header-menu {
+.adeo-grid-grid-header-menu {
   position: fixed;
   z-index: 9999;
   min-width: 240px;
