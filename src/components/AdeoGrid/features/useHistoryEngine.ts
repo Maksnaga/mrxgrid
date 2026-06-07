@@ -3,7 +3,7 @@
  *
  * Keeps past/future stacks of cell-change groups and delegates undo/redo
  * to the clipboard engine's `applyChanges`. Optional `attach(gridId)` mirrors
- * the stacks to `localStorage` under `mrx-grid-history:<gridId>`.
+ * the stacks to `localStorage` under `adeo-grid-history:<gridId>`.
  *
  * Size is capped at `MAX_HISTORY` (50) to keep localStorage payloads bounded.
  */

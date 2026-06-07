@@ -87,7 +87,7 @@ describe('useHistoryEngine', () => {
     expect(undoCount).toBe(50)
   })
 
-  it('attach + record persists to localStorage under mrx-grid-history:<id>', () => {
+  it('attach + record persists to localStorage under adeo-grid-history:<id>', () => {
     const { history } = setup()
     history.attach('test-grid')
     history.record('edit', [{ rowIndex: 0, field: 'name', before: 'Alice', after: 'Z' }])

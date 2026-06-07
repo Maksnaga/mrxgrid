@@ -1,4 +1,4 @@
-.sb-mrx-root {
+.sb-adeo-grid-root {
   font-family:
     -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
   background: var(--color-grey-100, #f6f7f8);
@@ -7,13 +7,13 @@
   box-sizing: border-box;
 }
 
-.sb-mrx-root[data-theme='adeo'] {
+.sb-adeo-grid-root[data-theme='adeo'] {
   background: #f4f6fb;
 }
-.sb-mrx-root[data-theme='bricocenter'] {
+.sb-adeo-grid-root[data-theme='bricocenter'] {
   background: #fcf3f2;
 }
-.sb-mrx-root[data-theme='mbrand'] {
+.sb-adeo-grid-root[data-theme='mbrand'] {
   background: #f2f2f2;
 }
 

@@ -19,7 +19,7 @@
   }
 }
 
-@keyframes mrx-grid-loading-bar {
+@keyframes adeo-grid-loading-bar {
   0% {
     transform: translateX(-100%);
   }
@@ -31,7 +31,7 @@
 /* Skeleton shimmer — partagée entre le full-skeleton (`MrxGridSkeletonRow`)
  * et le cell-level pending (`.adeo-grid-grid-cell--pending::after`). Globale
  * pour que les deux références au même nom résolvent. */
-@keyframes mrx-skeleton-shimmer {
+@keyframes adeo-grid-skeleton-shimmer {
   0% {
     background-position: 100% 0;
   }

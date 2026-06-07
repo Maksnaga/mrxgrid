@@ -426,7 +426,7 @@ Cell edits, fills, bulk deletes — pas le sort/filter/pin/hide (transitions UX,
         if (r) (r as Record<string, unknown>)[e.field] = e.newValue
       }
 
-      // History stacks persist under `mrx-grid-history:lm-undo-demo` so a
+      // History stacks persist under `adeo-grid-history:lm-undo-demo` so a
       // page reload keeps your undo trail. Cmd/Ctrl+Z and Cmd/Ctrl+Shift+Z
       // (or Cmd/Ctrl+Y) trigger undo/redo at the window level.
       const undoPlugin = useUndoRedoPlugin({ storageKey: 'lm-undo-demo' })

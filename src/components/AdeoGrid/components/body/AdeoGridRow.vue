@@ -108,7 +108,7 @@ const emit = defineEmits<{
 
 <template>
   <!-- Skeleton row -->
-  <div v-if="isSkeleton" class="adeo-grid-grid-row mrx-grid-row--skeleton" aria-hidden="true">
+  <div v-if="isSkeleton" class="adeo-grid-grid-row adeo-grid-row--skeleton" aria-hidden="true">
     <div class="adeo-grid-grid-skeleton-cell">
       <div class="adeo-grid-grid-skeleton-shimmer" />
     </div>
@@ -133,20 +133,20 @@ const emit = defineEmits<{
       aria-label="Modification en cours"
     />
     <!-- Row number (sticky-left, auto-on with formula columns) -->
-    <div v-if="showRowNumbers" class="adeo-grid-grid-cell mrx-grid-rownum-cell"
+    <div v-if="showRowNumbers" class="adeo-grid-grid-cell adeo-grid-rownum-cell"
       :class="{ 'adeo-grid-grid-cell--pinned': hasPinned }" :style="getUtilityStyle('rownum', false)" role="rowheader">
       {{ rowNumber }}
     </div>
 
     <!-- Checkbox (sticky left when pinned) -->
-    <div v-if="selectable" class="adeo-grid-grid-cell mrx-grid-checkbox-cell" :class="{ 'adeo-grid-grid-cell--pinned': hasPinned }"
+    <div v-if="selectable" class="adeo-grid-grid-cell adeo-grid-checkbox-cell" :class="{ 'adeo-grid-grid-cell--pinned': hasPinned }"
       :style="getUtilityStyle('checkbox', false)" role="gridcell"
       @click.capture="(e: MouseEvent) => emit('toggleSelect', e)">
       <MCheckbox :id="`mrx-row-cb-${rowIndex}`" :model-value="selected" />
     </div>
 
     <!-- Expand button (sticky left when pinned) -->
-    <div v-if="expandable" class="adeo-grid-grid-cell mrx-grid-expand-cell" :class="{ 'adeo-grid-grid-cell--pinned': hasPinned }"
+    <div v-if="expandable" class="adeo-grid-grid-cell adeo-grid-expand-cell" :class="{ 'adeo-grid-grid-cell--pinned': hasPinned }"
       :style="getUtilityStyle('expand', false)" role="gridcell">
       <MButton class="adeo-grid-grid-expand-btn" type="button" :ghost="true"
         :aria-label="expanded ? 'Collapse row' : 'Expand row'" :aria-expanded="expanded" @click="emit('toggleExpand')">
@@ -323,7 +323,7 @@ const emit = defineEmits<{
 }
 
 // `clip-path` extends the cell's painting region 4px past the pinned edge
-// so the drop-shadow (set via `--mrx-cell-outer-shadow` inside
+// so the drop-shadow (set via `--adeo-grid-cell-outer-shadow` inside
 // `AdeoGridCell.vue`'s `box-shadow` stack) is visible across the boundary.
 .adeo-grid-grid-cell--pinned-left-edge {
   clip-path: inset(0 -4px 0 0);

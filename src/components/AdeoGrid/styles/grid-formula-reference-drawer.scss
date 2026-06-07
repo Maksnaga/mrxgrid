@@ -2,7 +2,7 @@
  * Translation: `:has(moz-grid-formula-reference-drawer)` rule + custom-element selector
  * dropped (Vue components don't render with their tag name). */
 
-@layer mrx-grid {
+@layer adeo-grid {
   .formula-ref {
     display: flex;
     flex-direction: column;

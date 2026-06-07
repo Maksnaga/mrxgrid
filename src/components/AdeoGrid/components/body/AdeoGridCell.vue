@@ -608,22 +608,22 @@ function onEditKeydown(e: KeyboardEvent) {
     <template v-if="cutSource">
       <div
         v-if="cutEdgeTop"
-        class="adeo-grid-grid-cell__cut-mark mrx-grid-cell__cut-mark--top"
+        class="adeo-grid-grid-cell__cut-mark adeo-grid-cell__cut-mark--top"
         aria-hidden="true"
       />
       <div
         v-if="cutEdgeBottom"
-        class="adeo-grid-grid-cell__cut-mark mrx-grid-cell__cut-mark--bottom"
+        class="adeo-grid-grid-cell__cut-mark adeo-grid-cell__cut-mark--bottom"
         aria-hidden="true"
       />
       <div
         v-if="cutEdgeLeft"
-        class="adeo-grid-grid-cell__cut-mark mrx-grid-cell__cut-mark--left"
+        class="adeo-grid-grid-cell__cut-mark adeo-grid-cell__cut-mark--left"
         aria-hidden="true"
       />
       <div
         v-if="cutEdgeRight"
-        class="adeo-grid-grid-cell__cut-mark mrx-grid-cell__cut-mark--right"
+        class="adeo-grid-grid-cell__cut-mark adeo-grid-cell__cut-mark--right"
         aria-hidden="true"
       />
     </template>
@@ -737,10 +737,10 @@ function onEditKeydown(e: KeyboardEvent) {
 // corners, so swap them off and re-enable the rounded `::after` outline
 // so the focus ring keeps its 4px radius.
 .adeo-grid-grid-cell--active.adeo-grid-grid-cell--selected.adeo-grid-grid-cell--edge-top.adeo-grid-grid-cell--edge-bottom.adeo-grid-grid-cell--edge-left.adeo-grid-grid-cell--edge-right {
-  --mrx-range-edge-top: 0 0 0 0 transparent;
-  --mrx-range-edge-bottom: 0 0 0 0 transparent;
-  --mrx-range-edge-left: 0 0 0 0 transparent;
-  --mrx-range-edge-right: 0 0 0 0 transparent;
+  --adeo-grid-range-edge-top: 0 0 0 0 transparent;
+  --adeo-grid-range-edge-bottom: 0 0 0 0 transparent;
+  --adeo-grid-range-edge-left: 0 0 0 0 transparent;
+  --adeo-grid-range-edge-right: 0 0 0 0 transparent;
 }
 
 .adeo-grid-grid-cell--active.adeo-grid-grid-cell--selected.adeo-grid-grid-cell--edge-top.adeo-grid-grid-cell--edge-bottom.adeo-grid-grid-cell--edge-left.adeo-grid-grid-cell--edge-right::after {
@@ -757,7 +757,7 @@ function onEditKeydown(e: KeyboardEvent) {
 // accent line, so a cell on a corner draws two segments and a cell in
 // the middle draws none.
 //
-// The 5th slot (`--mrx-cell-outer-shadow`) is reserved for cell-level
+// The 5th slot (`--adeo-grid-cell-outer-shadow`) is reserved for cell-level
 // outer shadows (set by `.adeo-grid-grid-cell--pinned-left-edge` /
 // `--pinned-right-edge` in `AdeoGridRow.vue`). Composing all five in a
 // single `box-shadow` declaration is what lets the pinned drop-shadow
@@ -766,33 +766,33 @@ function onEditKeydown(e: KeyboardEvent) {
 .adeo-grid-grid-cell--selected,
 .adeo-grid-grid-cell--pinned-left-edge,
 .adeo-grid-grid-cell--pinned-right-edge {
-  --mrx-range-edge-top: 0 0 0 0 transparent;
-  --mrx-range-edge-bottom: 0 0 0 0 transparent;
-  --mrx-range-edge-left: 0 0 0 0 transparent;
-  --mrx-range-edge-right: 0 0 0 0 transparent;
-  --mrx-cell-outer-shadow: 0 0 0 0 transparent;
+  --adeo-grid-range-edge-top: 0 0 0 0 transparent;
+  --adeo-grid-range-edge-bottom: 0 0 0 0 transparent;
+  --adeo-grid-range-edge-left: 0 0 0 0 transparent;
+  --adeo-grid-range-edge-right: 0 0 0 0 transparent;
+  --adeo-grid-cell-outer-shadow: 0 0 0 0 transparent;
   box-shadow:
-    inset var(--mrx-range-edge-top),
-    inset var(--mrx-range-edge-bottom),
-    inset var(--mrx-range-edge-left),
-    inset var(--mrx-range-edge-right),
-    var(--mrx-cell-outer-shadow);
+    inset var(--adeo-grid-range-edge-top),
+    inset var(--adeo-grid-range-edge-bottom),
+    inset var(--adeo-grid-range-edge-left),
+    inset var(--adeo-grid-range-edge-right),
+    var(--adeo-grid-cell-outer-shadow);
 }
 
 .adeo-grid-grid-cell--selected.adeo-grid-grid-cell--edge-top {
-  --mrx-range-edge-top: 0 2px 0 0 var(--color-text-accent);
+  --adeo-grid-range-edge-top: 0 2px 0 0 var(--color-text-accent);
 }
 
 .adeo-grid-grid-cell--selected.adeo-grid-grid-cell--edge-bottom {
-  --mrx-range-edge-bottom: 0 -2px 0 0 var(--color-text-accent);
+  --adeo-grid-range-edge-bottom: 0 -2px 0 0 var(--color-text-accent);
 }
 
 .adeo-grid-grid-cell--selected.adeo-grid-grid-cell--edge-left {
-  --mrx-range-edge-left: 2px 0 0 0 var(--color-text-accent);
+  --adeo-grid-range-edge-left: 2px 0 0 0 var(--color-text-accent);
 }
 
 .adeo-grid-grid-cell--selected.adeo-grid-grid-cell--edge-right {
-  --mrx-range-edge-right: -2px 0 0 0 var(--color-text-accent);
+  --adeo-grid-range-edge-right: -2px 0 0 0 var(--color-text-accent);
 }
 
 // Pinned drop-shadow lives on the same `box-shadow` slot stack so it
@@ -801,11 +801,11 @@ function onEditKeydown(e: KeyboardEvent) {
 // deterministic — the variable defaults above are overridden by these
 // rules within the same stylesheet.
 .adeo-grid-grid-cell--pinned-left-edge {
-  --mrx-cell-outer-shadow: 2px 0 4px rgba(0, 0, 0, 0.06);
+  --adeo-grid-cell-outer-shadow: 2px 0 4px rgba(0, 0, 0, 0.06);
 }
 
 .adeo-grid-grid-cell--pinned-right-edge {
-  --mrx-cell-outer-shadow: -2px 0 4px rgba(0, 0, 0, 0.06);
+  --adeo-grid-cell-outer-shadow: -2px 0 4px rgba(0, 0, 0, 0.06);
 }
 
 .adeo-grid-grid-cell--fill-target {
@@ -1009,7 +1009,7 @@ function onEditKeydown(e: KeyboardEvent) {
   ) !important;
   background-size: 200% 100% !important;
   background-repeat: no-repeat !important;
-  animation: mrx-skeleton-shimmer 1.4s ease-in-out infinite !important;
+  animation: adeo-grid-skeleton-shimmer 1.4s ease-in-out infinite !important;
 }
 
 // Pendant le pending on rend le texte de la cellule transparent — comme ça
@@ -1050,10 +1050,10 @@ function onEditKeydown(e: KeyboardEvent) {
 /* Skeleton shimmer — partagée entre le full-skeleton (`AdeoGridSkeletonRow`)
  * et le cell-level pending (`.adeo-grid-grid-cell--pending::after`). Unscoped
  * pour rester accessible aux scoped styles des autres SFC qui réfèrent
- * `animation: mrx-skeleton-shimmer ...` par nom. (`_animations.scss`
+ * `animation: adeo-grid-skeleton-shimmer ...` par nom. (`_animations.scss`
  * existe mais n'est branchée dans aucun chemin d'import au runtime, c'est
  * de la doc — d'où la duplication ici comme pour les marching-ants.) */
-@keyframes mrx-skeleton-shimmer {
+@keyframes adeo-grid-skeleton-shimmer {
   0% {
     background-position: 100% 0;
   }

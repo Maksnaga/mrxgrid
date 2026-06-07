@@ -6,7 +6,7 @@
  *   ::ng-deep moz-grid-row moz-grid-cell:last-child → .grid-row .grid-cell-root:last-child
  */
 
-@layer mrx-grid {
+@layer adeo-grid {
   .grid-body {
     display: flex;
     flex-direction: column;

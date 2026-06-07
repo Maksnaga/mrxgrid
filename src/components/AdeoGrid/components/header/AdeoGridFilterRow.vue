@@ -101,7 +101,7 @@ function widthFor(col: ColumnDef, getter?: (f: string) => string | undefined): s
     <div
       v-for="(col, idx) in pinnedLeftColumns"
       :key="'fl-' + col.field"
-      class="adeo-grid-filter-cell mrx-grid-cell--pinned"
+      class="adeo-grid-filter-cell adeo-grid-cell--pinned"
       :class="{ 'adeo-grid-grid-cell--pinned-left-edge': idx === pinnedLeftColumns.length - 1 }"
       :data-field="col.field"
       :style="{
@@ -158,7 +158,7 @@ function widthFor(col: ColumnDef, getter?: (f: string) => string | undefined): s
     <div
       v-for="(col, idx) in pinnedRightColumns"
       :key="'fr-' + col.field"
-      class="adeo-grid-filter-cell mrx-grid-cell--pinned"
+      class="adeo-grid-filter-cell adeo-grid-cell--pinned"
       :class="{
         'adeo-grid-grid-cell--pinned-right-edge': idx === 0,
         'adeo-grid-grid-cell--pinned-row-end': idx === pinnedRightColumns.length - 1,

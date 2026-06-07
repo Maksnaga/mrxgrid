@@ -182,7 +182,7 @@ function isResizable(col: ColumnDef): boolean {
     <!-- Row-number column header (auto-on with formula columns) -->
     <div
       v-if="showRowNumbers"
-      class="adeo-grid-grid-header-cell mrx-grid-rownum-cell"
+      class="adeo-grid-grid-header-cell adeo-grid-rownum-cell"
       :style="getUtilityStyle('rownum', true)"
       role="columnheader"
       aria-label="Row number"
@@ -191,7 +191,7 @@ function isResizable(col: ColumnDef): boolean {
     <!-- Checkbox (sticky left when pinned) -->
     <div
       v-if="selectable"
-      class="adeo-grid-grid-header-cell mrx-grid-checkbox-cell"
+      class="adeo-grid-grid-header-cell adeo-grid-checkbox-cell"
       :class="{ 'adeo-grid-grid-cell--pinned': hasPinned }"
       :style="getUtilityStyle('checkbox', true)"
       role="columnheader"
@@ -207,7 +207,7 @@ function isResizable(col: ColumnDef): boolean {
     <!-- Expand placeholder (sticky left when pinned) -->
     <div
       v-if="expandable"
-      class="adeo-grid-grid-header-cell mrx-grid-expand-cell"
+      class="adeo-grid-grid-header-cell adeo-grid-expand-cell"
       :class="{ 'adeo-grid-grid-cell--pinned': hasPinned }"
       :style="getUtilityStyle('expand', true)"
       role="columnheader"

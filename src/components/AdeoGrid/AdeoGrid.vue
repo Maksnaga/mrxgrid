@@ -226,7 +226,7 @@ const props = withDefaults(
     persistKey?: string
     /**
      * Optional history attachment id. When set, the undo/redo stacks are
-     * mirrored to `localStorage` under `mrx-grid-history:<historyId>` so
+     * mirrored to `localStorage` under `adeo-grid-history:<historyId>` so
      * undo/redo survive a reload.
      */
     historyId?: string

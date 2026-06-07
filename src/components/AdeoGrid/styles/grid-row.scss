@@ -4,7 +4,7 @@
  *   ::ng-deep .checkbox  → .grid-row__checkbox .checkbox (no scoping)
  */
 
-@layer mrx-grid {
+@layer adeo-grid {
   .grid-row-root {
     display: block;
     background: var(--color-background-primary);

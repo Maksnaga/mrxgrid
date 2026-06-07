@@ -108,7 +108,7 @@ const preview: Preview = {
       applyTheme(theme)
       return {
         components: { story },
-        template: `<div class="sb-mrx-root" data-theme="${theme}"><story /></div>`,
+        template: `<div class="sb-adeo-grid-root" data-theme="${theme}"><story /></div>`,
       }
     },
   ],

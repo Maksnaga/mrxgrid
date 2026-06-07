@@ -47,7 +47,7 @@ defineProps<{
 
 <template>
   <div
-    class="adeo-grid-grid-body mrx-grid-body--skeleton"
+    class="adeo-grid-grid-body adeo-grid-body--skeleton"
     :style="{ minWidth: gridContentWidth ? `max(100%, ${gridContentWidth})` : '100%' }"
     aria-busy="true"
     aria-live="polite"

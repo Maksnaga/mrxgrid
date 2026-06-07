@@ -180,7 +180,7 @@ onBeforeUnmount(() => {
     </button>
     <button
       v-if="showDelete"
-      class="adeo-grid-grid-selection-bar__btn mrx-grid-selection-bar__btn--danger"
+      class="adeo-grid-grid-selection-bar__btn adeo-grid-selection-bar__btn--danger"
       type="button"
       @click="emit('delete')"
     >

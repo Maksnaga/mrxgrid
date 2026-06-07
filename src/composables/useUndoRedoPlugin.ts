@@ -1,6 +1,6 @@
 /**
  * Undo / Redo plugin — persists the grid's history stacks to
- * `localStorage` under `mrx-grid-history:<storageKey>` and binds the
+ * `localStorage` under `adeo-grid-history:<storageKey>` and binds the
  * <kbd>⌘Z</kbd> / <kbd>⌘⇧Z</kbd> / <kbd>⌘Y</kbd> shortcuts at the
  * document level as a fallback. The grid itself also handles the
  * shortcut on its own `@keydown` (when the wrapper has focus); this
@@ -31,7 +31,7 @@ import type { AdeoGridPlugin } from '@/components/AdeoGrid/models/plugin.model'
 export interface UndoRedoPluginOptions {
   /**
    * `localStorage` namespace. When provided, undo/redo stacks are
-   * mirrored to `mrx-grid-history:<storageKey>` and restored on next
+   * mirrored to `adeo-grid-history:<storageKey>` and restored on next
    * mount. Pass `null` (or omit) to keep history in memory only.
    */
   storageKey?: string | null
