@@ -46,7 +46,7 @@ When in doubt about engine semantics, the comment headers in `state/useGridState
 
 ```
 AdeoGrid.vue                 root orchestrator (props/events, provides GridState + ColumnRegistry)
-AdeoColumn.vue               declarative column API — registers via MRX_COLUMN_REGISTRY_KEY
+AdeoColumn.vue               declarative column API — registers via ADEO_GRID_COLUMN_REGISTRY_KEY
 components/
   header/                   AdeoGridHeader, AdeoGridHeaderCell, AdeoGridHeaderMenu, AdeoGridFilterRow,
                             AdeoGridFilterCell, AdeoColumnFilterOverlay, AdeoGridGroupBar,
@@ -75,8 +75,8 @@ Engine equivalents under `src/components/AdeoGrid/features/` end in `Engine.ts` 
 ### Key invariants
 
 - **GridState provide/inject** — `AdeoGrid.vue` calls `useGridState()` and provides under `GRID_STATE_KEY`. Sub-components read it via `useGridContext()` (alias `injectGridState` for back-compat).
-- **Column registry** — `AdeoColumn` children register via `MRX_COLUMN_REGISTRY_KEY`. When both `:columns` prop and `<AdeoColumn>` children are provided, the registry overrides the prop on matching `field`.
-- **Slots context** — provided under `MRX_GRID_SLOTS_KEY`. Per-field slots (`#cell-{field}`, `#header-{field}`, `#filter-{field}`, `#edit-{field}`) resolve before generic ones.
+- **Column registry** — `AdeoColumn` children register via `ADEO_GRID_COLUMN_REGISTRY_KEY`. When both `:columns` prop and `<AdeoColumn>` children are provided, the registry overrides the prop on matching `field`.
+- **Slots context** — provided under `ADEO_GRID_SLOTS_KEY`. Per-field slots (`#cell-{field}`, `#header-{field}`, `#filter-{field}`, `#edit-{field}`) resolve before generic ones.
 - **Plugin contract** — `<AdeoGrid :plugins="[plugin]" />`. Each plugin receives `{ state, engine }` on `init` and returns a cleanup function.
 - **Imperative ref API** — `grid.value.exportCsv()`, `undo()`, `setFormula()`, `validateAll()`, `persistView()`, `tree.flatten()`, etc. Full list in README "Imperative ref API" table.
 - **Density row heights** (must match SCSS padding): `compact: 32`, `default: 48`, `comfortable: 64` — defined in `AdeoGrid.vue` as `DENSITY_ROW_HEIGHT`. (The legacy `defaults.ts` constant uses different numbers for the engine layer; treat the `AdeoGrid.vue` constants as authoritative for visual rendering.)

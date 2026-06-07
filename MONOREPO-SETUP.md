@@ -927,7 +927,7 @@ jobs:
       - name: Deploy to NAS / S3 / GitHub Pages
         run: |
           # ← adapter selon ta cible
-          rsync -avz dist/ user@nas.adeo.dev:/var/www/mrx/
+          rsync -avz dist/ user@nas.adeo.dev:/var/www/adeo-grid/
 ```
 
 **Important** : le portal référence les SB Angular/Vue via leurs URLs.
@@ -1130,7 +1130,7 @@ Dans `packages/types/package.json` :
 Dans `.npmrc` à la racine :
 
 ```
-@mrx:registry=https://artifactory.adeo.fr/api/npm/npm-internal/
+@adeo:registry=https://artifactory.adeo.fr/api/npm/npm-internal/
 //artifactory.adeo.fr/api/npm/npm-internal/:_authToken=${NPM_TOKEN}
 ```
 

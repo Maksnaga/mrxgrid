@@ -46,7 +46,7 @@ import './_styles.css'
 {`<AdeoGrid />
 ├── <slot name="toolbar" />                  ← AdeoGridToolbar (optionnel)
 ├── <AdeoGridTagBar />                        ← HIDDEN / GROUPED / FILTERED tags
-├── <MrxFormulaBar />                        ← optionnelle, pour =A1*B2
+├── <AdeoFormulaBar />                        ← optionnelle, pour =A1*B2
 ├── <div class="adeo-grid-wrapper">           ← scrollable, overflow:auto
 │   ├── <div class="adeo-grid-sticky-header">
 │   │   ├── <AdeoGridHeader />                ← columns + checkbox + expand
@@ -63,11 +63,11 @@ import './_styles.css'
     └── <AdeoGridLoadingIndicator />          ← infinite scroll spinner
 
 — Drawers vivent en dehors du wrapper (Teleport ou siblings) :
-   <MrxTableMenuDrawer />   ← settings (densité / colonnes cachées / ordre)
-   <MrxGroupingDrawer />    ← drag-n-drop des champs de groupement
+   <AdeoTableMenuDrawer />   ← settings (densité / colonnes cachées / ordre)
+   <AdeoGroupingDrawer />    ← drag-n-drop des champs de groupement
    <AdeoGridFilterDrawer />  ← multi-condition builder
-   <MrxKeyboardShortcutsDrawer />
-   <MrxFormulaReferenceDrawer />`}
+   <AdeoKeyboardShortcutsDrawer />
+   <AdeoFormulaReferenceDrawer />`}
 </div>
 
 ## Flot de données
@@ -137,11 +137,11 @@ d'opérations pures et arrive aux cellules sous forme de slice virtualisée.
 │   │   └── AdeoGridLoadingIndicator.vue
 │   └── overlays/
 │       ├── AdeoGridToolbar.vue
-│       ├── MrxTableMenuDrawer.vue
-│       ├── MrxGroupingDrawer.vue
+│       ├── AdeoTableMenuDrawer.vue
+│       ├── AdeoGroupingDrawer.vue
 │       ├── AdeoGridFilterDrawer.vue
 │       ├── AdeoGridFilterBuilder.vue
-│       └── MrxFormulaBar.vue
+│       └── AdeoFormulaBar.vue
 │
 ├── state/                            ← state central (Phase 1)
 │   ├── useGridState.ts               ← refs + computeds, source de vérité

@@ -80,10 +80,10 @@ the full rationale.
 | **Excel-style cut/paste** | `Ctrl+X` marks the source range with marching-ants outline; `Ctrl+V` then moves (clears the source after pasting). `Esc` cancels the pending cut. |
 | **`<AdeoColumn>` declarative API** | Alternative to `:columns` prop — `<AdeoColumn field="..." header-name="..."><template #cell="...">…</template></AdeoColumn>`. Slots wired via the registry. |
 | **Per-field slots** | `#cell-{field}`, `#header-{field}`, `#filter-{field}`, `#edit-{field}` resolve before the generic ones. |
-| **`<MrxFormulaBar>`** | A1-style cell label + `fx` indicator + edit input. Shows `displayFormula` when the active cell is formula-backed. Imperative `insertText()` for wiring with the reference drawer. |
-| **`<MrxFormulaReferenceDrawer>`** | Categorised list of formula functions; emits `insert` with `name + '('` for direct wiring with the formula bar. |
+| **`<AdeoFormulaBar>`** | A1-style cell label + `fx` indicator + edit input. Shows `displayFormula` when the active cell is formula-backed. Imperative `insertText()` for wiring with the reference drawer. |
+| **`<AdeoFormulaReferenceDrawer>`** | Categorised list of formula functions; emits `insert` with `name + '('` for direct wiring with the formula bar. |
 | **`<AdeoColumnVisibilityPanel>`** | Popover listing hidden columns with restore buttons. |
-| **`<MrxKeyboardShortcutsDrawer>`** | Drawer with the full shortcut reference (FR-localised). |
+| **`<AdeoKeyboardShortcutsDrawer>`** | Drawer with the full shortcut reference (FR-localised). |
 | **Variable-height virtual scroll** | `useVariableHeightVirtualScroll` engine for grids with detail rows / wrapped cells / rich group rows whose heights are unknown ahead of time. |
 | **Plugin model** | `<AdeoGrid :plugins="[useMyPlugin()]">` — plugins receive `{ state, engine }` on init, return a cleanup function. |
 | **Imperative ref API** | `grid.value.exportCsv()`, `undo()`, `validateAll()`, `setFormula()`, `persistView()`, `tree.flatten()`, … See [Imperative ref API](#imperative-ref-api) below. |
@@ -243,8 +243,8 @@ AdeoGrid.vue                    <-- Root orchestrator (wires ~20 composables)
 
 **Companion components** (imported separately):
 - `AdeoGridToolbar` -- Fullscreen, grouping, settings buttons
-- `MrxGroupingDrawer` -- Side drawer to configure grouping
-- `MrxTableMenuDrawer` -- Side drawer for density, column visibility, column order
+- `AdeoGroupingDrawer` -- Side drawer to configure grouping
+- `AdeoTableMenuDrawer` -- Side drawer for density, column visibility, column order
 
 ### Data Pipeline
 

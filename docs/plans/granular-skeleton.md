@@ -233,7 +233,7 @@ Overlay absolute sur `.adeo-grid-cell` qui hérite du gradient déjà défini da
     rgba(var(--adeo-grid-skel-base-rgb), 0.85) 100%
   );
   background-size: 200% 100%;
-  animation: mrx-skeleton-shimmer 1.4s ease-in-out infinite;
+  animation: adeo-grid-skeleton-shimmer 1.4s ease-in-out infinite;
   pointer-events: none;
 }
 ```
@@ -281,7 +281,7 @@ au-dessus" — comportement actuel inchangé.)
 |---|---|
 | `AdeoGrid.vue` | + props `refreshing`, `pendingRowIds`, `pendingCells` ; + `pendingCellLookup` computed ; étendre `getCellFlags` ; étendre `loading` bar gating |
 | `types.ts` | + champ `pending?: boolean` sur `CellFlags` |
-| `AdeoGridCell.vue` | + classe `mrx-cell--pending` selon `flags.pending` ; + styles overlay shimmer |
+| `AdeoGridCell.vue` | + classe `adeo-grid-cell--pending` selon `flags.pending` ; + styles overlay shimmer |
 | `AdeoGridRow.vue` | + prop `pending?: boolean` + classe `adeo-grid-row--pending` + spinner |
 | `AdeoGridBody.vue` | + prop `pendingRowSet` + pass-through au row |
 

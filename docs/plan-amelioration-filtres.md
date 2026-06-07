@@ -375,7 +375,7 @@ pas de sens quand le composant gère sa propre sémantique :
 ```vue
 <select
   v-if="descriptorFor(condition.field)?.filterType !== 'custom'"
-  class="mrx-filter-builder__field mrx-filter-builder__field--operator"
+  class="adeo-grid-filter-builder__field adeo-grid-filter-builder__field--operator"
   :value="condition.operator"
   @change="onOperatorChange(condition.id, ($event.target as HTMLSelectElement).value)"
 >
@@ -397,7 +397,7 @@ existant devient un `v-else-if` :
     descriptorFor(condition.field)?.filterComponent
   "
   :is="descriptorFor(condition.field)!.filterComponent"
-  class="mrx-filter-builder__custom"
+  class="adeo-grid-filter-builder__custom"
   :condition="condition"
   @condition-change="onCustomChange(condition.id, $event)"
 />

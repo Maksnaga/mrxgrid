@@ -121,8 +121,8 @@ import { ref, computed } from 'vue'
 import {
   AdeoGrid,
   AdeoGridToolbar,
-  MrxTableMenuDrawer,
-  MrxGroupingDrawer,
+  AdeoTableMenuDrawer,
+  AdeoGroupingDrawer,
   AdeoGridFilterDrawer,
 } from '@/components/AdeoGrid'
 
@@ -146,8 +146,8 @@ const fullscreen   = ref(false)
     </template>
   </AdeoGrid>
 
-  <MrxTableMenuDrawer v-model:open="settingsOpen" :columns="columns" ... />
-  <MrxGroupingDrawer  v-model:open="groupingOpen"  :columns="columns" ... />
+  <AdeoTableMenuDrawer v-model:open="settingsOpen" :columns="columns" ... />
+  <AdeoGroupingDrawer  v-model:open="groupingOpen"  :columns="columns" ... />
   <AdeoGridFilterDrawer v-model:open="filtersOpen"  :columns="columns" ... />
 </template>
 ```

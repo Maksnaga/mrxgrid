@@ -99,8 +99,8 @@ Le code engine + UI narrowe la bonne shape automatiquement.
 
 ```ts
 // Sur la ColumnDef
-interface MrxFilterConfig<T, M, P> {
-  component: MrxFilterComponent
+interface AdeoFilterConfig<T, M, P> {
+  component: AdeoFilterComponent
   doesFilterPass?: AdeoDoesFilterPass<T, M>
   filterParams?: P
 }
@@ -124,7 +124,7 @@ interface AdeoDoesFilterPassParams<T, M> {
 }
 
 // Exposé par le composant (TOUS optionnels)
-interface MrxFilterInstance<M> {
+interface AdeoFilterInstance<M> {
   refresh?(newParams: AdeoFilterParams<unknown, M>): boolean | void
   afterGuiAttached?(params?: { suppressFocus?: boolean }): void
   isFilterActive?(): boolean
