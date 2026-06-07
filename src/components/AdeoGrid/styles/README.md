@@ -8,15 +8,15 @@ descendant, classes CDK → équivalents Vue, sélecteurs custom-element → BEM
 root). Voir `index.scss` pour la liste complète, et le commentaire en tête
 de chaque fichier pour la transformation appliquée.
 
-Les keyframes globales (`moz-grid-marching-ants-x/y`, `mrx-grid-loading-bar`)
+Les keyframes globales (`moz-grid-marching-ants-x/y`, `adeo-grid-loading-bar`)
 sont dans `_animations.scss` et **doivent rester non-scopés** — sinon Vue
 les hashe et les noms ne résolvent plus depuis les cells qui les
 référencent.
 
 ## Adoption — pas encore branchée par défaut
 
-⚠️ **Les SFC actuels (`MrxGridCell.vue`, `MrxGridRow.vue`, etc.) utilisent
-des classes `.mrx-grid-cell`, `.mrx-grid-row`, …** alors que les SCSS portés
+⚠️ **Les SFC actuels (`AdeoGridCell.vue`, `AdeoGridRow.vue`, etc.) utilisent
+des classes `.adeo-grid-cell`, `.adeo-grid-row`, …** alors que les SCSS portés
 utilisent les classes Angular `.grid-cell`, `.grid-row`, … . Importer
 `styles/index.scss` tel quel ne **change rien au rendu** : les sélecteurs
 ne matchent aucune classe émise par les SFC.
@@ -25,22 +25,22 @@ Pour réellement adopter ces SCSS, il y a deux chemins :
 
 ### Option A — ré-aliaser les classes côté SFC
 
-Ajouter `mrx-grid-cell` ↔ `grid-cell` (etc.) dans les `:class` bindings de
+Ajouter `adeo-grid-cell` ↔ `grid-cell` (etc.) dans les `:class` bindings de
 chaque SFC. Le moins invasif, mais ajoute des classes redondantes au DOM.
 
 ```vue
-<!-- MrxGridCell.vue -->
-<div class="mrx-grid-cell grid-cell" :class="{ ... 'grid-cell--cut': cutSource }">
+<!-- AdeoGridCell.vue -->
+<div class="adeo-grid-cell grid-cell" :class="{ ... 'grid-cell--cut': cutSource }">
 ```
 
 ### Option B — renommer les classes des SFC vers le shape Angular
 
-Remplacer `.mrx-grid-cell` par `.grid-cell` dans tous les SFC + scoped
+Remplacer `.adeo-grid-cell` par `.grid-cell` dans tous les SFC + scoped
 styles. Le plus aligné avec le plan, mais touche tous les SFC.
 
 | | Option A | Option B |
 |---|---|---|
-| Fichiers touchés | 19 SFC (juste `:class`) | 19 SFC + tests qui font `.find('.mrx-grid-cell')` |
+| Fichiers touchés | 19 SFC (juste `:class`) | 19 SFC + tests qui font `.find('.adeo-grid-cell')` |
 | Pixel parity Angular ↔ Vue | partielle (deux stylesheets coexistent) | exacte |
 | Effort | ~30 min | ~3-4 h |
 | Risque | aucun (additif) | tests à mettre à jour |
@@ -50,17 +50,17 @@ styles. Le plus aligné avec le plan, mais touche tous les SFC.
 Aller en **Option B** par PRs ciblées (1 PR par sous-dossier de
 `components/`). Inclure dans la PR :
 
-1. Renommer les classes du SFC (`mrx-grid-cell` → `grid-cell`).
+1. Renommer les classes du SFC (`adeo-grid-cell` → `grid-cell`).
 2. **Restructurer le DOM** pour matcher le BEM Angular — les SFC Vue ont
-   souvent une structure plus décomposée (e.g. `MrxGridPagination` séparé
+   souvent une structure plus décomposée (e.g. `AdeoGridPagination` séparé
    du footer, alors qu'Angular a tout en un seul template). Le SCSS porté
    suppose la structure Angular ; sans cette restructuration, des règles
    resteront orphelines.
-3. Ajouter `@use '@/components/MrxGrid/styles/grid-cell'` au top du `<style>` du SFC, ou à `MrxGrid.vue` pour tout charger d'un coup.
+3. Ajouter `@use '@/components/AdeoGrid/styles/grid-cell'` au top du `<style>` du SFC, ou à `AdeoGrid.vue` pour tout charger d'un coup.
 4. Lancer le suite Playwright `e2e/visual.spec.ts` (Phase 8b) pour vérifier la pixel parity.
 
 À l'issue de Option B sur tous les sous-dossiers, on pourra supprimer les
-règles `.mrx-grid-*` redondantes des `<style scoped>` et `MrxGrid.vue`
+règles `.adeo-grid-*` redondantes des `<style scoped>` et `AdeoGrid.vue`
 deviendra le seul consommateur de `styles/index.scss`.
 
 ### Avertissement sur l'effort
@@ -68,17 +68,17 @@ deviendra le seul consommateur de `styles/index.scss`.
 Le port DOM est **non-trivial** parce que :
 
 - Les SFC Vue ont **leur propre découpage** des composants. Exemple :
-  `MrxGridFooter.vue` est un wrapper qui compose `MrxGridLoadingIndicator`
-  + `MrxGridPagination`. Le SCSS porté Angular `grid-footer.scss` contient
+  `AdeoGridFooter.vue` est un wrapper qui compose `AdeoGridLoadingIndicator`
+  + `AdeoGridPagination`. Le SCSS porté Angular `grid-footer.scss` contient
   des règles pour `.grid-footer__info`, `.grid-footer__page-size-label`,
   `.grid-footer__count` — ces classes sont actuellement dans
-  `MrxGridPagination.vue`, pas `MrxGridFooter.vue`. La PR doit déplacer
+  `AdeoGridPagination.vue`, pas `AdeoGridFooter.vue`. La PR doit déplacer
   les classes au bon endroit.
-- Les **tests** font `wrapper.find('.mrx-grid-cell')`. Renommer brise
+- Les **tests** font `wrapper.find('.adeo-grid-cell')`. Renommer brise
   silencieusement la résolution. Compter ~30 min par fichier de test
   pour mettre à jour les sélecteurs.
-- Les **consumers** qui ont des overrides CSS sur les classes `.mrx-grid-*`
-  cassent. Annoncer en deprecation (laisser un alias `.mrx-grid-*`
+- Les **consumers** qui ont des overrides CSS sur les classes `.adeo-grid-*`
+  cassent. Annoncer en deprecation (laisser un alias `.adeo-grid-*`
   pendant 1-2 versions).
 
 **Vrai estimé** : ~3-4h par sous-dossier (header / body / footer / overlays),

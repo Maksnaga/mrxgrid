@@ -3,7 +3,7 @@
 ## 1. Problème observé
 
 Aujourd'hui le grid expose un seul flag `loading: boolean`. Quand il est `true`,
-`MrxGridBody` est entièrement remplacé par `<MrxGridSkeletonBody>` qui rend N
+`AdeoGridBody` est entièrement remplacé par `<AdeoGridSkeletonBody>` qui rend N
 rows shimmer.
 
 Côté demo, `useProductList.refetch()` setle `list.loading.value = true` pour
@@ -37,7 +37,7 @@ Ce qu'on veut :
 Le grid expose **3 props indépendants**, chacun pour un cas distinct :
 
 ```ts
-interface MrxGridProps {
+interface AdeoGridProps {
   /**
    * Skeleton plein écran (body intégralement remplacé). Réservé au
    * cas "rows vides + premier fetch en vol".
@@ -74,7 +74,7 @@ on peut avoir un bulk delete (rowIds) ET en parallèle un cell edit (pendingCell
 ET un refetch (refreshing). L'enum forcerait à prioriser, là on superpose les
 indicateurs naturellement.
 
-### 2.2 Mapping côté `MrxGridCell` (cell-level)
+### 2.2 Mapping côté `AdeoGridCell` (cell-level)
 
 Le composable d'édition expose déjà `getCellFlags(rowIndex, field): CellFlags`
 qui drive les classes/edges de chaque cellule. On ajoute un flag `pending` :
@@ -89,26 +89,26 @@ interface CellFlags {
 }
 ```
 
-Dans `MrxGrid.vue`, on construit un `pendingLookup: Map<string, true>` indexé
+Dans `AdeoGrid.vue`, on construit un `pendingLookup: Map<string, true>` indexé
 par `${rowId}:${field}` à partir de `props.pendingCells`. `getCellFlags` consulte
 cette Map et set le flag.
 
-Côté `MrxGridCell.vue`, le flag `pending` ajoute la classe `.mrx-cell--pending`
+Côté `AdeoGridCell.vue`, le flag `pending` ajoute la classe `.mrx-cell--pending`
 qui rend un overlay shimmer **par-dessus** la valeur (et pas à la place — la
 valeur reste lisible en filigrane, ce qui aide à comprendre quel champ
 exactement est en train d'être pushé).
 
-### 2.3 Mapping côté `MrxGridRow` (row-level)
+### 2.3 Mapping côté `AdeoGridRow` (row-level)
 
 Symmétrique : `pendingRowIds` devient un `pendingRowLookup: Map<rowId, true>`
-dans `MrxGrid.vue`. `MrxGridRow` reçoit un nouveau prop `pending: boolean` et
+dans `AdeoGrid.vue`. `AdeoGridRow` reçoit un nouveau prop `pending: boolean` et
 applique `.mrx-row--pending` → `opacity: 0.55` + `pointer-events: none` + un
 mini-spinner Mozaic dans la première cellule.
 
 ### 2.4 Refreshing — barre de progression
 
 Quand `refreshing=true` et **pas** `loading=true`, on rend la barre fine
-existante (`.mrx-grid-loading-bar`) au-dessus du wrapper, sans toucher au
+existante (`.adeo-grid-loading-bar`) au-dessus du wrapper, sans toucher au
 body. C'est déjà le comportement actuel quand `loading=true` mais on déplace
 ce signal sous un prop dédié pour pouvoir l'activer indépendamment du full
 skeleton.
@@ -213,15 +213,15 @@ Premier load (refresh navigateur) → `loading=true` → skeleton plein.
 
 ### 4.1 Cell shimmer (pending)
 
-Overlay absolute sur `.mrx-grid-cell` qui hérite du gradient déjà défini dans
-`MrxGridSkeletonRow.vue`. CSS approximatif :
+Overlay absolute sur `.adeo-grid-cell` qui hérite du gradient déjà défini dans
+`AdeoGridSkeletonRow.vue`. CSS approximatif :
 
 ```scss
-.mrx-grid-cell--pending {
+.adeo-grid-cell--pending {
   position: relative;
 }
 
-.mrx-grid-cell--pending::after {
+.adeo-grid-cell--pending::after {
   content: '';
   position: absolute;
   inset: 4px 8px;
@@ -244,12 +244,12 @@ la cellule visible et place le shimmer **dedans**, pas par-dessus la bordure.
 ### 4.2 Row dim (pending)
 
 ```scss
-.mrx-grid-row--pending {
+.adeo-grid-row--pending {
   opacity: 0.55;
   pointer-events: none;
 }
 
-.mrx-grid-row--pending .mrx-grid-row-spinner {
+.adeo-grid-row--pending .adeo-grid-row-spinner {
   position: absolute;
   left: 16px;
   top: 50%;
@@ -263,12 +263,12 @@ le dim global suffit.
 
 ### 4.3 Top progress bar (refreshing)
 
-Déjà présente (`.mrx-grid-loading-bar`) — on la décorrèle du flag `loading`
+Déjà présente (`.adeo-grid-loading-bar`) — on la décorrèle du flag `loading`
 en la rendant sous `props.refreshing` au lieu de `props.loading` :
 
 ```vue
 <slot v-if="props.loading || props.refreshing" name="loading">
-  <div class="mrx-grid-loading-bar" aria-hidden="true" />
+  <div class="adeo-grid-loading-bar" aria-hidden="true" />
 </slot>
 ```
 
@@ -279,11 +279,11 @@ au-dessus" — comportement actuel inchangé.)
 
 | Fichier | Changement |
 |---|---|
-| `MrxGrid.vue` | + props `refreshing`, `pendingRowIds`, `pendingCells` ; + `pendingCellLookup` computed ; étendre `getCellFlags` ; étendre `loading` bar gating |
+| `AdeoGrid.vue` | + props `refreshing`, `pendingRowIds`, `pendingCells` ; + `pendingCellLookup` computed ; étendre `getCellFlags` ; étendre `loading` bar gating |
 | `types.ts` | + champ `pending?: boolean` sur `CellFlags` |
-| `MrxGridCell.vue` | + classe `mrx-cell--pending` selon `flags.pending` ; + styles overlay shimmer |
-| `MrxGridRow.vue` | + prop `pending?: boolean` + classe `mrx-grid-row--pending` + spinner |
-| `MrxGridBody.vue` | + prop `pendingRowSet` + pass-through au row |
+| `AdeoGridCell.vue` | + classe `mrx-cell--pending` selon `flags.pending` ; + styles overlay shimmer |
+| `AdeoGridRow.vue` | + prop `pending?: boolean` + classe `adeo-grid-row--pending` + spinner |
+| `AdeoGridBody.vue` | + prop `pendingRowSet` + pass-through au row |
 
 Zéro breaking change : les 3 nouveaux props sont opt-in, default `false` /
 `[]`. Les consumers qui ne touchent à rien gardent le comportement actuel.
@@ -371,6 +371,6 @@ Total ~3h30 si tout se passe bien.
    c'est dans le scope du grid ou du consumer.
 
 4. **Le composable `usePendingMutations` reste-t-il demo-only** ou on l'extrait
-   dans `@/components/MrxGrid` pour que les autres consumers en profitent ?
+   dans `@/components/AdeoGrid` pour que les autres consumers en profitent ?
    → Proposition : demo-only pour PR 1-4, extraction en PR 6 si on a un autre
    consumer qui en a besoin.

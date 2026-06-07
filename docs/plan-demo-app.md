@@ -2,10 +2,10 @@
 
 ## Objectif
 
-**Une seule page**, avec **CRUD complet en mémoire**, qui exerce **toutes** les features de MrxGrid dans un contexte applicatif réaliste. La cible est double :
+**Une seule page**, avec **CRUD complet en mémoire**, qui exerce **toutes** les features de AdeoGrid dans un contexte applicatif réaliste. La cible est double :
 
 1. **Vitrine commerciale** — quelqu'un qui ouvre l'URL voit immédiatement "tiens, ce grid sait faire tout ça".
-2. **Code de référence** — un dev qui veut intégrer MrxGrid trouve un exemple propre, commenté, copier-collable, qui couvre les patterns courants.
+2. **Code de référence** — un dev qui veut intégrer AdeoGrid trouve un exemple propre, commenté, copier-collable, qui couvre les patterns courants.
 
 ---
 
@@ -13,7 +13,7 @@
 
 | Décision | Choix |
 |---|---|
-| Base path | `/mrxgrid-app/` |
+| Base path | `/adeo-grid-app/` |
 | Mutations | **CRUD complet** sur un store en mémoire (JS array). Les modifs survivent à la navigation interne mais sont **perdues au refresh** (seed initial restauré). |
 | Theme switch | Skip |
 | Sidebar | Un seul item actif (les autres décoratifs, non-cliquables) |
@@ -172,7 +172,7 @@ src/
 │  Stock     │ │ CA mois │ Stock │ Ruptures │ Promos              ││
 │  Cmds      │ └──────────────────────────────────────────────────┘│
 │  Clients   │                                                     │
-│  Params    │ ┌─ MrxGrid (5000 lignes, server-side mocké) ──────┐│
+│  Params    │ ┌─ AdeoGrid (5000 lignes, server-side mocké) ──────┐│
 │            │ │ Toolbar : search + filters + group + density…   ││
 │            │ │ Filter row : text/select/date + slot prix       ││
 │            │ │ Header : pinned, drag, resize, sort, kebab      ││
@@ -192,7 +192,7 @@ src/
 
 ```ts
 // src/app/mock/store.ts
-import { generateLMProducts, type LMProduct } from '@/components/MrxGrid/__stories__/_fixtures'
+import { generateLMProducts, type LMProduct } from '@/components/AdeoGrid/__stories__/_fixtures'
 
 // Le store. Volontairement non-réactif (pas de ref/reactive) — c'est de la
 // donnée mockée serveur, pas du state UI. La réactivité côté UI vient des
@@ -298,11 +298,11 @@ MTextInput / MSelect / MDatepicker sous le header. Aucun code custom.
 
 ### Style 2 — Custom slot `#filter-{field}`
 ```vue
-<MrxGrid>
+<AdeoGrid>
   <template #filter-price="{ value, setValue }">
     <PriceRangeSlider :value="value" @update="setValue" />
   </template>
-</MrxGrid>
+</AdeoGrid>
 ```
 On garde la filter row inline, mais UI maison pour une colonne.
 
@@ -411,18 +411,18 @@ export default defineConfig({
 
 Build :
 ```sh
-VITE_BASE=/mrxgrid-app/ npm run build
+VITE_BASE=/adeo-grid-app/ npm run build
 ```
 
 Nginx :
 ```nginx
-location /mrxgrid/ {
-  alias /volume1/web/mrxgrid/storybook-static/;
-  try_files $uri $uri/ /mrxgrid/index.html;
+location /adeo-grid/ {
+  alias /volume1/web/adeo-grid/storybook-static/;
+  try_files $uri $uri/ /adeo-grid/index.html;
 }
-location /mrxgrid-app/ {
-  alias /volume1/web/mrxgrid/app-dist/;
-  try_files $uri $uri/ /mrxgrid-app/index.html;
+location /adeo-grid-app/ {
+  alias /volume1/web/adeo-grid/app-dist/;
+  try_files $uri $uri/ /adeo-grid-app/index.html;
 }
 ```
 
@@ -430,9 +430,9 @@ Scripts :
 ```json
 {
   "dev:all": "concurrently \"npm run dev\" \"npm run storybook\"",
-  "build:app": "VITE_BASE=/mrxgrid-app/ vue-tsc --build && vite build",
-  "build:all": "npm run build:app && STORYBOOK_BASE_PATH=/mrxgrid/ npm run build-storybook",
-  "deploy:app": "npm run build:app && rsync -avz --delete dist/ asustor:/volume1/web/mrxgrid/app-dist/"
+  "build:app": "VITE_BASE=/adeo-grid-app/ vue-tsc --build && vite build",
+  "build:all": "npm run build:app && STORYBOOK_BASE_PATH=/adeo-grid/ npm run build-storybook",
+  "deploy:app": "npm run build:app && rsync -avz --delete dist/ asustor:/volume1/web/adeo-grid/app-dist/"
 }
 ```
 
@@ -440,6 +440,6 @@ Scripts :
 
 ## TL;DR
 
-> **Une page, CRUD complet en mémoire, qui exerce toutes les features de MrxGrid.** Server-side pagination/filtres/sort, 3 styles de filtres (inline natif / slot template / AG-Grid custom), cell renderers, row expansion, bulk actions (cell + row), group, drag, pin, persist, undo/redo, density, fullscreen. Mock API avec store JS local + latence + slow network toggle. Toasts partout. Au refresh, retour au seed (zéro complexité localStorage). Code écrit pour servir d'inspiration : TS strict, Composition API, `<script setup>`, composables single-responsibility, commentaires WHY.
+> **Une page, CRUD complet en mémoire, qui exerce toutes les features de AdeoGrid.** Server-side pagination/filtres/sort, 3 styles de filtres (inline natif / slot template / AG-Grid custom), cell renderers, row expansion, bulk actions (cell + row), group, drag, pin, persist, undo/redo, density, fullscreen. Mock API avec store JS local + latence + slow network toggle. Toasts partout. Au refresh, retour au seed (zéro complexité localStorage). Code écrit pour servir d'inspiration : TS strict, Composition API, `<script setup>`, composables single-responsibility, commentaires WHY.
 
 5 PRs, ~5 jours. Go ?

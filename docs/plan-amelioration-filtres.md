@@ -1,16 +1,16 @@
-# Plan : Amélioration du système de filtres de MrxGrid (Vue 3)
+# Plan : Amélioration du système de filtres de AdeoGrid (Vue 3)
 
-> Adaptation du plan d'origine `moz-grid` (Angular) au composant **MrxGrid**
+> Adaptation du plan d'origine `moz-grid` (Angular) au composant **AdeoGrid**
 > (Vue 3 + TypeScript). Mêmes objectifs fonctionnels, idiomes Vue.
 
 ---
 
-## 0. Note d'adaptation — `moz-grid` (Angular) → MrxGrid (Vue 3)
+## 0. Note d'adaptation — `moz-grid` (Angular) → AdeoGrid (Vue 3)
 
 Le plan d'origine vise le grid Angular. Voici la correspondance des idiomes,
 appliquée dans tout ce document.
 
-| Angular (`moz-grid`) | Vue 3 (MrxGrid) |
+| Angular (`moz-grid`) | Vue 3 (AdeoGrid) |
 |---|---|
 | `signal<T>(v)` | `ref<T>(v)` |
 | `computed(() => …)` | `computed(() => …)` (identique) |
@@ -51,7 +51,7 @@ nativement avec `<component :is>`. Le §3.7 du plan Angular (la directive) n'a
 
 - `useFilterEngine.filterData()` branche déjà sur `state.mode.value === 'server'`.
   Mais `state.mode` est le mode **global** de la grid. Pire qu'en Angular : dans
-  `MrxGrid.vue`, `state.mode` est piloté par
+  `AdeoGrid.vue`, `state.mode` est piloté par
   `props.serverFilter ?? !!props.serverGrouping` — donc activer le **grouping
   serveur force le filtrage en mode serveur** et désactive l'évaluation cliente.
   Découplage nécessaire.
@@ -62,7 +62,7 @@ nativement avec `<component :is>`. Le §3.7 du plan Angular (la directive) n'a
 - `ColumnDef.filter?: FilterDef` (legacy) et `ColumnDef.filterRenderer` : ligne
   de filtre rapide. Restent intacts, hors scope.
 - `FilterEngine.lastEvent` (`Ref<FilterEvent | null>`) émet à chaque mutation ;
-  `MrxGrid.vue` le réémet via `emit('filterChange', …)`. **Aucun changement sur
+  `AdeoGrid.vue` le réémet via `emit('filterChange', …)`. **Aucun changement sur
   l'émission d'événement.**
 
 ### Ce qui manque
@@ -99,7 +99,7 @@ const filterMode = ref<FilterMode>('client')
 
 Défaut `'client'` : comportement actuel préservé, zéro breaking change.
 
-### 2.3 `MrxGrid.vue`
+### 2.3 `AdeoGrid.vue`
 
 Ajouter une prop dans le bloc `defineProps` :
 
@@ -364,7 +364,7 @@ composant via `ViewContainerRef`. **En Vue, rien de tel** : `<component :is>`
 monte un composant dynamiquement de façon native. Cette étape n'existe pas —
 le rendu se fait directement dans le template du builder (§3.8).
 
-### 3.8 `MrxGridFilterBuilder.vue` — template
+### 3.8 `AdeoGridFilterBuilder.vue` — template
 
 Le builder reçoit déjà `columns: FilterColumnDescriptor[]` (qui portent
 désormais `filterComponent`) et expose `descriptorFor(field)`.
@@ -417,13 +417,13 @@ function onCustomChange(id: string, value: FilterValue): void {
 }
 ```
 
-> `MrxGridFilterDrawer.vue` et `MrxColumnFilterOverlay.vue` rendent ce builder
+> `AdeoGridFilterDrawer.vue` et `AdeoColumnFilterOverlay.vue` rendent ce builder
 > et lui passent les descripteurs — **aucune modification** : le `filterComponent`
 > transite via le descripteur, le builder s'occupe du rendu.
 
-### 3.9 `MrxColumn.vue` — API déclarative (optionnel)
+### 3.9 `AdeoColumn.vue` — API déclarative (optionnel)
 
-Si les consumers utilisent l'API déclarative `<MrxColumn>` plutôt que la prop
+Si les consumers utilisent l'API déclarative `<AdeoColumn>` plutôt que la prop
 `:columns`, ajouter les trois props et les inclure dans le `def` calculé :
 
 ```ts
@@ -454,7 +454,7 @@ import { computed, ref } from 'vue'
 import type {
   FilterCondition,
   FilterValue,
-} from '@/components/MrxGrid'
+} from '@/components/AdeoGrid'
 
 const props = defineProps<{ condition: FilterCondition }>()
 const emit = defineEmits<{ conditionChange: [value: FilterValue] }>()
@@ -515,7 +515,7 @@ const columns: ColumnDef[] = [
 ```
 
 ```vue
-<MrxGrid
+<AdeoGrid
   :columns="columns"
   :rows="rows"
   filter-mode="server"
@@ -540,7 +540,7 @@ const columns: ColumnDef[] = [
 ```
 
 ```vue
-<MrxGrid :columns="columns" :rows="rows" filter-mode="client" />
+<AdeoGrid :columns="columns" :rows="rows" filter-mode="client" />
 <!-- filterPredicate appelé directement, aucun aller-retour serveur -->
 ```
 
@@ -556,14 +556,14 @@ const columns: ColumnDef[] = [
 | `models/filter.model.ts` | + `FilterMode` ; + `'custom'` dans `FilterDataType` ; + `MrxCustomFilterProps` / `MrxCustomFilterEmits` / `MrxCustomFilterComponent` ; + `filterComponent` / `filterIsComplete` sur `FilterColumnDescriptor` |
 | `types.ts` | + `filterComponent`, `filterPredicate`, `filterIsComplete` sur `ColumnDef` |
 | `state/useGridState.ts` | + `filterMode: Ref<FilterMode>` (interface + `ref('client')` + export) |
-| `MrxGrid.vue` | + prop `filterMode` ; + `watch` de câblage (`filterMode ?? serverFilter`) |
+| `AdeoGrid.vue` | + prop `filterMode` ; + `watch` de câblage (`filterMode ?? serverFilter`) |
 | `features/useFilterEngine.ts` | `filterData()` → `state.filterMode` ; helper interne `isComplete()` ; fonction pure `matchFormal()` ; `resolveFilterType()` et `describeColumn()` reconnaissent `'custom'` |
-| `components/overlays/MrxGridFilterBuilder.vue` | + branche `<component :is>` pour le type `'custom'` ; masquage du `<select>` opérateur ; handler `onCustomChange` |
-| `MrxColumn.vue` *(optionnel)* | + 3 props déclaratives + inclusion dans le `def` calculé |
+| `components/overlays/AdeoGridFilterBuilder.vue` | + branche `<component :is>` pour le type `'custom'` ; masquage du `<select>` opérateur ; handler `onCustomChange` |
+| `AdeoColumn.vue` *(optionnel)* | + 3 props déclaratives + inclusion dans le `def` calculé |
 
 > **Non impacté** : `isConditionComplete()` (signature publique inchangée),
-> `matchOne()` (continue de servir les quick filters), `MrxGridFilterDrawer.vue`,
-> `MrxColumnFilterOverlay.vue`, `MrxGridFilterTagsBar.vue`, la ligne de filtre
+> `matchOne()` (continue de servir les quick filters), `AdeoGridFilterDrawer.vue`,
+> `AdeoColumnFilterOverlay.vue`, `AdeoGridFilterTagsBar.vue`, la ligne de filtre
 > rapide (`FilterDef` / `filterRenderer` / slot `#filter-{field}` / `state.quickFilters`),
 > tous les autres engines, les specs existants, le watch `serverFilter → state.mode`.
 >
@@ -579,10 +579,10 @@ const columns: ColumnDef[] = [
 2. **Phase 2 — modèles + moteur** : `filter.model.ts`, `types.ts`,
    `useGridState.ts`, `useFilterEngine.ts` — compilable et testable (unit)
    sans toucher au template.
-3. **Phase 2 — UI** : branche `<component :is>` dans `MrxGridFilterBuilder.vue`
-   (+ `MrxColumn.vue` si l'API déclarative est utilisée) — intégration finale,
+3. **Phase 2 — UI** : branche `<component :is>` dans `AdeoGridFilterBuilder.vue`
+   (+ `AdeoColumn.vue` si l'API déclarative est utilisée) — intégration finale,
    à valider avec l'exemple autocomplete dans Storybook
-   (`MrxGrid.Filtering.stories.ts`).
+   (`AdeoGrid.Filtering.stories.ts`).
 
 > Tests : `useFilterEngine.spec.ts` existe déjà — l'étendre avec un cas
 > `filterMode` et un cas filtre custom (`filterPredicate` + `filterIsComplete`).

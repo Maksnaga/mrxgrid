@@ -1,7 +1,7 @@
 # Déploiement sur Asustor / Portainer
 
-Comment publier la demo app à `https://maksnaga.myasustor.com/mrxgrid/mrxgrid-app/`
-en parallèle de Storybook à `https://maksnaga.myasustor.com/mrxgrid/`, le tout
+Comment publier la demo app à `https://maksnaga.myasustor.com/adeo-grid/adeo-grid-app/`
+en parallèle de Storybook à `https://maksnaga.myasustor.com/adeo-grid/`, le tout
 via le NAS Asustor + Portainer (`http://192.168.1.10:19900`).
 
 ## Architecture
@@ -12,23 +12,23 @@ via le NAS Asustor + Portainer (`http://192.168.1.10:19900`).
 │   main push  ├──── webhook ─────►│  webhook-server (Node, port 9000)    │
 │              │                   │  → clone repo                         │
 └──────────────┘                   │  → npm run build:app  (VITE_BASE=     │
-                                   │      /mrxgrid/mrxgrid-app/)           │
+                                   │      /adeo-grid/adeo-grid-app/)           │
                                    │  → npm run build-storybook            │
                                    │  → écrit dans /output                 │
                                    │                                       │
                                    │  ┌─ volume partagé ────────────────┐ │
                                    │  │ /output/         (Storybook)    │ │
-                                   │  │ /output/mrxgrid-app/ (Vite)     │ │
-                                   │  │   = /volume1/Web/mrxgrid/       │ │
+                                   │  │ /output/adeo-grid-app/ (Vite)     │ │
+                                   │  │   = /volume1/Web/adeo-grid/       │ │
                                    │  └─────────────────────────────────┘ │
                                    │                                       │
                                    │  Web Center Asustor (port 443)        │
-                                   │  → /volume1/Web/mrxgrid/ servi        │
-                                   │    nativement à /mrxgrid/ via DDNS    │
+                                   │  → /volume1/Web/adeo-grid/ servi        │
+                                   │    nativement à /adeo-grid/ via DDNS    │
                                    │                                       │
-                                   │  → maksnaga.myasustor.com/mrxgrid/    │
-                                   │  → maksnaga.myasustor.com/mrxgrid/    │
-                                   │      mrxgrid-app/                     │
+                                   │  → maksnaga.myasustor.com/adeo-grid/    │
+                                   │  → maksnaga.myasustor.com/adeo-grid/    │
+                                   │      adeo-grid-app/                     │
                                    └───────────────────────────────────────┘
 ```
 
@@ -41,19 +41,19 @@ supplémentaire, pas de reverse proxy.
 
 ## Pré-requis
 
-Un volume Portainer `mrxgrid-output` créé en **bind mount** sur
-`/volume1/Web/mrxgrid/`. C'est ce dossier que Web Center expose à
-`/mrxgrid/`. Le container `mrxgrid-webhook` monte ce volume en `/output`.
+Un volume Portainer `adeo-grid-output` créé en **bind mount** sur
+`/volume1/Web/adeo-grid/`. C'est ce dossier que Web Center expose à
+`/adeo-grid/`. Le container `adeo-grid-webhook` monte ce volume en `/output`.
 
 ## Étape 1 — Volume partagé
 
 Dans Portainer (`http://192.168.1.10:19900`) :
 
 1. **Volumes** → **Add volume**
-2. Nom : `mrxgrid-output`
+2. Nom : `adeo-grid-output`
 3. Driver : `local`, Driver options :
    - `type=none`
-   - `device=/volume1/Web/mrxgrid`
+   - `device=/volume1/Web/adeo-grid`
    - `o=bind`
 4. Create
 
@@ -64,11 +64,11 @@ Dans Portainer (`http://192.168.1.10:19900`) :
 Sur ton poste, depuis `deploy/` :
 
 ```sh
-cd mrxgrid/deploy
-docker build -t mrxgrid-webhook:latest .
-docker save mrxgrid-webhook:latest -o mrxgrid-webhook.tar
-# Upload mrxgrid-webhook.tar sur le NAS (SMB ou web)
-# Sur le NAS via Portainer : Images → Import → upload mrxgrid-webhook.tar
+cd adeo-grid/deploy
+docker build -t adeo-grid-webhook:latest .
+docker save adeo-grid-webhook:latest -o adeo-grid-webhook.tar
+# Upload adeo-grid-webhook.tar sur le NAS (SMB ou web)
+# Sur le NAS via Portainer : Images → Import → upload adeo-grid-webhook.tar
 ```
 
 ### 2.2 — Créer le container
@@ -77,10 +77,10 @@ Dans Portainer : **Containers** → **Add container**
 
 | Champ | Valeur |
 |---|---|
-| Name | `mrxgrid-webhook` |
-| Image | `mrxgrid-webhook:latest` |
+| Name | `adeo-grid-webhook` |
+| Image | `adeo-grid-webhook:latest` |
 | Network ports | `19902:9000` |
-| Volumes | `mrxgrid-output` → `/output` (RW) |
+| Volumes | `adeo-grid-output` → `/output` (RW) |
 | Env | `WEBHOOK_SECRET=<un secret aléatoire — note-le>` |
 | Restart policy | `unless-stopped` |
 
@@ -91,7 +91,7 @@ Deploy → vérifier les logs : `[WEBHOOK] Server listening on port 9000`.
 Comme le webhook n'a pas encore tourné, lance un build à la main :
 
 ```sh
-# Depuis Portainer → mrxgrid-webhook → Console → /bin/sh
+# Depuis Portainer → adeo-grid-webhook → Console → /bin/sh
 sh /app/deploy.sh
 ```
 
@@ -99,7 +99,7 @@ Une fois le script terminé, vérifie le contenu du volume :
 
 ```sh
 ls -la /output
-# attendu : index.html (Storybook) + mrxgrid-app/
+# attendu : index.html (Storybook) + adeo-grid-app/
 ```
 
 ## Étape 3 — Vérification
@@ -108,14 +108,14 @@ Le Storybook et la demo doivent être accessibles immédiatement via Web
 Center :
 
 ```sh
-curl -I https://maksnaga.myasustor.com/mrxgrid/
+curl -I https://maksnaga.myasustor.com/adeo-grid/
 # attendu : HTTP/2 200
 
-curl -I https://maksnaga.myasustor.com/mrxgrid/mrxgrid-app/
+curl -I https://maksnaga.myasustor.com/adeo-grid/adeo-grid-app/
 # attendu : HTTP/2 200
 ```
 
-Ouvre `https://maksnaga.myasustor.com/mrxgrid/mrxgrid-app/` dans ton
+Ouvre `https://maksnaga.myasustor.com/adeo-grid/adeo-grid-app/` dans ton
 navigateur → tu vois le demo app avec ses 2 onglets (Démo + Tutoriel).
 
 ## Étape 4 — Webhook GitHub (build auto)
@@ -146,14 +146,14 @@ Une fois tout en place :
 1. Tu commit + push sur la branche `main`
 2. GitHub envoie un POST à `https://maksnaga.myasustor.com:8443/webhook`
 3. Le webhook-server clone, build le Storybook + la demo Vite, écrit dans
-   le volume `mrxgrid-output` (= `/volume1/Web/mrxgrid/`)
+   le volume `adeo-grid-output` (= `/volume1/Web/adeo-grid/`)
 4. Web Center sert les nouveaux assets immédiatement (les bundles ont un
    hash, donc pas de cache à invalider)
 
 ## Troubleshooting
 
-- **404 sur `/mrxgrid/mrxgrid-app/assets/xxx.js`** : le build s'est fait
-  sans `VITE_BASE=/mrxgrid/mrxgrid-app/`. Vérifie `deploy.sh`.
+- **404 sur `/adeo-grid/adeo-grid-app/assets/xxx.js`** : le build s'est fait
+  sans `VITE_BASE=/adeo-grid/adeo-grid-app/`. Vérifie `deploy.sh`.
 
 - **Routes Vue cassées (refresh = 404)** : Vite étant en SPA, il faut
   que Web Center renvoie `index.html` pour les routes inconnues. Si
@@ -168,5 +168,5 @@ Une fois tout en place :
   `200 Deploy started` immédiatement et continue en async.
 
 - **Storybook écrasé par la demo (ou inverse)** : si le `find` au début
-  du build n'exclut pas `mrxgrid-app`, le `cp` Storybook va virer la
-  demo. Vérifie le `find ... ! -name 'mrxgrid-app'` dans `deploy.sh`.
+  du build n'exclut pas `adeo-grid-app`, le `cp` Storybook va virer la
+  demo. Vérifie le `find ... ! -name 'adeo-grid-app'` dans `deploy.sh`.

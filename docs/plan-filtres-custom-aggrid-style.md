@@ -4,7 +4,7 @@ Référence : <https://www.ag-grid.com/vue-data-grid/component-filter/>
 
 ## État final (PR 1 → PR 4 — livré)
 
-L'API des filtres custom MrxGrid est passée d'un modèle **éclaté** (3 props sur la `ColumnDef`, méthode statique bolted-on le composant, 3 props sur le composant) à un modèle **encapsulé** :
+L'API des filtres custom AdeoGrid est passée d'un modèle **éclaté** (3 props sur la `ColumnDef`, méthode statique bolted-on le composant, 3 props sur le composant) à un modèle **encapsulé** :
 
 - **Une seule prop sur la `ColumnDef`** : `filter: { component, doesFilterPass }` (parité directe avec AG Grid).
 - **Une seule prop sur le composant** : `params` — bundle `{ model, column, filterParams, getValue, onModelChange }`.
@@ -19,7 +19,7 @@ L'API des filtres custom MrxGrid est passée d'un modèle **éclaté** (3 props 
 ### 1. Composant filtre
 
 ```ts
-import type { MrxFilterParams } from '@/components/MrxGrid'
+import type { MrxFilterParams } from '@/components/AdeoGrid'
 
 const PriceRangeFilter = defineComponent({
   props: { params: { type: Object, required: true } },
@@ -59,7 +59,7 @@ const PriceRangeFilter = defineComponent({
 ### 2. Prédicat (pure function)
 
 ```ts
-import type { MrxDoesFilterPassParams } from '@/components/MrxGrid'
+import type { MrxDoesFilterPassParams } from '@/components/AdeoGrid'
 
 const priceDoesFilterPass = (
   p: MrxDoesFilterPassParams<MyRow, PriceModel>,
@@ -171,4 +171,4 @@ label        tag bar appelle instance.getModelAsString?(model) ?? col.headerName
 
 ## TL;DR
 
-> **MrxGrid filter custom = AG Grid filter custom.** Un seul champ `filter` sur la colonne, un seul prop `params` sur le composant, un prédicat qui est de la donnée. Pas de cast TS magique, pas de méthode bolted-on, pas de cérémonie d'introspection imposée — tout est optionnel.
+> **AdeoGrid filter custom = AG Grid filter custom.** Un seul champ `filter` sur la colonne, un seul prop `params` sur le composant, un prédicat qui est de la donnée. Pas de cast TS magique, pas de méthode bolted-on, pas de cérémonie d'introspection imposée — tout est optionnel.
