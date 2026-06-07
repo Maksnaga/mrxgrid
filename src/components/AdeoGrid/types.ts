@@ -255,7 +255,7 @@ export interface SortState {
 //
 // When grouping is active, the flat renderable list contains both group-header
 // rows and data rows. Both satisfy `RowData` (Record<string, unknown>) so
-// the virtualizer works unchanged. The `__mrx` prefix avoids collisions
+// the virtualizer works unchanged. The `__adg` prefix avoids collisions
 // with user data fields.
 
 /** Metadata fields injected into group-header rows in the flat list. */

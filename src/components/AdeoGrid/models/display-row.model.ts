@@ -1,7 +1,7 @@
 /**
  * Flat display-row model — Angular parity (moz-grid).
  *
- * Kept alongside the legacy `__mrx`-prefixed flat shape used by the current
+ * Kept alongside the legacy `__adg`-prefixed flat shape used by the current
  * virtualizer. Phase 6 will decide whether to migrate the virtualizer to
  * this discriminated union or keep the flat `RowData & GroupRowMeta` shape.
  */

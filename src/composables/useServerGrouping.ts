@@ -17,7 +17,7 @@ interface GroupCache {
  * 2. Rows within an expanded group (paginated) via `fetchGroupRows`
  *
  * The composable builds a flat `RowData[]` compatible with the existing
- * virtual scroller — group headers use `__mrx` metadata, expanded groups
+ * virtual scroller — group headers use `__adg` metadata, expanded groups
  * inject real rows + skeleton placeholders for unloaded portions.
  */
 export function useServerGrouping(
@@ -182,7 +182,7 @@ export function useServerGrouping(
       if (!row) continue
       if (row.__adgSkeleton && row.__adgGroupKey) {
         const key = String(row.__adgGroupKey)
-        const offset = Number(row.__mrxOffsetInGroup ?? 0)
+        const offset = Number(row.__adgOffsetInGroup ?? 0)
         const page = Math.floor(offset / pageSize.value)
         const field = groupFields.value[0]
         const summary = groupSummaries.value.find(
@@ -254,7 +254,7 @@ export function useServerGrouping(
                 __adgType: 'row',
                 __adgDepth: 1,
                 __adgGroupKey: key,
-                __mrxOffsetInGroup: i,
+                __adgOffsetInGroup: i,
               })
             }
           }
@@ -266,7 +266,7 @@ export function useServerGrouping(
               __adgType: 'row',
               __adgDepth: 1,
               __adgGroupKey: key,
-              __mrxOffsetInGroup: i,
+              __adgOffsetInGroup: i,
             })
           }
         }

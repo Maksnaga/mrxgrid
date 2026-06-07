@@ -1341,7 +1341,7 @@ const preGroupRows = computed(() =>
 
 // --- Grouping (operates on paginated or full data) ---
 // Phase 2.7 — `useGrouping` reads/writes `gridState.groupColumns` +
-// `gridState.expandedGroups`. The legacy `RowData` output (with `__mrx*`
+// `gridState.expandedGroups`. The legacy `RowData` output (with `__adg*`
 // metadata) is preserved for `AdeoGridBody` / `AdeoGridGroupRow`. Server-side
 // grouping keeps its own state — different async lifecycle.
 const {

@@ -25,7 +25,7 @@ Regroupe les rows par valeur d'un (ou plusieurs) champ(s). Une "group row" s'ins
 
 ### Group row metadata
 
-Les rows insérées par le pipeline portent des champs préfixés \`__mrx\` pour ne pas collisionner avec les données :
+Les rows insérées par le pipeline portent des champs préfixés \`__adg\` pour ne pas collisionner avec les données :
 
 \`\`\`ts
 {

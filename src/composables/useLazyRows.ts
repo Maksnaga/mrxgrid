@@ -84,7 +84,7 @@ export function useLazyRows(options: LazyRowsOptions) {
 
   // Build the initial skeleton array.
   function buildSkeletonArray(count: number): RowData[] {
-    return Array.from({ length: count }, (_, i) => ({ __adgSkeleton: true, __mrxIndex: i }))
+    return Array.from({ length: count }, (_, i) => ({ __adgSkeleton: true, __adgIndex: i }))
   }
 
   // Watch totalRowCount and rebuild the skeleton array when it changes.
