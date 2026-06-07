@@ -3,7 +3,7 @@ import './_styles.css'
 
 <Meta title="Documentation/Tutoriel/4. Fetch + pagination serveur" />
 
-<div className="mrx-doc">
+<div className="adeo-doc">
 
 # Tutoriel — 4. Fetch + pagination serveur
 
@@ -126,7 +126,7 @@ requête en vol gagne le droit d'écrire `rows.value`**.
 ```vue
 <!-- src/views/PimList.vue -->
 <script setup lang="ts">
-import { MrxGrid } from '@mrx/grid'
+import { AdeoGrid } from '@adeo/grid'
 import { useProductList } from '@/composables/useProductList'
 import { adeoColumns } from '@/columns'
 
@@ -145,7 +145,7 @@ function retryFetch(): void {
 </script>
 
 <template>
-  <MrxGrid
+  <AdeoGrid
     :columns="adeoColumns"
     :rows="list.rows.value"
     :total-count="list.total.value"
@@ -171,7 +171,7 @@ function retryFetch(): void {
         <p>Aucun produit dans le catalogue.</p>
       </div>
     </template>
-  </MrxGrid>
+  </AdeoGrid>
 </template>
 ```
 
@@ -246,7 +246,7 @@ const { rows, total, loading, refreshing, error, page, pageSize } = storeToRefs(
 </script>
 
 <template>
-  <MrxGrid
+  <AdeoGrid
     :rows="rows"
     :total-count="total"
     :loading="loading"

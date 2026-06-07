@@ -1,4 +1,4 @@
-# MrxGrid
+# AdeoGrid
 
 A high-performance, feature-rich data grid component for Vue 3, built with the Composition API and TypeScript. Designed to handle **100,000+ rows** and **150+ columns** with smooth 60fps scrolling thanks to dual-axis virtual rendering.
 
@@ -18,9 +18,9 @@ Built on top of the [Mozaic Design System](https://mozaic.adeo.cloud/) (`@mozaic
   - [Data Pipeline](#data-pipeline)
   - [How Virtual Scrolling Works](#how-virtual-scrolling-works)
 - [API Reference](#api-reference)
-  - [MrxGrid Props](#mrxgrid-props)
-  - [MrxGrid Events](#mrxgrid-events)
-  - [MrxGrid Slots](#mrxgrid-slots)
+  - [AdeoGrid Props](#adeo-grid-props)
+  - [AdeoGrid Events](#adeo-grid-events)
+  - [AdeoGrid Slots](#adeo-grid-slots)
   - [Column Definition (ColumnDef)](#column-definition-columndef)
 - [Core Concepts](#core-concepts)
   - [Virtual Scrolling](#virtual-scrolling)
@@ -78,14 +78,14 @@ the full rationale.
 |---|---|
 | **Formula engine** | Spreadsheet-style formulas (`=SUM(A1:A10)`, `=IF(...)`, …) on columns flagged `allowFormula: true`. Tokenizer / parser / evaluator / DAG / cycle detection / 30+ built-in functions. Auto-syncs from `=…` strings baked in `props.rows`. Custom functions via `useFormulaEngine.setFunctions(…)`. |
 | **Excel-style cut/paste** | `Ctrl+X` marks the source range with marching-ants outline; `Ctrl+V` then moves (clears the source after pasting). `Esc` cancels the pending cut. |
-| **`<MrxColumn>` declarative API** | Alternative to `:columns` prop — `<MrxColumn field="..." header-name="..."><template #cell="...">…</template></MrxColumn>`. Slots wired via the registry. |
+| **`<AdeoColumn>` declarative API** | Alternative to `:columns` prop — `<AdeoColumn field="..." header-name="..."><template #cell="...">…</template></AdeoColumn>`. Slots wired via the registry. |
 | **Per-field slots** | `#cell-{field}`, `#header-{field}`, `#filter-{field}`, `#edit-{field}` resolve before the generic ones. |
 | **`<MrxFormulaBar>`** | A1-style cell label + `fx` indicator + edit input. Shows `displayFormula` when the active cell is formula-backed. Imperative `insertText()` for wiring with the reference drawer. |
 | **`<MrxFormulaReferenceDrawer>`** | Categorised list of formula functions; emits `insert` with `name + '('` for direct wiring with the formula bar. |
-| **`<MrxColumnVisibilityPanel>`** | Popover listing hidden columns with restore buttons. |
+| **`<AdeoColumnVisibilityPanel>`** | Popover listing hidden columns with restore buttons. |
 | **`<MrxKeyboardShortcutsDrawer>`** | Drawer with the full shortcut reference (FR-localised). |
 | **Variable-height virtual scroll** | `useVariableHeightVirtualScroll` engine for grids with detail rows / wrapped cells / rich group rows whose heights are unknown ahead of time. |
-| **Plugin model** | `<MrxGrid :plugins="[useMyPlugin()]">` — plugins receive `{ state, engine }` on init, return a cleanup function. |
+| **Plugin model** | `<AdeoGrid :plugins="[useMyPlugin()]">` — plugins receive `{ state, engine }` on init, return a cleanup function. |
 | **Imperative ref API** | `grid.value.exportCsv()`, `undo()`, `validateAll()`, `setFormula()`, `persistView()`, `tree.flatten()`, … See [Imperative ref API](#imperative-ref-api) below. |
 | **Auto-persist** | `persistKey` prop auto-saves columns + sorts + filters to `localStorage`; `historyId` mirrors undo/redo stacks. |
 | **Cell validation auto-run** | When any column declares `cellValidator`, the grid auto-validates on `rows`/`columns` change. |
@@ -94,8 +94,8 @@ the full rationale.
 ## Imperative ref API
 
 ```ts
-import type { MrxGrid as MrxGridType } from '@/components/MrxGrid'
-const grid = ref<InstanceType<typeof MrxGridType>>()
+import type { AdeoGrid as AdeoGridType } from '@/components/AdeoGrid'
+const grid = ref<InstanceType<typeof AdeoGridType>>()
 ```
 
 Methods exposed on the ref:
@@ -115,10 +115,10 @@ Methods exposed on the ref:
 ## Plugin example
 
 ```ts
-import type { MrxGridPlugin } from '@/components/MrxGrid'
+import type { AdeoGridPlugin } from '@/components/AdeoGrid'
 import { watch } from 'vue'
 
-export function useAuditPlugin(): MrxGridPlugin {
+export function useAuditPlugin(): AdeoGridPlugin {
   return {
     name: 'audit',
     init({ state }) {
@@ -129,7 +129,7 @@ export function useAuditPlugin(): MrxGridPlugin {
 }
 
 // usage
-<MrxGrid :plugins="[useAuditPlugin()]" />
+<AdeoGrid :plugins="[useAuditPlugin()]" />
 ```
 
 ## Formula example
@@ -196,8 +196,8 @@ npm install
 ```vue
 <script setup lang="ts">
 import { ref } from 'vue'
-import { MrxGrid } from '@/components/MrxGrid'
-import type { ColumnDef, RowData } from '@/components/MrxGrid'
+import { AdeoGrid } from '@/components/AdeoGrid'
+import type { ColumnDef, RowData } from '@/components/AdeoGrid'
 
 const columns: ColumnDef[] = [
   { field: 'id', headerName: 'ID', width: '80px' },
@@ -213,7 +213,7 @@ const rows = ref<RowData[]>([
 </script>
 
 <template>
-  <MrxGrid :columns="columns" :rows="rows" />
+  <AdeoGrid :columns="columns" :rows="rows" />
 </template>
 ```
 
@@ -226,29 +226,29 @@ For a fully-featured demo with 100k rows, lazy loading, sorting, grouping, editi
 ### Component Hierarchy
 
 ```
-MrxGrid.vue                    <-- Root orchestrator (wires ~20 composables)
+AdeoGrid.vue                    <-- Root orchestrator (wires ~20 composables)
  |
- +-- MrxGridGroupBar.vue        <-- "Grouped by: [Field] [x]" bar
- +-- MrxGridHiddenBar.vue       <-- "N columns hidden [Show all]" bar
- +-- <slot #toolbar />          <-- Optional toolbar (MrxGridToolbar)
+ +-- AdeoGridGroupBar.vue        <-- "Grouped by: [Field] [x]" bar
+ +-- AdeoGridHiddenBar.vue       <-- "N columns hidden [Show all]" bar
+ +-- <slot #toolbar />          <-- Optional toolbar (AdeoGridToolbar)
  |
- +-- MrxGridHeader.vue          <-- Sticky column headers (sort, resize, menu)
- |    +-- MrxColumnMenu.vue     <-- Per-column context menu (teleported to body)
+ +-- AdeoGridHeader.vue          <-- Sticky column headers (sort, resize, menu)
+ |    +-- AdeoColumnMenu.vue     <-- Per-column context menu (teleported to body)
  |
- +-- MrxGridGroupRow.vue        <-- Group header (when grouping is active)
- +-- MrxGridRow.vue             <-- Data row container
- |    +-- MrxGridCell.vue       <-- Individual cell (display + edit + validation)
- +-- MrxGridExpandedRow.vue     <-- Expanded row detail (slot content)
+ +-- AdeoGridGroupRow.vue        <-- Group header (when grouping is active)
+ +-- AdeoGridRow.vue             <-- Data row container
+ |    +-- AdeoGridCell.vue       <-- Individual cell (display + edit + validation)
+ +-- AdeoGridExpandedRow.vue     <-- Expanded row detail (slot content)
 ```
 
 **Companion components** (imported separately):
-- `MrxGridToolbar` -- Fullscreen, grouping, settings buttons
+- `AdeoGridToolbar` -- Fullscreen, grouping, settings buttons
 - `MrxGroupingDrawer` -- Side drawer to configure grouping
 - `MrxTableMenuDrawer` -- Side drawer for density, column visibility, column order
 
 ### Data Pipeline
 
-Data flows through a transformation pipeline inside `MrxGrid.vue`:
+Data flows through a transformation pipeline inside `AdeoGrid.vue`:
 
 ```
 props.rows
@@ -276,13 +276,13 @@ Each step is a `computed` -- Vue automatically tracks dependencies and only reco
 The grid uses a clever layout to support both virtual scrolling and sticky pinned columns:
 
 ```html
-<div class="mrx-grid-wrapper" @scroll="handleScroll">
+<div class="adeo-grid-wrapper" @scroll="handleScroll">
 
   <!-- Sticky header: position: sticky; top: 0 -->
-  <MrxGridHeader />
+  <AdeoGridHeader />
 
   <!-- Virtual body -->
-  <div class="mrx-grid-body">
+  <div class="adeo-grid-body">
 
     <!-- Sizer div: sets scrollbar height = totalCount x rowHeight -->
     <div :style="{ height: totalHeight + 'px' }">
@@ -291,7 +291,7 @@ The grid uses a clever layout to support both virtual scrolling and sticky pinne
       <div :style="{ height: offsetY + 'px' }" />
 
       <!-- Only the visible rows are rendered here -->
-      <MrxGridRow v-for="i in renderRange" :key="i" ... />
+      <AdeoGridRow v-for="i in renderRange" :key="i" ... />
 
     </div>
   </div>
@@ -308,7 +308,7 @@ All rows and the header have `min-width: totalContentWidth`. This gives sticky (
 
 ## API Reference
 
-### MrxGrid Props
+### AdeoGrid Props
 
 | Prop | Type | Default | Description |
 |---|---|---|---|
@@ -333,7 +333,7 @@ All rows and the header have `min-width: totalContentWidth`. This gives sticky (
 | `density` | `'compact' \| 'default' \| 'comfortable'` | `'default'` | Row height preset |
 | `fullscreen` | `boolean` | `false` | Fullscreen mode |
 
-### MrxGrid Events
+### AdeoGrid Events
 
 | Event | Payload | Description |
 |---|---|---|
@@ -343,23 +343,23 @@ All rows and the header have `min-width: totalContentWidth`. This gives sticky (
 | `fill` | `FillEvent` | Fill handle drag completed |
 | `columnMenuAction` | `ColumnMenuAction` | Column menu action triggered |
 
-### MrxGrid Slots
+### AdeoGrid Slots
 
 #### `#toolbar`
 
-Place a toolbar above the grid header. Typically used with `MrxGridToolbar`:
+Place a toolbar above the grid header. Typically used with `AdeoGridToolbar`:
 
 ```vue
-<MrxGrid ...>
+<AdeoGrid ...>
   <template #toolbar>
-    <MrxGridToolbar
+    <AdeoGridToolbar
       :fullscreen="isFullscreen"
       @toggle-fullscreen="toggleFullscreen"
       @open-grouping="groupingDrawerOpen = true"
       @open-settings="settingsDrawerOpen = true"
     />
   </template>
-</MrxGrid>
+</AdeoGrid>
 ```
 
 #### `#cell`
@@ -367,7 +367,7 @@ Place a toolbar above the grid header. Typically used with `MrxGridToolbar`:
 Customize how cells render and edit. Receives the full cell context:
 
 ```vue
-<MrxGrid ...>
+<AdeoGrid ...>
   <template #cell="{ value, field, editing, editValue, updateValue, commit, cancel }">
     <!-- Custom editor for the "role" column -->
     <template v-if="field === 'role'">
@@ -383,7 +383,7 @@ Customize how cells render and edit. Receives the full cell context:
 
     <!-- Default behavior for other columns (return nothing = built-in fallback) -->
   </template>
-</MrxGrid>
+</AdeoGrid>
 ```
 
 **Slot props:**
@@ -408,14 +408,14 @@ Customize how cells render and edit. Receives the full cell context:
 Custom content shown when a row is expanded:
 
 ```vue
-<MrxGrid expandable ...>
+<AdeoGrid expandable ...>
   <template #expand-row="{ row }">
     <div>
       <h3>Details for {{ row.name }}</h3>
       <p>{{ row.description }}</p>
     </div>
   </template>
-</MrxGrid>
+</AdeoGrid>
 ```
 
 ### Column Definition (ColumnDef)
@@ -614,7 +614,7 @@ Group headers show:
 
 ```typescript
 // Type guard to check if a row is a group header:
-import { isGroupRow } from '@/components/MrxGrid'
+import { isGroupRow } from '@/components/AdeoGrid'
 
 if (isGroupRow(row)) {
   console.log(row.__mrxField)   // "status"
@@ -661,7 +661,7 @@ A visual drop indicator shows where the column will land. The drag activates aft
 
 ### Column Visibility
 
-Hide columns via the column menu (right-click a header) or the settings drawer. A `MrxGridHiddenBar` appears above the grid showing how many columns are hidden with a "Show all" button.
+Hide columns via the column menu (right-click a header) or the settings drawer. A `AdeoGridHiddenBar` appears above the grid showing how many columns are hidden with a "Show all" button.
 
 ### Row Selection
 
@@ -671,7 +671,7 @@ When `selectable` is true, each row gets a checkbox. The header checkbox has thr
 - **Checked:** All rows selected
 
 ```vue
-<MrxGrid selectable v-model:selected-rows="selected" ...>
+<AdeoGrid selectable v-model:selected-rows="selected" ...>
 ```
 
 ### Row Expansion
@@ -679,11 +679,11 @@ When `selectable` is true, each row gets a checkbox. The header checkbox has thr
 When `expandable` is true, each row gets an expand button. Provide the `#expand-row` slot to render custom detail content:
 
 ```vue
-<MrxGrid expandable ...>
+<AdeoGrid expandable ...>
   <template #expand-row="{ row }">
     <pre>{{ JSON.stringify(row, null, 2) }}</pre>
   </template>
-</MrxGrid>
+</AdeoGrid>
 ```
 
 ### Data Density
@@ -721,7 +721,7 @@ When density changes, scroll position is preserved proportionally (the first vis
 
 ## Composables Deep Dive
 
-The grid's features are split into focused composables, each owning one concern. They are all wired together in `MrxGrid.vue`.
+The grid's features are split into focused composables, each owning one concern. They are all wired together in `AdeoGrid.vue`.
 
 ### useVirtualScroll
 
@@ -779,7 +779,7 @@ Architecture:
     5. Bump version counter -> rows recomputes
          |
          v
-  MrxGrid (receives dense rows array)
+  AdeoGrid (receives dense rows array)
 ```
 
 The sparse cache (`Map<number, RowData>`) avoids making 100k entries reactive. A version counter (`shallowRef`) is bumped after each cache write, triggering the `rows` computed to rebuild from the cache.
@@ -894,7 +894,7 @@ Teleports dropdown listboxes to `<body>` with `position: fixed`. Used for combob
 
 ## Performance Patterns
 
-These are the key patterns that make MrxGrid handle 100k+ rows at 60fps:
+These are the key patterns that make AdeoGrid handle 100k+ rows at 60fps:
 
 | Pattern | Why |
 |---|---|
@@ -906,7 +906,7 @@ These are the key patterns that make MrxGrid handle 100k+ rows at 60fps:
 | **Binary search for columns** | O(log n) to find first visible column during horizontal scroll. |
 | **RAF throttling** | Multiple scroll events between paints collapse to one column recompute. |
 | **Group tree memoization** | Tree build runs O(n x d) only when rows/groupFields change. Flatten runs O(visible). |
-| **Single getCellFlags call** | MrxGridRow calls `getCellFlags` once per cell, not 7x (once per visual flag). |
+| **Single getCellFlags call** | AdeoGridRow calls `getCellFlags` once per cell, not 7x (once per visual flag). |
 | **Max rendered cap (80)** | Prevents DOM overload when row height is very small (compact density). |
 | **`contain: layout style paint`** | CSS containment on each cell: browser can skip layout/paint for off-screen cells. |
 | **`contain: size layout style`** | On editing cells: prevents editor content (combobox, input) from expanding the row height. |

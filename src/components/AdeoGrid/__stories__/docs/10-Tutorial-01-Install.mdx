@@ -3,12 +3,12 @@ import './_styles.css'
 
 <Meta title="Documentation/Tutoriel/1. Installation" />
 
-<div className="mrx-doc">
+<div className="adeo-doc">
 
 # Tutoriel — 1. Installation et premier rendu
 
 > On part de zéro. À la fin de cette page tu as un projet Vue 3 + Vite +
-> TypeScript qui affiche un grid `MrxGrid` vide à l'écran.
+> TypeScript qui affiche un grid `AdeoGrid` vide à l'écran.
 
 ## Pré-requis
 
@@ -29,14 +29,14 @@ cd mon-projet
 npm install
 ```
 
-## 2. Installer mrxgrid + Mozaic
+## 2. Installer adeo-grid + Mozaic
 
 ```bash
-npm install @mrx/grid @mozaic-ds/vue @mozaic-ds/icons-vue @mozaic-ds/styles
+npm install @adeo/grid @mozaic-ds/vue @mozaic-ds/icons-vue @mozaic-ds/styles
 ```
 
 `@mozaic-ds/styles` est obligatoire — c'est de là que viennent les
-tokens (couleurs, spacings) que `MrxGrid` consomme via CSS variables.
+tokens (couleurs, spacings) que `AdeoGrid` consomme via CSS variables.
 
 <div className="callout callout--warn">
 
@@ -56,14 +56,14 @@ import App from './App.vue'
 // Mozaic — tokens + composants
 import '@mozaic-ds/styles/scss/main.scss'
 
-// mrxgrid — styles internes du grid
-import '@mrx/grid/styles.scss'
+// adeo-grid — styles internes du grid
+import '@adeo/grid/styles.scss'
 
 createApp(App).mount('#app')
 ```
 
 L'ordre compte : Mozaic d'abord (les CSS vars sont définies), puis
-mrxgrid qui les consomme. Inverse l'ordre et le grid utilise des
+adeo-grid qui les consomme. Inverse l'ordre et le grid utilise des
 fallbacks au lieu des couleurs Adeo.
 
 ## 4. Premier composant
@@ -71,14 +71,14 @@ fallbacks au lieu des couleurs Adeo.
 ```vue
 <!-- src/App.vue -->
 <script setup lang="ts">
-import { MrxGrid, type ColumnDef } from '@mrx/grid'
+import { AdeoGrid, type ColumnDef } from '@adeo/grid'
 
 const columns: ColumnDef[] = []
 const rows: unknown[] = []
 </script>
 
 <template>
-  <MrxGrid :columns="columns" :rows="rows" :height="640" />
+  <AdeoGrid :columns="columns" :rows="rows" :height="640" />
 </template>
 ```
 
@@ -98,12 +98,12 @@ prop initial.
 ## 5. Vérifier la console
 
 Ouvre la console navigateur. Tu ne dois voir **aucun** warning Vue ou
-mrxgrid. Si tu en vois :
+adeo-grid. Si tu en vois :
 
 - `Failed to resolve component: MTag` → tu as oublié d'installer
   `@mozaic-ds/vue`.
 - `Cannot read property 'value' of undefined` sur un computed Mozaic
-  → tu as oublié `@mozaic-ds/styles` ou tu l'as importé après mrxgrid.
+  → tu as oublié `@mozaic-ds/styles` ou tu l'as importé après adeo-grid.
 - `[Vue warn]: Invalid prop: type check failed for prop "columns"` →
   ta variable `columns` n'est pas un array (revérifie le `const`).
 

@@ -3,7 +3,7 @@ import './_styles.css'
 
 <Meta title="Documentation/Tutoriel/8. Gotchas (annexe)" />
 
-<div className="mrx-doc">
+<div className="adeo-doc">
 
 # Tutoriel — 8. Gotchas (annexe)
 
@@ -39,7 +39,7 @@ quand aucun filter actif). La lib bump un `dataVersion` interne dans
 en dehors de la lib, fais le bump à la main :**
 
 ```ts
-import { useGridState } from '@mrx/grid'
+import { useGridState } from '@adeo/grid'
 
 const state = useGridState()
 row.field = newValue
@@ -114,7 +114,7 @@ tu mets `cellEditor: 'date'`.
 
 ---
 
-## mrxgrid — comportements à connaître
+## adeo-grid — comportements à connaître
 
 ### Le label header s'affiche avec ellipsis quand serré
 
@@ -203,7 +203,7 @@ props.rows.push(newProduct)
 
 À la place, le parent gère son state et passe une nouvelle référence.
 
-### ❌ Importer toute la lib Mozaic dans `<MrxGrid>`
+### ❌ Importer toute la lib Mozaic dans `<AdeoGrid>`
 
 La lib importe ce dont elle a besoin (MTag pour le renderer 'tag',
 MDrawer pour les drawers internes). **Ne ré-importe pas** Mozaic dans

@@ -1,7 +1,7 @@
-# MONOREPO SETUP — `mrx-grid-monorepo`
+# MONOREPO SETUP — `adeo-grid-monorepo`
 
 > Guide pas-à-pas pour migrer les deux repos existants (`mozaic-ng`
-> Angular + `mrxgrid` Vue) dans un seul monorepo, avec packages
+> Angular + `adeo-grid` Vue) dans un seul monorepo, avec packages
 > partagés et un Storybook unique qui compose les deux libs.
 >
 > **Stack** : pnpm workspaces + Turborepo + Storybook Composition.
@@ -30,7 +30,7 @@
 ## 1. Vision et architecture cible
 
 ```
-mrx-grid-monorepo/
+adeo-grid-monorepo/
 ├── .changeset/                       ← versioning géré par Changesets
 ├── .github/workflows/                ← CI GitHub Actions
 ├── .turbo/                           ← cache local Turbo (gitignored)
@@ -39,20 +39,20 @@ mrx-grid-monorepo/
 │   │   ├── projects/mozaic-ng/grid/  ← lib Angular
 │   │   ├── .storybook/
 │   │   ├── angular.json
-│   │   └── package.json              ← `@mrx/grid-angular`
-│   ├── grid-vue/                     ← ex-`mrxgrid`
-│   │   ├── src/components/MrxGrid/
+│   │   └── package.json              ← `@adeo/grid-angular`
+│   ├── grid-vue/                     ← ex-`adeo-grid`
+│   │   ├── src/components/AdeoGrid/
 │   │   ├── .storybook/
 │   │   ├── vite.config.ts
-│   │   └── package.json              ← `@mrx/grid-vue`
+│   │   └── package.json              ← `@adeo/grid-vue`
 │   └── storybook-portal/             ← agrégateur
 │       ├── .storybook/main.ts        ← `refs` vers les 2 SB
 │       ├── stories/                  ← doc transverse (tuto, spec)
 │       └── package.json
 ├── packages/
-│   ├── spec/                         ← `@mrx/spec` — chapitres .md
-│   ├── types/                        ← `@mrx/types` — ColumnDef, etc.
-│   └── mocks/                        ← `@mrx/mocks` — fixtures + JSON
+│   ├── spec/                         ← `@adeo/spec` — chapitres .md
+│   ├── types/                        ← `@adeo/types` — ColumnDef, etc.
+│   └── mocks/                        ← `@adeo/mocks` — fixtures + JSON
 ├── pnpm-workspace.yaml
 ├── turbo.json
 ├── tsconfig.base.json
@@ -67,7 +67,7 @@ mrx-grid-monorepo/
 - **`packages/*`** — code partagé consommé par plusieurs apps. Versionné
   avec Changesets, publié sur ton registry npm interne si besoin.
 - **`pnpm-workspace.yaml`** — déclare les répertoires qui sont des
-  packages workspace (ce qui rend `@mrx/types` accessible depuis
+  packages workspace (ce qui rend `@adeo/types` accessible depuis
   `apps/grid-vue`).
 - **`turbo.json`** — décrit les tâches (build / test / storybook /
   lint) et leurs dépendances pour orchestrer le rebuild incremental.
@@ -103,8 +103,8 @@ npm install -g turbo
 ### 3.1 Créer le repo
 
 ```bash
-mkdir mrx-grid-monorepo
-cd mrx-grid-monorepo
+mkdir adeo-grid-monorepo
+cd adeo-grid-monorepo
 git init
 echo "node_modules/\n.turbo/\ndist/\n*.log\n.DS_Store" > .gitignore
 ```
@@ -113,7 +113,7 @@ echo "node_modules/\n.turbo/\ndist/\n*.log\n.DS_Store" > .gitignore
 
 ```json
 {
-  "name": "mrx-grid-monorepo",
+  "name": "adeo-grid-monorepo",
   "version": "0.0.0",
   "private": true,
   "packageManager": "pnpm@9.15.0",
@@ -126,7 +126,7 @@ echo "node_modules/\n.turbo/\ndist/\n*.log\n.DS_Store" > .gitignore
     "test": "turbo run test",
     "lint": "turbo run lint",
     "storybook": "turbo run storybook",
-    "storybook:portal": "pnpm --filter @mrx/storybook-portal storybook",
+    "storybook:portal": "pnpm --filter @adeo/storybook-portal storybook",
     "clean": "turbo run clean && rm -rf node_modules .turbo",
     "format": "prettier --write .",
     "changeset": "changeset",
@@ -229,17 +229,17 @@ Config TS partagée que tous les apps/packages **étendent** :
     "declarationMap": true,
     "sourceMap": true,
     "paths": {
-      "@mrx/types": ["./packages/types/src/index.ts"],
-      "@mrx/types/*": ["./packages/types/src/*"],
-      "@mrx/mocks": ["./packages/mocks/src/index.ts"],
-      "@mrx/mocks/*": ["./packages/mocks/src/*"]
+      "@adeo/types": ["./packages/types/src/index.ts"],
+      "@adeo/types/*": ["./packages/types/src/*"],
+      "@adeo/mocks": ["./packages/mocks/src/index.ts"],
+      "@adeo/mocks/*": ["./packages/mocks/src/*"]
     }
   }
 }
 ```
 
 **Astuce** : les `paths` permettent à n'importe quel app de faire
-`import { ColumnDef } from '@mrx/types'` sans avoir à exposer un
+`import { ColumnDef } from '@adeo/types'` sans avoir à exposer un
 sub-path complet.
 
 ### 3.6 Init pnpm
@@ -287,7 +287,7 @@ rm -rf apps/grid-angular/.git
 
 ```json
 {
-  "name": "@mrx/grid-angular",
+  "name": "@adeo/grid-angular",
   "version": "0.0.0",
   "private": true,
   "scripts": {
@@ -299,8 +299,8 @@ rm -rf apps/grid-angular/.git
   },
   "dependencies": {
     "@angular/core": "^18.0.0",
-    "@mrx/types": "workspace:*",
-    "@mrx/mocks": "workspace:*"
+    "@adeo/types": "workspace:*",
+    "@adeo/mocks": "workspace:*"
   }
 }
 ```
@@ -325,13 +325,13 @@ au lieu du registry npm.
 }
 ```
 
-`extends` hérite des `paths` (`@mrx/types`, `@mrx/mocks`) du base.
+`extends` hérite des `paths` (`@adeo/types`, `@adeo/mocks`) du base.
 
 ### 4.4 Vérification
 
 ```bash
 pnpm install                                # met à jour le lockfile root
-pnpm --filter @mrx/grid-angular build       # build via Turbo + Angular
+pnpm --filter @adeo/grid-angular build       # build via Turbo + Angular
 ```
 
 ### 4.5 Commit
@@ -350,7 +350,7 @@ Même procédure que Phase 2.
 ### 5.1 Subtree
 
 ```bash
-git remote add grid-vue-source git@github.com:maksnaga/mrxgrid.git
+git remote add grid-vue-source git@github.com:maksnaga/adeo-grid.git
 git fetch grid-vue-source
 git subtree add --prefix=apps/grid-vue grid-vue-source main --squash
 ```
@@ -359,7 +359,7 @@ git subtree add --prefix=apps/grid-vue grid-vue-source main --squash
 
 ```json
 {
-  "name": "@mrx/grid-vue",
+  "name": "@adeo/grid-vue",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -373,8 +373,8 @@ git subtree add --prefix=apps/grid-vue grid-vue-source main --squash
   "dependencies": {
     "vue": "^3.5.0",
     "@mozaic-ds/vue": "^2.19.1",
-    "@mrx/types": "workspace:*",
-    "@mrx/mocks": "workspace:*"
+    "@adeo/types": "workspace:*",
+    "@adeo/mocks": "workspace:*"
   }
 }
 ```
@@ -404,17 +404,17 @@ ceux du package partagé :
 import type { ColumnDef } from '../types'
 
 // APRÈS
-import type { ColumnDef } from '@mrx/types'
+import type { ColumnDef } from '@adeo/types'
 ```
 
-(Voir Phase 4 pour comment `@mrx/types` est créé.)
+(Voir Phase 4 pour comment `@adeo/types` est créé.)
 
 ### 5.5 Vérification
 
 ```bash
 pnpm install
-pnpm --filter @mrx/grid-vue build
-pnpm --filter @mrx/grid-vue test
+pnpm --filter @adeo/grid-vue build
+pnpm --filter @adeo/grid-vue test
 ```
 
 ### 5.6 Commit
@@ -428,10 +428,10 @@ git commit -m "feat(monorepo): migrate grid-vue into apps/"
 
 ## 6. Phase 4 — Créer les packages partagés
 
-### 6.1 `packages/types/` — `@mrx/types`
+### 6.1 `packages/types/` — `@adeo/types`
 
 Les contrats TypeScript partagés entre Angular et Vue. C'est le code
-qu'on a déjà côté `mrxgrid/src/components/MrxGrid/types.ts` — on le
+qu'on a déjà côté `adeo-grid/src/components/AdeoGrid/types.ts` — on le
 remonte en package.
 
 ```bash
@@ -443,7 +443,7 @@ cd packages/types
 
 ```json
 {
-  "name": "@mrx/types",
+  "name": "@adeo/types",
   "version": "0.1.0",
   "type": "module",
   "main": "./src/index.ts",
@@ -507,7 +507,7 @@ export * from './selection'
 ```
 
 `packages/types/src/column.ts` (extrait — copier depuis
-`mrxgrid/src/components/MrxGrid/types.ts`) :
+`adeo-grid/src/components/AdeoGrid/types.ts`) :
 
 ```ts
 export interface ColumnDef<T = unknown> {
@@ -533,7 +533,7 @@ export interface RowData {
 }
 ```
 
-### 6.2 `packages/mocks/` — `@mrx/mocks`
+### 6.2 `packages/mocks/` — `@adeo/mocks`
 
 Pour partager les fixtures (le JSON Adeo PIM par exemple) entre les
 deux Storybooks et les tests des deux apps.
@@ -546,7 +546,7 @@ mkdir -p packages/mocks/src
 
 ```json
 {
-  "name": "@mrx/mocks",
+  "name": "@adeo/mocks",
   "version": "0.1.0",
   "type": "module",
   "main": "./src/index.ts",
@@ -569,7 +569,7 @@ export interface AdeoProduct {
   id: number
   adeoKey: string
   productBrand: string | null
-  // … (re-définir ou importer depuis @mrx/types)
+  // … (re-définir ou importer depuis @adeo/types)
   [key: string]: unknown
 }
 
@@ -583,9 +583,9 @@ export function generateLMProducts(count: number) {
 
 Copie le JSON depuis `apps/grid-vue/src/app/mock/adeo-products.json`
 vers `packages/mocks/src/adeo-products.json`, puis dans `grid-vue`
-remplace l'import par `import { ADEO_PRODUCTS } from '@mrx/mocks'`.
+remplace l'import par `import { ADEO_PRODUCTS } from '@adeo/mocks'`.
 
-### 6.3 `packages/spec/` — `@mrx/spec`
+### 6.3 `packages/spec/` — `@adeo/spec`
 
 Les chapitres Markdown de mutualisation (cf. le `plan.md` qu'on a
 écrit avant). Pas de code, juste de la doc.
@@ -600,7 +600,7 @@ cp /path/to/plan.md packages/spec/00-overview/00-vision.md
 
 ```json
 {
-  "name": "@mrx/spec",
+  "name": "@adeo/spec",
   "version": "0.1.0",
   "private": true,
   "files": ["**/*.md"]
@@ -616,8 +616,8 @@ Dans `apps/grid-vue/package.json` :
 
 ```json
 "dependencies": {
-  "@mrx/types": "workspace:*",
-  "@mrx/mocks": "workspace:*"
+  "@adeo/types": "workspace:*",
+  "@adeo/mocks": "workspace:*"
 }
 ```
 
@@ -631,7 +631,7 @@ Vérifie qu'un import marche :
 
 ```ts
 // apps/grid-vue/src/composables/useColumns.ts
-import type { ColumnDef } from '@mrx/types'
+import type { ColumnDef } from '@adeo/types'
 // ↑ TS résout via les `paths` du tsconfig.base.json
 ```
 
@@ -662,7 +662,7 @@ pnpm init
 
 ```json
 {
-  "name": "@mrx/storybook-portal",
+  "name": "@adeo/storybook-portal",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -762,7 +762,7 @@ apps/storybook-portal/stories/
 └── spec/
     ├── 00-Vision.mdx
     ├── 10-Rows.mdx
-    └── ...                          ← chapitres de @mrx/spec
+    └── ...                          ← chapitres de @adeo/spec
 ```
 
 Pour les chapitres de spec, tu peux soit copier les `.mdx` à la main,
@@ -773,13 +773,13 @@ build time.
 
 ```bash
 # Terminal 1 — Storybook Angular
-pnpm --filter @mrx/grid-angular storybook    # → http://localhost:6007
+pnpm --filter @adeo/grid-angular storybook    # → http://localhost:6007
 
 # Terminal 2 — Storybook Vue
-pnpm --filter @mrx/grid-vue storybook         # → http://localhost:6006
+pnpm --filter @adeo/grid-vue storybook         # → http://localhost:6006
 
 # Terminal 3 — Portal qui les agrège
-pnpm --filter @mrx/storybook-portal storybook # → http://localhost:6010
+pnpm --filter @adeo/storybook-portal storybook # → http://localhost:6010
 ```
 
 Ouvre `http://localhost:6010`. Tu vois :
@@ -940,12 +940,12 @@ comme en dev.
 
 Avec Turbo Remote Cache activé :
 
-- PR #1 d'Alice touche `apps/grid-vue/MrxGridCell.vue` → build complet
+- PR #1 d'Alice touche `apps/grid-vue/AdeoGridCell.vue` → build complet
   cache miss (~2 min).
-- PR #2 de Bob touche `apps/grid-vue/MrxGridHeader.vue` → cache hit
-  sur `@mrx/types`, `@mrx/mocks`, `@mrx/grid-angular`, `@mrx/storybook-portal`.
-  Build seulement `@mrx/grid-vue` (~30 sec).
-- PR #3 de Charlie modifie un .md de `@mrx/spec` → cache hit total
+- PR #2 de Bob touche `apps/grid-vue/AdeoGridHeader.vue` → cache hit
+  sur `@adeo/types`, `@adeo/mocks`, `@adeo/grid-angular`, `@adeo/storybook-portal`.
+  Build seulement `@adeo/grid-vue` (~30 sec).
+- PR #3 de Charlie modifie un .md de `@adeo/spec` → cache hit total
   (la spec ne fait pas partie de la chaîne de build des libs). CI
   finit en ~10 sec.
 
@@ -963,13 +963,13 @@ pnpm install
 pnpm dev
 
 # Dev — focus sur Vue uniquement
-pnpm --filter @mrx/grid-vue storybook
+pnpm --filter @adeo/grid-vue storybook
 
 # Build une lib
-pnpm --filter @mrx/grid-vue build
+pnpm --filter @adeo/grid-vue build
 
 # Test une lib
-pnpm --filter @mrx/grid-vue test
+pnpm --filter @adeo/grid-vue test
 
 # Build tout
 pnpm build
@@ -987,7 +987,7 @@ Quand tu modifies `packages/types/src/column.ts` :
 
 - Les apps consumers voient **immédiatement** le changement (TS pointe
   sur les sources via les `paths` du tsconfig.base.json).
-- Pas besoin de rebuild manuellement `@mrx/types`.
+- Pas besoin de rebuild manuellement `@adeo/types`.
 - Le typecheck dans les apps reflète instantanément la nouvelle
   interface.
 
@@ -997,7 +997,7 @@ Tu veux toucher uniquement Vue et tu n'as pas envie d'avoir Angular
 installé localement :
 
 ```bash
-pnpm install --filter "@mrx/grid-vue..."
+pnpm install --filter "@adeo/grid-vue..."
 ```
 
 `...` = "ce package + ses dépendances" (pas les autres apps). Tu
@@ -1007,10 +1007,10 @@ n'installes pas `@angular/*`.
 
 ```bash
 # À une app spécifique
-pnpm --filter @mrx/grid-vue add lodash-es
+pnpm --filter @adeo/grid-vue add lodash-es
 
 # À un package partagé
-pnpm --filter @mrx/types add -D some-dev-dep
+pnpm --filter @adeo/types add -D some-dev-dep
 
 # À la racine (dev tools : prettier, husky, etc.)
 pnpm add -wD prettier
@@ -1043,11 +1043,11 @@ Crée `.changeset/config.json` :
   "changelog": "@changesets/cli/changelog",
   "commit": false,
   "fixed": [],
-  "linked": [["@mrx/grid-vue", "@mrx/grid-angular"]],
+  "linked": [["@adeo/grid-vue", "@adeo/grid-angular"]],
   "access": "restricted",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
-  "ignore": ["@mrx/storybook-portal"]
+  "ignore": ["@adeo/storybook-portal"]
 }
 ```
 
@@ -1087,7 +1087,7 @@ pnpm changeset publish   # publie sur le registry npm
 
 ### Q. Mon collègue ne veut bosser que sur Vue, doit-il installer Angular ?
 
-Non. `pnpm install --filter "@mrx/grid-vue..."` installe uniquement le
+Non. `pnpm install --filter "@adeo/grid-vue..."` installe uniquement le
 sous-graphe nécessaire. Angular et ses peer deps sont skipped.
 
 ### Q. TypeScript de mon Angular est en 5.4 et celui de Vue est en 5.6, problème ?
@@ -1096,9 +1096,9 @@ Non, chaque app a son `tsconfig.json` qui `extends` la base. Si tu as
 besoin de versions TS différentes, déclare-les dans les `devDependencies`
 de chaque app, pnpm résout indépendamment.
 
-**Exception** : `@mrx/types` est consommé par les deux. Vise la
+**Exception** : `@adeo/types` est consommé par les deux. Vise la
 **version la plus basse** des deux apps pour le compilateur de
-`@mrx/types`. Sinon, l'app sur l'ancienne version ne pourra pas
+`@adeo/types`. Sinon, l'app sur l'ancienne version ne pourra pas
 lire les `.d.ts` générés.
 
 ### Q. Comment je gère les versions de Storybook (10 côté Vue, 9 côté Angular) ?
@@ -1116,7 +1116,7 @@ Vérifie :
 - Pas de `cache: false` indésiré dans `turbo.json` (sauf sur dev
   servers).
 
-### Q. Comment publier `@mrx/types` sur un registry privé Adeo (jfrog) ?
+### Q. Comment publier `@adeo/types` sur un registry privé Adeo (jfrog) ?
 
 Dans `packages/types/package.json` :
 
@@ -1142,12 +1142,12 @@ Le secret `NPM_TOKEN` est injecté en CI.
 mkdir apps/grid-react
 cd apps/grid-react
 pnpm init
-# → installe @mrx/types, @mrx/mocks
+# → installe @adeo/types, @adeo/mocks
 # → écrit le Storybook React
 # → ajoute son URL dans storybook-portal/.storybook/main.ts refs
 ```
 
-C'est tout. La spec `@mrx/spec` te donne déjà toutes les sémantiques
+C'est tout. La spec `@adeo/spec` te donne déjà toutes les sémantiques
 à implémenter.
 
 ### Q. Comment migrer si j'ai des PRs en cours sur les repos sources ?
@@ -1171,15 +1171,15 @@ Causes possibles :
   le gère automatiquement en dev. En prod, sers les 3 SB sur le même
   domaine.
 
-### Q. Comment je rollback un changement breaking de `@mrx/types` ?
+### Q. Comment je rollback un changement breaking de `@adeo/types` ?
 
 ```bash
 git revert <sha-du-commit>
 pnpm changeset
-# → "@mrx/types": patch — "revert breaking change in ColumnDef.editable"
+# → "@adeo/types": patch — "revert breaking change in ColumnDef.editable"
 ```
 
-La PR de version bumpera `@mrx/types` d'un patch et les deux libs
+La PR de version bumpera `@adeo/types` d'un patch et les deux libs
 suivront.
 
 ---

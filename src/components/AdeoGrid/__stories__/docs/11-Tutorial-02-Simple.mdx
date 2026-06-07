@@ -3,7 +3,7 @@ import './_styles.css'
 
 <Meta title="Documentation/Tutoriel/2. Tableau simple" />
 
-<div className="mrx-doc">
+<div className="adeo-doc">
 
 # Tutoriel — 2. Tableau simple
 
@@ -45,7 +45,7 @@ activer.
 
 ```ts
 // src/columns.ts
-import type { ColumnDef } from '@mrx/grid'
+import type { ColumnDef } from '@adeo/grid'
 import type { Product } from './types'
 
 export const productColumns: ColumnDef<Product>[] = [
@@ -138,13 +138,13 @@ export const products: Product[] = [
 ```vue
 <!-- src/App.vue -->
 <script setup lang="ts">
-import { MrxGrid } from '@mrx/grid'
+import { AdeoGrid } from '@adeo/grid'
 import { productColumns } from './columns'
 import { products } from './data'
 </script>
 
 <template>
-  <MrxGrid
+  <AdeoGrid
     :columns="productColumns"
     :rows="products"
     :row-id="(row) => String(row.id)"
@@ -200,11 +200,11 @@ Pas de wiring à faire — c'est inclus par défaut. Si tu veux les
 contenu (vide ou custom).
 
 ```vue
-<MrxGrid :columns="…" :rows="…">
+<AdeoGrid :columns="…" :rows="…">
   <template #toolbar>
     <!-- vide : pas de toolbar du tout -->
   </template>
-</MrxGrid>
+</AdeoGrid>
 ```
 
 ## Prochaine étape

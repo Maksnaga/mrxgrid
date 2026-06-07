@@ -3,7 +3,7 @@ import './_styles.css'
 
 <Meta title="Documentation/Tutoriel/7. Bulk actions et sélection" />
 
-<div className="mrx-doc">
+<div className="adeo-doc">
 
 # Tutoriel — 7. Bulk actions et sélection
 
@@ -14,7 +14,7 @@ import './_styles.css'
 ## 1. Activer la sélection
 
 ```vue
-<MrxGrid
+<AdeoGrid
   …
   selectable
   selection-bar-compact
@@ -61,7 +61,7 @@ function selectionCount(sel: SelectionModel, total: number): number {
 ## 2. Gérer la sélection côté composant
 
 ```ts
-import type { SelectionModel } from '@mrx/grid'
+import type { SelectionModel } from '@adeo/grid'
 
 const selectionIds = ref<number[]>([])
 
@@ -149,7 +149,7 @@ de la grille (ou flotte en bas du viewport en compact mode) :
 Tu peux remplacer entièrement cette barre par ton propre composant :
 
 ```vue
-<MrxGrid …>
+<AdeoGrid …>
   <template #action-bar="{ selection, clear }">
     <BulkActionBar
       :row-count="selectionIds.length"
@@ -159,13 +159,13 @@ Tu peux remplacer entièrement cette barre par ton propre composant :
       @clear="clear"
     />
   </template>
-</MrxGrid>
+</AdeoGrid>
 ```
 
 Ou laisser celle par défaut et écouter les events :
 
 ```vue
-<MrxGrid …
+<AdeoGrid …
   @bulk-delete="onBulkDelete"
   @bulk-copy="onBulkCopy"
   @selection-edit="onSelectionEdit"
@@ -184,7 +184,7 @@ La lib bascule automatiquement sur `bulk-cell-edit` au-delà de 1000
 cellules :
 
 ```vue
-<MrxGrid …
+<AdeoGrid …
   @cell-edit="onCellEdit"
   @bulk-cell-edit="onBulkCellEdit"
 />
@@ -246,7 +246,7 @@ pas persistées).
 L'API impérative `exportCsv()` détecte automatiquement la sélection :
 
 ```ts
-const gridRef = ref<InstanceType<typeof MrxGrid> | null>(null)
+const gridRef = ref<InstanceType<typeof AdeoGrid> | null>(null)
 
 function onBulkExport(): void {
   // Si sélection → exporte juste les rows sélectionnées (default)
@@ -291,7 +291,7 @@ Voici la structure finale recommandée :
 const list = useProductList()              // tuto 4 + 5
 const pending = usePendingMutations()       // tuto 6
 const toasts = useToaster()
-const gridRef = ref<InstanceType<typeof MrxGrid> | null>(null)
+const gridRef = ref<InstanceType<typeof AdeoGrid> | null>(null)
 
 // Sélection
 const selectionIds = ref<number[]>([])
@@ -312,7 +312,7 @@ Et le template :
 
 ```vue
 <template>
-  <MrxGrid
+  <AdeoGrid
     ref="gridRef"
     :columns="adeoColumns"
     :rows="list.rows.value"
@@ -364,7 +364,7 @@ Et le template :
 ## Prochaine étape
 
 [Tutoriel 8 — Gotchas et pièges connus (annexe)](?path=/docs/documentation-tutoriel-8-gotchas--docs) :
-l'index de tous les pièges Vue + Mozaic + mrxgrid qu'on a documenté
+l'index de tous les pièges Vue + Mozaic + adeo-grid qu'on a documenté
 inline, avec les workarounds et les versions où ils sont fixés.
 
 </div>

@@ -3,7 +3,7 @@ import './_styles.css'
 
 <Meta title="Documentation/7. Theming" />
 
-<div className="mrx-doc">
+<div className="adeo-doc">
 
 # Theming
 
@@ -65,7 +65,7 @@ C'est exactement ce que fait le toolbar Storybook (en haut à droite).
 ## CSS variables consommées par le grid
 
 Le grid n'invente aucune couleur — tout passe par des variables Mozaic. Pour
-override, redéclare-les sur un ancêtre du grid (par ex. <code>.mrx-grid-root</code>
+override, redéclare-les sur un ancêtre du grid (par ex. <code>.adeo-grid-root</code>
 ou plus haut).
 
 <table>
@@ -92,20 +92,20 @@ Trois modes. Seules les **cellules body** (pas le header) changent de hauteur,
 pour garder les contrôles header (kebab, sort, filter) à une position stable.
 
 ```vue
-<MrxGrid :density="'compact'" ... />        <!-- 25 px de ligne -->
-<MrxGrid :density="'default'" ... />        <!-- 37 px (par défaut) -->
-<MrxGrid :density="'comfortable'" ... />    <!-- 45 px -->
+<AdeoGrid :density="'compact'" ... />        <!-- 25 px de ligne -->
+<AdeoGrid :density="'default'" ... />        <!-- 37 px (par défaut) -->
+<AdeoGrid :density="'comfortable'" ... />    <!-- 45 px -->
 ```
 
-Implémentation : une classe sur `.mrx-grid-wrapper--compact|comfortable`
-applique des paddings ad-hoc sur `.mrx-grid-cell` via `:deep()`.
+Implémentation : une classe sur `.adeo-grid-wrapper--compact|comfortable`
+applique des paddings ad-hoc sur `.adeo-grid-cell` via `:deep()`.
 
 ## Customiser une feature visuelle
 
 ### Couleur de la cellule active
 
 ```scss
-.my-app .mrx-grid-cell--active::after {
+.my-app .adeo-grid-cell--active::after {
   border-color: hotpink;
 }
 ```
@@ -113,7 +113,7 @@ applique des paddings ad-hoc sur `.mrx-grid-cell` via `:deep()`.
 ### Hauteur de header custom
 
 ```scss
-.my-app .mrx-grid-header-cell {
+.my-app .adeo-grid-header-cell {
   padding-top: 14px;
   padding-bottom: 14px;
   background: #f9fafb;
@@ -123,7 +123,7 @@ applique des paddings ad-hoc sur `.mrx-grid-cell` via `:deep()`.
 ### Fill handle plus visible
 
 ```scss
-.my-app .mrx-grid-cell__fill-handle {
+.my-app .adeo-grid-cell__fill-handle {
   width: 10px;
   height: 10px;
   bottom: -5px;

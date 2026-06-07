@@ -3,9 +3,9 @@ import './_styles.css'
 
 <Meta title="Documentation/1. Introduction" />
 
-<div className="mrx-doc">
+<div className="adeo-doc">
 
-# MrxGrid
+# AdeoGrid
 
 <div className="badges">
   <span className="badge badge--green">Vue 3.5</span>
@@ -14,13 +14,13 @@ import './_styles.css'
   <span className="badge badge--amber">Mozaic Design System</span>
 </div>
 
-MrxGrid est une bibliothèque de data grid haute performance pour Vue 3, conçue
+AdeoGrid est une bibliothèque de data grid haute performance pour Vue 3, conçue
 pour gérer plusieurs centaines de milliers de lignes sans dégrader l'expérience
 utilisateur. Elle vise la parité fonctionnelle avec les leaders du marché
 (AG&nbsp;Grid, Handsontable) tout en s'intégrant nativement avec
 `@mozaic-ds/vue`.
 
-## Pourquoi MrxGrid ?
+## Pourquoi AdeoGrid ?
 
 <div className="grid-feature">
   <div className="feature-card">
@@ -53,7 +53,7 @@ utilisateur. Elle vise la parité fonctionnelle avec les leaders du marché
 
 ```vue
 <script setup lang="ts">
-import { MrxGrid, type ColumnDef } from '@/components/AdeoGrid'
+import { AdeoGrid, type ColumnDef } from '@/components/AdeoGrid'
 
 const columns: ColumnDef[] = [
   { field: 'sku',   headerName: 'Référence', width: '120px', pinned: 'start' },
@@ -67,7 +67,7 @@ const rows = [
 </script>
 
 <template>
-  <MrxGrid :columns="columns" :rows="rows" virtual-scroll selectable />
+  <AdeoGrid :columns="columns" :rows="rows" virtual-scroll selectable />
 </template>
 ```
 
@@ -126,7 +126,7 @@ const rows = [
 
 <div className="ascii-diagram">
 {` ┌───────────────────────────────────────────────────────────────┐
- │                       <MrxGrid />                             │
+ │                       <AdeoGrid />                             │
  │                                                               │
  │   ┌─────────────┐   ┌─────────────┐   ┌──────────────┐        │
  │   │ Vue 3.5     │   │ TypeScript  │   │ Vite 8       │        │

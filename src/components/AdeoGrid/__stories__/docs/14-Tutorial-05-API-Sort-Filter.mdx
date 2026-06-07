@@ -3,7 +3,7 @@ import './_styles.css'
 
 <Meta title="Documentation/Tutoriel/5. Tri et filtre serveur" />
 
-<div className="mrx-doc">
+<div className="adeo-doc">
 
 # Tutoriel — 5. Tri et filtre serveur
 
@@ -38,7 +38,7 @@ C'est à l'API de parser ces query params et de renvoyer la page filtrée
 ```ts
 // src/composables/useProductList.ts
 import { ref, watch } from 'vue'
-import type { FilterModel } from '@mrx/grid'
+import type { FilterModel } from '@adeo/grid'
 
 export function useProductList() {
   // … état existant (rows, total, loading, page, pageSize)
@@ -112,7 +112,7 @@ une page vide et l'utilisateur croit que son filtre a tout supprimé.
 
 ```vue
 <script setup lang="ts">
-import { MrxGrid, type FilterModel } from '@mrx/grid'
+import { AdeoGrid, type FilterModel } from '@adeo/grid'
 import { useProductList } from '@/composables/useProductList'
 import { adeoColumns } from '@/columns'
 
@@ -120,7 +120,7 @@ const list = useProductList()
 </script>
 
 <template>
-  <MrxGrid
+  <AdeoGrid
     :columns="adeoColumns"
     :rows="list.rows.value"
     :total-count="list.total.value"
@@ -178,7 +178,7 @@ Au-delà de l'UI native, tu veux peut-être un bouton "Effacer les
 filtres" custom :
 
 ```ts
-const gridRef = ref<InstanceType<typeof MrxGrid> | null>(null)
+const gridRef = ref<InstanceType<typeof AdeoGrid> | null>(null)
 
 function clearAllFilters() {
   gridRef.value?.clearFilters?.()

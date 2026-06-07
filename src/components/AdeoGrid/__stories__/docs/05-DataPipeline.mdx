@@ -3,7 +3,7 @@ import './_styles.css'
 
 <Meta title="Documentation/6. Data Pipeline" />
 
-<div className="mrx-doc">
+<div className="adeo-doc">
 
 # Data Pipeline
 
@@ -37,8 +37,8 @@ import './_styles.css'
    │ ⑤ VIRTUAL  │     visibleCols  = [colStart..colEnd] int
    ╰─────┬──────╯     overscan + cap 80
          ▼
-   ╭────────────╮     <MrxGridRow v-for="i in visibleRange">
-   │ ⑥ RENDER   │       <MrxGridCell v-for="col in visibleCols">
+   ╭────────────╮     <AdeoGridRow v-for="i in visibleRange">
+   │ ⑥ RENDER   │       <AdeoGridCell v-for="col in visibleCols">
    ╰────────────╯     <slot name="cell-{field}" /> | renderer | text`}
 </div>
 
@@ -91,12 +91,12 @@ Deux **surfaces indépendantes** :
     <tr>
       <td><strong>Quick filters</strong></td>
       <td><code>state.quickFilters: Record&lt;field, value&gt;</code></td>
-      <td><code>&lt;MrxGridFilterRow&gt;</code> sous le header</td>
+      <td><code>&lt;AdeoGridFilterRow&gt;</code> sous le header</td>
     </tr>
     <tr>
       <td><strong>Filter model</strong></td>
       <td><code>state.filterModel.conditions[]</code></td>
-      <td><code>&lt;MrxGridFilterDrawer&gt;</code> + tag bar « Filtered by »</td>
+      <td><code>&lt;AdeoGridFilterDrawer&gt;</code> + tag bar « Filtered by »</td>
     </tr>
   </tbody>
 </table>
@@ -121,7 +121,7 @@ Tu peux limiter les opérateurs autorisés via `column.filterOperators`.
 ### Server-side
 
 ```vue
-<MrxGrid :rows="serverRows" server-filter @filter-change="onFilters" />
+<AdeoGrid :rows="serverRows" server-filter @filter-change="onFilters" />
 ```
 
 Le grid ne filtre rien lui-même : il émet `filterChange` avec le payload, à toi
@@ -151,7 +151,7 @@ Flat list après groupage [category, brand] :
   …`}
 </div>
 
-Le composant `MrxGridGroupRow` détecte les rows groupes via `isGroupRow(row)`
+Le composant `AdeoGridGroupRow` détecte les rows groupes via `isGroupRow(row)`
 (type guard sur `__adgType === 'group'`).
 
 ## ④ Pagination
@@ -160,10 +160,10 @@ Deux modes mutuellement exclusifs :
 
 ```vue
 <!-- Pagination : footer avec [First, Prev, Next, Last] + select page size -->
-<MrxGrid :pagination="{ pageSizeOptions: [25,50,100], defaultPageSize: 50 }" />
+<AdeoGrid :pagination="{ pageSizeOptions: [25,50,100], defaultPageSize: 50 }" />
 
 <!-- Lazy infinite scroll : pas de footer, fetch au scroll -->
-<MrxGrid :total-count="50000" :on-visible-range-change="onVisibleRange" />
+<AdeoGrid :total-count="50000" :on-visible-range-change="onVisibleRange" />
 ```
 
 ## ⑤ Virtualisation
@@ -175,10 +175,10 @@ Voir le doc dédié → **5. Virtualization**.
 Pour chaque cellule, l'ordre de résolution est (le plus spécifique gagne) :
 
 <div className="ascii">
-{`1. Slot local de <MrxGridRow> (transmis explicitement par le row)
-2. <MrxColumn field="x" #cell="…"> child slot
-3. <MrxGrid #cell-{field}="…"> root slot per-field
-4. <MrxGrid #cell="…"> root slot générique
+{`1. Slot local de <AdeoGridRow> (transmis explicitement par le row)
+2. <AdeoColumn field="x" #cell="…"> child slot
+3. <AdeoGrid #cell-{field}="…"> root slot per-field
+4. <AdeoGrid #cell="…"> root slot générique
 5. column.renderer (Component | 'tag' | 'text')
 6. column.valueFormatter(value, row) → string
 7. String(value) — fallback final`}
@@ -186,13 +186,13 @@ Pour chaque cellule, l'ordre de résolution est (le plus spécifique gagne) :
 
 ```vue
 <!-- Slot par champ (le plus utilisé) -->
-<MrxGrid :columns="cols" :rows="rows">
+<AdeoGrid :columns="cols" :rows="rows">
   <template #cell-promo="{ value }">
     <span :class="value ? 'badge badge--hot' : ''">
       {{ value ? '🔥 PROMO' : '—' }}
     </span>
   </template>
-</MrxGrid>
+</AdeoGrid>
 ```
 
 ## Performance — court-circuits importants

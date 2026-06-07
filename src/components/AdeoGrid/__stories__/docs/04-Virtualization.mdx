@@ -3,7 +3,7 @@ import './_styles.css'
 
 <Meta title="Documentation/5. Virtualization" />
 
-<div className="mrx-doc">
+<div className="adeo-doc">
 
 # Virtualization
 
@@ -12,7 +12,7 @@ import './_styles.css'
 ## Principe
 
 Le DOM est lent : 1 000 nœuds = 1 frame, 100 000 nœuds = 30 secondes de freeze.
-La solution : **ne rendre que ce qui est visible**. MrxGrid implémente la
+La solution : **ne rendre que ce qui est visible**. AdeoGrid implémente la
 virtualisation sur deux axes indépendants :
 
 - `useVirtualScroll` — vertical, sur les **lignes**
@@ -131,9 +131,9 @@ Le layout est délicat : les colonnes pinned sont **en dehors** de la slice
 virtuelle (toujours rendues), mais doivent rester sticky **dans le wrapper**,
 pas relativement à la fenêtre. Pour ça :
 
-- Le `.mrx-grid-row` a `min-width: max(100%, contentMinWidth)` — la rangée est
+- Le `.adeo-grid-row` a `min-width: max(100%, contentMinWidth)` — la rangée est
   au moins aussi large que le wrapper
-- Le `.mrx-grid-cell--pinned` a `position: sticky` + un offset calculé selon le
+- Le `.adeo-grid-cell--pinned` a `position: sticky` + un offset calculé selon le
   cumul des colonnes précédentes
 - Pas de `transform` sur les ancêtres (sinon containing block trap, voir plus haut)
 

@@ -3,7 +3,7 @@ import './_styles.css'
 
 <Meta title="Documentation/Tutoriel/3. Tableau complexe" />
 
-<div className="mrx-doc">
+<div className="adeo-doc">
 
 # Tutoriel — 3. Tableau complexe (Adeo PIM)
 
@@ -126,7 +126,7 @@ impraticable. On crée un mapping `field → type` et on génère :
 
 ```ts
 // src/columns.ts
-import type { ColumnDef } from '@mrx/grid'
+import type { ColumnDef } from '@adeo/grid'
 import type { AdeoProduct } from './types'
 import { YesNoRenderer } from './renderers/YesNoRenderer'
 import { fmtKg, fmtCm, fmtPercent, fmtYears } from './formatters'
@@ -235,7 +235,7 @@ général l'identifiant) pour qu'elle serve de row header.
 <!-- src/views/AdeoPimGrid.vue -->
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { MrxGrid, type CellEditEvent } from '@mrx/grid'
+import { AdeoGrid, type CellEditEvent } from '@adeo/grid'
 import { MTextInput } from '@mozaic-ds/vue'
 import { Search24 } from '@mozaic-ds/icons-vue'
 import productsData from './adeo-products.json'
@@ -284,7 +284,7 @@ function onCellEdit(e: CellEditEvent): void {
       </MTextInput>
     </header>
 
-    <MrxGrid
+    <AdeoGrid
       :columns="columns"
       :rows="visibleRows"
       :row-id="(row) => String(row.id)"
@@ -331,7 +331,7 @@ choisit les champs à grouper. Une fois groupé :
 - Chaque bucket est une **group row** avec son count et son toggle
   expand/collapse
 
-Sémantique côté code : `MrxGrid` gère ça en interne via `gridState`,
+Sémantique côté code : `AdeoGrid` gère ça en interne via `gridState`,
 tu n'as rien à faire de plus que `groupable: true` sur les colonnes
 candidates.
 

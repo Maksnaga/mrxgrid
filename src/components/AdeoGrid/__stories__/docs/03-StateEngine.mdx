@@ -3,7 +3,7 @@ import './_styles.css'
 
 <Meta title="Documentation/4. State & Engine" />
 
-<div className="mrx-doc">
+<div className="adeo-doc">
 
 # State & Engine
 
@@ -203,7 +203,7 @@ engine.history.undo()
                                          │
                                          ▼
                     ┌─────────────────────────────────────────┐
-                    │ <MrxGrid> emits 'cellEdit' (CellEditEvent│
+                    │ <AdeoGrid> emits 'cellEdit' (CellEditEvent│
                     │ to consumer who writes back to row data)│
                     └─────────────────────────────────────────┘`}
 </div>
@@ -231,9 +231,9 @@ Idéal pour : audit log, telemetry, keybindings custom, intégration analytics �
 tout ce qui ne concerne pas le rendu.
 
 ```ts
-import type { MrxGridPlugin } from '@/components/AdeoGrid'
+import type { AdeoGridPlugin } from '@/components/AdeoGrid'
 
-const auditPlugin: MrxGridPlugin = {
+const auditPlugin: AdeoGridPlugin = {
   id: 'audit',
   init({ engine }) {
     const off = engine.events?.on('cellEditCommit', (e) => {
@@ -244,7 +244,7 @@ const auditPlugin: MrxGridPlugin = {
 }
 
 // usage
-<MrxGrid :columns="cols" :rows="rows" :plugins="[auditPlugin]" />
+<AdeoGrid :columns="cols" :rows="rows" :plugins="[auditPlugin]" />
 ```
 
 ## Pourquoi pas Pinia ?

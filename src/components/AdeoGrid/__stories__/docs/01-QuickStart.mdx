@@ -3,11 +3,11 @@ import './_styles.css'
 
 <Meta title="Documentation/2. Quick Start" />
 
-<div className="mrx-doc">
+<div className="adeo-doc">
 
 # Quick Start
 
-> Construire ton premier `<MrxGrid />` en 5 minutes — de l'install à un grid avec tri, filtres et virtualisation.
+> Construire ton premier `<AdeoGrid />` en 5 minutes — de l'install à un grid avec tri, filtres et virtualisation.
 
 ## Pré-requis
 
@@ -22,7 +22,7 @@ import './_styles.css'
 npm install @mozaic-ds/vue @mozaic-ds/icons-vue @mozaic-ds/styles @mozaic-ds/tokens
 ```
 
-Le grid est livré avec le projet — copie le dossier `src/components/MrxGrid` ou
+Le grid est livré avec le projet — copie le dossier `src/components/AdeoGrid` ou
 publie-le en package interne.
 
 ## 2. Charger le thème Mozaic
@@ -45,7 +45,7 @@ createApp(App).mount('#app')
 ```vue
 <script setup lang="ts">
 import { ref } from 'vue'
-import { MrxGrid, type ColumnDef } from '@/components/AdeoGrid'
+import { AdeoGrid, type ColumnDef } from '@/components/AdeoGrid'
 
 const columns: ColumnDef[] = [
   { field: 'sku',   headerName: 'Référence', width: '120px', pinned: 'start' },
@@ -64,7 +64,7 @@ const rows = ref([
 </script>
 
 <template>
-  <MrxGrid :columns="columns" :rows="rows" />
+  <AdeoGrid :columns="columns" :rows="rows" />
 </template>
 ```
 
@@ -76,7 +76,7 @@ au double-click ou F2, ligne `Référence` toujours visible (pinned start).
 Trois props suffisent : `virtual-scroll`, `container-height`, `row-id`.
 
 ```vue
-<MrxGrid
+<AdeoGrid
   :columns="columns"
   :rows="bigRows"
   virtual-scroll
@@ -94,7 +94,7 @@ Trois props suffisent : `virtual-scroll`, `container-height`, `row-id`.
 ## 5. Pagination
 
 ```vue
-<MrxGrid
+<AdeoGrid
   :columns="columns"
   :rows="rows"
   :pagination="{ pageSizeOptions: [10, 25, 50, 100], defaultPageSize: 25 }"
@@ -110,7 +110,7 @@ Avec une clé stable, le grid sauve auto largeur / ordre / pin / sort / filtres
 en `localStorage` et les restaure au reload :
 
 ```vue
-<MrxGrid :columns="columns" :rows="rows" persist-key="catalogue-v1" />
+<AdeoGrid :columns="columns" :rows="rows" persist-key="catalogue-v1" />
 ```
 
 ## 7. Brancher le toolbar et les drawers
@@ -119,11 +119,11 @@ en `localStorage` et les restaure au reload :
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import {
-  MrxGrid,
-  MrxGridToolbar,
+  AdeoGrid,
+  AdeoGridToolbar,
   MrxTableMenuDrawer,
   MrxGroupingDrawer,
-  MrxGridFilterDrawer,
+  AdeoGridFilterDrawer,
 } from '@/components/AdeoGrid'
 
 const settingsOpen = ref(false)
@@ -133,9 +133,9 @@ const fullscreen   = ref(false)
 </script>
 
 <template>
-  <MrxGrid :columns="columns" :rows="rows" :fullscreen="fullscreen">
+  <AdeoGrid :columns="columns" :rows="rows" :fullscreen="fullscreen">
     <template #toolbar>
-      <MrxGridToolbar
+      <AdeoGridToolbar
         show-fullscreen show-settings show-group show-filters
         :fullscreen="fullscreen"
         @toggle-fullscreen="fullscreen = !fullscreen"
@@ -144,11 +144,11 @@ const fullscreen   = ref(false)
         @filters="filtersOpen = !filtersOpen"
       />
     </template>
-  </MrxGrid>
+  </AdeoGrid>
 
   <MrxTableMenuDrawer v-model:open="settingsOpen" :columns="columns" ... />
   <MrxGroupingDrawer  v-model:open="groupingOpen"  :columns="columns" ... />
-  <MrxGridFilterDrawer v-model:open="filtersOpen"  :columns="columns" ... />
+  <AdeoGridFilterDrawer v-model:open="filtersOpen"  :columns="columns" ... />
 </template>
 ```
 

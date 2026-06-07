@@ -3,7 +3,7 @@ import './_styles.css'
 
 <Meta title="Documentation/8. Performance" />
 
-<div className="mrx-doc">
+<div className="adeo-doc">
 
 # Performance
 
@@ -34,7 +34,7 @@ par numéro de ligne et cassent au moindre re-tri.
 </div>
 
 ```vue
-<MrxGrid :rows="rows" :row-id="(row) => String(row.id)" />
+<AdeoGrid :rows="rows" :row-id="(row) => String(row.id)" />
 ```
 
 <div className="do">
@@ -100,7 +100,7 @@ d'array change → tout le pipeline recalcule.
 
 ```ts
 // ❌
-<MrxGrid :columns="rows.map(_ => ({ field: 'x', headerName: 'X' }))" />
+<AdeoGrid :columns="rows.map(_ => ({ field: 'x', headerName: 'X' }))" />
 
 // ✅
 const columns = computed<ColumnDef[]>(() => [
@@ -159,7 +159,7 @@ Probablement un re-render global. Vérifie que :
   <tbody>
     <tr>
       <td><strong>Vue DevTools</strong> → Component tree</td>
-      <td>Voir combien de <code>MrxGridCell</code> sont instanciés (devrait être ≤ 80×30)</td>
+      <td>Voir combien de <code>AdeoGridCell</code> sont instanciés (devrait être ≤ 80×30)</td>
     </tr>
     <tr>
       <td><strong>Chrome Performance</strong></td>

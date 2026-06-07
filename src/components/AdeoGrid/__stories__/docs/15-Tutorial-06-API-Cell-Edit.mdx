@@ -3,7 +3,7 @@ import './_styles.css'
 
 <Meta title="Documentation/Tutoriel/6. Édition + persistance optimiste" />
 
-<div className="mrx-doc">
+<div className="adeo-doc">
 
 # Tutoriel — 6. Édition + persistance optimiste
 
@@ -130,7 +130,7 @@ export function usePendingMutations() {
 
 ```vue
 <script setup lang="ts">
-import { MrxGrid, type CellEditEvent } from '@mrx/grid'
+import { AdeoGrid, type CellEditEvent } from '@adeo/grid'
 import { useProductList } from '@/composables/useProductList'
 import { usePendingMutations } from '@/composables/usePendingMutations'
 import { useToaster } from '@/composables/useToaster'
@@ -170,7 +170,7 @@ async function onCellEdit(e: CellEditEvent): Promise<void> {
 </script>
 
 <template>
-  <MrxGrid
+  <AdeoGrid
     :columns="adeoColumns"
     :rows="list.rows.value"
     :total-count="list.total.value"
@@ -233,7 +233,7 @@ Pour les champs non-scalaires (objets, listes) ou les éditeurs custom
 (autocomplete, datepicker enrichi), utilise le slot `#edit-{field}` :
 
 ```vue
-<MrxGrid …>
+<AdeoGrid …>
   <template #edit-brand="{ field, rowIndex, editValue, updateValue, commit, cancel }">
     <BrandComboEditor
       :model-value="editValue"
@@ -242,7 +242,7 @@ Pour les champs non-scalaires (objets, listes) ou les éditeurs custom
       @cancel="cancel"
     />
   </template>
-</MrxGrid>
+</AdeoGrid>
 ```
 
 Le slot fournit le scope :

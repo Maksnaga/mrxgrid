@@ -3,12 +3,12 @@ import './_styles.css'
 
 <Meta title="Documentation/9. API Reference" />
 
-<div className="mrx-doc">
+<div className="adeo-doc">
 
 # API Reference
 
 > Référence complète des props, événements, slots et méthodes exposées de
-> `<MrxGrid>`.
+> `<AdeoGrid>`.
 
 ## Props
 
@@ -17,7 +17,7 @@ import './_styles.css'
     <tr><th>Prop</th><th>Type</th><th>Default</th><th>Description</th></tr>
   </thead>
   <tbody>
-    <tr><td><code>columns</code></td><td><code>ColumnDef[]?</code></td><td>—</td><td>Colonnes impératives. Optionnel si tu utilises <code>&lt;MrxColumn&gt;</code> en children.</td></tr>
+    <tr><td><code>columns</code></td><td><code>ColumnDef[]?</code></td><td>—</td><td>Colonnes impératives. Optionnel si tu utilises <code>&lt;AdeoColumn&gt;</code> en children.</td></tr>
     <tr><td><code>rows</code></td><td><code>RowData[]</code></td><td><strong>required</strong></td><td>Tableau des lignes en input.</td></tr>
     <tr><td><code>selectable</code></td><td><code>boolean</code></td><td><code>false</code></td><td>Active la colonne checkbox de sélection.</td></tr>
     <tr><td><code>expandable</code></td><td><code>boolean</code></td><td><code>false</code></td><td>Active la colonne chevron + le slot <code>#expand-row</code>.</td></tr>
@@ -41,7 +41,7 @@ import './_styles.css'
     <tr><td><code>error</code></td><td><code>Error | null</code></td><td>—</td><td>Affiche le slot <code>#error</code> à la place du body.</td></tr>
     <tr><td><code>persistKey</code></td><td><code>string?</code></td><td>—</td><td>Clé de persistance localStorage (layout + sort + filtres).</td></tr>
     <tr><td><code>historyId</code></td><td><code>string?</code></td><td>—</td><td>ID pour persister undo/redo entre reloads.</td></tr>
-    <tr><td><code>plugins</code></td><td><code>MrxGridPlugin[]</code></td><td><code>[]</code></td><td>Plugins à monter (voir <em>State &amp; Engine</em>).</td></tr>
+    <tr><td><code>plugins</code></td><td><code>AdeoGridPlugin[]</code></td><td><code>[]</code></td><td>Plugins à monter (voir <em>State &amp; Engine</em>).</td></tr>
   </tbody>
 </table>
 
@@ -87,7 +87,7 @@ import './_styles.css'
 ## Méthodes exposées (`ref`)
 
 ```ts
-const gridRef = ref<InstanceType<typeof MrxGrid>>()
+const gridRef = ref<InstanceType<typeof AdeoGrid>>()
 // gridRef.value!.exportCsv({ filename: 'export.csv' })
 ```
 
@@ -190,11 +190,11 @@ interface SelectionRange {
 ```ts
 import {
   // composant racine
-  MrxGrid, MrxColumn,
+  AdeoGrid, AdeoColumn,
 
   // toolbar / drawers
-  MrxGridToolbar, MrxTableMenuDrawer, MrxGroupingDrawer,
-  MrxGridFilterDrawer, MrxKeyboardShortcutsDrawer,
+  AdeoGridToolbar, MrxTableMenuDrawer, MrxGroupingDrawer,
+  AdeoGridFilterDrawer, MrxKeyboardShortcutsDrawer,
   MrxFormulaBar, MrxFormulaReferenceDrawer,
 
   // helpers

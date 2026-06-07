@@ -17,7 +17,7 @@
 Aujourd'hui on a deux implémentations qui font la même chose :
 
 - `mozaic-ng/projects/mozaic-ng/src/lib/grid` (Angular)
-- `mrxgrid` (Vue 3 + TypeScript)
+- `adeo-grid` (Vue 3 + TypeScript)
 
 Les comportements **dérivent dans le temps** : un fix d'un bug fait dans
 Vue (par exemple le `dataVersion` qui invalide le `groupTree`) n'a pas
@@ -56,7 +56,7 @@ que les implémentations puissent *référencer* (par lien) un chapitre
 de la spec depuis leur code source.
 
 ```
-mrx-grid-spec/                       ← nouveau repo (ou dossier monorepo)
+adeo-grid-spec/                       ← nouveau repo (ou dossier monorepo)
 ├── README.md                        ← landing : pour qui, pour quoi
 ├── CONTRIBUTING.md                  ← conventions d'écriture
 ├── CHANGELOG.md                     ← versions de la spec
@@ -225,8 +225,8 @@ export type FilterOperator =
 
 | Concept              | Angular                                | Vue                                       |
 |----------------------|----------------------------------------|-------------------------------------------|
-| Inline filter row    | `grid-filter-row.component.ts`         | `MrxGridFilterRow.vue`                    |
-| Builder drawer       | `grid-filter-builder.component.ts`     | `MrxGridFilterBuilder.vue`                |
+| Inline filter row    | `grid-filter-row.component.ts`         | `AdeoGridFilterRow.vue`                    |
+| Builder drawer       | `grid-filter-builder.component.ts`     | `AdeoGridFilterBuilder.vue`                |
 | Filter model state   | `GridStateManager.filterModel`         | `gridState.filterModel`                   |
 | Evaluation engine    | `FilterEngine.applyFilters()`          | `useFilterEngine.filterData()`            |
 
@@ -465,12 +465,12 @@ saigné.
 
 ## 10. Prochaine étape concrète
 
-1. Créer le repo `mrx-grid-spec` (ou dossier dans le monorepo).
+1. Créer le repo `adeo-grid-spec` (ou dossier dans le monorepo).
 2. Copier la structure §2 vide (chaque `.md` est un placeholder avec
    le squelette §3).
 3. Remplir `01-glossary.md` à partir du tableau §7.
 4. Remplir `11-columns.md` et `10-rows.md` à partir des sources
-   `mrxgrid/src/components/MrxGrid/types.ts` et `mozaic-ng/.../grid/types`
+   `adeo-grid/src/components/AdeoGrid/types.ts` et `mozaic-ng/.../grid/types`
    — c'est l'union des deux qui devient la spec.
 5. Soumettre en review aux deux équipes Angular / Vue avant de
    continuer. Ces 4 chapitres servent de test : si on n'arrive pas à
