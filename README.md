@@ -473,7 +473,7 @@ const { rows, isLoading, loadedCount, requestRange } = useDataSource({
 
 **How it works:**
 
-1. `rows` is a dense array of length `totalRows`. Unfetched slots contain a frozen `LOADING_ROW` sentinel (`{ __mrxSkeleton: true }`).
+1. `rows` is a dense array of length `totalRows`. Unfetched slots contain a frozen `LOADING_ROW` sentinel (`{ __adgSkeleton: true }`).
 2. When the grid reports a visible range change via `onVisibleRangeChange`, you call `requestRange(start, end)`.
 3. The composable quantizes the range into page boundaries and fetches only pages that aren't cached or in-flight.
 4. Fetched rows are stored in a sparse `Map<index, RowData>` cache. A version counter bump triggers `rows` to recompute.
@@ -610,17 +610,17 @@ Group headers show:
 - Column name + group value (e.g., "STATUS **Active** 1,234")
 - Row count
 
-**Metadata convention:** Group rows use `__mrx`-prefixed fields to avoid collisions with user data:
+**Metadata convention:** Group rows use `__adg`-prefixed fields to avoid collisions with user data:
 
 ```typescript
 // Type guard to check if a row is a group header:
 import { isGroupRow } from '@/components/AdeoGrid'
 
 if (isGroupRow(row)) {
-  console.log(row.__mrxField)   // "status"
-  console.log(row.__mrxValue)   // "active"
-  console.log(row.__mrxCount)   // 1234
-  console.log(row.__mrxDepth)   // 0 (nesting level)
+  console.log(row.__adgField)   // "status"
+  console.log(row.__adgValue)   // "active"
+  console.log(row.__adgCount)   // 1234
+  console.log(row.__adgDepth)   // 0 (nesting level)
 }
 ```
 
@@ -796,7 +796,7 @@ Comparison: nulls first, then numeric comparison for numbers, `localeCompare` fo
 
 **File:** `src/composables/useGrouping.ts`
 
-Full hierarchical grouping engine. Internally builds a tree structure (`GroupNode`) using `Map` for O(1) group lookup at each level. The tree is then flattened into a renderable `RowData[]` list, emitting group headers and data rows with `__mrx`-prefixed metadata.
+Full hierarchical grouping engine. Internally builds a tree structure (`GroupNode`) using `Map` for O(1) group lookup at each level. The tree is then flattened into a renderable `RowData[]` list, emitting group headers and data rows with `__adg`-prefixed metadata.
 
 **Performance trick:** `flattenTree` only traverses expanded branches. Collapsed groups emit just their header row and skip all children. This makes expand/collapse nearly instant even with 100k rows.
 

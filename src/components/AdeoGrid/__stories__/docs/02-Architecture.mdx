@@ -90,7 +90,7 @@ d'opérations pures et arrive aux cellules sous forme de slice virtualisée.
 └────────┬───────┘
          ▼
 ┌────────────────┐
-│ useGrouping    │  group fields → flat list with __mrx-prefixed metadata
+│ useGrouping    │  group fields → flat list with __adg-prefixed metadata
 │ engine.group   │  (group rows + data rows in one Array)
 └────────┬───────┘
          ▼
@@ -201,7 +201,7 @@ testée, composable, indépendante.
     <tr><td><code>useGridData</code></td><td>Pipeline colonnes (passthrough actuel)</td></tr>
     <tr><td><code>useColumns</code></td><td>Visibilité, pin overrides, filter toggles</td></tr>
     <tr><td><code>useSorting</code></td><td>Multi-column sort stack</td></tr>
-    <tr><td><code>useGrouping</code></td><td>Row grouping → flat list <code>__mrx*</code></td></tr>
+    <tr><td><code>useGrouping</code></td><td>Row grouping → flat list <code>__adg*</code></td></tr>
     <tr><td><code>usePinnedColumns</code></td><td>Layout left/right pinned + offsets</td></tr>
     <tr><td><code>useColumnResize</code></td><td>Drag-to-resize widths</td></tr>
     <tr><td><code>useColumnDnD</code></td><td>Drag-n-drop reorder</td></tr>
@@ -238,7 +238,7 @@ testée, composable, indépendante.
       <td>Évite le prop-drilling sur 5 niveaux ; chaque feature lit/écrit la même source.</td>
     </tr>
     <tr>
-      <td>Métadonnées <code>__mrx</code></td>
+      <td>Métadonnées <code>__adg</code></td>
       <td>Préfixées pour ne jamais collisionner avec les champs utilisateur (groupement, expansion).</td>
     </tr>
     <tr>

@@ -27,7 +27,7 @@ import './_styles.css'
          ▼            short-circuit dès qu'une row est rejetée
    ╭────────────╮     groupFields[] → produit un FLAT LIST mixé :
    │ ③ GROUP    │       [groupRow_lv0, dataRow, dataRow, groupRow_lv0, …]
-   ╰─────┬──────╯     metadata __mrx{Type,Key,Field,Value,Depth,Count}
+   ╰─────┬──────╯     metadata __adg{Type,Key,Field,Value,Depth,Count}
          ▼            collapse state via collapsedGroupKeys
    ╭────────────╮     pageSize, currentPage → slice [start..end]
    │ ④ PAGINATE │     OR : infinite scroll via :on-visible-range-change

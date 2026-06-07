@@ -24,7 +24,7 @@ import type { Component, Raw } from 'vue'
 import type { ColumnDef, FilterDef, RowData } from './types'
 import type { CellEditorType } from './models/column.model'
 import type { AdeoFilterConfig } from './models/filter.model'
-import { injectMrxColumnRegistry } from './state/AdeoColumnRegistry'
+import { injectAdeoColumnRegistry } from './state/AdeoColumnRegistry'
 
 let _orderSeq = 0
 
@@ -78,7 +78,7 @@ const props = withDefaults(
 )
 
 const slots = useSlots()
-const registry = injectMrxColumnRegistry()
+const registry = injectAdeoColumnRegistry()
 const order = _orderSeq++
 
 if (!registry && import.meta.env?.DEV) {

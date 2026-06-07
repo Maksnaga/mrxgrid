@@ -80,7 +80,7 @@ Engine equivalents under `src/components/AdeoGrid/features/` end in `Engine.ts` 
 - **Plugin contract** — `<AdeoGrid :plugins="[plugin]" />`. Each plugin receives `{ state, engine }` on `init` and returns a cleanup function.
 - **Imperative ref API** — `grid.value.exportCsv()`, `undo()`, `setFormula()`, `validateAll()`, `persistView()`, `tree.flatten()`, etc. Full list in README "Imperative ref API" table.
 - **Density row heights** (must match SCSS padding): `compact: 32`, `default: 48`, `comfortable: 64` — defined in `AdeoGrid.vue` as `DENSITY_ROW_HEIGHT`. (The legacy `defaults.ts` constant uses different numbers for the engine layer; treat the `AdeoGrid.vue` constants as authoritative for visual rendering.)
-- **Group row metadata** — group rows use `__mrx`-prefixed fields (`__mrxType`, `__mrxKey`, `__mrxDepth`, …) to avoid collisions with user data. Use `isGroupRow()` from `types.ts`.
+- **Group row metadata** — group rows use `__adg`-prefixed fields (`__adgType`, `__adgKey`, `__adgDepth`, …) to avoid collisions with user data. Use `isGroupRow()` from `types.ts`.
 - **Formula engine** — active iff any column has `allowFormula: true`. Auto-detects `=...` strings in `props.rows`, evaluates via topological DAG, re-evaluates dependents on upstream edits.
 
 ### Virtual scroll architecture

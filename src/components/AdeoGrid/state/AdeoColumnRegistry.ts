@@ -45,6 +45,6 @@ export const ADEO_GRID_COLUMN_REGISTRY_KEY: InjectionKey<AdeoColumnRegistry> = S
 
 /** Type-safe inject helper. Returns `null` when no registry is provided —
  *  consumers using only `:columns` prop don't need to create a registry. */
-export function injectMrxColumnRegistry(): AdeoColumnRegistry | null {
+export function injectAdeoColumnRegistry(): AdeoColumnRegistry | null {
   return inject(ADEO_GRID_COLUMN_REGISTRY_KEY, null)
 }

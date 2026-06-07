@@ -34,7 +34,7 @@ export { default as AdeoFormulaReferenceDrawer } from './components/overlays/Ade
 // column-like components by registering directly.
 export {
   ADEO_GRID_COLUMN_REGISTRY_KEY,
-  injectMrxColumnRegistry,
+  injectAdeoColumnRegistry,
   type AdeoColumnRegistration,
   type AdeoColumnRegistry,
 } from './state/AdeoColumnRegistry'
