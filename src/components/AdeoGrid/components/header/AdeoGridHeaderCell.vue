@@ -20,10 +20,13 @@
  */
 
 import { computed, type CSSProperties } from 'vue'
-import { Settings20, SortDown20, SortTop20 } from '@mozaic-ds/icons-vue'
+import { Settings20, Filter20, SortDown20, SortTop20 } from '@mozaic-ds/icons-vue'
 import type { ColumnDef, SortDirection } from '../../types'
 import { injectAdeoGridSlots, resolveHeaderSlot } from '../../state/AdeoGridSlots'
-import { wasResizingRecently } from '@/composables/useColumnResize'
+import { useGridContext } from '../../state/GridContext'
+// B25 — engine-layer sort guard: read lastResizeEndedAt from GridState
+// (written by useColumnResizeEngine on mouseup). This is the sole check;
+// the legacy wasResizingRecently() module flag has been removed.
 
 const props = defineProps<{
   column: ColumnDef
@@ -82,6 +85,34 @@ const sortIcon = computed(() => {
 const _gridSlots = injectAdeoGridSlots()
 const resolvedHeaderSlot = computed(() => resolveHeaderSlot(_gridSlots, props.column.field))
 
+// --- Filter-aware kebab icon + tooltip (Angular parity) ---
+const _gridState = useGridContext()
+
+/** Active filter conditions on this column. */
+const activeFilterConditions = computed(() => {
+  if (!_gridState) return []
+  return _gridState.filterModel.value.conditions.filter((c) => c.field === props.column.field)
+})
+
+/** True when at least one filter condition targets this column. */
+const hasActiveFilter = computed(() => activeFilterConditions.value.length > 0)
+
+/** Icon for the kebab menu trigger: Filter when active, Settings otherwise. */
+const menuIcon = computed(() => (hasActiveFilter.value ? Filter20 : Settings20))
+
+/** Tooltip text for the kebab menu trigger listing active conditions. */
+const menuTooltip = computed(() => {
+  if (!hasActiveFilter.value) return undefined
+  const labels = activeFilterConditions.value
+    .map((c) => {
+      const op = c.operator ?? ''
+      const val = c.value?.value != null ? String(c.value.value) : ''
+      return val ? `${c.field} ${op} "${val}"` : `${c.field} ${op}`
+    })
+    .join(', ')
+  return `Filtres : ${labels}`
+})
+
 /** True while this header is the column being drag-reordered — drives the
  *  `--moving` dim class. Reactive via the slot context: applied / removed
  *  in the same Vue render as the column reorder so virtualised remounts
@@ -119,10 +150,13 @@ function onHeaderClick(e: MouseEvent): void {
   // mouseup landed elsewhere (the cursor follows the column edge during
   // the drag), so the common-ancestor click fires on the *header cell*
   // and `e.target` is no longer the handle — the `closest()` guard
-  // above can't catch it. `wasResizingRecently()` consults a module
-  // flag set by `useColumnResize` in mouseup; the 200 ms window covers
-  // the click-after-mouseup dispatch without being perceptible.
-  if (wasResizingRecently()) return
+  // above can't catch it.
+  //
+  // B25 — engine-layer sort guard: `lastResizeEndedAt` is written by
+  // useColumnResizeEngine on mouseup and injected via useGridContext().
+  // A 200ms window is wide enough to cover any synthetic click after mouseup.
+  const _resizeEngineAt = _gridState?.lastResizeEndedAt?.value ?? 0
+  if (performance.now() - _resizeEngineAt < 200) return
   if (!isSortable.value) return
   emit('sort', props.column.field, e.shiftKey)
 }
@@ -162,8 +196,15 @@ function onResizeMouseDown(e: MouseEvent): void {
           {{ sortIndex }}
         </span>
       </span>
-      <button type="button" class="adeo-grid-grid-menu-trigger" aria-label="Menu de la colonne" @click.stop="onMenuClick">
-        <Settings20 class="adeo-grid-grid-menu-icon" />
+      <button
+        type="button"
+        class="adeo-grid-grid-menu-trigger"
+        :class="{ 'adeo-grid-grid-menu-trigger--has-filter': hasActiveFilter }"
+        :aria-label="menuTooltip ?? 'Menu de la colonne'"
+        :title="menuTooltip"
+        @click.stop="onMenuClick"
+      >
+        <component :is="menuIcon" class="adeo-grid-grid-menu-icon" />
       </button>
     </span>
     <div v-if="resizable" class="adeo-grid-grid-resize-handle" :class="{ 'adeo-grid-grid-resize-handle--left': resizeFromLeft }"
@@ -301,6 +342,13 @@ function onResizeMouseDown(e: MouseEvent): void {
 
 .adeo-grid-grid-menu-trigger:hover {
   color: var(--color-text-primary);
+}
+
+// When a filter is active on this column the menu trigger stays permanently
+// visible (opacity 1) and uses the brand accent colour to signal the state.
+.adeo-grid-grid-menu-trigger--has-filter {
+  opacity: 1;
+  color: var(--color-text-accent, #2563eb);
 }
 
 .adeo-grid-grid-resize-handle {

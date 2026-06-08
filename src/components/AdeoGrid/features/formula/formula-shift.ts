@@ -38,6 +38,16 @@ export interface ShiftOptions {
 const LONG_FORM_RE =
   /REF\(COLUMN\("((?:[^"]|"")*)"\),ROW\((\d+)\)(?:,"(\$C|\$R|\$CR)")?\)/g;
 
+/**
+ * Shift all relative REF long-form references in `source` by `options.rowDelta`
+ * rows and `options.colDelta` columns.
+ *
+ * CONTRACT: `source` must be the formula body **without** the leading `=`.
+ * The caller in `useClipboardEngine.shiftIfFormula` strips the `=` before
+ * calling and re-prefixes it afterward. Passing a string that starts with `=`
+ * would not match the `REF(…)` regex and the formula would be returned unchanged
+ * — but to avoid silent bugs we rely on the caller to strip it.
+ */
 export function shiftFormulaRefs(source: string, options: ShiftOptions): string {
   const { rowDelta, colDelta, fieldOrder } = options;
   if (rowDelta === 0 && colDelta === 0) return source;

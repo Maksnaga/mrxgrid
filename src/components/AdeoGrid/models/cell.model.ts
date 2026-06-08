@@ -91,4 +91,5 @@ export interface FillDownEvent {
 
 export interface CellError {
   message: string
+  level?: 'error' | 'warning'
 }

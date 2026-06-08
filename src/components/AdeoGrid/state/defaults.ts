@@ -6,13 +6,11 @@
  * forks a constant for a brand-specific theme has one place to override.
  */
 
-import type { GridDensity } from '../models/grid-events.model'
-
 /** Default column width in px when no `width`/`minWidth`/`flex` is specified. */
 export const DEFAULT_COLUMN_WIDTH = 150
 
 /** Default row height in px (mirrors `density: 'default'`). */
-export const DEFAULT_ROW_HEIGHT = 47
+export const DEFAULT_ROW_HEIGHT = 48
 
 /** Page size options shown in the pagination footer dropdown. */
 export const DEFAULT_PAGE_SIZE_OPTIONS = [10, 25, 50, 100]
@@ -23,14 +21,19 @@ export const DEFAULT_PAGE_SIZE_OPTIONS = [10, 25, 50, 100]
 export const DEFAULT_PAGE_SIZE = 25
 
 /**
- * Density → row height map. Matches `AdeoTableMenuDrawer.vue` + the legacy
- * `DENSITY_ROW_HEIGHT` table in `AdeoGrid.vue`. Source of truth — anyone reading
- * a row height should derive from this when given a density.
+ * Density → row height map.
+ *
+ * Unified vocabulary matching `AdeoGrid.vue` `DENSITY_ROW_HEIGHT` and the Vue
+ * `DataDensity` type (`'compact' | 'default' | 'comfortable'`). Previously used
+ * the Angular-parity keys (`small / default / large`) with different pixel
+ * values — reconciled here so a single canonical source of truth exists.
+ *
+ * Values must match the SCSS padding in `AdeoGrid.vue` body cell styles.
  */
-export const DENSITY_ROW_HEIGHT: Record<GridDensity, number> = {
-  small: 25,
-  default: 47,
-  large: 55,
+export const DENSITY_ROW_HEIGHT: Record<'compact' | 'default' | 'comfortable', number> = {
+  compact: 32,
+  default: 48,
+  comfortable: 64,
 }
 
 /** Mirrors Angular `DEFAULT_GRID_OPTIONS` from `models/grid-options.model.ts`. */
@@ -39,7 +42,7 @@ export const DEFAULT_GRID_OPTIONS = {
   pagination: true,
   pageSize: DEFAULT_PAGE_SIZE,
   pageSizeOptions: DEFAULT_PAGE_SIZE_OPTIONS,
-  rowHeight: DEFAULT_ROW_HEIGHT,
+  rowHeight: DEFAULT_ROW_HEIGHT, // 48 px = density 'default'
   rowSelection: false,
   selectionMode: 'multiple' as const,
   grouping: false,

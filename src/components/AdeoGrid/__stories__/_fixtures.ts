@@ -13,6 +13,7 @@
  */
 
 import type { ColumnDef, RowData } from '../types'
+import { MTagRenderer } from '@/app/renderers/MTagRenderer'
 
 // ---------------------------------------------------------------------------
 // Leroy Merlin — home-improvement products (DEFAULT)
@@ -257,7 +258,7 @@ export const lmColumns: ColumnDef[] = [
     filterType: 'number',
     editable: true,
     cellEditor: 'number',
-    cellValidator: (v) => (typeof v === 'number' && v >= 0 ? true : 'Stock négatif interdit'),
+    cellValidator: (v) => (typeof v === 'number' && v >= 0 ? null : { message: 'Stock négatif interdit' }),
     cellClass: 'adeo-grid-cell-num',
   },
   {
@@ -273,7 +274,7 @@ export const lmColumns: ColumnDef[] = [
       { value: 'out', label: 'Rupture' },
       { value: 'preorder', label: 'Précommande' },
     ],
-    renderer: 'tag',
+    renderer: MTagRenderer,
     rendererProps: {
       labelMap: {
         'in-stock': { label: 'En stock', appearance: 'success' },
@@ -422,7 +423,7 @@ export const adeoColumns: ColumnDef[] = [
     filterable: true,
     filterType: 'set',
     filterOptions: ['P0', 'P1', 'P2', 'P3'].map((v) => ({ value: v, label: v })),
-    renderer: 'tag',
+    renderer: MTagRenderer,
     rendererProps: {
       labelMap: {
         P0: { label: 'P0', appearance: 'danger' },
@@ -445,7 +446,7 @@ export const adeoColumns: ColumnDef[] = [
       { value: 'blocked', label: 'Bloqué' },
       { value: 'done', label: 'Terminé' },
     ],
-    renderer: 'tag',
+    renderer: MTagRenderer,
     rendererProps: {
       labelMap: {
         open: { label: 'Ouvert', appearance: 'info' },
@@ -614,7 +615,7 @@ export const bricoColumns: ColumnDef[] = [
       { value: 'reorder', label: 'Riordino' },
       { value: 'overstock', label: 'Sovrastock' },
     ],
-    renderer: 'tag',
+    renderer: MTagRenderer,
     rendererProps: {
       labelMap: {
         normal: { label: 'Normale', appearance: 'success' },

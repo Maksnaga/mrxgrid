@@ -47,8 +47,8 @@ const columns: ColumnDef[] = [
     width: '220px',
     editable: true,
     cellValidator: (v) => {
-      if (typeof v !== 'string' || !v.includes('@')) return 'Invalid email'
-      return true
+      if (typeof v !== 'string' || !v.includes('@')) return { message: 'Invalid email' }
+      return null
     },
   },
 ]

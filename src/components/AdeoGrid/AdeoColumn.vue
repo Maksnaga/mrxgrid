@@ -22,6 +22,7 @@
 import { computed, onMounted, onScopeDispose, useSlots, watch } from 'vue'
 import type { Component, Raw } from 'vue'
 import type { ColumnDef, FilterDef, RowData } from './types'
+import type { CellError } from './models/cell.model'
 import type { CellEditorType } from './models/column.model'
 import type { AdeoFilterConfig } from './models/filter.model'
 import { injectAdeoColumnRegistry } from './state/AdeoColumnRegistry'
@@ -57,7 +58,7 @@ const props = withDefaults(
     cellEditorOptions?: { value: unknown; label: string }[]
     cellEditorValidator?: (value: unknown, row: RowData) => boolean | string
     valueValidator?: (value: unknown) => boolean
-    cellValidator?: (value: unknown, row: RowData) => true | string
+    cellValidator?: (value: unknown, row: RowData) => CellError | null
     /** Custom renderer component (alternative to `#cell` slot). */
     renderer?: 'text' | Raw<Component>
     rendererProps?: Record<string, unknown>

@@ -29,7 +29,7 @@ export interface HistoryOp {
 }
 
 const MAX_HISTORY = 50
-const STORAGE_PREFIX = 'adeo-grid-grid-history:'
+const STORAGE_PREFIX = 'adeo-grid-history:'
 
 export interface HistoryEngine {
   readonly canUndo: ComputedRef<boolean>

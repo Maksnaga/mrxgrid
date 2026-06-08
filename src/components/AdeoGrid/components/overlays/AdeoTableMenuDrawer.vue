@@ -3,8 +3,14 @@ import { computed, ref, watch } from 'vue'
 import { MDrawer, MButton, MToggle, MSelect, MTextInput } from '@mozaic-ds/vue'
 import { ChevronRight24, Search24 } from '@mozaic-ds/icons-vue'
 import type { ColumnDef } from '../../types'
+import type { GridDensity } from '../../models/grid-events.model'
 
-export type DataDensity = 'compact' | 'default' | 'comfortable'
+/**
+ * @deprecated Use `GridDensity` from `models/grid-events.model`. This alias
+ * is kept for backward compatibility with consumers that imported `DataDensity`
+ * from this component before the Angular-parity rename.
+ */
+export type DataDensity = GridDensity
 
 const props = defineProps<{
   open: boolean

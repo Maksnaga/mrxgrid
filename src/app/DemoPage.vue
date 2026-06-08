@@ -251,7 +251,7 @@ const baseColumns: ColumnDef[] = [
     editable: true,
     cellEditor: 'number',
     cellValidator: (v) =>
-      typeof v === 'number' && v >= 0 ? true : 'Stock négatif interdit',
+      typeof v === 'number' && v >= 0 ? null : { message: 'Stock négatif interdit' },
     cellClass: 'adeo-grid-cell-num',
   },
   {

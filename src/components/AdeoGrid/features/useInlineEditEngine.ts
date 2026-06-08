@@ -8,12 +8,21 @@
  *
  * Depends on `displayIndexToSourceIndex` (from `useGridEngine`) to resolve
  * the visible row index back to the index in `sourceData`.
+ *
+ * When `formulaEngine` is provided (non-null), `startEdit` automatically
+ * converts a stored long-form formula (`=REF(COLUMN("price"),ROW(1))…`)
+ * to the A1 surface the user expects to see (`=A1*B1`). This mirrors the
+ * Angular `InlineEditEngine.startEdit` behaviour where the display formula
+ * is fetched from the formula registry before populating the draft. The
+ * commit path (A1 → long-form) is handled by `formulaEngine.set()` in the
+ * host component's `flushEdit` — no conversion is needed here on commit.
  */
 
 import type { GridState } from '../state/useGridState'
 import type { CellEditEvent, CellEditCancelEvent } from '../models/cell.model'
 import type { CellEditorType } from '../models/column.model'
 import type { HistoryEngine } from './useHistoryEngine'
+import type { FormulaEngine } from './formula/useFormulaEngine'
 import type { RowData } from '../types'
 
 export interface InlineEditEngine<T = RowData> {
@@ -30,7 +39,36 @@ export function useInlineEditEngine<T = RowData>(
   state: GridState<T>,
   history: HistoryEngine,
   displayIndexToSourceIndex: (displayIndex: number) => number,
+  formulaEngine: FormulaEngine | null = null,
 ): InlineEditEngine<T> {
+  /**
+   * When the column has `allowFormula` and the stored value is a formula
+   * string, convert it to A1 surface via the formula engine's display
+   * helper. Falls back to the raw value when the engine has no entry for
+   * this cell (e.g. the formula was just typed and not yet committed).
+   */
+  function resolveEditValue(
+    field: string,
+    value: unknown,
+    rowId: string | number | undefined,
+  ): unknown {
+    if (
+      formulaEngine === null ||
+      rowId === undefined ||
+      typeof value !== 'string' ||
+      !value.trimStart().startsWith('=')
+    ) {
+      return value
+    }
+    const def = state.columnDefMap.value.get(field)
+    if (!def?.allowFormula) return value
+    try {
+      return formulaEngine.displayFormula({ rowId, field }) ?? value
+    } catch {
+      return value
+    }
+  }
+
   function startEdit(rowIndex: number, field: string): void {
     const def = state.columnDefMap.value.get(field)
     if (!def?.editable) return
@@ -42,9 +80,15 @@ export function useInlineEditEngine<T = RowData>(
     const row = sourceIndex >= 0 ? state.sourceData.value[sourceIndex] : undefined
     if (!row) return
 
-    const value = def.valueGetter
+    const rawValue = def.valueGetter
       ? def.valueGetter(row)
       : (row as Record<string, unknown>)[field]
+
+    // Resolve the row's stable id so the formula engine can look up the
+    // stored A1 surface for this cell. Mirrors Angular's startEdit which
+    // fetches `displayFormula(addr)` before populating the editor.
+    const rowId = state.rowIdResolver.value(row as Record<string, unknown>, sourceIndex)
+    const value = resolveEditValue(field, rawValue, rowId)
 
     state.cellEditState.value = {
       editingCell: { row: rowIndex, col: colIndex },

@@ -21,8 +21,8 @@ import {
   AdeoTableMenuDrawer,
   AdeoGroupingDrawer,
   AdeoGridFilterDrawer,
-  defineStatusRenderer,
 } from '@/components/AdeoGrid'
+import { defineStatusRenderer } from '@/app/renderers/defineStatusRenderer'
 import type {
   CellEditEvent,
   ColumnDef,
@@ -94,7 +94,7 @@ const columns: ColumnDef[] = [
     width: '180px',
     editable: true,
     cellValidator: (v) =>
-      typeof v === 'string' && v.trim().length > 0 ? true : 'Le nom est requis',
+      typeof v === 'string' && v.trim().length > 0 ? null : { message: 'Le nom est requis' },
     filter: { type: 'text', placeholder: 'Rechercher...' },
   },
   {
@@ -122,8 +122,8 @@ const columns: ColumnDef[] = [
     editable: true,
     cellValidator: (v) => {
       const n = typeof v === 'number' ? v : Number(v)
-      if (!Number.isFinite(n) || n <= 0) return 'Le prix doit être positif'
-      return true
+      if (!Number.isFinite(n) || n <= 0) return { message: 'Le prix doit être positif' }
+      return null
     },
     valueFormatter: (v) => {
       const n = typeof v === 'number' ? v : Number(v)

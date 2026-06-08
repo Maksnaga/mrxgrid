@@ -21,6 +21,7 @@
  * is derived fresh on each call.
  */
 
+import { shallowRef, computed, type ComputedRef, type ShallowRef } from 'vue'
 import type { GridState } from '../state/useGridState'
 import type { CellCoord, CellRange } from '../models/cell.model'
 import type { RowData } from '../types'
@@ -35,6 +36,12 @@ export interface CellSelectionEngine extends CellSelectionActions {
   selectRange(start: CellCoord, end: CellCoord): void
   startRangeSelection(row: number, col: number): void
   extendRange(row: number, col: number): void
+  /**
+   * Shift+Click / Shift+Arrow — extend range from anchor to (row, col)
+   * without requiring an active drag. The anchor is the `start` of the
+   * current range (or the focused cell when no range exists yet).
+   */
+  extendRangeTo(row: number, col: number): void
   endRangeSelection(): void
   moveToNextEditableCell(): void
   startFill(row: number, col: number): void
@@ -44,12 +51,82 @@ export interface CellSelectionEngine extends CellSelectionActions {
   isCellInFillRange(row: number, col: number): boolean
   isCellInFillRejectRange(row: number, col: number): boolean
   getNormalizedRange(): CellRange | null
+
+  // --- Multi-range (Ctrl+Click) — ported from legacy useCellSelection ---
+  /** Frozen ranges added via Ctrl+Click. Local to the engine; no Angular pendant. */
+  readonly frozenRanges: ShallowRef<CellRange[]>
+  /** All ranges: frozen (Ctrl+Click) + the current live range. */
+  readonly allRanges: ComputedRef<CellRange[]>
+  /**
+   * Freeze the current live range and start a new single-cell range at the
+   * given coordinates. Accepts a `CellRange` so the caller constructs the
+   * full `{start, end}` shape explicitly — this avoids confusing
+   * row/col arguments with row/col params from the signature.
+   */
+  addRange(range: CellRange): void
+  /** Clear all frozen ranges (Escape / new single click). */
+  clearFrozenRanges(): void
 }
 
 export function useCellSelectionEngine<T = RowData>(
   state: GridState<T>,
 ): CellSelectionEngine {
+  // --- Multi-range (Ctrl+Click) local state — no Angular pendant ---
+  const frozenRanges = shallowRef<CellRange[]>([])
+
+  /** The current live range derived from state.cellRange. */
+  const currentLiveRange = computed<CellRange | null>(() => state.cellRange.value)
+
+  /** All ranges: frozen (Ctrl+Click) + the current live single or shift-extended range. */
+  const allRanges = computed<CellRange[]>(() => {
+    const result = [...frozenRanges.value]
+    if (currentLiveRange.value) result.push(currentLiveRange.value)
+    return result
+  })
+
+  /** Freeze the current live range and start a new single-cell range at the
+   *  given `range.start` coordinates. The `range.end` is honoured as-is so
+   *  callers can pass a pre-built single-cell range or a full selection.
+   */
+  function addRange(range: CellRange): void {
+    if (currentLiveRange.value) {
+      frozenRanges.value = [...frozenRanges.value, currentLiveRange.value]
+    }
+    const { row, col } = range.start
+    state.focusedCell.value = { row, col }
+    state.selectedCell.value = { row, col }
+    state.cellRange.value = range
+    state.isDragging.value = false
+  }
+
+  /** Clear all frozen ranges. Called on single-click or Escape. */
+  function clearFrozenRanges(): void {
+    frozenRanges.value = []
+  }
+
   function focusCell(row: number, col: number, source: 'click' | 'keyboard' = 'click'): void {
+    // Idempotent guard — bail when already focused on the same cell with
+    // no transient state to clean (no frozen ranges, no live range, not
+    // dragging). Without this, `onActivateCell` (sync focusCell) followed
+    // by `watch(activeCell)` (async focusCell) re-mutates `focusedCell`
+    // with a new `{row, col}` object on every tick, looping the watcher
+    // → "Maximum recursive updates exceeded" in <AdeoGrid>.
+    const existing = state.focusedCell.value
+    if (
+      existing?.row === row &&
+      existing?.col === col &&
+      frozenRanges.value.length === 0 &&
+      state.cellRange.value === null &&
+      !state.isDragging.value
+    ) {
+      // Refresh source but skip the rest — no observable state change.
+      state.focusSource.value = source
+      return
+    }
+    // Clear Ctrl+Click frozen ranges — a new single-click focus starts a
+    // fresh selection context. addRange() sets state fields directly and
+    // does NOT call focusCell, so this reset is safe.
+    frozenRanges.value = []
     state.focusSource.value = source
     state.focusedCell.value = { row, col }
     state.selectedCell.value = { row, col }
@@ -96,6 +173,20 @@ export function useCellSelectionEngine<T = RowData>(
     const range = state.cellRange.value
     if (!range) return
     state.cellRange.value = { start: range.start, end: { row, col } }
+  }
+
+  /**
+   * Shift+Click / Shift+Arrow — extend from anchor to (row, col) without
+   * requiring isDragging. Used by AdeoGrid.vue to replace the legacy
+   * `useCellSelection.extendTo()` call-sites.
+   */
+  function extendRangeTo(row: number, col: number): void {
+    const range = state.cellRange.value
+    const focused = state.focusedCell.value
+    const anchor = range?.start ?? focused
+    if (!anchor) return
+    state.selectedCell.value = { row, col }
+    state.cellRange.value = { start: anchor, end: { row, col } }
   }
 
   function endRangeSelection(): void {
@@ -540,6 +631,7 @@ export function useCellSelectionEngine<T = RowData>(
     selectRange,
     startRangeSelection,
     extendRange,
+    extendRangeTo,
     endRangeSelection,
     moveUp,
     moveDown,
@@ -569,5 +661,10 @@ export function useCellSelectionEngine<T = RowData>(
     isCellInFillRange,
     isCellInFillRejectRange,
     getNormalizedRange,
+    // Multi-range
+    frozenRanges,
+    allRanges,
+    addRange,
+    clearFrozenRanges,
   }
 }

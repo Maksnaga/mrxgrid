@@ -43,17 +43,36 @@ export interface GridState<T = RowData> {
   readonly sourceData: Ref<T[]>
   readonly totalItems: Ref<number>
   /**
-   * Monotonically increasing counter bumped by the grid every time it
-   * mutates a row's field in place (cell edit, fill handle, bulk clear,
-   * paste). Acts as a manual reactivity trigger : the filter / sort /
-   * group computeds read it so they invalidate even when their normal
-   * short-circuits (no filter / no sort) would otherwise return the
-   * input array unchanged — which would prevent Vue from tracking any
-   * read on the mutated row's properties.
+   * Manual reactivity trigger for in-place row mutations.
    *
-   * Consumers don't need to touch this. It's exposed on the public
-   * `GridState` shape only because the downstream computeds in
-   * `AdeoGrid.vue` and the engine layer need to reference it.
+   * Bumped by the grid after every mutation that writes directly into an
+   * existing row object (`row.field = value`) rather than replacing the
+   * whole array. Affected operations: cell edit commit (`applyFills`),
+   * fill-handle drag, bulk clear, paste.
+   *
+   * **Why this exists:** Vue's `computed` only tracks reactive reads that
+   * actually occur during its execution. When `filteredRows` short-circuits
+   * on "no active filter" it returns `props.rows` without iterating over
+   * individual row properties — so mutations on those properties are
+   * invisible to the computed's dependency tracker. Reading `dataVersion`
+   * once at the top of the computed gives Vue a concrete dep to invalidate
+   * every time a row is mutated in place, forcing the entire
+   * filter → sort → group pipeline to recompute.
+   *
+   * **Why not Option A (immutable updates)?** Replacing a single row inside
+   * a 100k-row array is O(N) — `[...data.slice(0,i), newRow, ...data.slice(i+1)]`
+   * on every keystroke would be prohibitive. The in-place mutation + version
+   * bump pattern keeps edits O(1) while still driving reactivity correctly.
+   *
+   * **Why not `triggerRef` / `shallowRef`?** `triggerRef` requires touching
+   * `sourceData` which creates the same allocation problem. A plain counter
+   * costs a single integer read and is trivially serialisable.
+   *
+   * **Internal API.** Consumers should generally prefer assigning a new
+   * array to `sourceData` (immutable update) which triggers reactivity
+   * automatically and does not require knowing about this counter. Only
+   * direct in-place mutations — those that bypass `sourceData` assignment —
+   * need to bump this after the fact.
    */
   readonly dataVersion: Ref<number>
 
@@ -162,6 +181,17 @@ export interface GridState<T = RowData> {
 
   // --- Formula bar edit mode (drives A1 column-letter badges in headers) ---
   readonly formulaBarEditingActive: Ref<boolean>
+
+  /**
+   * `performance.now()` timestamp of the last column-resize mouseup.
+   * Written by `useColumnResizeEngine` (engine layer). Sub-components
+   * (notably `AdeoGridHeaderCell`) read this to suppress the synthetic
+   * click-after-mouseup that would otherwise trigger a spurious sort
+   * within ~200 ms of a resize.  Exposed on `GridState` so it is
+   * injectable via `useGridContext()` without requiring the full engine.
+   * Initialized to `0` (no resize ever happened).
+   */
+  readonly lastResizeEndedAt: Ref<number>
 
   // --- Cell edit ---
   readonly cellEditState: Ref<CellEditState>
@@ -278,6 +308,9 @@ export function useGridState<T = RowData>(): GridState<T> {
   // --- Column drag ---
   const draggingColumn = ref<string | null>(null)
   const dropIndicatorIndex = ref<number | null>(null)
+
+  // --- Column-resize timestamp (read by AdeoGridHeaderCell sort guard) ---
+  const lastResizeEndedAt = ref(0)
 
   // --- Formula bar edit mode ---
   const formulaBarEditingActive = ref(false)
@@ -460,6 +493,7 @@ export function useGridState<T = RowData>(): GridState<T> {
     activeSelectionMode,
     draggingColumn,
     dropIndicatorIndex,
+    lastResizeEndedAt,
     formulaBarEditingActive,
     cellEditState,
     visibleColumns,

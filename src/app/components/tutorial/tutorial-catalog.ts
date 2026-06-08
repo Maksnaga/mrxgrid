@@ -427,7 +427,7 @@ const columns: ColumnDef[] = [
     editable: true,
     cellEditor: 'number',
     cellValidator: (v) =>
-      typeof v === 'number' && v >= 0 ? true : 'Prix négatif interdit',
+      typeof v === 'number' && v >= 0 ? null : { message: 'Prix négatif interdit' },
   },
   {
     field: 'category',

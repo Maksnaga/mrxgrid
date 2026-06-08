@@ -322,7 +322,7 @@ Pas supporté nativement — \`cellValidator\` doit être synchrone. Pour de l'a
           width: '260px',
           editable: true,
           cellValidator: (v) =>
-            typeof v === 'string' && v.trim().length >= 3 ? true : 'Au moins 3 caractères',
+            typeof v === 'string' && v.trim().length >= 3 ? null : { message: 'Au moins 3 caractères' },
         },
         {
           field: 'price',
@@ -332,7 +332,7 @@ Pas supporté nativement — \`cellValidator\` doit être synchrone. Pour de l'a
           cellEditor: 'number',
           cellValidator: (v) => {
             const n = Number(v)
-            return Number.isFinite(n) && n > 0 ? true : 'Prix > 0 requis'
+            return Number.isFinite(n) && n > 0 ? null : { message: 'Prix > 0 requis' }
           },
         },
         {
@@ -341,7 +341,7 @@ Pas supporté nativement — \`cellValidator\` doit être synchrone. Pour de l'a
           width: '100px',
           editable: true,
           cellEditor: 'number',
-          cellValidator: (v) => (Number(v) >= 0 ? true : 'Stock négatif interdit'),
+          cellValidator: (v) => (Number(v) >= 0 ? null : { message: 'Stock négatif interdit' }),
         },
       ]
       const rows = ref<LMProduct[]>(

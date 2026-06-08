@@ -14,8 +14,8 @@ import type { FilterEvent } from './filter.model'
 import type { PageEvent } from './pagination.model'
 import type { SortEvent } from './sort.model'
 
-/** Density scale. Angular uses `'small' | 'default' | 'large'`. */
-export type GridDensity = 'small' | 'default' | 'large'
+/** Density scale matching Vue DataDensity (`'compact' | 'default' | 'comfortable'`). */
+export type GridDensity = 'compact' | 'default' | 'comfortable'
 
 /**
  * Lightweight display descriptor for the "FILTERED BY" tag bar. Derived from

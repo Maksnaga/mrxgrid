@@ -374,8 +374,8 @@ function isResizable(col: ColumnDef): boolean {
   clip-path: inset(0 0 0 -4px);
 }
 
-.adeo-grid-grid-checkbox-cell,
-.adeo-grid-grid-expand-cell {
+.adeo-grid-checkbox-cell,
+.adeo-grid-expand-cell {
   width: 50px;
   text-align: center;
   display: flex;
@@ -384,7 +384,7 @@ function isResizable(col: ColumnDef): boolean {
   text-transform: none;
 }
 
-.adeo-grid-grid-rownum-cell {
+.adeo-grid-rownum-cell {
   width: 56px;
   background: var(--color-background-secondary, #f6f7f8);
   border-right: 1px solid var(--color-border-primary, #e3e6ea);
@@ -393,12 +393,12 @@ function isResizable(col: ColumnDef): boolean {
 
 <style>
 /* Mozaic checkbox overrides inside header cells */
-.adeo-grid-grid-header .adeo-grid-grid-checkbox-cell .mc-checkbox {
+.adeo-grid-grid-header .adeo-grid-checkbox-cell .mc-checkbox {
   padding: 0;
   gap: 0;
 }
 
-.adeo-grid-grid-header .adeo-grid-grid-checkbox-cell .mc-checkbox__label {
+.adeo-grid-grid-header .adeo-grid-checkbox-cell .mc-checkbox__label {
   display: none;
 }
 </style>

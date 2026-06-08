@@ -4,6 +4,12 @@ import type { GridState } from '@/components/AdeoGrid/state/useGridState'
 import type { ColumnDef, RowData } from '@/components/AdeoGrid/types'
 
 const MIN_WIDTH = 50
+/**
+ * Global default cap on the autosize width (px). Aligned with Angular's
+ * `MAX_WIDTH = 800` constant. Applied when no per-call `options.maxWidth`
+ * and no `UseAutosizeOptions.maxWidth` is provided.
+ */
+const DEFAULT_MAX_WIDTH = 800
 // Header overhead: sort indicator (~14px) + gap + kebab trigger (~28px with
 // padding) — measured against `AdeoGridHeaderCell.vue`.
 const HEADER_AFFORDANCE = 52
@@ -30,6 +36,14 @@ export interface UseAutosizeOptions {
   wrapperRef: Ref<HTMLElement | null>
   /** Currently rendered rows (already filtered/sorted/grouped). */
   rows: Ref<RowData[]>
+  /**
+   * Global hard cap on the autosize width (px) across all columns.
+   * Applied on top of each column's own `ColumnDef.maxWidth`.
+   * Mirrors Angular's `MAX_WIDTH = 800` cap.
+   * Default: `800` — aligned with Angular.
+   * Can be overridden per-call via `autosizeColumn(field, { maxWidth })`.
+   */
+  maxWidth?: number
 }
 
 // Module-level reuse: creating a fresh canvas per autosize call adds GC
@@ -68,17 +82,33 @@ export function useAutosize(opts: UseAutosizeOptions) {
     return String(raw)
   }
 
-  function autosizeColumn(field: string): void {
+  /**
+   * Autosize a single column to fit its content.
+   *
+   * @param field - The column field name.
+   * @param options - Optional overrides.
+   * @param options.maxWidth - Hard cap (px) applied on top of any column-level `maxWidth`.
+   *   Defaults to `800` (Angular parity). Pass `Infinity` to remove the cap.
+   */
+  function autosizeColumn(field: string, options?: { maxWidth?: number }): void {
     const ctx = getMeasurementCtx()
     const wrapper = opts.wrapperRef.value
     if (!ctx || !wrapper) return
-    const env = sampleCellEnv(wrapper, field, ctx)
-    const width = measureColumn(field, env, ctx)
+    const callCap = options?.maxWidth ?? opts.maxWidth ?? DEFAULT_MAX_WIDTH
+    const env = sampleCellEnv(wrapper, field, ctx, callCap)
+    const width = measureColumn(field, env, ctx, callCap)
     if (width == null) return
     opts.gridState.updateColumnState(field, { currentWidth: width })
   }
 
-  function autosizeAllColumns(): void {
+  /**
+   * Autosize all visible columns to fit their content.
+   *
+   * @param options - Optional overrides.
+   * @param options.maxWidth - Hard cap (px) applied on top of any column-level `maxWidth`.
+   *   Defaults to `800` (Angular parity). Pass `Infinity` to remove the cap.
+   */
+  function autosizeAllColumns(options?: { maxWidth?: number }): void {
     const ctx = getMeasurementCtx()
     const wrapper = opts.wrapperRef.value
     if (!ctx || !wrapper) return
@@ -95,9 +125,10 @@ export function useAutosize(opts: UseAutosizeOptions) {
     // single sample is faithful for the body measure. The header
     // affordance is added per-column as a constant on top so it
     // doesn't depend on the sample either.
-    const env = sampleCellEnv(wrapper, null, ctx)
+    const callCap = options?.maxWidth ?? opts.maxWidth ?? DEFAULT_MAX_WIDTH
+    const env = sampleCellEnv(wrapper, null, ctx, callCap)
     for (const c of opts.gridState.visibleColumns.value) {
-      const width = measureColumn(c.field, env, ctx)
+      const width = measureColumn(c.field, env, ctx, callCap)
       if (width != null) opts.gridState.updateColumnState(c.field, { currentWidth: width })
     }
   }
@@ -107,11 +138,15 @@ export function useAutosize(opts: UseAutosizeOptions) {
    * padding/border reserve. Hoisted out of `measureColumn` so the
    * "autosize all" path can do it once and reuse the result across
    * every column.
+   *
+   * `_cap` is accepted for API symmetry with `measureColumn` but not used
+   * inside the env sampling itself — it is purely font/padding measurement.
    */
   function sampleCellEnv(
     wrapper: HTMLElement,
     field: string | null,
     ctx: CanvasRenderingContext2D,
+    _cap?: number,
   ): { reserve: number; borderX: number } {
     const sample = field ? pickStyleSample(wrapper, field) : pickStyleSample(wrapper, '')
     const cs = window.getComputedStyle(sample)
@@ -127,6 +162,7 @@ export function useAutosize(opts: UseAutosizeOptions) {
     field: string,
     env: { reserve: number; borderX: number },
     ctx: CanvasRenderingContext2D,
+    globalCap: number = DEFAULT_MAX_WIDTH,
   ): number | null {
     const wrapper = opts.wrapperRef.value
     if (!wrapper) return null
@@ -138,7 +174,8 @@ export function useAutosize(opts: UseAutosizeOptions) {
     const minDef = def.minWidth ? parseInt(def.minWidth, 10) : NaN
     const maxDef = def.maxWidth ? parseInt(def.maxWidth, 10) : NaN
     const min = Number.isFinite(minDef) ? Math.max(MIN_WIDTH, minDef) : MIN_WIDTH
-    const cap = Number.isFinite(maxDef) ? maxDef : Infinity
+    // Per-column cap intersected with the global cap from the call site.
+    const cap = Math.min(Number.isFinite(maxDef) ? maxDef : Infinity, globalCap)
 
     // Header first — it has its own affordance overhead (sort indicator,
     // kebab trigger) layered on top of the text width.

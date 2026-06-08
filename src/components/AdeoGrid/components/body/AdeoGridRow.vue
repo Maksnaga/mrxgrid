@@ -333,8 +333,8 @@ const emit = defineEmits<{
   clip-path: inset(0 0 0 -4px);
 }
 
-.adeo-grid-grid-checkbox-cell,
-.adeo-grid-grid-expand-cell {
+.adeo-grid-checkbox-cell,
+.adeo-grid-expand-cell {
   width: 50px;
   text-align: center;
   display: flex;
@@ -342,7 +342,7 @@ const emit = defineEmits<{
   justify-content: center;
 }
 
-.adeo-grid-grid-rownum-cell {
+.adeo-grid-rownum-cell {
   width: 56px;
   display: flex;
   align-items: center;
@@ -392,7 +392,7 @@ const emit = defineEmits<{
   border: none;
 }
 
-.adeo-grid-grid-row--skeleton {
+.adeo-grid-row--skeleton {
   pointer-events: none;
   min-width: 100%;
 }
@@ -427,12 +427,12 @@ const emit = defineEmits<{
 
 <style>
 /* Mozaic checkbox overrides inside grid cells */
-.adeo-grid-grid-checkbox-cell .mc-checkbox {
+.adeo-grid-checkbox-cell .mc-checkbox {
   padding: 0;
   gap: 0;
 }
 
-.adeo-grid-grid-checkbox-cell .mc-checkbox__label {
+.adeo-grid-checkbox-cell .mc-checkbox__label {
   display: none;
 }
 </style>

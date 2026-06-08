@@ -78,6 +78,8 @@ export type HeaderMenuActionId =
   | 'unfreeze-column'
   | 'hide-column'
   | 'toggle-column-search'
+  | 'autosize-this'
+  | 'autosize-all'
 
 export interface HeaderMenuConfig {
   field: string

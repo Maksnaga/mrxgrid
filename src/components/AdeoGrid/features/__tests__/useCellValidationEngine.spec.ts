@@ -14,12 +14,14 @@ const columns: ColumnDef<Row>[] = [
   {
     field: 'name',
     headerName: 'Name',
-    cellValidator: (value) => (typeof value === 'string' && value.length > 0 ? true : 'Required'),
+    cellValidator: (value) =>
+      typeof value === 'string' && value.length > 0 ? null : { message: 'Required' },
   },
   {
     field: 'age',
     headerName: 'Age',
-    cellValidator: (value) => (typeof value === 'number' && value >= 0 ? true : 'Must be >= 0'),
+    cellValidator: (value) =>
+      typeof value === 'number' && value >= 0 ? null : { message: 'Must be >= 0' },
   },
 ]
 
@@ -85,13 +87,13 @@ describe('useCellValidationEngine', () => {
     expect(validation.errorCount.value).toBe(0)
   })
 
-  it('toError adapter: true → no error, string → CellError { message }', () => {
+  it('cellValidator passthrough: null → no error, CellError → tracked', () => {
     const state = useGridState<Row>()
     state.initColumns([
       {
         field: 'name',
         headerName: 'Name',
-        cellValidator: (v) => (v === 'ok' ? true : 'bad'),
+        cellValidator: (v) => (v === 'ok' ? null : { message: 'bad' }),
       },
     ])
     state.sourceData.value = [{ id: 1, name: 'ok', age: 0 }] as Row[]

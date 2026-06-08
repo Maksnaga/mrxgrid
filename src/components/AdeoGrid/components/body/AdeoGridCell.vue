@@ -13,7 +13,6 @@ import { Danger24 } from '@mozaic-ds/icons-vue'
 import { MSelect, MTooltip } from '@mozaic-ds/vue'
 import type { ColumnDef, RowData } from '../../types'
 import { injectAdeoGridSlots, resolveCellSlot, resolveEditSlot } from '../../state/AdeoGridSlots'
-import { BUILTIN_RENDERERS, type BuiltinRendererName } from '../../features/renderers/builtin'
 import AdeoGridFormulaEditor from './AdeoGridFormulaEditor.vue'
 
 /**
@@ -101,15 +100,15 @@ const selectOptions = computed(() => {
   }))
 })
 
-// Sprint 4 — resolve `renderer` to a Component:
+// Resolve `renderer` to a Component:
 //   - null / undefined / 'text' → plain text path (no custom renderer)
-//   - string in BUILTIN_RENDERERS  → built-in alias (e.g. 'tag' → MTag wrapper)
-//   - Component                    → consumer-provided renderer
-// Unknown strings fall back to the text path so a typo doesn't crash the cell.
+//   - Component                  → consumer-provided renderer
+// String aliases (`'tag'`) were dropped along with `BUILTIN_RENDERERS` —
+// they were consumer-side sugar that did not belong in the library.
 const rendererComponent = computed<Component | null>(() => {
   const r = props.column.renderer
   if (r == null || r === 'text') return null
-  if (typeof r === 'string') return BUILTIN_RENDERERS[r as BuiltinRendererName] ?? null
+  if (typeof r === 'string') return null
   return r as Component
 })
 
@@ -930,8 +929,8 @@ function onEditKeydown(e: KeyboardEvent) {
   --cut-color: var(--color-background-accent-inverse, #1a73e8);
 }
 
-.adeo-grid-grid-cell__cut-mark--top,
-.adeo-grid-grid-cell__cut-mark--bottom {
+.adeo-grid-cell__cut-mark--top,
+.adeo-grid-cell__cut-mark--bottom {
   left: 0;
   right: 0;
   height: 2px;
@@ -941,15 +940,15 @@ function onEditKeydown(e: KeyboardEvent) {
   animation: moz-grid-marching-ants-x 0.5s linear infinite;
 }
 
-.adeo-grid-grid-cell__cut-mark--top {
+.adeo-grid-cell__cut-mark--top {
   top: 0;
 }
-.adeo-grid-grid-cell__cut-mark--bottom {
+.adeo-grid-cell__cut-mark--bottom {
   bottom: 0;
 }
 
-.adeo-grid-grid-cell__cut-mark--left,
-.adeo-grid-grid-cell__cut-mark--right {
+.adeo-grid-cell__cut-mark--left,
+.adeo-grid-cell__cut-mark--right {
   top: 0;
   bottom: 0;
   width: 2px;
@@ -959,10 +958,10 @@ function onEditKeydown(e: KeyboardEvent) {
   animation: moz-grid-marching-ants-y 0.5s linear infinite;
 }
 
-.adeo-grid-grid-cell__cut-mark--left {
+.adeo-grid-cell__cut-mark--left {
   left: 0;
 }
-.adeo-grid-grid-cell__cut-mark--right {
+.adeo-grid-cell__cut-mark--right {
   right: 0;
 }
 

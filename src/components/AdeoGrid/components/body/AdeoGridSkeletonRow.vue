@@ -180,7 +180,7 @@ function centerCellStyle(field: string): Record<string, string | undefined> {
   min-width: 100%;
 }
 
-.adeo-grid-grid-skeleton-row {
+.adeo-grid-skeleton-row {
   // Block any pointer interaction — these are inert placeholders.
   pointer-events: none;
   user-select: none;
@@ -212,13 +212,13 @@ function centerCellStyle(field: string): Record<string, string | undefined> {
   flex: 1 1 auto;
 }
 
-.adeo-grid-grid-checkbox-cell,
-.adeo-grid-grid-expand-cell {
+.adeo-grid-checkbox-cell,
+.adeo-grid-expand-cell {
   width: 50px;
   justify-content: center;
 }
 
-.adeo-grid-grid-rownum-cell {
+.adeo-grid-rownum-cell {
   width: 56px;
   justify-content: center;
   background: var(--color-background-secondary, #f6f7f8);

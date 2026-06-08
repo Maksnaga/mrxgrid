@@ -154,8 +154,18 @@ export function useGridEngine<T = RowData>(state: GridState<T>): GridEngine<T> {
   const clipboardEngine = useClipboardEngine<T>(state, (i) => displayIndexToSourceIndex(i))
   const historyEngine = useHistoryEngine<T>(clipboardEngine)
   const cellValidationEngine = useCellValidationEngine<T>(state)
-  const inlineEditEngine = useInlineEditEngine<T>(state, historyEngine, (i) =>
-    displayIndexToSourceIndex(i),
+
+  // Phase 6b — formula engine. Hoisted above inline-edit so it can be passed
+  // as the formula context for A1-surface conversion on startEdit. Active when
+  // at least one column declares `allowFormula: true`; idle (no allocations)
+  // otherwise.
+  const formulaEngine = useFormulaEngine(state as unknown as GridState)
+
+  const inlineEditEngine = useInlineEditEngine<T>(
+    state,
+    historyEngine,
+    (i) => displayIndexToSourceIndex(i),
+    formulaEngine,
   )
   const keyboardEngine = useKeyboardEngine<T>(state, inlineEditEngine)
 
@@ -177,10 +187,6 @@ export function useGridEngine<T = RowData>(state: GridState<T>): GridEngine<T> {
   // upfront regardless of whether the host grid opts in.
   const exportEngine = useExportEngine<T>(state)
   const statePersistenceEngine = useStatePersistenceEngine<T>(state)
-
-  // Phase 6b — formula engine. Active when at least one column declares
-  // `allowFormula: true`. Idle (no allocations) otherwise.
-  const formulaEngine = useFormulaEngine(state as unknown as GridState)
 
   const displayRows = computed<DisplayRow<T>[]>(() => {
     // When grouping is active, the group engine produces the flat group/data

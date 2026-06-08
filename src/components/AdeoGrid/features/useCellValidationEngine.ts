@@ -2,9 +2,9 @@
  * Cell validation engine — Angular parity (moz-grid / `CellValidationEngine`).
  *
  * Tracks a `Map<"rowIndex:field", CellError>` of validation results produced
- * by each column's `cellValidator`. Vue's `cellValidator` returns `true |
- * string` (true = valid, string = error message); we wrap the string case
- * into a `CellError { message }` to match the Angular surface.
+ * by each column's `cellValidator`. After the sync analysis, the public
+ * `cellValidator` signature is now `(value, row) => CellError | null` directly
+ * — no more `true | string` coercion. The engine is therefore a passthrough.
  *
  * The engine is passive — it only recomputes when `validateAll` or
  * `validateCell` is called. Wiring (e.g. on sourceData change, after inline
@@ -20,7 +20,16 @@ import type { RowData } from '../types'
 export interface CellValidationEngine {
   readonly cellErrors: Ref<Map<string, CellError>>
   readonly errorCount: ComputedRef<number>
-  validateAll(data: unknown[]): void
+  /**
+   * Run every column's `cellValidator` against `data`. Populates
+   * `cellErrors` / `errorCount`. Returns the total error count after
+   * validation — Angular parity (Angular `validateAll` returns `number`).
+   *
+   * When `data` is omitted the engine reads `state.sourceData.value`
+   * directly — mirrors Angular `validateAll()` (no-arg). Backwards
+   * compatible: callers that pass `data` explicitly continue to work.
+   */
+  validateAll(data?: unknown[]): number
   validateCell(rowIndex: number, field: string, value: unknown, row: unknown): void
   getCellError(rowIndex: number, field: string): CellError | null
   hasCellError(rowIndex: number, field: string): boolean
@@ -33,29 +42,26 @@ export function useCellValidationEngine<T = RowData>(
   const cellErrors = ref<Map<string, CellError>>(new Map())
   const errorCount = computed(() => cellErrors.value.size)
 
-  function toError(result: true | string | null | undefined): CellError | null {
-    if (result === true || result == null) return null
-    if (typeof result === 'string') return { message: result }
-    return null
-  }
-
-  function validateAll(data: unknown[]): void {
+  function validateAll(data?: unknown[]): number {
+    // When no data is supplied, fall back to the engine's own sourceData —
+    // Angular-parity (Angular `validateAll()` reads `this.state.sourceData()`).
+    const rows: unknown[] = data ?? (state.sourceData.value as unknown[])
     const defMap = state.columnDefMap.value
     const errors = new Map<string, CellError>()
 
-    for (let rowIndex = 0; rowIndex < data.length; rowIndex++) {
-      const row = data[rowIndex]
+    for (let rowIndex = 0; rowIndex < rows.length; rowIndex++) {
+      const row = rows[rowIndex]
       if (!row || typeof row !== 'object') continue
       for (const [field, def] of defMap) {
         if (!def.cellValidator) continue
         const value = (row as Record<string, unknown>)[field]
-        const result = def.cellValidator(value, row as RowData)
-        const err = toError(result)
+        const err = def.cellValidator(value, row as RowData)
         if (err) errors.set(`${rowIndex}:${field}`, err)
       }
     }
 
     cellErrors.value = errors
+    return cellErrors.value.size
   }
 
   function validateCell(rowIndex: number, field: string, value: unknown, row: unknown): void {
@@ -65,7 +71,7 @@ export function useCellValidationEngine<T = RowData>(
       return
     }
 
-    const err = toError(def.cellValidator(value, row as RowData))
+    const err = def.cellValidator(value, row as RowData)
     const key = `${rowIndex}:${field}`
     const next = new Map(cellErrors.value)
     if (err) next.set(key, err)

@@ -1,5 +1,5 @@
 /**
- * Status badge renderer helper — Sprint 4 (REFONTE-PLAN-V2 §2.8).
+ * Status badge renderer helper — **demo-side** convenience.
  *
  * Returns a Vue component that, given a `value`, looks up `(label,
  * appearance)` in the supplied map and renders a Mozaic `<MTag>` styled
@@ -7,6 +7,11 @@
  *
  * Pattern matches Excel "Conditional Formatting" but via a typed component
  * ref — safer than rendering arbitrary HTML strings inside cells.
+ *
+ * Lives under `src/app/renderers/` because it's a consumer-side helper
+ * (used by the StockDemo + stories), not a piece of the AdeoGrid library
+ * itself. Consumers of the library are free to copy this file or write
+ * their own renderer factory.
  *
  * Example:
  *

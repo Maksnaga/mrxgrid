@@ -1,7 +1,9 @@
 import type { Meta, StoryObj } from '@storybook/vue3-vite'
 import { defineComponent, h, markRaw } from 'vue'
-import { AdeoGrid, defineStatusRenderer } from '@/components/AdeoGrid'
+import { AdeoGrid } from '@/components/AdeoGrid'
 import type { ColumnDef } from '@/components/AdeoGrid'
+import { defineStatusRenderer } from '@/app/renderers/defineStatusRenderer'
+import { MTagRenderer } from '@/app/renderers/MTagRenderer'
 import { lmProducts, type LMProduct } from './_fixtures'
 
 const meta = {
@@ -163,7 +165,7 @@ Toutes les valeurs rendues en bleu \`info\`.
           field: 'category',
           headerName: 'Rayon',
           width: '160px',
-          renderer: 'tag',
+          renderer: MTagRenderer,
           rendererProps: {
             // Same tag style for every value — useful for low-cardinality classification.
             appearance: 'info',

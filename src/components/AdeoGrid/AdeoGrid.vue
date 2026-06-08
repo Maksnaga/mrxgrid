@@ -21,7 +21,8 @@ import type {
 } from './types'
 import type { SelectionModel } from '@/composables/useRowSelection'
 import type { DataDensity } from './components/overlays/AdeoTableMenuDrawer.vue'
-import { isGroupRow } from './types'
+import { isGroupRow, cellRangeToSelectionRange } from './types'
+import type { SelectionRange } from './types'
 import { useRowSelection } from '@/composables/useRowSelection'
 import { useRowExpansion } from '@/composables/useRowExpansion'
 import { useColumnResize } from '@/composables/useColumnResize'
@@ -34,9 +35,7 @@ import { useGrouping } from '@/composables/useGrouping'
 import { useServerGrouping } from '@/composables/useServerGrouping'
 import { useCellEditing } from '@/composables/useCellEditing'
 import type { CellEditEvent } from '@/composables/useCellEditing'
-import { useCellSelection } from '@/composables/useCellSelection'
 import { useKeyboard } from '@/composables/useKeyboard'
-import { useFillHandle } from '@/composables/useFillHandle'
 import { useColumnDnD } from '@/composables/useColumnDnD'
 import { useClipboard } from '@/composables/useClipboard'
 import { useMouseSelection } from '@/composables/useMouseSelection'
@@ -53,9 +52,9 @@ import { ADEO_GRID_SLOTS_KEY, type AdeoGridSlotsContext } from './state/AdeoGrid
 import { useGridEngine } from './engine/useGridEngine'
 import { useRefHighlight } from './features/formula/useRefHighlight'
 import { columnIndexToLetters } from './features/formula/formula-ast'
-import { a1ToLongForm, longFormToA1 } from './features/formula/formula-ref-mapper'
 import { extractEditorRefTokens, tokenizeFormulaEditor } from './features/formula/formula-tokenizer'
-import type { GridDensity } from './models/grid-events.model'
+import type { GridDensity, GroupEvent } from './models/grid-events.model'
+import type { SortEvent } from './models/sort.model'
 
 import AdeoGridHeader from './components/header/AdeoGridHeader.vue'
 import AdeoGridSpreadsheetHeader from './components/header/AdeoGridSpreadsheetHeader.vue'
@@ -69,7 +68,7 @@ import AdeoGridSelectionBar from './components/overlays/AdeoGridSelectionBar.vue
 import AdeoGridSmartToolbar from './components/overlays/AdeoGridSmartToolbar.vue'
 import type { GroupingItem } from './components/overlays/AdeoGroupingDrawer.vue'
 import { OPERATOR_LABELS, VALUELESS_OPERATORS, RANGE_OPERATORS } from './models/filter.model'
-import type { FilterCondition, FilterMode, FilterModel } from './models/filter.model'
+import type { FilterCondition, FilterEvent, FilterMode, FilterModel } from './models/filter.model'
 
 const UTILITY_COL_WIDTH = 50
 
@@ -139,12 +138,21 @@ const props = withDefaults(
     /** Called when the visible row range changes. Use to trigger lazy data fetching. */
     onVisibleRangeChange?: (start: number, end: number) => void
     /**
-     * Total number of rows in the full dataset (including unloaded).
-     * Required when using lazy loading to prevent scroll jumps.
-     * When provided, scrollbar height = totalCount × rowHeight regardless
-     * of how many rows are actually loaded in the rows array.
+     * Total number of items in the full server-side dataset (including
+     * unloaded rows). Required in server / lazy-loading mode to drive the
+     * scrollbar height without all rows being present in the `rows` array.
+     *
+     * @deprecated Use `totalItems` — this alias is kept for migration only.
+     * Both names are accepted; `totalItems` takes precedence when both are
+     * supplied.
      */
     totalCount?: number
+    /**
+     * Total number of items in the full server-side dataset (including
+     * unloaded rows). Preferred name — use instead of the deprecated
+     * `totalCount` alias.
+     */
+    totalItems?: number
     /** Fields to hide (synced from settings drawer). */
     hiddenFields?: string[]
     /** Group fields (synced from grouping drawer). */
@@ -208,8 +216,19 @@ const props = withDefaults(
      * Row ids with an in-flight mutation (bulk delete, drawer save, …).
      * Each matching row gets a dim overlay + spinner. Cumulates with
      * `pendingCells`. Default: [].
+     *
+     * Prefer `pendingRows` — this alias is kept for backward compatibility.
+     * @deprecated Use `pendingRows` instead (Angular-parity name).
      */
     pendingRowIds?: ReadonlyArray<string | number>
+    /**
+     * Row ids with an in-flight mutation — Angular-parity name for
+     * `pendingRowIds`. Each matching row gets a dim overlay + spinner.
+     * Cumulates with `pendingCells`. Default: [].
+     *
+     * Takes precedence over `pendingRowIds` when both are supplied.
+     */
+    pendingRows?: ReadonlyArray<string | number>
     /**
      * Optional error to surface — drives the `#error` slot. Pass `null` to
      * clear. The grid emits `retry` when the consumer wires the slot's
@@ -280,10 +299,43 @@ const emit = defineEmits<{
    */
   bulkCellEdit: [event: { changes: ReadonlyArray<{ rowIndex: number; field: string; oldValue: unknown; newValue: unknown }> }]
   fill: [event: FillEvent]
-  /** Emitted when the pagination page or page size changes. */
-  pageChange: [range: { page: number; pageSize: number; startIndex: number; endIndex: number }]
-  /** Emitted when filters change. Use with serverFilter to apply filters server-side. */
+  /**
+   * Emitted when the pagination page or page size changes.
+   * Payload matches `PageEvent` from `models/pagination.model.ts`.
+   * Both `page` (1-based, Vue convention) and `pageIndex` (0-based,
+   * Angular convention) are included for interop.
+   */
+  pageChange: [range: {
+    /** Current page, 1-based. */
+    page: number
+    /** Current page index, 0-based (= page - 1). Angular interop. */
+    pageIndex: number
+    pageSize: number
+    startIndex: number
+    endIndex: number
+    /** Page number (1-based) before this change. */
+    previousPageIndex: number
+    /** Page size before this change. */
+    previousPageSize: number
+  }]
+  /**
+   * Emitted when filters change (quick-filter row or formal model). Use with
+   * `serverFilter` / `filterMode: 'server'` to apply filters server-side.
+   *
+   * @deprecated Use `filterEvent` (fully typed `FilterEvent`) or
+   * `update:filterModel` (formal model v-model). This legacy payload carries
+   * only the raw quick-filter values and is retained for backward compatibility.
+   */
   filterChange: [filters: Record<string, unknown>]
+  /**
+   * Typed replacement for the legacy `filterChange` event.
+   * Carries `{ model, condition, reason }` on every formal filter mutation
+   * (add / update / remove / clear / replace from the drawer, overlay, or
+   * programmatic `setFilterModel`). Angular parity — mirrors `FilterEvent`.
+   *
+   * Wire alongside or instead of `filterChange` for new consumers.
+   */
+  filterEvent: [event: FilterEvent]
   /**
    * Emitted whenever the formal filter model changes — from the per-column
    * overlay, the filter drawer, programmatic `setFilterModel`, or any tag-bar
@@ -310,6 +362,16 @@ const emit = defineEmits<{
   ]
   /** Emitted when the user clicks Retry from the `#error` slot. Wire to your refetch. */
   retry: []
+  /** Emitted whenever the active sort stack changes (column click, menu sort, programmatic setSort). */
+  sortChange: [event: SortEvent]
+  /** Emitted whenever the active group columns change (add/remove/clear group). */
+  groupChange: [event: GroupEvent]
+  /**
+   * Emitted whenever the set of hidden columns changes (via the settings
+   * drawer, `hiddenFields` prop, or programmatic column visibility toggle).
+   * Payload is the ordered list of field names currently hidden.
+   */
+  hiddenFieldsChange: [fields: string[]]
 }>()
 
 // ---------------------------------------------------------------------------
@@ -663,36 +725,10 @@ const formulaPickHandler = {
   },
 }
 
-/** Convert any formula source (`[field]` shorthand, A1, or already long-form)
- *  to the canonical A1 surface that the user expects to see in the editor.
- *  Same-row refs collapse to relative A1 tied to the host row (`=C5*D5`
- *  on row 5) so formulas read like Excel. Returns the input unchanged when
- *  conversion isn't applicable. */
-function convertFormulaToA1Surface(source: string, displayRowIndex: number): string {
-  if (!source.startsWith('=')) return source
-  const fields = gridState.visibleColumns.value.map((c) => c.field)
-  const idField = gridState.rowIdField.value
-  const rendered = renderableRows.value
-  // Walk the rendered rows in display order, skipping group rows so row
-  // letters map to data rows only (matches AG-Grid behaviour).
-  const rowIds: (string | number)[] = []
-  let currentRowId: string | number | undefined
-  for (let i = 0; i < rendered.length; i++) {
-    const r = rendered[i]
-    if (!r || isGroupRow(r)) continue
-    const rid = (r as Record<string, unknown>)[idField] as string | number | undefined
-    const id = rid ?? i
-    rowIds.push(id)
-    if (i === displayRowIndex) currentRowId = id
-  }
-  try {
-    const longForm = a1ToLongForm(source, { fields, rowIds, currentRowId })
-    return longFormToA1(longForm, { fields, rowIds, currentRowId })
-  } catch {
-    return source
-  }
-}
-
+// The A1-surface conversion for formula columns (stored long-form → display A1)
+// is now handled inside `useInlineEditEngine.startEdit` via
+// `formulaEngine.displayFormula`. This watcher only manages the ref-highlight
+// activation lifecycle.
 watch(
   () => gridState.cellEditState.value.editingCell,
   (editing) => {
@@ -705,19 +741,6 @@ watch(
     const def = field ? gridState.columnDefMap.value.get(field) : undefined
     if (def?.allowFormula) {
       refHighlight.activate(formulaPickHandler, { pickMode: true })
-      // Translate the stored formula to A1 surface so the editor opens with
-      // `=C5*D5` rather than the raw `=[qty]*[price]` storage form.
-      const cur = gridState.cellEditState.value.draftValue
-      if (typeof cur === 'string' && cur.startsWith('=')) {
-        const a1 = convertFormulaToA1Surface(cur, editing.row)
-        if (a1 !== cur) {
-          gridState.cellEditState.value = {
-            ...gridState.cellEditState.value,
-            originalValue: a1,
-            draftValue: a1,
-          }
-        }
-      }
     } else refHighlight.deactivate()
   },
 )
@@ -791,10 +814,10 @@ const filterableColumns = computed<ColumnDef[]>(() =>
   mergedColumns.value.filter((c) => c.filterable),
 )
 
+/** DataDensity and GridDensity share the same vocabulary now; this is a
+ *  pass-through kept for call-site stability. */
 function mapDensityToGrid(d: DataDensity | undefined): GridDensity {
-  if (d === 'compact') return 'small'
-  if (d === 'comfortable') return 'large'
-  return 'default'
+  return (d ?? 'default') as GridDensity
 }
 
 // --- Internal "effective" state for the default toolbar ---
@@ -888,9 +911,11 @@ watch(
   { immediate: true },
 )
 
-// totalCount → totalItems (server mode / lazy loading)
+// totalItems / totalCount (deprecated alias) → state.totalItems
+// `totalItems` takes precedence; falls back to `totalCount` for migration
+// compatibility, then to the length of the current rows array.
 watch(
-  () => props.totalCount,
+  () => props.totalItems ?? props.totalCount,
   (total) => {
     gridState.totalItems.value = total ?? props.rows.length
   },
@@ -943,6 +968,27 @@ watch(
   { deep: true },
 )
 
+// B1 fix — emit `sortChange` whenever the active sort stack changes.
+watch(
+  () => gridState.activeSorts.value,
+  (sorts) => {
+    emit('sortChange', { sorts: [...sorts] })
+  },
+  { deep: true },
+)
+
+// B2 fix — emit `groupChange` whenever the active group columns change.
+watch(
+  () => gridState.groupColumns.value,
+  (groups) => {
+    emit('groupChange', {
+      columns: groups.map((g) => g.field),
+      groups: groups.map((g) => ({ field: g.field, sortDirection: g.sortDirection })),
+    })
+  },
+  { deep: true },
+)
+
 // Emit `update:filterModel` whenever the formal filter model changes —
 // regardless of which surface mutated it (drawer, per-column overlay,
 // imperative `setFilterModel`, tag-bar remove). This lets a consumer
@@ -959,8 +1005,14 @@ watch(
 
 // Phase 1.0 — history attach: mirror undo/redo stacks to localStorage when
 // `historyId` is set. Detach on prop change.
+//
+// Angular parity: `grid.ts` calls `this.historyEngine.attach(this.persistKey())`.
+// We mirror that here: if `persistKey` is provided it serves as the history
+// storage key (one localStorage namespace per view). Fall back to `historyId`
+// for consumers that still use the dedicated prop, then to `null` (in-memory
+// only, no localStorage persistence).
 watch(
-  () => props.historyId,
+  () => props.persistKey ?? props.historyId,
   (id) => {
     gridEngine.history.attach(id ?? null)
   },
@@ -1038,12 +1090,13 @@ const _hasValidators = computed(() =>
 )
 watch(
   [() => props.rows, mergedColumns, _hasValidators],
-  ([rows, , hasV]) => {
+  ([, , hasV]) => {
     if (!hasV) {
       gridEngine.cellValidation.clearAll()
       return
     }
-    gridEngine.cellValidation.validateAll(rows)
+    // No-arg: engine reads gridState.sourceData internally (Angular parity).
+    gridEngine.cellValidation.validateAll()
   },
   { immediate: true },
 )
@@ -1305,18 +1358,30 @@ const sortedRows = computed(() => sortEngine.sortData(filteredRows.value))
 // --- Pagination (BEFORE grouping — so grouping operates per page) ---
 const paginationEnabled = computed(() => !!props.pagination)
 
-const paginationConfig = computed(() => {
+/**
+ * Resolved pagination config.
+ *
+ * When `pagination === true` (no explicit config), defaults `pageSize` to 25
+ * — aligned with Angular `input<number>(25)`. Consumers who need a different
+ * default should pass a `PaginationConfig` object explicitly.
+ *
+ * @see {@link PaginationConfig.defaultPageSize}
+ */
+const paginationConfig = computed((): PaginationConfig => {
   if (typeof props.pagination === 'object') return props.pagination
-  return {}
+  // pagination === true — boolean shorthand. Inject the Angular-parity default.
+  return { defaultPageSize: 25 }
 })
 
 // Phase 2.5 — `usePagination` is now a thin facade over `gridState.pageIndex`
 // (0-based) / `gridState.pageSize`. The footer keeps its 1-based `currentPage`
 // shape via writable computeds inside the composable; the mirror watch is gone.
+// `pageSize` in config is the deprecated alias for `defaultPageSize` — coerce
+// it here so usePagination always receives the canonical field name.
 const paginationState = usePagination(gridState, {
   rows: sortedRows,
   pageSizeOptions: paginationConfig.value.pageSizeOptions,
-  defaultPageSize: paginationConfig.value.defaultPageSize,
+  defaultPageSize: paginationConfig.value.defaultPageSize ?? paginationConfig.value.pageSize,
 })
 
 // Sync `paginationEnabled` and `loadingStrategy` flags into gridState (still
@@ -1509,13 +1574,55 @@ watch(
     () => paginationState.pageSize.value,
     () => paginationState.totalRows.value,
   ],
-  ([page, size, total]) => {
+  ([page, size, total], [prevPage, prevSize]) => {
     if (!paginationEnabled.value) return
     const start = (page - 1) * size
     const end = Math.min(start + size, total)
-    emit('pageChange', { page, pageSize: size, startIndex: start, endIndex: end })
+    emit('pageChange', {
+      page,
+      // 0-based alias for Angular interop — consumers using the Angular
+      // `pageIndex` convention can read this without -1 arithmetic.
+      pageIndex: page - 1,
+      pageSize: size,
+      startIndex: start,
+      endIndex: end,
+      previousPageIndex: prevPage ?? page,
+      previousPageSize: prevSize ?? size,
+    })
   },
   { immediate: true },
+)
+
+// --- filterEvent (typed) emit — Angular parity ---
+// Watches `filterEngine.lastEvent` (set by every formal-model mutation) and
+// forwards it as the typed `filterEvent` event. The legacy `filterChange`
+// (quick-filter row, deprecated) is NOT re-emitted here — it stays wired to
+// the quick-filter watcher below. Consumers who need the typed surface should
+// listen to `filterEvent` instead.
+watch(
+  () => gridEngine.filter.lastEvent.value,
+  (ev) => {
+    if (ev) emit('filterEvent', ev)
+  },
+)
+
+// --- hiddenFieldsChange emit ---
+// Watches columnStates for visibility changes and emits the list of hidden
+// field names whenever it changes. Deduplicated by join so renders without
+// actual changes don't produce spurious events.
+let _prevHiddenFields: string[] = []
+watch(
+  () => gridState.columnStates.value,
+  (states) => {
+    const hidden = states.filter((c) => !c.visible).map((c) => c.field)
+    const hiddenStr = hidden.join(',')
+    const prevStr = _prevHiddenFields.join(',')
+    if (hiddenStr !== prevStr) {
+      _prevHiddenFields = hidden
+      emit('hiddenFieldsChange', hidden)
+    }
+  },
+  { deep: false, immediate: false },
 )
 
 // --- Reactive row height (changes with density) ---
@@ -1540,7 +1647,9 @@ const pendingCellLookup = computed<ReadonlySet<string>>(() => {
 })
 
 const pendingRowLookup = computed<ReadonlySet<string>>(() => {
-  const arr = props.pendingRowIds ?? []
+  // `pendingRows` is the preferred Angular-parity name; falls back to the
+  // deprecated `pendingRowIds` alias for backward compatibility.
+  const arr = props.pendingRows ?? props.pendingRowIds ?? []
   if (arr.length === 0) return EMPTY_PENDING_SET
   const set = new Set<string>()
   for (const id of arr) set.add(String(id))
@@ -1553,7 +1662,7 @@ const pendingRowLookup = computed<ReadonlySet<string>>(() => {
 // `selectionModel` is a derived computed; the consumer-facing v-model is
 // preserved by the `watch(selectionModel)` further down. The legacy mirror
 // watch that re-projected the Gmail shape into gridState is gone.
-const selectionTotalCount = computed(() => props.totalCount ?? props.rows.length)
+const selectionTotalCount = computed(() => (props.totalItems ?? props.totalCount) ?? props.rows.length)
 const {
   selectionModel,
   selectedCount,
@@ -1573,9 +1682,10 @@ function isRowSelected(row: RowData, index: number): boolean {
 }
 
 /**
- * True quand `props.pendingRowIds` contient l'id de cette row. Lookup en
- * O(1) via la `Set` indexée par `pendingRowLookup`. Pas de pending si
- * row de groupe (les __adgType:group rows n'ont pas d'id propre).
+ * True quand `props.pendingRows` (ou l'alias déprécié `props.pendingRowIds`)
+ * contient l'id de cette row. Lookup en O(1) via la `Set` indexée par
+ * `pendingRowLookup`. Pas de pending si row de groupe (les __adgType:group
+ * rows n'ont pas d'id propre).
  */
 function isRowPending(row: RowData, index: number): boolean {
   const lookup = pendingRowLookup.value
@@ -1883,7 +1993,7 @@ const totalCountRef = computed(() => {
   if (paginationEnabled.value) return renderableRows.value.length
   if (hasGroups.value) return renderableRows.value.length
   if (hasActiveFilters.value) return renderableRows.value.length
-  return props.totalCount ?? renderableRows.value.length
+  return (props.totalItems ?? props.totalCount) ?? renderableRows.value.length
 })
 
 const {
@@ -2030,11 +2140,89 @@ const {
 const totalRows = computed(() => renderableRows.value.length)
 const totalCols = computed(() => allColumnsFlat.value.length)
 
-// Phase 2.11 — `useCellSelection` is now backed by `gridState.selectedCell`
-// + `gridState.cellRange` (Angular shapes). `cellRange.start` doubles as the
-// shift-extend anchor; `frozenRanges` (Ctrl+Click multi-selection) stays
-// local since it has no Angular pendant.
-const cellSelection = useCellSelection({ gridState, totalRows, totalCols })
+// Phase VUE-DEBT-1 — legacy `useCellSelection` removed; all call-sites now
+// delegate directly to `gridEngine.cellSelection` (Angular-parity engine).
+// Adapter refs translate CellRange ↔ SelectionRange for legacy consumers
+// (`useClipboard`) that still expect the old `{r1,c1,r2,c2}` shape.
+
+/** Shorthand alias for the engine — avoids long `gridEngine.cellSelection.` prefixes. */
+const cellSel = gridEngine.cellSelection
+
+/** All ranges as legacy SelectionRange `{r1,c1,r2,c2}` — for useClipboard. */
+const cellSelAllRangesLegacy = computed<SelectionRange[]>(() =>
+  cellSel.allRanges.value.map(cellRangeToSelectionRange),
+)
+
+/** Active cell row index, -1 when nothing is selected. */
+const cellSelActiveRow = computed<number>(() => gridState.selectedCell.value?.row ?? -1)
+
+/** Active cell col index, -1 when nothing is selected. */
+const cellSelActiveCol = computed<number>(() => gridState.selectedCell.value?.col ?? -1)
+
+/**
+ * True when more than a single cell is covered by the current selection.
+ * A lone focused cell (1×1) without frozen ranges is not considered a
+ * "selection" for toolbar / Escape purposes — mirrors legacy behaviour.
+ */
+const cellSelHasSelection = computed(() => {
+  const ranges = cellSel.allRanges.value
+  if (ranges.length > 1) return true
+  if (ranges.length === 0) return false
+  const r = cellRangeToSelectionRange(ranges[ranges.length - 1]!)
+  return r.r1 !== r.r2 || r.c1 !== r.c2
+})
+
+/** Bottom-right corner of the last range — the cell that shows the fill-handle dot. */
+const cellSelFillHandleRow = computed<number>(() => {
+  const ranges = cellSel.allRanges.value
+  if (ranges.length > 0) {
+    const last = ranges[ranges.length - 1]!
+    return Math.max(last.start.row, last.end.row)
+  }
+  return cellSelActiveRow.value
+})
+
+const cellSelFillHandleCol = computed<number>(() => {
+  const ranges = cellSel.allRanges.value
+  if (ranges.length > 0) {
+    const last = ranges[ranges.length - 1]!
+    return Math.max(last.start.col, last.end.col)
+  }
+  return cellSelActiveCol.value
+})
+
+/** Per-cell selection check against all ranges (frozen + live). */
+function isCellSelected(rowIndex: number, colIdx: number): boolean {
+  for (const r of cellSel.allRanges.value) {
+    const minR = Math.min(r.start.row, r.end.row)
+    const maxR = Math.max(r.start.row, r.end.row)
+    const minC = Math.min(r.start.col, r.end.col)
+    const maxC = Math.max(r.start.col, r.end.col)
+    if (rowIndex >= minR && rowIndex <= maxR && colIdx >= minC && colIdx <= maxC) return true
+  }
+  return false
+}
+
+/** Edge flags for border rendering of selection rectangles. */
+function getCellEdges(
+  rowIndex: number,
+  colIdx: number,
+): { top: boolean; bottom: boolean; left: boolean; right: boolean } {
+  let top = false, bottom = false, left = false, right = false
+  for (const r of cellSel.allRanges.value) {
+    const minR = Math.min(r.start.row, r.end.row)
+    const maxR = Math.max(r.start.row, r.end.row)
+    const minC = Math.min(r.start.col, r.end.col)
+    const maxC = Math.max(r.start.col, r.end.col)
+    if (rowIndex >= minR && rowIndex <= maxR && colIdx >= minC && colIdx <= maxC) {
+      if (rowIndex === minR) top = true
+      if (rowIndex === maxR) bottom = true
+      if (colIdx === minC) left = true
+      if (colIdx === maxC) right = true
+    }
+  }
+  return { top, bottom, left, right }
+}
 
 /** Total cells covered by the cell selection ranges. Sums each range as
  *  `(r2-r1+1) × (c2-c1+1)`; ranges may overlap, but for the toolbar
@@ -2042,8 +2230,10 @@ const cellSelection = useCellSelection({ gridState, totalRows, totalCols })
  *  mental model the user has when ctrl-clicking multiple ranges. */
 const selectedCellsCount = computed(() => {
   let n = 0
-  for (const r of cellSelection.allRanges.value) {
-    n += (r.r2 - r.r1 + 1) * (r.c2 - r.c1 + 1)
+  for (const r of cellSel.allRanges.value) {
+    const rows = Math.abs(r.end.row - r.start.row) + 1
+    const cols = Math.abs(r.end.col - r.start.col) + 1
+    n += rows * cols
   }
   return n
 })
@@ -2064,7 +2254,7 @@ const actionBarCount = computed(() =>
  *  multi-cell range is drawn. A single active cell (1×1) doesn't trigger
  *  the bar — there's nothing to bulk-act on yet. */
 const showActionBar = computed(
-  () => (!!props.selectable && selectedCount.value > 0) || cellSelection.hasSelection.value,
+  () => (!!props.selectable && selectedCount.value > 0) || cellSelHasSelection.value,
 )
 
 /** Mode-aware dispatchers for the floating bar. Row mode reuses the
@@ -2073,14 +2263,14 @@ const showActionBar = computed(
  *  composable that already handles the active range. */
 function onActionBarClear() {
   if (actionBarMode.value === 'row') clearSelection()
-  else cellSelection.deactivate()
+  else cellSel.clearFocus()
 }
 
 function onActionBarEdit() {
   if (actionBarMode.value === 'row') {
     emit('selectionEdit', { mode: 'row', selection: selectionModel.value })
   } else {
-    emit('selectionEdit', { mode: 'cell', ranges: cellSelection.allRanges.value })
+    emit('selectionEdit', { mode: 'cell', ranges: cellSelAllRangesLegacy.value })
   }
 }
 
@@ -2101,12 +2291,12 @@ function onActionBarDelete() {
 
 watch(activeCell, (cell) => {
   if (!cell) {
-    cellSelection.deactivate()
+    cellSel.clearFocus()
     return
   }
   const col = fieldToColIndex(cell.field)
   if (col >= 0) {
-    cellSelection.activate(cell.rowIndex, col)
+    cellSel.focusCell(cell.rowIndex, col)
   }
 })
 
@@ -2152,35 +2342,201 @@ function applyFills(fills: Array<{ rowIndex: number; field: string; value: unkno
   if (mutated > 0) gridState.dataVersion.value++
 }
 
-const lastSelectionRange = computed(() => {
-  const ranges = cellSelection.allRanges.value
-  return ranges.length > 0 ? ranges[ranges.length - 1]! : null
+// --- Fill Handle (engine-backed, DOM mouse tracking inlined) ---
+// Phase VUE-DEBT-1 — `useFillHandle` removed; fill state now lives in
+// `gridState.isFilling` / `fillAnchor` / `fillTarget` via the engine.
+
+/** Source range (last of allRanges, in SelectionRange coords) for fill. */
+const lastSelectionRange = computed<SelectionRange | null>(() => {
+  const ranges = cellSel.allRanges.value
+  if (ranges.length === 0) return null
+  return cellRangeToSelectionRange(ranges[ranges.length - 1]!)
 })
 
-const fillHandle = useFillHandle({
-  allColumns: allColumnsFlat,
-  rows: renderableRows,
-  rowHeight,
-  wrapperRef,
-  sourceRange: lastSelectionRange,
-  getColumnWidth,
-  utilityWidth:
-    (props.selectable ? UTILITY_COL_WIDTH : 0) + (props.expandable ? UTILITY_COL_WIDTH : 0),
-  onFill: (event: FillEvent) => {
-    // Capture before values BEFORE mutation so history has correct old state.
-    const changes = event.fills.map((f) => ({
-      rowIndex: f.rowIndex,
-      field: f.field,
-      before: (renderableRows.value[f.rowIndex] as Record<string, unknown> | undefined)?.[f.field],
-      after: f.value,
-    }))
-    applyFills(event.fills)
-    if (changes.length > 0) {
-      gridEngine.history.record('fill', changes)
+/** Width of utility columns (checkbox + expand) before first data column. */
+const fillUtilityWidth = computed(
+  () => (props.selectable ? UTILITY_COL_WIDTH : 0) + (props.expandable ? UTILITY_COL_WIDTH : 0),
+)
+
+/** Fill-target range as SelectionRange, for getCellFlags. */
+const fillTargetRange = computed<SelectionRange | null>(() => {
+  const anchor = gridState.fillAnchor.value
+  const target = gridState.fillTarget.value
+  if (!anchor || !target) return null
+  if (anchor.row === target.row && anchor.col === target.col) return null
+  const vertical = target.col === anchor.col
+  if (vertical) {
+    return {
+      r1: Math.min(anchor.row, target.row),
+      c1: anchor.col,
+      r2: Math.max(anchor.row, target.row),
+      c2: anchor.col,
     }
-    emit('fill', event)
-  },
+  }
+  return {
+    r1: anchor.row,
+    c1: Math.min(anchor.col, target.col),
+    r2: anchor.row,
+    c2: Math.max(anchor.col, target.col),
+  }
 })
+
+/** True while the user is dragging the fill handle. */
+const fillIsDragging = computed(() => gridState.isFilling.value)
+
+// --- Fill value helpers (ported from useFillHandle.computeFills) ---
+
+function parseColWidth(w: string | undefined): number {
+  if (!w) return 150
+  return parseInt(w, 10) || 150
+}
+
+function resolveColWidthForFill(col: ColumnDef): number {
+  if (getColumnWidth) {
+    const w = getColumnWidth(col.field)
+    if (w) return parseColWidth(w)
+  }
+  return parseColWidth(col.width)
+}
+
+function readCellValueForFill(col: ColumnDef, row: RowData): unknown {
+  return col.valueGetter ? col.valueGetter(row) : row[col.field]
+}
+
+function areFillColumnsCompatible(src: ColumnDef, tgt: ColumnDef): boolean {
+  return (src.cellEditor ?? 'text') === (tgt.cellEditor ?? 'text')
+}
+
+function computeFillValues(
+  source: SelectionRange,
+  target: SelectionRange,
+  direction: FillEvent['direction'],
+): FillEvent['fills'] {
+  const cols = allColumnsFlat.value
+  const result: FillEvent['fills'] = []
+  const srcRows = source.r2 - source.r1 + 1
+  const srcCols = source.c2 - source.c1 + 1
+
+  if (direction === 'down' || direction === 'up') {
+    for (let r = target.r1; r <= target.r2; r++) {
+      const srcRowOffset =
+        direction === 'down' ? (r - target.r1) % srcRows : (target.r2 - r) % srcRows
+      const srcRowIdx =
+        direction === 'down' ? source.r1 + srcRowOffset : source.r2 - srcRowOffset
+      const srcRow = renderableRows.value[srcRowIdx]
+      if (!srcRow) continue
+      for (let c = source.c1; c <= source.c2; c++) {
+        const col = cols[c]
+        if (!col || !col.editable) continue
+        result.push({ rowIndex: r, field: col.field, value: readCellValueForFill(col, srcRow) })
+      }
+    }
+  } else {
+    for (let c = target.c1; c <= target.c2; c++) {
+      const srcColOffset =
+        direction === 'right' ? (c - target.c1) % srcCols : (target.c2 - c) % srcCols
+      const srcColIdx =
+        direction === 'right' ? source.c1 + srcColOffset : source.c2 - srcColOffset
+      const srcCol = cols[srcColIdx]
+      const tgtCol = cols[c]
+      if (!srcCol || !tgtCol || !tgtCol.editable) continue
+      if (!areFillColumnsCompatible(srcCol, tgtCol)) continue
+      for (let r = source.r1; r <= source.r2; r++) {
+        const srcRow = renderableRows.value[r]
+        if (!srcRow) continue
+        const value = readCellValueForFill(srcCol, srcRow)
+        if (tgtCol.valueValidator && !tgtCol.valueValidator(value)) continue
+        result.push({ rowIndex: r, field: tgtCol.field, value })
+      }
+    }
+  }
+  return result
+}
+
+/** Dispatch fill results. */
+function dispatchFill(
+  source: SelectionRange,
+  target: SelectionRange,
+  direction: FillEvent['direction'],
+): void {
+  const fills = computeFillValues(source, target, direction)
+  if (fills.length === 0) return
+  const event: FillEvent = { sourceRange: source, targetRange: target, direction, fills }
+  const changes = fills.map((f) => ({
+    rowIndex: f.rowIndex,
+    field: f.field,
+    before: (renderableRows.value[f.rowIndex] as Record<string, unknown> | undefined)?.[f.field],
+    after: f.value,
+  }))
+  applyFills(fills)
+  if (changes.length > 0) gridEngine.history.record('fill', changes)
+  emit('fill', event)
+}
+
+/** Map a MouseEvent to an absolute {row, col} grid coordinate. */
+function mouseToFillCell(e: MouseEvent): { row: number; col: number } | null {
+  const el = wrapperRef.value
+  if (!el) return null
+  const rect = el.getBoundingClientRect()
+  const headerEl = el.querySelector('.adeo-grid-grid-header')
+  const headerH = headerEl ? headerEl.getBoundingClientRect().height : 0
+  const x = e.clientX - rect.left - el.clientLeft + el.scrollLeft
+  const y = e.clientY - rect.top - el.clientTop + el.scrollTop - headerH
+  const rh = rowHeight.value
+  const row = Math.max(0, Math.min(Math.floor(y / rh), renderableRows.value.length - 1))
+  const allCols = allColumnsFlat.value
+  let acc = fillUtilityWidth.value
+  let col = 0
+  for (let i = 0; i < allCols.length; i++) {
+    const w = resolveColWidthForFill(allCols[i]!)
+    if (x < acc + w) {
+      col = i
+      break
+    }
+    acc += w
+    col = i
+  }
+  col = Math.max(0, Math.min(col, allCols.length - 1))
+  return { row, col }
+}
+
+function onFillMouseMove(e: MouseEvent): void {
+  if (!gridState.isFilling.value) return
+  const cell = mouseToFillCell(e)
+  if (!cell) return
+  cellSel.extendFill(cell.row, cell.col)
+}
+
+function onFillMouseUp(): void {
+  document.removeEventListener('mousemove', onFillMouseMove)
+  document.removeEventListener('mouseup', onFillMouseUp)
+  const result = cellSel.endFill()
+  if (!result) return
+  const src = lastSelectionRange.value
+  if (!src) return
+  const anchor = result.anchor
+  const target = result.target
+  // Derive direction + target SelectionRange from anchor/target coords.
+  let direction: FillEvent['direction']
+  let targetRange: SelectionRange
+  if (target.col === anchor.col) {
+    direction = target.row > anchor.row ? 'down' : 'up'
+    if (direction === 'down') {
+      targetRange = { r1: src.r2 + 1, c1: src.c1, r2: target.row, c2: src.c2 }
+    } else {
+      targetRange = { r1: target.row, c1: src.c1, r2: src.r1 - 1, c2: src.c2 }
+    }
+  } else {
+    direction = target.col > anchor.col ? 'right' : 'left'
+    if (direction === 'right') {
+      targetRange = { r1: src.r1, c1: src.c2 + 1, r2: src.r2, c2: target.col }
+    } else {
+      targetRange = { r1: src.r1, c1: target.col, r2: src.r2, c2: src.c1 - 1 }
+    }
+  }
+  if (targetRange.r1 > targetRange.r2 || targetRange.c1 > targetRange.c2) return
+  dispatchFill(src, targetRange, direction)
+}
 
 // --- Clipboard (copy / cut / paste / delete) ---
 // Phase 3.1 — Cut now sets `gridState.cutSource` for the marching-ants
@@ -2191,9 +2547,9 @@ const clipboard = useClipboard({
   gridState,
   allColumns: allColumnsFlat,
   rows: renderableRows,
-  allRanges: cellSelection.allRanges,
-  activeRow: cellSelection.activeRow,
-  activeCol: cellSelection.activeCol,
+  allRanges: cellSelAllRangesLegacy,
+  activeRow: cellSelActiveRow,
+  activeCol: cellSelActiveCol,
   totalRows,
   totalCols,
   isEditable,
@@ -2306,7 +2662,7 @@ const mouseSelection = useMouseSelection({
   pinnedLeftCount,
   pinnedRightCount,
   onDragMove(row, col) {
-    cellSelection.extendTo(row, col)
+    cellSel.extendRangeTo(row, col)
   },
   onDragEnd() {
     // Selection is finalized
@@ -2325,8 +2681,8 @@ const { handleKeyDown: handleKeyboardKeyDown } = useKeyboard({
   },
 
   onExtend(rowDelta, colDelta) {
-    const row = cellSelection.activeRow.value + rowDelta
-    const col = cellSelection.activeCol.value + colDelta
+    const row = cellSelActiveRow.value + rowDelta
+    const col = cellSelActiveCol.value + colDelta
     const clampedCol = Math.max(0, Math.min(col, totalCols.value - 1))
     let clampedRow = Math.max(0, Math.min(row, totalRows.value - 1))
     // Skip group / skeleton rows in the direction of the extension so the
@@ -2337,7 +2693,7 @@ const { handleKeyDown: handleKeyboardKeyDown } = useKeyboard({
       if (next < 0) return
       clampedRow = next
     }
-    cellSelection.extendTo(clampedRow, clampedCol)
+    cellSel.extendRangeTo(clampedRow, clampedCol)
 
     const targetField = allColumnsFlat.value[clampedCol]?.field
     if (targetField) {
@@ -2359,14 +2715,14 @@ const { handleKeyDown: handleKeyboardKeyDown } = useKeyboard({
         ? Math.max(firstNavigable, 0)
         : direction === 'down'
           ? Math.max(lastNavigable, 0)
-          : cellSelection.activeRow.value
+          : cellSelActiveRow.value
     const targetCol =
       direction === 'left'
         ? 0
         : direction === 'right'
           ? totalCols.value - 1
-          : cellSelection.activeCol.value
-    cellSelection.extendTo(targetRow, targetCol)
+          : cellSelActiveCol.value
+    cellSel.extendRangeTo(targetRow, targetCol)
 
     const targetField = allColumnsFlat.value[targetCol]?.field
     if (targetField) scrollIntoView(targetRow, targetField)
@@ -2394,15 +2750,21 @@ const { handleKeyDown: handleKeyboardKeyDown } = useKeyboard({
       clipboard.cancelCut()
       return
     }
-    if (cellSelection.hasSelection.value) {
-      cellSelection.clearRanges()
+    if (cellSelHasSelection.value) {
+      cellSel.clearFrozenRanges()
+      // Collapse live range back to anchor cell
+      const range = gridState.cellRange.value
+      const anchor = range?.start ?? gridState.selectedCell.value
+      if (anchor) {
+        gridState.cellRange.value = { start: anchor, end: anchor }
+      }
       return
     }
     activeCell_.deactivate()
   },
 
   onSelectAll() {
-    cellSelection.selectAll()
+    cellSel.selectAll()
   },
 
   onCopy() {
@@ -2491,15 +2853,15 @@ function onActivateCell(rowIndex: number, field: string, e?: MouseEvent) {
   const colIdx = fieldToColIndex(field)
 
   if (e?.shiftKey) {
-    cellSelection.extendTo(rowIndex, colIdx)
+    cellSel.extendRangeTo(rowIndex, colIdx)
   } else if (e?.ctrlKey || e?.metaKey) {
-    cellSelection.addRange(rowIndex, colIdx)
+    cellSel.addRange({ start: { row: rowIndex, col: colIdx }, end: { row: rowIndex, col: colIdx } })
   } else {
     // Sync selection state synchronously BEFORE starting drag,
     // so the anchor is set correctly when the first mousemove fires.
-    // The async watch on activeCell would also call activate(), but
+    // The async watch on activeCell would also call focusCell(), but
     // it runs as a microtask — too late if a mousemove queues first.
-    cellSelection.activate(rowIndex, colIdx)
+    cellSel.focusCell(rowIndex, colIdx)
     activateCell(rowIndex, field)
     // Start mouse drag selection (extend on mousemove)
     if (e) mouseSelection.startDrag(e)
@@ -2632,7 +2994,7 @@ function onGridKeyDown(e: KeyboardEvent) {
         return
       }
       if (e.key === 'Delete' || e.key === 'Backspace') {
-        if (cellSelection.hasSelection.value) {
+        if (cellSelHasSelection.value) {
           // Multi-cell selection: clear all selected cells via clipboard composable
           // Let it fall through to handleKeyboardKeyDown which calls onDelete
         } else {
@@ -2671,16 +3033,16 @@ function getCellFlags(rowIndex: number, field: string): CellFlags {
   const colIdx = fieldToColIndex(field)
   if (colIdx < 0) return {}
 
-  const sel = cellSelection.isCellSelected(rowIndex, colIdx)
-  const edges = cellSelection.getCellEdges(rowIndex, colIdx)
+  const sel = isCellSelected(rowIndex, colIdx)
+  const edges = getCellEdges(rowIndex, colIdx)
 
   const isFillHandleCell =
-    rowIndex === cellSelection.fillHandleRow.value &&
-    colIdx === cellSelection.fillHandleCol.value &&
-    !fillHandle.isDragging.value &&
+    rowIndex === cellSelFillHandleRow.value &&
+    colIdx === cellSelFillHandleCol.value &&
+    !fillIsDragging.value &&
     !isEditing.value
 
-  const fillTarget = fillHandle.fillTargetRange.value
+  const fillTarget = fillTargetRange.value
   const isFillTarget =
     fillTarget !== null &&
     fillTarget.r1 >= 0 &&
@@ -2728,9 +3090,9 @@ function getCellFlags(rowIndex: number, field: string): CellFlags {
         const val = col.valueGetter ? col.valueGetter(row) : row[field]
         if (val !== '' && val !== null && val !== undefined) {
           const result = col.cellValidator(val, row)
-          if (result !== true) {
+          if (result !== null) {
             invalid = true
-            invalidMessage = result
+            invalidMessage = result.message
           }
         }
       }
@@ -2971,7 +3333,14 @@ watch(
 
 // --- Fill handle mousedown handler ---
 function onFillHandleMousedown(e: MouseEvent) {
-  fillHandle.startDrag(e)
+  const src = lastSelectionRange.value
+  if (!src) return
+  e.preventDefault()
+  e.stopPropagation()
+  // Start fill state in the engine using the bottom-right corner of the source range.
+  cellSel.startFill(src.r2, src.c2)
+  document.addEventListener('mousemove', onFillMouseMove)
+  document.addEventListener('mouseup', onFillMouseUp)
 }
 
 // --- Viewport width CSS property for group/expanded row content clamping ---
@@ -3132,10 +3501,16 @@ function clearHistory() {
   gridEngine.history.clear()
 }
 
-/** Run every column's `cellValidator` against the current rows; populates
- *  `getCellError` / `hasCellError` for cell-level UI cues. */
-function validateAll() {
-  gridEngine.cellValidation.validateAll(props.rows)
+/**
+ * Run every column's `cellValidator` against the current rows; populates
+ * `getCellError` / `hasCellError` for cell-level UI cues.
+ * Returns the total error count — Angular parity.
+ *
+ * The engine reads `gridState.sourceData` internally when called with no
+ * argument (Angular-parity no-arg signature).
+ */
+function validateAll(): number {
+  return gridEngine.cellValidation.validateAll()
 }
 
 /** Active sort stack (read-only snapshot). */
@@ -3237,6 +3612,9 @@ defineExpose({
     expandAll: gridEngine.tree.expandAll,
     collapseAll: gridEngine.tree.collapseAll,
   },
+  // Column sizing (imperative API for consumer toolbars / programmatic control).
+  autosizeColumn,
+  autosizeAllColumns,
 })
 </script>
 

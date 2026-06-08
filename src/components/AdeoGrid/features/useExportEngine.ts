@@ -10,10 +10,16 @@
  * quote, or a newline are wrapped in double quotes and embedded quotes are
  * doubled. The default separator is `,` but callers can override for regions
  * where semicolon-CSV is the norm (Excel FR / DE / PT ...).
+ *
+ * B18 — Streaming export: both exportCsv and exportJson use a TransformStream
+ * to write 1 000-row chunks, avoiding >1 GB string allocations on very large
+ * datasets (100k rows × 150 cols). A synchronous fallback is kept for
+ * environments without TransformStream (jsdom in unit tests, old browsers).
  */
 
 import type { GridState } from '../state/useGridState'
-import type { RowData } from '../types'
+import type { ColumnStateEntry } from '../models/column.model'
+import type { ColumnDef, RowData } from '../types'
 
 export interface ExportOptions {
   filename?: string
@@ -28,32 +34,23 @@ export interface ExportEngine<T = RowData> {
 }
 
 export function useExportEngine<T = RowData>(state: GridState<T>): ExportEngine<T> {
-  function exportCsv(data: T[], options: ExportOptions = {}): void {
-    const {
-      filename = 'export',
-      separator = ',',
-      includeHeaders = true,
-      columns,
-    } = options
+  // ── helpers ────────────────────────────────────────────────────────────────
 
-    const visibleColumns = columns
-      ? state.visibleColumns.value.filter((c) => columns.includes(c.field))
-      : state.visibleColumns.value
-
-    const defMap = state.columnDefMap.value
-    const lines: string[] = []
-
-    if (includeHeaders) {
-      const headerRow = visibleColumns
-        .map((col) =>
-          escapeCsvValue(defMap.get(col.field)?.headerName ?? col.field, separator),
-        )
-        .join(separator)
-      lines.push(headerRow)
+  function escapeCsvValue(value: string, separator: string): string {
+    if (value.includes(separator) || value.includes('"') || value.includes('\n')) {
+      return `"${value.replace(/"/g, '""')}"`
     }
+    return value
+  }
 
-    for (const row of data) {
-      const values = visibleColumns.map((col) => {
+  function buildCsvRow(
+    row: T,
+    cols: ColumnStateEntry[],
+    defMap: Map<string, ColumnDef<T>>,
+    separator: string,
+  ): string {
+    return cols
+      .map((col) => {
         const def = defMap.get(col.field)
         let value: unknown
         if (def?.valueGetter) {
@@ -66,54 +63,10 @@ export function useExportEngine<T = RowData>(state: GridState<T>): ExportEngine<
         }
         return escapeCsvValue(String(value ?? ''), separator)
       })
-      lines.push(values.join(separator))
-    }
-
-    downloadFile(`${filename}.csv`, lines.join('\n'), 'text/csv;charset=utf-8;')
+      .join(separator)
   }
 
-  function exportJson(
-    data: T[],
-    options: { filename?: string; columns?: string[] } = {},
-  ): void {
-    const { filename = 'export', columns } = options
-
-    const visibleColumns = columns
-      ? state.visibleColumns.value.filter((c) => columns.includes(c.field))
-      : state.visibleColumns.value
-
-    const fields = visibleColumns.map((c) => c.field)
-    const defMap = state.columnDefMap.value
-
-    const exportData = data.map((row) => {
-      const obj: Record<string, unknown> = {}
-      for (const field of fields) {
-        const def = defMap.get(field)
-        if (def?.valueGetter) {
-          obj[field] = def.valueGetter(row)
-        } else {
-          obj[field] = (row as Record<string, unknown>)[field]
-        }
-      }
-      return obj
-    })
-
-    downloadFile(
-      `${filename}.json`,
-      JSON.stringify(exportData, null, 2),
-      'application/json;charset=utf-8;',
-    )
-  }
-
-  function escapeCsvValue(value: string, separator: string): string {
-    if (value.includes(separator) || value.includes('"') || value.includes('\n')) {
-      return `"${value.replace(/"/g, '""')}"`
-    }
-    return value
-  }
-
-  function downloadFile(filename: string, content: string, mimeType: string): void {
-    const blob = new Blob([content], { type: mimeType })
+  function downloadBlob(filename: string, blob: Blob): void {
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
@@ -123,6 +76,150 @@ export function useExportEngine<T = RowData>(state: GridState<T>): ExportEngine<
     link.click()
     document.body.removeChild(link)
     URL.revokeObjectURL(url)
+  }
+
+  function downloadFile(filename: string, content: string, mimeType: string): void {
+    downloadBlob(filename, new Blob([content], { type: mimeType }))
+  }
+
+  // ── streaming helpers (B18) ────────────────────────────────────────────────
+
+  async function exportCsvStreaming(
+    data: T[],
+    cols: ColumnStateEntry[],
+    defMap: Map<string, ColumnDef<T>>,
+    filename: string,
+    separator: string,
+    includeHeaders: boolean,
+  ): Promise<void> {
+    const encoder = new TextEncoder()
+    const ts = new TransformStream<Uint8Array, Uint8Array>()
+    const writer = ts.writable.getWriter()
+
+    if (includeHeaders) {
+      const headerRow =
+        cols
+          .map((col) => escapeCsvValue(defMap.get(col.field)?.headerName ?? col.field, separator))
+          .join(separator) + '\n'
+      await writer.write(encoder.encode(headerRow))
+    }
+
+    const CHUNK = 1_000
+    for (let i = 0; i < data.length; i += CHUNK) {
+      const chunk =
+        data
+          .slice(i, i + CHUNK)
+          .map((row) => buildCsvRow(row, cols, defMap, separator))
+          .join('\n') + '\n'
+      await writer.write(encoder.encode(chunk))
+    }
+
+    await writer.close()
+    const blob = await new Response(ts.readable).blob()
+    downloadBlob(`${filename}.csv`, blob)
+  }
+
+  async function exportJsonStreaming(
+    data: T[],
+    fields: string[],
+    defMap: Map<string, ColumnDef<T>>,
+    filename: string,
+  ): Promise<void> {
+    const encoder = new TextEncoder()
+    const ts = new TransformStream<Uint8Array, Uint8Array>()
+    const writer = ts.writable.getWriter()
+
+    await writer.write(encoder.encode('[\n'))
+
+    const CHUNK = 1_000
+    for (let i = 0; i < data.length; i += CHUNK) {
+      const slice = data.slice(i, i + CHUNK)
+      const isLast = i + CHUNK >= data.length
+      const rows = slice.map((row) => {
+        const obj: Record<string, unknown> = {}
+        for (const field of fields) {
+          const def = defMap.get(field)
+          obj[field] = def?.valueGetter ? def.valueGetter(row) : (row as Record<string, unknown>)[field]
+        }
+        return obj
+      })
+      const chunk =
+        rows
+          .map((obj, idx) => '  ' + JSON.stringify(obj) + (isLast && idx === rows.length - 1 ? '' : ','))
+          .join('\n') + '\n'
+      await writer.write(encoder.encode(chunk))
+    }
+
+    await writer.write(encoder.encode(']'))
+    await writer.close()
+    const blob = await new Response(ts.readable).blob()
+    downloadBlob(`${filename}.json`, blob)
+  }
+
+  // ── public API ─────────────────────────────────────────────────────────────
+
+  function exportCsv(data: T[], options: ExportOptions = {}): void {
+    const {
+      filename = 'export',
+      separator = ',',
+      includeHeaders = true,
+      columns,
+    } = options
+
+    const cols = columns
+      ? state.visibleColumns.value.filter((c) => columns.includes(c.field))
+      : state.visibleColumns.value
+
+    const defMap = state.columnDefMap.value
+
+    // B18: use streaming when available; fall back for test envs / old browsers.
+    if (typeof TransformStream !== 'undefined') {
+      void exportCsvStreaming(data, cols, defMap, filename, separator, includeHeaders)
+      return
+    }
+
+    const lines: string[] = []
+    if (includeHeaders) {
+      lines.push(
+        cols
+          .map((col) => escapeCsvValue(defMap.get(col.field)?.headerName ?? col.field, separator))
+          .join(separator),
+      )
+    }
+    for (const row of data) {
+      lines.push(buildCsvRow(row, cols, defMap, separator))
+    }
+    downloadFile(`${filename}.csv`, lines.join('\n'), 'text/csv;charset=utf-8;')
+  }
+
+  function exportJson(
+    data: T[],
+    options: { filename?: string; columns?: string[] } = {},
+  ): void {
+    const { filename = 'export', columns } = options
+
+    const cols = columns
+      ? state.visibleColumns.value.filter((c) => columns.includes(c.field))
+      : state.visibleColumns.value
+
+    const fields = cols.map((c) => c.field)
+    const defMap = state.columnDefMap.value
+
+    // B18: use streaming when available; fall back for test envs / old browsers.
+    if (typeof TransformStream !== 'undefined') {
+      void exportJsonStreaming(data, fields, defMap, filename)
+      return
+    }
+
+    const exportData = data.map((row) => {
+      const obj: Record<string, unknown> = {}
+      for (const field of fields) {
+        const def = defMap.get(field)
+        obj[field] = def?.valueGetter ? def.valueGetter(row) : (row as Record<string, unknown>)[field]
+      }
+      return obj
+    })
+    downloadFile(`${filename}.json`, JSON.stringify(exportData, null, 2), 'application/json;charset=utf-8;')
   }
 
   return { exportCsv, exportJson }

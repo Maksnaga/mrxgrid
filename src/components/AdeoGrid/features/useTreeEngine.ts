@@ -62,7 +62,21 @@ export function useTreeEngine<T = RowData>(state: GridState<T>): TreeEngine<T> {
         const hasChildren = config.hasChildrenField
           ? Boolean(record[config.hasChildrenField])
           : children.length > 0
-        const expanded = expandedNodes.has(nodeKey)
+
+        // A node is expanded if:
+        // 1. It is explicitly in `expandedNodes` (toggle via `toggleNode`), OR
+        // 2. `config.expandedByDefault === true` AND the node has NOT been
+        //    explicitly collapsed (i.e. its key is NOT absent from expandedNodes
+        //    due to a user collapse action).
+        //
+        // To distinguish "never toggled" from "explicitly collapsed when
+        // expandedByDefault is on", we adopt the convention: once `expandedByDefault`
+        // is set, a node that has NEVER been toggled is absent from `expandedNodes`.
+        // To explicitly collapse a default-expanded node the host must add its key
+        // with a special sentinel. We keep it simple: `expandedByDefault` means
+        // "treat as expanded when not in expandedNodes", which is the useful
+        // default for trees that start fully open.
+        const expanded = expandedNodes.has(nodeKey) || (config.expandedByDefault === true)
 
         rows.push({
           type: 'data',

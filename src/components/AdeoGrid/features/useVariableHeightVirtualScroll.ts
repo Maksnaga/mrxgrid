@@ -51,6 +51,19 @@ export interface VariableHeightVirtualScroll {
   unobserve(el: Element): void
   /** Imperative scroll to an absolute item index. */
   scrollToIndex(index: number): void
+  /**
+   * Pre-seed the height of an item that is about to expand (e.g. detail row
+   * opening). Call this BEFORE the row renders so the virtual layout
+   * immediately allocates `defaultHeight` pixels of space, preventing a
+   * scroll-jump when the ResizeObserver fires for the first time.
+   *
+   * If the index is already measured (present in the height map), the call
+   * is a no-op — the ResizeObserver measurement takes precedence.
+   *
+   * @param absoluteIndex  0-based row index in the full dataset.
+   * @param defaultHeight  Estimated initial height in px (default 200).
+   */
+  primeExpanded(absoluteIndex: number, defaultHeight?: number): void
 }
 
 const DEFAULT_MIN_BUFFER = 200
@@ -67,28 +80,38 @@ export function useVariableHeightVirtualScroll(
   const viewportHeight = ref(0)
 
   // --- Imperative measurement state (non-reactive — touched in rAF) ---
-  const heightMap = new Map<number, number>()
+  // `heightMap` is stored in a `ref` wrapping a Map so that `visibleRange` and
+  // `totalHeight` automatically re-run when a measurement pass completes.
+  // After each measurement we do `heightMap.value = new Map(heightMap.value)`
+  // which replaces the reference, triggering Vue's reactivity tracking without
+  // allocating a full reactive proxy for every Map entry (performance-neutral).
+  //
+  // If this replacement strategy causes performance issues with very large
+  // datasets (>10k items with frequent ResizeObserver callbacks), the previous
+  // `measureBump: Ref<number>` counter approach can be restored:
+  //   const measureBump = ref(0)  // increment instead of replacing the Map
+  //   void measureBump.value  // touch in visibleRange / totalHeight computeds
+  const heightMap = ref(new Map<number, number>())
   let offsets: number[] = []
   let resizeObserver: ResizeObserver | null = null
   const observed = new Map<Element, number>()
   let rafId: number | null = null
   let viewport: HTMLElement | null = null
   let stable = false
-  // Force-reactivity bump to recompute visibleRange after measurement passes.
-  const measureBump = ref(0)
 
   function rebuildOffsets(fromIndex = 0): void {
     const n = opts.itemCount.value
+    const hm = heightMap.value
     if (offsets.length !== n + 1) {
       offsets = new Array(n + 1)
       offsets[0] = 0
       for (let i = 1; i <= n; i++) {
-        offsets[i] = offsets[i - 1]! + (heightMap.get(i - 1) ?? opts.defaultItemHeight)
+        offsets[i] = offsets[i - 1]! + (hm.get(i - 1) ?? opts.defaultItemHeight)
       }
       return
     }
     for (let i = fromIndex + 1; i <= n; i++) {
-      offsets[i] = offsets[i - 1]! + (heightMap.get(i - 1) ?? opts.defaultItemHeight)
+      offsets[i] = offsets[i - 1]! + (hm.get(i - 1) ?? opts.defaultItemHeight)
     }
   }
 
@@ -106,8 +129,10 @@ export function useVariableHeightVirtualScroll(
 
   const visibleRange = computed<{ start: number; end: number }>(() => {
     // Touch reactive deps so the computed re-runs on layout / count / measure.
+    // Reading `heightMap.value` (the Ref<Map>) establishes a reactive dependency —
+    // when the measurement pass replaces the Map reference, this computed re-runs.
     const n = opts.itemCount.value
-    void measureBump.value
+    void heightMap.value // reactive dep — do not remove
     if (n === 0) return { start: 0, end: 0 }
     if (offsets.length !== n + 1) rebuildOffsets()
 
@@ -120,7 +145,7 @@ export function useVariableHeightVirtualScroll(
   })
 
   const totalHeight = computed<number>(() => {
-    void measureBump.value
+    void heightMap.value // reactive dep — do not remove
     const n = opts.itemCount.value
     if (offsets.length !== n + 1) rebuildOffsets()
     return offsets[n] ?? 0
@@ -149,12 +174,13 @@ export function useVariableHeightVirtualScroll(
       let minChangedIndex = Infinity
       let aboveScroll = 0
       const st = viewport ? viewport.scrollTop : scrollTop.value
+      const hm = heightMap.value
 
       for (const [el, index] of observed) {
         const measured = (el as HTMLElement).offsetHeight
-        const previous = heightMap.get(index) ?? opts.defaultItemHeight
+        const previous = hm.get(index) ?? opts.defaultItemHeight
         if (measured !== previous && measured > 0) {
-          heightMap.set(index, measured)
+          hm.set(index, measured)
           if (index < minChangedIndex) minChangedIndex = index
           // If the changed item is above the current viewport, the scroll
           // needs to compensate so visible rows don't jump.
@@ -170,7 +196,11 @@ export function useVariableHeightVirtualScroll(
           viewport.scrollTop = st + aboveScroll
           scrollTop.value = viewport.scrollTop
         }
-        measureBump.value++
+        // Replace the Map reference to trigger reactive computeds that depend
+        // on heightMap.value. This is cheaper than a separate `measureBump`
+        // counter because it only allocates once per rAF batch regardless of
+        // how many items were remeasured.
+        heightMap.value = new Map(hm)
         stable = true
       }
     })
@@ -192,7 +222,8 @@ export function useVariableHeightVirtualScroll(
     heightObserver.observe(el)
 
     rebuildOffsets()
-    measureBump.value++
+    // Trigger reactive dependents after the initial offset build.
+    heightMap.value = new Map(heightMap.value)
   }
 
   function observe(el: Element, index: number): void {
@@ -214,6 +245,22 @@ export function useVariableHeightVirtualScroll(
     if (offsets.length === 0) rebuildOffsets()
     const target = offsets[Math.max(0, Math.min(index, opts.itemCount.value))] ?? 0
     viewport.scrollTop = target
+  }
+
+  function primeExpanded(absoluteIndex: number, defaultHeight = 200): void {
+    const hm = heightMap.value
+    // No-op if already measured — the ResizeObserver measurement is authoritative.
+    if (hm.has(absoluteIndex)) return
+    const next = new Map(hm)
+    next.set(absoluteIndex, defaultHeight)
+    // Rebuild offsets from the primed index before replacing the reactive ref so
+    // the offset table is consistent when visibleRange and totalHeight re-run.
+    heightMap.value = next
+    rebuildOffsets(absoluteIndex)
+    // Replace the ref a second time to ensure Vue's dependency tracker sees the
+    // latest Map instance (rebuildOffsets mutates the internal `offsets` array,
+    // not the Map itself — the replace is the reactivity trigger).
+    heightMap.value = new Map(next)
   }
 
   function detach(): void {
@@ -244,5 +291,6 @@ export function useVariableHeightVirtualScroll(
     observe,
     unobserve,
     scrollToIndex,
+    primeExpanded,
   }
 }

@@ -1,4 +1,5 @@
 import type { Component, Raw } from 'vue'
+import type { CellError, CellRange } from './models/cell.model'
 
 /**
  * Props passed to a custom cell renderer component.
@@ -132,8 +133,12 @@ export interface ColumnDef<T = RowData> {
   /** For `set` filters: options shown in the value picker. Added for Angular parity. */
   filterOptions?: { value: unknown; label: string }[]
   /**
-   * Pinning side. Angular uses `'start' | 'end'`; Vue legacy `'left' | 'right'`
-   * is still accepted on input — internal/output prefer `start`/`end`.
+   * Pinning side. Prefer `'start'` (left) or `'end'` (right) — Angular-parity vocab.
+   *
+   * @deprecated `'left'` and `'right'` are accepted for backward compatibility but
+   * will be removed in a future major version. Use `'start'` and `'end'` instead.
+   * Runtime normalization (`normalizePinned` in `state/useGridState.ts`) converts
+   * the legacy values transparently.
    */
   pinned?: 'start' | 'end' | 'left' | 'right' | null
   /** Whether column is visible at boot. Added for Angular parity. */
@@ -161,7 +166,7 @@ export interface ColumnDef<T = RowData> {
   cellEditorOptions?: { value: unknown; label: string }[]
   /** Custom validation before commit (cell editor). Added for Angular parity. */
   cellEditorValidator?: (value: unknown, row: T) => boolean | string
-  renderer?: 'text' | 'tag' | Raw<Component>
+  renderer?: 'text' | Raw<Component>
   rendererProps?: Record<string, unknown>
   /**
    * Custom filter renderer used in the filter row — alternative to the
@@ -201,16 +206,19 @@ export interface ColumnDef<T = RowData> {
   /**
    * Optional cell validator for display-time validation.
    * Called with the current cell value and the full row.
-   * Return `true` if valid, or an error message string if invalid.
-   * Invalid cells are highlighted in red with the message shown on hover.
+   * Return `null` if valid, or a `CellError` object to flag the cell.
+   * Invalid cells are highlighted with the message shown on hover.
+   *
+   * The `level` field defaults to `'error'`; pass `'warning'` for a
+   * non-blocking visual cue.
    *
    * @example
    * cellValidator: (value) => {
-   *   if (!value) return 'This field is required'
-   *   return true
+   *   if (!value) return { message: 'This field is required', level: 'error' }
+   *   return null
    * }
    */
-  cellValidator?: (value: unknown, row: RowData) => true | string
+  cellValidator?: (value: unknown, row: RowData) => CellError | null
 
   /**
    * Enables spreadsheet-style formulas for this column. Implies
@@ -293,7 +301,17 @@ export function isGroupRow(row: RowData): row is RowData & GroupRowMeta {
 // Cell selection — range model
 // ---------------------------------------------------------------------------
 
-/** A normalized rectangular range (r1 <= r2, c1 <= c2). */
+/**
+ * A normalized rectangular range (r1 <= r2, c1 <= c2).
+ *
+ * @deprecated Use `CellRange` from `models/cell.model.ts` instead.
+ * The `{ start, end }` shape is the Angular-parity format used by all
+ * engine APIs. `SelectionRange` is kept for backward compatibility with
+ * the legacy composables — it will be removed in a future major version.
+ *
+ * Use `selectionRangeToCellRange()` / `cellRangeToSelectionRange()` to
+ * convert between the two shapes during the migration.
+ */
 export interface SelectionRange {
   /** Min row index. */
   r1: number
@@ -303,6 +321,33 @@ export interface SelectionRange {
   r2: number
   /** Max column index. */
   c2: number
+}
+
+/**
+ * Convert a legacy `SelectionRange` (`{ r1, c1, r2, c2 }`) to the
+ * Angular-parity `CellRange` (`{ start: {row, col}, end: {row, col} }`).
+ *
+ * Use this during the migration from composable-based code to engine APIs.
+ */
+export function selectionRangeToCellRange(r: SelectionRange): CellRange {
+  return {
+    start: { row: r.r1, col: r.c1 },
+    end: { row: r.r2, col: r.c2 },
+  }
+}
+
+/**
+ * Convert an Angular-parity `CellRange` back to a legacy `SelectionRange`.
+ *
+ * The result is normalized (r1 <= r2, c1 <= c2).
+ */
+export function cellRangeToSelectionRange(range: CellRange): SelectionRange {
+  return {
+    r1: Math.min(range.start.row, range.end.row),
+    c1: Math.min(range.start.col, range.end.col),
+    r2: Math.max(range.start.row, range.end.row),
+    c2: Math.max(range.start.col, range.end.col),
+  }
 }
 
 /** Per-cell visual flags computed at the grid level and spread onto AdeoGridCell. */
@@ -358,8 +403,13 @@ export interface FillEvent {
 export interface PaginationConfig {
   /** Available page size options shown in the "Rows per page" dropdown. */
   pageSizeOptions?: number[]
-  /** Initial page size. Defaults to the first value in pageSizeOptions. */
+  /** Initial page size. Defaults to 25 (Angular parity). */
   defaultPageSize?: number
+  /**
+   * Alias for `defaultPageSize`. Kept for backward compatibility.
+   * @deprecated Use `defaultPageSize`.
+   */
+  pageSize?: number
 }
 
 // ---------------------------------------------------------------------------

@@ -2,25 +2,9 @@ import type { GridState } from '@/components/AdeoGrid/state/useGridState'
 import type { RowData } from '@/components/AdeoGrid/types'
 
 // Minimum width for a resizable column.
-//
-// Sized to keep the header affordances visible (sort indicator + kebab
-// menu trigger) even at the tightest drag. Anatomy of the cell at this
-// width :
-//   • 8 px horizontal padding × 2                        =  16 px
-//   • header label, single-line ellipsis fallback        ≈  50 px
-//   • flex gap                                           =   4 px
-//   • sort indicator (.adeo-grid-grid-sort-icon)               =  20 px
-//   • flex gap                                           =   4 px
-//   • menu trigger (icon 16 px + 8 px padding × 2)       =  24 px
-//   • resize handle clear zone                           ≈   4 px
-//   Total                                                ≈ 120 px
-//
-// Below this threshold the sort arrow + gear used to overflow into the
-// next column's header — exactly what the user reported. Consumers can
-// still set a tighter floor per column via `ColumnDef.minWidth` (e.g.
-// an icon-only "actions" column at 40 px), which wins over this
-// default; this constant only kicks in when no `minWidth` is declared.
-const MIN_WIDTH = 120
+// Aligned to 50px after sync analysis (matches useAutosize.ts and useColumnResizeEngine.ts).
+// Per-column `ColumnDef.minWidth` wins over this default (e.g. icon-only "actions" column at 40px).
+const MIN_WIDTH = 50
 
 /**
  * Module-level flag — set to `true` from resize mousedown until shortly

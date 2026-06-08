@@ -309,11 +309,11 @@ onBeforeUnmount(() => {
   background: var(--color-background-secondary);
 }
 
-.adeo-grid-grid-selection-bar__btn--danger {
+.adeo-grid-selection-bar__btn--danger {
   color: var(--color-status-text-error);
 }
 
-.adeo-grid-grid-selection-bar__btn--danger:hover {
+.adeo-grid-selection-bar__btn--danger:hover {
   background: var(--color-status-background-error);
 }
 

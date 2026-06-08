@@ -39,15 +39,12 @@ export {
   type AdeoColumnRegistry,
 } from './state/AdeoColumnRegistry'
 
-// Sprint 4 — built-in cell renderers + helpers.
-// Use `renderer: 'tag'` for a generic MTag, or `defineStatusRenderer({...})`
-// for a typed value→{label, appearance} mapping rendered as coloured chips.
-export {
-  defineStatusRenderer,
-  type StatusAppearance,
-  type StatusMeta,
-} from './features/renderers/defineStatusRenderer'
-export { BUILTIN_RENDERERS, type BuiltinRendererName } from './features/renderers/builtin'
+// Note: `defineStatusRenderer` + `BUILTIN_RENDERERS` ("tag" alias) were
+// consumer-side convenience helpers (status badges, generic MTag wrapper)
+// that have been moved out of the library — they live under `src/app/renderers/`
+// in this repo for the StockDemo + stories. Library consumers should write
+// their own renderer factories or pass any `Component` to `ColumnDef.renderer`
+// directly (it accepts `Component | 'text'`).
 
 // Variable-height virtual scroll (use when expandable rows / group rows have unknown heights).
 export {

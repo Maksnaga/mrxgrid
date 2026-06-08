@@ -8,15 +8,24 @@
  *   widens the column (the handle is on the left edge in that case).
  */
 
+import type { Ref } from 'vue'
 import type { GridState } from '../state/useGridState'
 import type { ColumnResizeEvent } from '../models/column.model'
 import type { RowData } from '../types'
 
+// Aligned to 50px after sync analysis (matches useAutosize.ts and composables/useColumnResize.ts).
 const MIN_COLUMN_WIDTH = 50
 
 export interface ColumnResizeEngine {
   startResize(field: string, event: MouseEvent): void
   getResizeEvent(field: string, previousWidth: number): ColumnResizeEvent
+  /**
+   * `performance.now()` timestamp of the last resize mouseup. Used by
+   * `AdeoGridHeaderCell` to suppress the synthetic click-after-mouseup that
+   * would otherwise trigger a spurious sort. Mirror of the module-level
+   * `_resizeEndedAt` flag in the legacy `composables/useColumnResize.ts`.
+   */
+  readonly lastResizeEndedAt: Ref<number>
 }
 
 export function useColumnResizeEngine<T = RowData>(state: GridState<T>): ColumnResizeEngine {
@@ -25,6 +34,10 @@ export function useColumnResizeEngine<T = RowData>(state: GridState<T>): ColumnR
   let startX = 0
   let startWidth = 0
   let invertDelta = false
+
+  // Use the shared ref on GridState so AdeoGridHeaderCell can read it via
+  // useGridContext() — no separate engine injection needed.
+  const lastResizeEndedAt = state.lastResizeEndedAt
 
   function onMouseMove(event: MouseEvent): void {
     if (!resizing || !resizeField) return
@@ -40,6 +53,7 @@ export function useColumnResizeEngine<T = RowData>(state: GridState<T>): ColumnR
   function onMouseUp(): void {
     if (!resizing) return
     resizing = false
+    lastResizeEndedAt.value = performance.now()
     document.removeEventListener('mousemove', onMouseMove)
     document.removeEventListener('mouseup', onMouseUp)
     document.body.style.cursor = ''
@@ -75,5 +89,5 @@ export function useColumnResizeEngine<T = RowData>(state: GridState<T>): ColumnR
     }
   }
 
-  return { startResize, getResizeEvent }
+  return { startResize, getResizeEvent, lastResizeEndedAt }
 }
