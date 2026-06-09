@@ -1,5 +1,5 @@
 /**
- * Column reorder engine — Angular parity (moz-grid / `ColumnReorderEngine`).
+ * Column reorder engine — Angular parity (ad-grid / `ColumnReorderEngine`).
  *
  * Reads / writes the central `GridState`:
  * - `state.columnStates` — splice + re-number `order` on reorder

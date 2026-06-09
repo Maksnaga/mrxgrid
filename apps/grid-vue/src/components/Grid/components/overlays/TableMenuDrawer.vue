@@ -5,6 +5,8 @@ import { ChevronRight24, Search24 } from '@mozaic-ds/icons-vue'
 import type { ColumnDef } from '../../types'
 import type { GridDensity } from '../../models/grid-events.model'
 
+defineOptions({ name: 'AdGridSettingsDrawer' })
+
 /**
  * @deprecated Use `GridDensity` from `models/grid-events.model`. This alias
  * is kept for backward compatibility with consumers that imported `DataDensity`
@@ -147,19 +149,19 @@ function onDragStart(field: string, e: DragEvent) {
   }
   // Add a slight delay so the browser captures the drag image
   const target = e.currentTarget as HTMLElement
-  target.classList.add('adeo-grid-settings__column-item--dragging')
+  target.classList.add('grid-settings__column-item--dragging')
 }
 
 function onDragEnd(e: DragEvent) {
   const target = e.currentTarget as HTMLElement
-  target.classList.remove('adeo-grid-settings__column-item--dragging')
+  target.classList.remove('grid-settings__column-item--dragging')
   // Clear all dragover indicators
   dragField = null
   dragOverField = null
   const container = target.parentElement
   if (container) {
-    container.querySelectorAll('.adeo-grid-settings__column-item--drag-over').forEach((el) => {
-      el.classList.remove('adeo-grid-settings__column-item--drag-over')
+    container.querySelectorAll('.grid-settings__column-item--drag-over').forEach((el) => {
+      el.classList.remove('grid-settings__column-item--drag-over')
     })
   }
 }
@@ -173,12 +175,12 @@ function onDragOver(field: string, e: DragEvent) {
     // Remove previous indicator
     const container = (e.currentTarget as HTMLElement).parentElement
     if (container) {
-      container.querySelectorAll('.adeo-grid-settings__column-item--drag-over').forEach((el) => {
-        el.classList.remove('adeo-grid-settings__column-item--drag-over')
+      container.querySelectorAll('.grid-settings__column-item--drag-over').forEach((el) => {
+        el.classList.remove('grid-settings__column-item--drag-over')
       })
     }
     dragOverField = field
-    ;(e.currentTarget as HTMLElement).classList.add('adeo-grid-settings__column-item--drag-over')
+    ;(e.currentTarget as HTMLElement).classList.add('grid-settings__column-item--drag-over')
   }
 }
 
@@ -187,7 +189,7 @@ function onDragLeave(e: DragEvent) {
   const related = e.relatedTarget as Node | null
   // Only remove if leaving the element entirely (not entering a child)
   if (related && target.contains(related)) return
-  target.classList.remove('adeo-grid-settings__column-item--drag-over')
+  target.classList.remove('grid-settings__column-item--drag-over')
 }
 
 function onDrop(field: string, e: DragEvent) {
@@ -213,17 +215,17 @@ function onDrop(field: string, e: DragEvent) {
   // Cleanup indicators
   const container = (e.currentTarget as HTMLElement).parentElement
   if (container) {
-    container.querySelectorAll('.adeo-grid-settings__column-item--drag-over').forEach((el) => {
-      el.classList.remove('adeo-grid-settings__column-item--drag-over')
+    container.querySelectorAll('.grid-settings__column-item--drag-over').forEach((el) => {
+      el.classList.remove('grid-settings__column-item--drag-over')
     })
   }
 }
 </script>
 
 <template>
-  <!-- See AdeoGridFilterDrawer.vue for why we Teleport to <body>. -->
+  <!-- See AdGridFilterDrawer.vue for why we Teleport to <body>. -->
   <Teleport to="body">
-  <!-- See AdeoGroupingDrawer.vue for why `close-on-overlay` stays
+  <!-- See AdGridGroupingDrawer.vue for why `close-on-overlay` stays
        disabled (Mozaic's MDrawer fires it on dialog-body whitespace). -->
   <MDrawer
     :open="open"
@@ -235,19 +237,19 @@ function onDrop(field: string, e: DragEvent) {
     @back="onBack"
   >
     <!-- Main view -->
-    <div v-if="currentView === 'main'" class="adeo-grid-settings">
-      <div class="adeo-grid-settings__menu">
-        <button class="adeo-grid-settings__menu-item" @click="currentView = 'density'">
-          <div class="adeo-grid-settings__menu-item-text">
-            <span class="adeo-grid-settings__menu-item-label">Data density</span>
-            <span class="adeo-grid-settings__menu-item-value">{{ densityLabel }}</span>
+    <div v-if="currentView === 'main'" class="grid-settings">
+      <div class="grid-settings__menu">
+        <button class="grid-settings__menu-item" @click="currentView = 'density'">
+          <div class="grid-settings__menu-item-text">
+            <span class="grid-settings__menu-item-label">Data density</span>
+            <span class="grid-settings__menu-item-value">{{ densityLabel }}</span>
           </div>
           <ChevronRight24 aria-hidden="true" />
         </button>
-        <button class="adeo-grid-settings__menu-item" @click="currentView = 'columns'">
-          <div class="adeo-grid-settings__menu-item-text">
-            <span class="adeo-grid-settings__menu-item-label">Display columns</span>
-            <span class="adeo-grid-settings__menu-item-value">
+        <button class="grid-settings__menu-item" @click="currentView = 'columns'">
+          <div class="grid-settings__menu-item-text">
+            <span class="grid-settings__menu-item-label">Display columns</span>
+            <span class="grid-settings__menu-item-value">
               {{ visibleCount }}/{{ columns.length }} displayed
             </span>
           </div>
@@ -257,11 +259,11 @@ function onDrop(field: string, e: DragEvent) {
     </div>
 
     <!-- Density subview -->
-    <div v-else-if="currentView === 'density'" class="adeo-grid-settings">
-      <div class="adeo-grid-settings__field">
-        <label class="adeo-grid-settings__field-label" for="adeo-grid-settings-density">Density</label>
+    <div v-else-if="currentView === 'density'" class="grid-settings">
+      <div class="grid-settings__field">
+        <label class="grid-settings__field-label" for="grid-settings-density">Density</label>
         <MSelect
-          id="adeo-grid-settings-density"
+          id="grid-settings-density"
           :options="densityOptions"
           :model-value="draftDensity"
           @update:model-value="(v: string | number) => (draftDensity = v as DataDensity)"
@@ -270,24 +272,24 @@ function onDrop(field: string, e: DragEvent) {
     </div>
 
     <!-- Columns subview -->
-    <div v-else-if="currentView === 'columns'" class="adeo-grid-settings">
+    <div v-else-if="currentView === 'columns'" class="grid-settings">
       <MTextInput
-        id="adeo-grid-settings-column-search"
+        id="grid-settings-column-search"
         size="s"
         input-type="search"
         placeholder="Find a column"
         :model-value="columnSearch"
-        class="adeo-grid-settings__search"
+        class="grid-settings__search"
         @input="(e: Event) => (columnSearch = (e.target as HTMLInputElement).value)"
       >
         <template #icon><Search24 /></template>
       </MTextInput>
 
-      <div class="adeo-grid-settings__columns-list">
+      <div class="grid-settings__columns-list">
         <div
           v-for="col in filteredColumns"
           :key="col.field"
-          class="adeo-grid-settings__column-item"
+          class="grid-settings__column-item"
           draggable="true"
           @dragstart="onDragStart(col.field, $event)"
           @dragend="onDragEnd"
@@ -295,7 +297,7 @@ function onDrop(field: string, e: DragEvent) {
           @dragleave="onDragLeave"
           @drop="onDrop(col.field, $event)"
         >
-          <span class="adeo-grid-settings__column-drag-handle">&#8942;&#8942;</span>
+          <span class="grid-settings__column-drag-handle">&#8942;&#8942;</span>
           <!-- Sprint 7 §2.11 — switch from MCheckbox to MToggle so the
                visibility list reads as on/off switches (matches Angular). -->
           <MToggle
@@ -307,14 +309,14 @@ function onDrop(field: string, e: DragEvent) {
         </div>
       </div>
 
-      <div class="adeo-grid-settings__columns-actions">
+      <div class="grid-settings__columns-actions">
         <MButton :outlined="true" @click="hideAll">Hide all</MButton>
         <MButton :outlined="true" @click="showAll">Show all</MButton>
       </div>
     </div>
 
     <template #footer>
-      <div class="adeo-grid-settings__footer">
+      <div class="grid-settings__footer">
         <MButton appearance="accent" @click="onApply">Apply</MButton>
         <MButton :outlined="true" @click="onReset">Reset</MButton>
       </div>
@@ -324,125 +326,125 @@ function onDrop(field: string, e: DragEvent) {
 </template>
 
 <style scoped>
-.adeo-grid-settings {
-  font-family: system-ui, -apple-system, sans-serif;
+.grid-settings {
+  font-family: var(--font-family, system-ui, -apple-system, sans-serif);
   padding: 8px 0;
 }
 
-.adeo-grid-settings__menu {
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
+.grid-settings__menu {
+  border: 1px solid var(--color-border-primary, #e2e8f0);
+  border-radius: var(--border-radius-m, 8px);
   overflow: hidden;
 }
 
-.adeo-grid-settings__menu-item {
+.grid-settings__menu-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
   width: 100%;
   padding: 16px;
   border: none;
-  border-bottom: 1px solid #e2e8f0;
-  background: #fff;
+  border-bottom: 1px solid var(--color-border-primary, #e2e8f0);
+  background: var(--color-background-primary, #fff);
   cursor: pointer;
   text-align: left;
-  color: #64748b;
+  color: var(--color-text-secondary, #64748b);
 }
 
-.adeo-grid-settings__menu-item:last-child {
+.grid-settings__menu-item:last-child {
   border-bottom: none;
 }
 
-.adeo-grid-settings__menu-item:hover {
-  background-color: #f8fafc;
+.grid-settings__menu-item:hover {
+  background-color: var(--color-background-secondary, #f8fafc);
 }
 
-.adeo-grid-settings__menu-item-text {
+.grid-settings__menu-item-text {
   display: flex;
   flex-direction: column;
   gap: 2px;
 }
 
-.adeo-grid-settings__menu-item-label {
-  font-size: 14px;
-  font-weight: 700;
-  color: #1e293b;
+.grid-settings__menu-item-label {
+  font-size: var(--font-size-200, 14px);
+  font-weight: var(--font-weight-bold, 700);
+  color: var(--color-text-primary, #1e293b);
 }
 
-.adeo-grid-settings__menu-item-value {
-  font-size: 13px;
-  color: #64748b;
+.grid-settings__menu-item-value {
+  font-size: var(--font-size-100, 13px);
+  color: var(--color-text-secondary, #64748b);
 }
 
-.adeo-grid-settings__field {
+.grid-settings__field {
   display: flex;
   flex-direction: column;
   gap: 6px;
   margin-bottom: 16px;
 }
 
-.adeo-grid-settings__field-label {
-  font-size: 14px;
-  font-weight: 700;
-  color: #1e293b;
+.grid-settings__field-label {
+  font-size: var(--font-size-200, 14px);
+  font-weight: var(--font-weight-bold, 700);
+  color: var(--color-text-primary, #1e293b);
 }
 
-.adeo-grid-settings__search {
+.grid-settings__search {
   margin-bottom: 12px;
 }
 
-.adeo-grid-settings__columns-list {
+.grid-settings__columns-list {
   display: flex;
   flex-direction: column;
   gap: 2px;
 }
 
-.adeo-grid-settings__columns-actions {
+.grid-settings__columns-actions {
   display: flex;
   gap: 12px;
   margin-top: 16px;
   padding-top: 16px;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid var(--color-border-primary, #e2e8f0);
 }
 
-.adeo-grid-settings__columns-actions > * {
+.grid-settings__columns-actions > * {
   flex: 1;
 }
 
-.adeo-grid-settings__column-item {
+.grid-settings__column-item {
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 8px 4px;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid var(--color-border-secondary, #f1f5f9);
   cursor: grab;
-  border-radius: 4px;
+  border-radius: var(--border-radius-s, 4px);
   transition: background-color 0.1s;
 }
 
-.adeo-grid-settings__column-item:active {
+.grid-settings__column-item:active {
   cursor: grabbing;
 }
 
-.adeo-grid-settings__column-item--dragging {
+.grid-settings__column-item--dragging {
   opacity: 0.4;
 }
 
-.adeo-grid-settings__column-item--drag-over {
-  border-top: 2px solid #2563eb;
+.grid-settings__column-item--drag-over {
+  border-top: 2px solid var(--color-background-accent-inverse, #2563eb);
   padding-top: 6px;
 }
 
-.adeo-grid-settings__column-drag-handle {
-  color: #94a3b8;
-  font-size: 12px;
+.grid-settings__column-drag-handle {
+  color: var(--color-icon-secondary, #94a3b8);
+  font-size: var(--font-size-50, 12px);
   letter-spacing: -2px;
   cursor: grab;
   flex-shrink: 0;
   user-select: none;
 }
 
-.adeo-grid-settings__footer {
+.grid-settings__footer {
   display: flex;
   gap: 12px;
   justify-content: center;

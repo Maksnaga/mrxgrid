@@ -1,5 +1,5 @@
 /**
- * Pagination / infinite-scroll models — Angular parity (moz-grid).
+ * Pagination / infinite-scroll models — Angular parity (ad-grid).
  */
 
 export type LoadingStrategy = 'pagination' | 'infinite-scroll'

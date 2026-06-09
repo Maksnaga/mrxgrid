@@ -4,6 +4,8 @@ import { MDrawer, MButton, MIconButton, MSelect } from '@mozaic-ds/vue'
 import { Cross20, Drag24, ListAdd24 } from '@mozaic-ds/icons-vue'
 import type { ColumnDef } from '../../types'
 
+defineOptions({ name: 'AdGridGroupingDrawer' })
+
 export interface GroupingItem {
   field: string
   headerName: string
@@ -104,7 +106,7 @@ function onReset() {
 </script>
 
 <template>
-  <!-- See AdeoGridFilterDrawer.vue for why we Teleport to <body>. -->
+  <!-- See AdGridFilterDrawer.vue for why we Teleport to <body>. -->
   <Teleport to="body">
   <!-- `close-on-overlay` MUST be explicitly false. Mozaic's MDrawer
        defaults the prop to true AND mis-handles inner-body whitespace
@@ -119,29 +121,29 @@ function onReset() {
     position="right"
     @update:open="emit('update:open', $event)"
   >
-    <div class="adeo-grid-grouping-drawer">
+    <div class="grid-grouping-drawer">
       <!-- Active groups -->
-      <div v-if="draftGroups.length" class="adeo-grid-grouping-drawer__section">
+      <div v-if="draftGroups.length" class="grid-grouping-drawer__section">
         <div
           v-for="(group, index) in draftGroups"
           :key="group.field"
-          class="adeo-grid-grouping-drawer__active-item"
+          class="grid-grouping-drawer__active-item"
           draggable="true"
           @dragstart="onDragStart(index, $event)"
           @dragover.prevent="onDragOver(index)"
           @drop.prevent="onDrop(index)"
           @dragend="onDragEnd"
         >
-          <span class="adeo-grid-grouping-drawer__drag-handle">
+          <span class="grid-grouping-drawer__drag-handle">
             <Drag24 aria-hidden="true" />
           </span>
-          <span class="adeo-grid-grouping-drawer__field-name">{{ group.headerName || group.field }}</span>
+          <span class="grid-grouping-drawer__field-name">{{ group.headerName || group.field }}</span>
           <MSelect
             :id="`group-dir-${group.field}`"
             size="s"
             :options="sortOptions"
             :model-value="group.direction"
-            class="adeo-grid-grouping-drawer__sort-select"
+            class="grid-grouping-drawer__sort-select"
             @update:model-value="updateDirection(group.field, $event)"
           />
           <MIconButton size="s" :ghost="true" @click="removeColumn(group.field)">
@@ -153,14 +155,14 @@ function onReset() {
       </div>
 
       <!-- Available columns -->
-      <div class="adeo-grid-grouping-drawer__section">
-        <h3 class="adeo-grid-grouping-drawer__section-title">AVAILABLE COLUMNS</h3>
+      <div class="grid-grouping-drawer__section">
+        <h3 class="grid-grouping-drawer__section-title">AVAILABLE COLUMNS</h3>
         <div
           v-for="col in availableColumns"
           :key="col.field"
-          class="adeo-grid-grouping-drawer__available-item"
+          class="grid-grouping-drawer__available-item"
         >
-          <span class="adeo-grid-grouping-drawer__field-name">{{ col.headerName }}</span>
+          <span class="grid-grouping-drawer__field-name">{{ col.headerName }}</span>
           <MIconButton size="s" :ghost="true" @click="addColumn(col)">
             <template #icon>
               <ListAdd24 aria-hidden="true" />
@@ -171,7 +173,7 @@ function onReset() {
     </div>
 
     <template #footer>
-      <div class="adeo-grid-grouping-drawer__footer">
+      <div class="grid-grouping-drawer__footer">
         <MButton appearance="accent" @click="onApply">Apply</MButton>
         <MButton :outlined="true" @click="onReset">Reset</MButton>
       </div>
@@ -181,54 +183,51 @@ function onReset() {
 </template>
 
 <style scoped>
-.adeo-grid-grouping-drawer {
+.grid-grouping-drawer {
   display: flex;
   flex-direction: column;
   gap: 16px;
   padding: 8px 0;
-  font-family:
-    system-ui,
-    -apple-system,
-    sans-serif;
+  font-family: var(--font-family, system-ui, -apple-system, sans-serif);
 }
 
-.adeo-grid-grouping-drawer__section-title {
-  font-size: 12px;
-  font-weight: 700;
+.grid-grouping-drawer__section-title {
+  font-size: var(--font-size-50, 12px);
+  font-weight: var(--font-weight-bold, 700);
   text-transform: uppercase;
-  color: #1e293b;
+  color: var(--color-text-primary, #1e293b);
   letter-spacing: 0.04em;
   margin: 0 0 8px;
   padding: 0 4px;
 }
 
-.adeo-grid-grouping-drawer__active-item {
+.grid-grouping-drawer__active-item {
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 10px 4px;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid var(--color-border-primary, #e2e8f0);
 }
 
-.adeo-grid-grouping-drawer__drag-handle {
+.grid-grouping-drawer__drag-handle {
   display: flex;
   align-items: center;
   cursor: grab;
-  color: #94a3b8;
+  color: var(--color-icon-secondary, #94a3b8);
 }
 
-.adeo-grid-grouping-drawer__field-name {
+.grid-grouping-drawer__field-name {
   flex: 1 1 0%;
-  font-size: 14px;
-  font-weight: 600;
-  color: #1e293b;
+  font-size: var(--font-size-200, 14px);
+  font-weight: var(--font-weight-semi-bold, 600);
+  color: var(--color-text-primary, #1e293b);
   min-width: 250px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.adeo-grid-grouping-drawer__sort-select {
+.grid-grouping-drawer__sort-select {
   flex: 0 0 auto;
   width: 100px;
   max-width: 100px;
@@ -236,34 +235,34 @@ function onReset() {
   overflow: hidden;
 }
 
-.adeo-grid-grouping-drawer__sort-select :deep(.mc-select) {
+.grid-grouping-drawer__sort-select :deep(.mc-select) {
   width: 100%;
   min-width: 0;
 }
 
-.adeo-grid-grouping-drawer__sort-select :deep(.mc-select__control) {
+.grid-grouping-drawer__sort-select :deep(.mc-select__control) {
   width: 100%;
   min-width: 0;
 }
 
-.adeo-grid-grouping-drawer__active-item[draggable='true'] {
+.grid-grouping-drawer__active-item[draggable='true'] {
   cursor: grab;
 }
 
-.adeo-grid-grouping-drawer__active-item[draggable='true']:active {
+.grid-grouping-drawer__active-item[draggable='true']:active {
   cursor: grabbing;
   opacity: 0.6;
 }
 
-.adeo-grid-grouping-drawer__available-item {
+.grid-grouping-drawer__available-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 12px 4px;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid var(--color-border-secondary, #f1f5f9);
 }
 
-.adeo-grid-grouping-drawer__footer {
+.grid-grouping-drawer__footer {
   display: flex;
   gap: 12px;
   justify-content: center;

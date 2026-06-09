@@ -1,0 +1,10 @@
+<div class="grid-detail-row">
+  @if (detailTemplate()) {
+    <ng-container
+      [ngTemplateOutlet]="detailTemplate()!"
+      [ngTemplateOutletContext]="{ $implicit: data(), index: rowIndex() }"
+    />
+  } @else {
+    <pre class="grid-detail-row__default">{{ data() | json }}</pre>
+  }
+</div>

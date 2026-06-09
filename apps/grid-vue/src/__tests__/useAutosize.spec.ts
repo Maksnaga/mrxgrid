@@ -2,8 +2,8 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { ref } from 'vue'
 
 import { useAutosize } from '@/composables/useAutosize'
-import { useGridState, type GridState } from '@/components/AdeoGrid/state/useGridState'
-import type { ColumnDef, RowData } from '@/components/AdeoGrid/types'
+import { useGridState, type GridState } from '@/components/Grid/state/useGridState'
+import type { ColumnDef, RowData } from '@/components/Grid/types'
 
 // jsdom's canvas returns 0 for measureText — we shim it so the layout-free
 // canvas measurement used by `useAutosize` behaves deterministically. Width

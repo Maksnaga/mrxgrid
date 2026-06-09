@@ -1,5 +1,5 @@
 /**
- * Export engine — Angular parity (moz-grid / `ExportEngine`).
+ * Export engine — Angular parity (ad-grid / `ExportEngine`).
  *
  * Serialises a data slice into CSV or JSON and triggers a browser download.
  * Honours each column's `valueGetter` / `valueFormatter` / `headerName`, so

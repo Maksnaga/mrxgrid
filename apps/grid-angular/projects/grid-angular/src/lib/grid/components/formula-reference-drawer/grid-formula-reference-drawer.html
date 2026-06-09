@@ -1,0 +1,44 @@
+<div class="formula-ref">
+  <div class="formula-ref__search">
+    <input
+      type="search"
+      class="formula-ref__search-input"
+      placeholder="Rechercher une fonction…"
+      [value]="query()"
+      (input)="onQueryInput($event)"
+      aria-label="Rechercher une fonction"
+    />
+    <span class="formula-ref__count" aria-live="polite">
+      @if (query()) {
+      {{ matchCount() }} / {{ totalCount() }}
+      } @else {
+      {{ totalCount() }} fonctions
+      }
+    </span>
+  </div>
+
+  <div class="formula-ref__scroll">
+    @if (filteredGroups().length === 0) {
+    <p class="formula-ref__empty">Aucune fonction ne correspond à « {{ query() }} ».</p>
+    } @else { @for (group of filteredGroups(); track group.title) {
+    <section class="formula-ref__group">
+      <h4 class="formula-ref__group-title">{{ group.title }}</h4>
+      <ul class="formula-ref__list">
+        @for (fn of group.entries; track fn.name) {
+        <li class="formula-ref__item">
+          <div class="formula-ref__head">
+            <span class="formula-ref__name">{{ fn.name }}</span>
+            <code class="formula-ref__signature">{{ fn.signature }}</code>
+          </div>
+          <p class="formula-ref__summary">{{ fn.summary }}</p>
+        </li>
+        }
+      </ul>
+    </section>
+    } }
+  </div>
+</div>
+
+<ng-template mozDrawerFooter>
+  <button moz-button (click)="close()">Fermer</button>
+</ng-template>

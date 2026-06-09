@@ -1,0 +1,56 @@
+.column-visibility-panel {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-050, 4px);
+  padding: var(--spacing-050, 4px) var(--spacing-100, 8px);
+  border-bottom: 1px solid var(--color-border-primary);
+  background: var(--color-background-primary);
+  font-size: var(--font-size-50, 12px);
+}
+
+.column-visibility-panel__label {
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-semi-bold, 600);
+  white-space: nowrap;
+}
+
+.column-visibility-panel__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-025, 2px);
+  padding: var(--spacing-025, 2px) var(--spacing-100, 8px);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--border-radius-s, 4px);
+  background: var(--color-background-secondary, #f8f9fa);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-50, 12px);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.column-visibility-panel__chip:hover {
+  background: var(--color-background-accent, #e8f0fe);
+  border-color: var(--color-background-accent-inverse);
+  color: var(--color-background-accent-inverse);
+}
+
+.column-visibility-panel__chip-icon {
+  font-weight: var(--font-weight-bold, 700);
+}
+
+.column-visibility-panel__restore-all {
+  padding: var(--spacing-025, 2px) var(--spacing-100, 8px);
+  border: none;
+  border-radius: var(--border-radius-s, 4px);
+  background: transparent;
+  color: var(--color-background-accent-inverse);
+  font-size: var(--font-size-50, 12px);
+  font-weight: var(--font-weight-semi-bold, 600);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.column-visibility-panel__restore-all:hover {
+  text-decoration: underline;
+}

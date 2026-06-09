@@ -1,0 +1,162 @@
+<div
+  class="grid-header"
+  [class.grid-header--no-bottom-border]="hasFilterRow()"
+  role="row"
+  #headerCenter
+>
+  <!-- Expand spacer (sticky, leftmost) -->
+  @if (showExpand()) {
+  <div class="grid-header__sticky-utility grid-header__expand-spacer" [style.left.px]="0"></div>
+  }
+
+  <!-- Checkbox utility (sticky) -->
+  @if (showCheckbox()) {
+  <div
+    class="grid-header__sticky-utility grid-header__checkbox"
+    [style.left.px]="showExpand() ? 36 : 0"
+  >
+    <moz-checkbox
+      id="grid-select-all"
+      label="Select all rows"
+      [indeterminate]="rowSelection.isIndeterminate()"
+      [ngModel]="rowSelection.isAllSelected()"
+      (change)="onSelectAllClick($event)"
+    />
+  </div>
+  }
+
+  <!-- Pinned-left columns (sticky) -->
+  @for (col of state.pinnedLeftColumns(); track trackByField($index, col); let i = $index, last = $last) {
+  <ad-grid-header-cell
+    [columnState]="col"
+    [def]="state.columnDefMap().get(col.field)!"
+    [isLast]="false"
+    [pinnedSticky]="'left'"
+    [pinnedOffset]="utilityLeftWidth() + state.pinnedLeftCumulativeOffsets()[i]"
+    [pinnedEdge]="last && state.pinnedLeftColumns().length > 0 ? 'left' : null"
+    (sortClick)="sortClick.emit($event)"
+    (menuAction)="menuAction.emit($event)"
+    (resizeStart)="resizeStart.emit({ field: col.field, event: $event })"
+  />
+  }
+
+  <!-- Leading column spacer -->
+  @if (state.leadingColumnSpacer() > 0) {
+  <div
+    class="grid-header__cell-spacer"
+    aria-hidden="true"
+    [style.width.px]="state.leadingColumnSpacer()"
+    [style.min-width.px]="state.leadingColumnSpacer()"
+  ></div>
+  }
+
+  <!-- Unpinned (rendered slice) -->
+  @for (col of state.renderedUnpinnedColumns(); track trackByField($index, col); let i = $index, last = $last) {
+  <ad-grid-header-cell
+    [columnState]="col"
+    [def]="state.columnDefMap().get(col.field)!"
+    [isLast]="last && state.trailingColumnSpacer() === 0 && state.pinnedRightColumns().length === 0"
+    [reorderable]="reorderable()"
+    (sortClick)="sortClick.emit($event)"
+    (menuAction)="menuAction.emit($event)"
+    (resizeStart)="resizeStart.emit({ field: col.field, event: $event })"
+    (mousedown)="onDragStart($event, i + state.effectiveColumnRange().start)"
+  />
+  }
+
+  <!-- Trailing column spacer -->
+  @if (state.trailingColumnSpacer() > 0) {
+  <div
+    class="grid-header__cell-spacer"
+    aria-hidden="true"
+    [style.width.px]="state.trailingColumnSpacer()"
+    [style.min-width.px]="state.trailingColumnSpacer()"
+  ></div>
+  }
+
+  <!-- Pinned-right columns (sticky) -->
+  @for (col of state.pinnedRightColumns(); track trackByField($index, col); let i = $index, first = $first, last = $last) {
+  <ad-grid-header-cell
+    [columnState]="col"
+    [def]="state.columnDefMap().get(col.field)!"
+    [pinnedEnd]="true"
+    [isLast]="last"
+    [pinnedSticky]="'right'"
+    [pinnedOffset]="state.pinnedRightCumulativeOffsets()[i]"
+    [pinnedEdge]="first ? 'right' : null"
+    (sortClick)="sortClick.emit($event)"
+    (menuAction)="menuAction.emit($event)"
+    (resizeStart)="resizeStart.emit({ field: col.field, event: $event })"
+  />
+  }
+</div>
+
+@if (hasFilterRow()) {
+<div class="grid-header__filter-row">
+  @if (showExpand()) {
+  <div
+    class="grid-header__sticky-utility grid-header__filter-cell grid-header__filter-cell--spacer"
+    [style.left.px]="0"
+    [style.width.px]="36"
+    [style.min-width.px]="36"
+  ></div>
+  } @if (showCheckbox()) {
+  <div
+    class="grid-header__sticky-utility grid-header__filter-cell grid-header__filter-cell--spacer"
+    [style.left.px]="showExpand() ? 36 : 0"
+    [style.width.px]="48"
+    [style.min-width.px]="48"
+  ></div>
+  } @for (col of state.pinnedLeftColumns(); track trackByField($index, col); let i = $index, last = $last) {
+  <div
+    class="grid-header__sticky-utility grid-header__filter-cell"
+    [class.grid-header__filter-cell--pinned-left-edge]="last && state.pinnedLeftColumns().length > 0"
+    [style.left.px]="utilityLeftWidth() + state.pinnedLeftCumulativeOffsets()[i]"
+    [style.width.px]="col.currentWidth"
+    [style.min-width.px]="col.currentWidth"
+  >
+    @if (getFilterTemplate(col.field); as tmpl) {
+    <ng-container [ngTemplateOutlet]="tmpl" [ngTemplateOutletContext]="{ $implicit: col.field }" />
+    }
+  </div>
+  } @if (state.leadingColumnSpacer() > 0) {
+  <div
+    class="grid-header__filter-cell grid-header__filter-cell--spacer"
+    aria-hidden="true"
+    [style.width.px]="state.leadingColumnSpacer()"
+    [style.min-width.px]="state.leadingColumnSpacer()"
+  ></div>
+  } @for (col of state.renderedUnpinnedColumns(); track trackByField($index, col); let last = $last) {
+  <div
+    class="grid-header__filter-cell"
+    [class.grid-header__filter-cell--last]="
+      last && state.trailingColumnSpacer() === 0 && state.pinnedRightColumns().length === 0
+    "
+    [style.width.px]="col.currentWidth"
+  >
+    @if (getFilterTemplate(col.field); as tmpl) {
+    <ng-container [ngTemplateOutlet]="tmpl" [ngTemplateOutletContext]="{ $implicit: col.field }" />
+    }
+  </div>
+  } @if (state.trailingColumnSpacer() > 0) {
+  <div
+    class="grid-header__filter-cell grid-header__filter-cell--spacer"
+    aria-hidden="true"
+    [style.width.px]="state.trailingColumnSpacer()"
+    [style.min-width.px]="state.trailingColumnSpacer()"
+  ></div>
+  } @for (col of state.pinnedRightColumns(); track trackByField($index, col); let i = $index, first = $first) {
+  <div
+    class="grid-header__sticky-utility grid-header__filter-cell grid-header__filter-cell--pinned-end"
+    [class.grid-header__filter-cell--pinned-right-edge]="first && state.pinnedRightColumns().length > 0"
+    [style.right.px]="state.pinnedRightCumulativeOffsets()[i]"
+    [style.width.px]="col.currentWidth"
+    [style.min-width.px]="col.currentWidth"
+  >
+    @if (getFilterTemplate(col.field); as tmpl) {
+    <ng-container [ngTemplateOutlet]="tmpl" [ngTemplateOutletContext]="{ $implicit: col.field }" />
+    }
+  </div>
+  }
+</div>
+}

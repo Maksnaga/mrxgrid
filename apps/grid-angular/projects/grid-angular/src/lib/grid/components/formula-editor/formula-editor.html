@@ -1,0 +1,76 @@
+<div class="ad-grid-formula-editor" cdkOverlayOrigin>
+  <div class="ad-grid-formula-editor__overlay" aria-hidden="true">
+    @for (seg of overlaySegments(); track $index) {
+      @if (seg.color) {
+        <span class="ad-grid-formula-editor__ref" [style.color]="seg.color">{{ seg.text }}</span>
+      } @else {
+        <span>{{ seg.text }}</span>
+      }
+    }
+  </div>
+  <input
+    #input
+    class="ad-grid-formula-editor__input"
+    type="text"
+    role="combobox"
+    aria-autocomplete="list"
+    [attr.aria-expanded]="panelOpen()"
+    [attr.aria-controls]="panelOpen() ? 'ad-grid-formula-editor-listbox' : null"
+    [attr.aria-activedescendant]="panelOpen() ? 'ad-grid-formula-editor-option-' + selectedIndex() : null"
+    spellcheck="false"
+    autocomplete="off"
+    autocapitalize="off"
+    [value]="value()"
+    (input)="onInput($event)"
+    (keydown)="onKeyDown($event)"
+    (keyup)="onCaretProbe($event)"
+    (click)="onCaretProbe($event)"
+    (select)="onCaretProbe($event)"
+    (scroll)="onScroll($event)"
+  />
+</div>
+
+<ng-template
+  [cdkConnectedOverlayOrigin]="origin()"
+  [cdkConnectedOverlayOpen]="panelOpen()"
+  [cdkConnectedOverlayPositions]="panelPositions"
+  [cdkConnectedOverlayHasBackdrop]="false"
+  cdkConnectedOverlay
+  (overlayOutsideClick)="closePanel()"
+>
+  <ul
+    id="ad-grid-formula-editor-listbox"
+    class="ad-grid-formula-editor__panel"
+    role="listbox"
+  >
+    @for (s of suggestions(); track s.name; let i = $index) {
+      <li
+        class="ad-grid-formula-editor__option"
+        [class.ad-grid-formula-editor__option--selected]="i === selectedIndex()"
+        [id]="'ad-grid-formula-editor-option-' + i"
+        role="option"
+        [attr.aria-selected]="i === selectedIndex()"
+        (mousedown)="onSuggestionMouseDown($event, i)"
+        (mouseenter)="onSuggestionMouseEnter(i)"
+      >
+        <span class="ad-grid-formula-editor__option-name">{{ s.name }}</span>
+        @if (s.signature) {
+          <span class="ad-grid-formula-editor__option-signature">{{ s.signature }}</span>
+        }
+        @if (s.summary) {
+          <span class="ad-grid-formula-editor__option-summary">{{ s.summary }}</span>
+        }
+      </li>
+    }
+  </ul>
+</ng-template>
+
+<div
+  class="ad-grid-formula-editor__a11y-live"
+  role="status"
+  aria-live="polite"
+>
+  @if (panelOpen()) {
+    {{ suggestions().length }} suggestions. {{ suggestions()[selectedIndex()]?.name }} sélectionné.
+  }
+</div>

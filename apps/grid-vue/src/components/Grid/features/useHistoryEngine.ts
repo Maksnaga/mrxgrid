@@ -1,9 +1,9 @@
 /**
- * History engine — Angular parity (moz-grid / `HistoryEngine`).
+ * History engine — Angular parity (ad-grid / `HistoryEngine`).
  *
  * Keeps past/future stacks of cell-change groups and delegates undo/redo
  * to the clipboard engine's `applyChanges`. Optional `attach(gridId)` mirrors
- * the stacks to `localStorage` under `adeo-grid-history:<gridId>`.
+ * the stacks to `localStorage` under `grid-history:<gridId>`.
  *
  * Size is capped at `MAX_HISTORY` (50) to keep localStorage payloads bounded.
  */
@@ -29,7 +29,7 @@ export interface HistoryOp {
 }
 
 const MAX_HISTORY = 50
-const STORAGE_PREFIX = 'adeo-grid-history:'
+const STORAGE_PREFIX = 'grid-history:'
 
 export interface HistoryEngine {
   readonly canUndo: ComputedRef<boolean>

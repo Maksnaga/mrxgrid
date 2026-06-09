@@ -1,6 +1,6 @@
 /* Ported from Angular `components/settings-drawer/grid-settings-drawer.scss` (no `:host`). */
 
-@layer adeo-grid {
+@layer grid {
   .settings-list {
     display: flex;
     flex-direction: column;
@@ -37,7 +37,7 @@
   }
 
   .settings-list__item-title {
-    font-weight: 600;
+    font-weight: var(--font-weight-semi-bold, 600);
     font-size: var(--font-size-m, 16px);
     color: var(--color-text-primary);
   }
@@ -54,7 +54,7 @@
   }
 
   .settings-density__label {
-    font-weight: 600;
+    font-weight: var(--font-weight-semi-bold, 600);
     font-size: var(--font-size-s, 14px);
     color: var(--color-text-primary);
   }
@@ -104,7 +104,7 @@
     border-radius: var(--border-radius-s, 4px);
     background: var(--color-background-primary, #fff);
     font-size: var(--font-size-s, 14px);
-    font-weight: 500;
+    font-weight: var(--font-weight-medium, 500);
     color: var(--color-text-primary);
     cursor: pointer;
   }

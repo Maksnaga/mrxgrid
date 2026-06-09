@@ -4,7 +4,7 @@ Référence : <https://www.ag-grid.com/vue-data-grid/component-filter/>
 
 ## État final (PR 1 → PR 4 — livré)
 
-L'API des filtres custom AdeoGrid est passée d'un modèle **éclaté** (3 props sur la `ColumnDef`, méthode statique bolted-on le composant, 3 props sur le composant) à un modèle **encapsulé** :
+L'API des filtres custom Grid est passée d'un modèle **éclaté** (3 props sur la `ColumnDef`, méthode statique bolted-on le composant, 3 props sur le composant) à un modèle **encapsulé** :
 
 - **Une seule prop sur la `ColumnDef`** : `filter: { component, doesFilterPass }` (parité directe avec AG Grid).
 - **Une seule prop sur le composant** : `params` — bundle `{ model, column, filterParams, getValue, onModelChange }`.
@@ -19,11 +19,11 @@ L'API des filtres custom AdeoGrid est passée d'un modèle **éclaté** (3 props
 ### 1. Composant filtre
 
 ```ts
-import type { AdeoFilterParams } from '@/components/AdeoGrid'
+import type { FilterParams } from '@/components/Grid'
 
 const PriceRangeFilter = defineComponent({
   props: { params: { type: Object, required: true } },
-  setup(props: { params: AdeoFilterParams<MyRow, PriceModel> }, { expose }) {
+  setup(props: { params: FilterParams<MyRow, PriceModel> }, { expose }) {
     // État local — la grille est source de vérité (`params.model`), le
     // composant ne fait que mirror via `refresh()` et annoncer via
     // `params.onModelChange()`.
@@ -59,17 +59,17 @@ const PriceRangeFilter = defineComponent({
 ### 2. Prédicat (pure function)
 
 ```ts
-import type { AdeoDoesFilterPassParams } from '@/components/AdeoGrid'
+import type { DoesFilterPassParams } from '@/components/Grid'
 
 const priceDoesFilterPass = (
-  p: AdeoDoesFilterPassParams<MyRow, PriceModel>,
+  p: DoesFilterPassParams<MyRow, PriceModel>,
 ): boolean => {
   const v = p.getValue('price') as number
   return v >= p.model.min && v <= p.model.max
 }
 ```
 
-`AdeoDoesFilterPassParams` expose `{ row, rowIndex, getValue, model, column }`. Aucun lien avec le composant — c'est de la **donnée de colonne** que tu peux partager, tester, swapper.
+`DoesFilterPassParams` expose `{ row, rowIndex, getValue, model, column }`. Aucun lien avec le composant — c'est de la **donnée de colonne** que tu peux partager, tester, swapper.
 
 ### 3. Déclaration sur la `ColumnDef`
 
@@ -99,14 +99,14 @@ Le code engine + UI narrowe la bonne shape automatiquement.
 
 ```ts
 // Sur la ColumnDef
-interface AdeoFilterConfig<T, M, P> {
-  component: AdeoFilterComponent
-  doesFilterPass?: AdeoDoesFilterPass<T, M>
+interface FilterConfig<T, M, P> {
+  component: FilterComponent
+  doesFilterPass?: DoesFilterPass<T, M>
   filterParams?: P
 }
 
 // Passé en props au composant
-interface AdeoFilterParams<T, M, P> {
+interface FilterParams<T, M, P> {
   model: M | null
   column: ColumnDef<T>
   filterParams?: P
@@ -115,7 +115,7 @@ interface AdeoFilterParams<T, M, P> {
 }
 
 // Argument du prédicat
-interface AdeoDoesFilterPassParams<T, M> {
+interface DoesFilterPassParams<T, M> {
   row: T
   rowIndex: number
   getValue: (field: string) => unknown
@@ -124,8 +124,8 @@ interface AdeoDoesFilterPassParams<T, M> {
 }
 
 // Exposé par le composant (TOUS optionnels)
-interface AdeoFilterInstance<M> {
-  refresh?(newParams: AdeoFilterParams<unknown, M>): boolean | void
+interface FilterInstance<M> {
+  refresh?(newParams: FilterParams<unknown, M>): boolean | void
   afterGuiAttached?(params?: { suppressFocus?: boolean }): void
   isFilterActive?(): boolean
   getModelAsString?(model: M): string
@@ -171,4 +171,4 @@ label        tag bar appelle instance.getModelAsString?(model) ?? col.headerName
 
 ## TL;DR
 
-> **AdeoGrid filter custom = AG Grid filter custom.** Un seul champ `filter` sur la colonne, un seul prop `params` sur le composant, un prédicat qui est de la donnée. Pas de cast TS magique, pas de méthode bolted-on, pas de cérémonie d'introspection imposée — tout est optionnel.
+> **Grid filter custom = AG Grid filter custom.** Un seul champ `filter` sur la colonne, un seul prop `params` sur le composant, un prédicat qui est de la donnée. Pas de cast TS magique, pas de méthode bolted-on, pas de cérémonie d'introspection imposée — tout est optionnel.

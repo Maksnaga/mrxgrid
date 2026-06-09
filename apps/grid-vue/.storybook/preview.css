@@ -1,19 +1,54 @@
-.sb-adeo-grid-root {
-  font-family:
-    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+/* Mozaic brand font on `body` so teleported overlays — drawers, modals,
+   dropdowns — inherit it. Mozaic `<MDrawer>`, `<MSelect>`, `<MTooltip>`,
+   etc. use Teleport to `document.body`, which sits OUTSIDE the
+   `.sb-grid-root` wrapper. Without this rule, those overlays fall back
+   to the browser default (`Times`) and the brand theme is broken
+   visually as soon as anything pops out. */
+body {
+  font-family: var(--font-family, -apple-system, BlinkMacSystemFont, 'Segoe UI',
+    Roboto, Oxygen, Ubuntu, Cantarell, sans-serif);
+}
+
+.sb-grid-root {
+  /* Same `var(--font-family, ...)` — keeps the wrapper authoritative when
+     the body rule is overridden by a parent app's CSS reset. */
+  font-family: var(--font-family, -apple-system, BlinkMacSystemFont, 'Segoe UI',
+    Roboto, Oxygen, Ubuntu, Cantarell, sans-serif);
   background: var(--color-grey-100, #f6f7f8);
   min-height: 100vh;
   padding: 16px;
   box-sizing: border-box;
 }
 
-.sb-adeo-grid-root[data-theme='adeo'] {
+/* ASCII art diagrams in MDX docs (Architecture, StateEngine, Virtualization,
+   DataPipeline). The MDX wraps them in `<div className="ascii">` with a JSX
+   template literal — without these rules, the box-drawing characters
+   (─ ┌ ┐ │ ║ ╔ etc.) render in a proportional font and alignment breaks. */
+.sbdocs-content .ascii,
+.docs-story .ascii,
+.ascii {
+  font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas,
+    'Roboto Mono', monospace;
+  white-space: pre;
+  font-size: 12.5px;
+  line-height: 1.4;
+  background: var(--color-grey-50, #fafafa);
+  border: 1px solid var(--color-border-primary, #e3e6ea);
+  border-radius: 6px;
+  padding: 14px 16px;
+  margin: 12px 0;
+  overflow-x: auto;
+  color: var(--color-text-primary, #2b313b);
+  tab-size: 2;
+}
+
+.sb-grid-root[data-theme='adeo'] {
   background: #f4f6fb;
 }
-.sb-adeo-grid-root[data-theme='bricocenter'] {
+.sb-grid-root[data-theme='bricocenter'] {
   background: #fcf3f2;
 }
-.sb-adeo-grid-root[data-theme='mbrand'] {
+.sb-grid-root[data-theme='mbrand'] {
   background: #f2f2f2;
 }
 
@@ -22,13 +57,13 @@
   background: transparent;
 }
 
-.sb-adeo-grid-shell {
+.sb-grid-shell {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.sb-adeo-grid-shell h2 {
+.sb-grid-shell h2 {
   margin: 0;
   font-size: 14px;
   font-weight: 600;
@@ -36,14 +71,14 @@
   color: var(--color-grey-800, #2b313b);
 }
 
-.sb-adeo-grid-shell p {
+.sb-grid-shell p {
   margin: 0;
   font-size: 13px;
   color: var(--color-grey-700, #4a5364);
   max-width: 720px;
 }
 
-.sb-adeo-grid-toolbar {
+.sb-grid-toolbar {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
@@ -56,7 +91,7 @@
   color: #2b313b;
 }
 
-.sb-adeo-grid-toolbar code {
+.sb-grid-toolbar code {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 11px;
   background: #f3f4f6;
@@ -64,7 +99,7 @@
   border-radius: 4px;
 }
 
-.sb-adeo-grid-frame {
+.sb-grid-frame {
   display: flex;
   flex-direction: column;
 }

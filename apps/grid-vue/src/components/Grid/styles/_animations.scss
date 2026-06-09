@@ -1,7 +1,7 @@
 /* Global @keyframes — must NOT be inside <style scoped> to keep
  * the names stable when referenced from any component. */
 
-@keyframes moz-grid-marching-ants-x {
+@keyframes ad-grid-marching-ants-x {
   from {
     background-position-x: 0;
   }
@@ -10,7 +10,7 @@
   }
 }
 
-@keyframes moz-grid-marching-ants-y {
+@keyframes ad-grid-marching-ants-y {
   from {
     background-position-y: 0;
   }
@@ -19,7 +19,7 @@
   }
 }
 
-@keyframes adeo-grid-loading-bar {
+@keyframes grid-loading-bar {
   0% {
     transform: translateX(-100%);
   }
@@ -28,10 +28,10 @@
   }
 }
 
-/* Skeleton shimmer — partagée entre le full-skeleton (`AdeoGridSkeletonRow`)
- * et le cell-level pending (`.adeo-grid-grid-cell--pending::after`). Globale
+/* Skeleton shimmer — partagée entre le full-skeleton (`GridSkeletonRow`)
+ * et le cell-level pending (`.grid-cell--pending::after`). Globale
  * pour que les deux références au même nom résolvent. */
-@keyframes adeo-grid-skeleton-shimmer {
+@keyframes grid-skeleton-shimmer {
   0% {
     background-position: 100% 0;
   }
@@ -45,12 +45,12 @@
  * `FormulaRefPalette` cycles through 8 slots; cells that reference the
  * formula being edited light up in their assigned slot's colour. */
 :root {
-  --moz-grid-ref-color-0: #1a73e8;
-  --moz-grid-ref-color-1: #34a853;
-  --moz-grid-ref-color-2: #fbbc04;
-  --moz-grid-ref-color-3: #ea4335;
-  --moz-grid-ref-color-4: #9c27b0;
-  --moz-grid-ref-color-5: #00838f;
-  --moz-grid-ref-color-6: #f06292;
-  --moz-grid-ref-color-7: #5e35b1;
+  --ad-grid-ref-color-0: #1a73e8;
+  --ad-grid-ref-color-1: #34a853;
+  --ad-grid-ref-color-2: #fbbc04;
+  --ad-grid-ref-color-3: #ea4335;
+  --ad-grid-ref-color-4: #9c27b0;
+  --ad-grid-ref-color-5: #00838f;
+  --ad-grid-ref-color-6: #f06292;
+  --ad-grid-ref-color-7: #5e35b1;
 }

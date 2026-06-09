@@ -3,6 +3,8 @@ import { computed } from 'vue'
 import { MSelect, MIconButton } from '@mozaic-ds/vue'
 import { ChevronLeft24, ChevronRight24 } from '@mozaic-ds/icons-vue'
 
+defineOptions({ name: 'AdGridPagination' })
+
 /**
  * Pagination footer — Sprint 2 (REFONTE-PLAN-V2 §2.6).
  *
@@ -52,32 +54,32 @@ function onPageChange(value: string | number): void {
 </script>
 
 <template>
-  <div class="adeo-grid-pagination">
+  <div class="grid-pagination">
     <!-- Left: rows per page + range label -->
-    <div class="adeo-grid-pagination__left">
-      <span class="adeo-grid-pagination__label">Rows per page</span>
-      <MSelect id="adeo-grid-pagination-page-size" size="s" :options="pageSizeSelectOptions" :model-value="pageSize"
-        class="adeo-grid-pagination__select-mozaic" @update:modelValue="onPageSizeChange" />
-      <span class="adeo-grid-pagination__range">
+    <div class="grid-pagination__left">
+      <span class="grid-pagination__label">Rows per page</span>
+      <MSelect id="grid-pagination-page-size" size="s" :options="pageSizeSelectOptions" :model-value="pageSize"
+        class="grid-pagination__select-mozaic" @update:modelValue="onPageSizeChange" />
+      <span class="grid-pagination__range">
         {{ rangeStart }}-{{ rangeEnd }} of {{ totalRows }} items
       </span>
     </div>
 
     <!-- Right: prev / page-of-N / next -->
-    <div class="adeo-grid-pagination__right">
-      <MIconButton id="adeo-grid-pagination-prev" ghost size="s" aria-label="Previous page" :disabled="currentPage <= 1"
+    <div class="grid-pagination__right">
+      <MIconButton id="grid-pagination-prev" ghost size="s" aria-label="Previous page" :disabled="currentPage <= 1"
         @click="emit('prev')">
         <template #icon>
           <ChevronLeft24 />
         </template>
       </MIconButton>
 
-      <span class="adeo-grid-pagination__label">Page</span>
-      <MSelect id="adeo-grid-pagination-current" size="s" :options="pageSelectOptions" :model-value="currentPage"
-        class="adeo-grid-pagination__select-mozaic" @update:modelValue="onPageChange" />
-      <span class="adeo-grid-pagination__label">of {{ totalPages }}</span>
+      <span class="grid-pagination__label">Page</span>
+      <MSelect id="grid-pagination-current" size="s" :options="pageSelectOptions" :model-value="currentPage"
+        class="grid-pagination__select-mozaic" @update:modelValue="onPageChange" />
+      <span class="grid-pagination__label">of {{ totalPages }}</span>
 
-      <MIconButton id="adeo-grid-pagination-next" ghost size="s" aria-label="Next page" :disabled="currentPage >= totalPages"
+      <MIconButton id="grid-pagination-next" ghost size="s" aria-label="Next page" :disabled="currentPage >= totalPages"
         @click="emit('next')">
         <template #icon>
           <ChevronRight24 />
@@ -88,7 +90,7 @@ function onPageChange(value: string | number): void {
 </template>
 
 <style scoped lang="scss">
-.adeo-grid-pagination {
+.grid-pagination {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -102,18 +104,18 @@ function onPageChange(value: string | number): void {
   border-radius: 0 0 m.get-spacing('200') m.get-spacing('200');
 }
 
-.adeo-grid-pagination__left,
-.adeo-grid-pagination__right {
+.grid-pagination__left,
+.grid-pagination__right {
   display: flex;
   align-items: center;
   gap: m.get-spacing('100');
 }
 
-.adeo-grid-pagination__label {
+.grid-pagination__label {
   white-space: nowrap;
 }
 
-.adeo-grid-pagination__range {
+.grid-pagination__range {
   white-space: nowrap;
   margin-left: m.get-spacing('050');
   font-weight: m.get-font-weight('semi-bold');
@@ -121,7 +123,7 @@ function onPageChange(value: string | number): void {
 }
 
 /* MSelect width — narrow it to the content (page numbers / 10/25/50/100) */
-.adeo-grid-pagination__select-mozaic {
+.grid-pagination__select-mozaic {
   min-width: 84px;
 }
 </style>

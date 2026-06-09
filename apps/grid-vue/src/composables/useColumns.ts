@@ -1,7 +1,7 @@
 import { computed, type ComputedRef, type Ref, type WritableComputedRef } from 'vue'
-import type { GridState } from '@/components/AdeoGrid/state/useGridState'
-import type { ColumnDef, RowData } from '@/components/AdeoGrid/types'
-import type { PinnedSide } from '@/components/AdeoGrid/models/column.model'
+import type { GridState } from '@/components/Grid/state/useGridState'
+import type { ColumnDef, RowData } from '@/components/Grid/types'
+import type { PinnedSide } from '@/components/Grid/models/column.model'
 
 type AnyGridState = GridState<RowData>
 

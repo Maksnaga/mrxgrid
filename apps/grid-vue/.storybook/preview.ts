@@ -26,7 +26,7 @@ const THEME_LABELS: Record<ThemeId, string> = {
   mbrand: 'MBrand',
 }
 
-const THEME_STYLE_ID = 'adeo-grid-active-theme-style'
+const THEME_STYLE_ID = 'grid-active-theme-style'
 
 function applyTheme(theme: ThemeId) {
   if (typeof document === 'undefined') return
@@ -51,20 +51,8 @@ const preview: Preview = {
     options: {
       storySort: {
         order: [
-          // Top group: comprehensive MDX documentation (read this first).
-          'Documentation',
-          [
-            '1. Introduction',
-            '2. Quick Start',
-            '3. Architecture',
-            '4. State & Engine',
-            '5. Virtualization',
-            '6. Data Pipeline',
-            '7. Theming',
-            '8. Performance',
-            '9. API Reference',
-          ],
-          // Bottom group: every live demo, all under one collapsible parent.
+          // Live demos only — la doc conceptuelle / tutoriels vit dans le
+          // portail mutualisé (port 6008).
           'Stories',
           [
             'Introduction',
@@ -108,7 +96,7 @@ const preview: Preview = {
       applyTheme(theme)
       return {
         components: { story },
-        template: `<div class="sb-adeo-grid-root" data-theme="${theme}"><story /></div>`,
+        template: `<div class="sb-grid-root" data-theme="${theme}"><story /></div>`,
       }
     },
   ],

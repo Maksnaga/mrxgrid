@@ -2,7 +2,7 @@
 /**
  * Skeleton row — rendered while `props.loading` is true.
  *
- * Mirrors the structure of `AdeoGridRow` (utility cells → left-pinned →
+ * Mirrors the structure of `AdGridRow` (utility cells → left-pinned →
  * spacer → center → spacer → right-pinned) so the column widths and the
  * sticky-pinned offsets stay consistent with the real rows that will
  * appear once data arrives. Each "cell" hosts a single shimmer bar
@@ -21,6 +21,8 @@
 
 import type { CSSProperties } from 'vue'
 import type { ColumnDef } from '../../types'
+
+defineOptions({ name: 'AdGridSkeletonRow' })
 
 const props = defineProps<{
   /** 0-based index — used as a deterministic seed for the per-cell width. */
@@ -76,45 +78,45 @@ function centerCellStyle(field: string): Record<string, string | undefined> {
 </script>
 
 <template>
-  <div class="adeo-grid-grid-row adeo-grid-skeleton-row" role="row" aria-hidden="true">
+  <div class="grid-row grid-skeleton-row" role="row" aria-hidden="true">
     <!-- Row number (sticky-left, auto-on with formula columns) -->
     <div
       v-if="showRowNumbers"
-      class="adeo-grid-grid-cell adeo-grid-rownum-cell"
-      :class="{ 'adeo-grid-grid-cell--pinned': hasPinned }"
+      class="grid-cell grid-rownum-cell"
+      :class="{ 'grid-cell--pinned': hasPinned }"
       :style="getUtilityStyle('rownum', false)"
     >
-      <span class="adeo-grid-grid-skeleton-bar" :style="{ width: '60%' }" />
+      <span class="grid-skeleton-bar" :style="{ width: '60%' }" />
     </div>
 
     <!-- Checkbox utility cell -->
     <div
       v-if="selectable"
-      class="adeo-grid-grid-cell adeo-grid-checkbox-cell"
-      :class="{ 'adeo-grid-grid-cell--pinned': hasPinned }"
+      class="grid-cell grid-checkbox-cell"
+      :class="{ 'grid-cell--pinned': hasPinned }"
       :style="getUtilityStyle('checkbox', false)"
     >
-      <span class="adeo-grid-grid-skeleton-square" />
+      <span class="grid-skeleton-square" />
     </div>
 
     <!-- Expand utility cell -->
     <div
       v-if="expandable"
-      class="adeo-grid-grid-cell adeo-grid-expand-cell"
-      :class="{ 'adeo-grid-grid-cell--pinned': hasPinned }"
+      class="grid-cell grid-expand-cell"
+      :class="{ 'grid-cell--pinned': hasPinned }"
       :style="getUtilityStyle('expand', false)"
     >
-      <span class="adeo-grid-grid-skeleton-square" />
+      <span class="grid-skeleton-square" />
     </div>
 
     <!-- Left-pinned columns -->
     <div
       v-for="(col, idx) in pinnedLeftColumns"
       :key="'pl-' + col.field"
-      class="adeo-grid-grid-cell adeo-grid-cell--pinned"
+      class="grid-cell grid-cell--pinned"
       :class="{
-        'adeo-grid-grid-cell--pinned-left-edge': idx === pinnedLeftColumns.length - 1,
-        'adeo-grid-grid-cell--pinned-row-start': idx === 0,
+        'grid-cell--pinned-left-edge': idx === pinnedLeftColumns.length - 1,
+        'grid-cell--pinned-row-start': idx === 0,
       }"
       :style="{
         ...getPinnedStyle('left', idx, false),
@@ -122,14 +124,14 @@ function centerCellStyle(field: string): Record<string, string | undefined> {
         minWidth: getColumnWidth ? getColumnWidth(col.field) : undefined,
       }"
     >
-      <span class="adeo-grid-grid-skeleton-bar" :style="{ width: shimmerWidth(col.field) }" />
+      <span class="grid-skeleton-bar" :style="{ width: shimmerWidth(col.field) }" />
     </div>
 
     <!-- Left spacer (virtual horizontal scroll only). -->
     <div
       v-if="leftSpacerWidth && leftSpacerWidth !== '0px'"
       aria-hidden="true"
-      class="adeo-grid-grid-spacer"
+      class="grid-spacer"
       :style="{ width: leftSpacerWidth, minWidth: leftSpacerWidth }"
     />
 
@@ -137,18 +139,18 @@ function centerCellStyle(field: string): Record<string, string | undefined> {
     <div
       v-for="col in columns"
       :key="col.field"
-      class="adeo-grid-grid-cell"
-      :class="{ 'adeo-grid-grid-cell--fill': fillField && col.field === fillField }"
+      class="grid-cell"
+      :class="{ 'grid-cell--fill': fillField && col.field === fillField }"
       :style="centerCellStyle(col.field)"
     >
-      <span class="adeo-grid-grid-skeleton-bar" :style="{ width: shimmerWidth(col.field) }" />
+      <span class="grid-skeleton-bar" :style="{ width: shimmerWidth(col.field) }" />
     </div>
 
     <!-- Right spacer. -->
     <div
       v-if="rightSpacerWidth && rightSpacerWidth !== '0px'"
       aria-hidden="true"
-      class="adeo-grid-grid-spacer"
+      class="grid-spacer"
       :style="{ width: rightSpacerWidth, minWidth: rightSpacerWidth }"
     />
 
@@ -156,10 +158,10 @@ function centerCellStyle(field: string): Record<string, string | undefined> {
     <div
       v-for="(col, idx) in pinnedRightColumns"
       :key="'pr-' + col.field"
-      class="adeo-grid-grid-cell adeo-grid-cell--pinned"
+      class="grid-cell grid-cell--pinned"
       :class="{
-        'adeo-grid-grid-cell--pinned-right-edge': idx === 0,
-        'adeo-grid-grid-cell--pinned-row-end': idx === pinnedRightColumns.length - 1,
+        'grid-cell--pinned-right-edge': idx === 0,
+        'grid-cell--pinned-row-end': idx === pinnedRightColumns.length - 1,
       }"
       :style="{
         ...getPinnedStyle('right', idx, false),
@@ -167,26 +169,26 @@ function centerCellStyle(field: string): Record<string, string | undefined> {
         minWidth: getColumnWidth ? getColumnWidth(col.field) : undefined,
       }"
     >
-      <span class="adeo-grid-grid-skeleton-bar" :style="{ width: shimmerWidth(col.field) }" />
+      <span class="grid-skeleton-bar" :style="{ width: shimmerWidth(col.field) }" />
     </div>
   </div>
 </template>
 
 <style scoped lang="scss">
-.adeo-grid-grid-row {
+.grid-row {
   display: flex;
-  height: var(--adeo-grid-row-height, 48px);
+  height: var(--grid-row-height, 48px);
   background-color: var(--color-background-primary);
   min-width: 100%;
 }
 
-.adeo-grid-skeleton-row {
+.grid-skeleton-row {
   // Block any pointer interaction — these are inert placeholders.
   pointer-events: none;
   user-select: none;
 }
 
-.adeo-grid-grid-cell {
+.grid-cell {
   padding: m.get-spacing('100') m.get-spacing('150');
   border-bottom: m.get-token('border-width', 's') solid var(--color-border-primary);
   color: var(--color-text-primary);
@@ -196,29 +198,29 @@ function centerCellStyle(field: string): Record<string, string | undefined> {
   align-items: center;
 }
 
-.adeo-grid-grid-cell--pinned {
+.grid-cell--pinned {
   background-color: inherit;
 }
 
-.adeo-grid-grid-cell--pinned-left-edge {
+.grid-cell--pinned-left-edge {
   clip-path: inset(0 -4px 0 0);
 }
 
-.adeo-grid-grid-cell--pinned-right-edge {
+.grid-cell--pinned-right-edge {
   clip-path: inset(0 0 0 -4px);
 }
 
-.adeo-grid-grid-cell--fill {
+.grid-cell--fill {
   flex: 1 1 auto;
 }
 
-.adeo-grid-checkbox-cell,
-.adeo-grid-expand-cell {
+.grid-checkbox-cell,
+.grid-expand-cell {
   width: 50px;
   justify-content: center;
 }
 
-.adeo-grid-rownum-cell {
+.grid-rownum-cell {
   width: 56px;
   justify-content: center;
   background: var(--color-background-secondary, #f6f7f8);
@@ -226,7 +228,7 @@ function centerCellStyle(field: string): Record<string, string | undefined> {
   padding: 0;
 }
 
-.adeo-grid-grid-spacer {
+.grid-spacer {
   flex-shrink: 0;
   padding: 0;
   border: none;
@@ -235,49 +237,49 @@ function centerCellStyle(field: string): Record<string, string | undefined> {
 // ---------------------------------------------------------------------------
 // Shimmer primitives
 // ---------------------------------------------------------------------------
-// `--adeo-grid-skel-base` / `--adeo-grid-skel-highlight` are pulled from Mozaic tokens
+// `--grid-skel-base` / `--grid-skel-highlight` are pulled from Mozaic tokens
 // with safe fallbacks so the skeleton renders correctly even outside the
 // design system context (e.g. isolated component tests).
-.adeo-grid-grid-skeleton-bar {
+.grid-skeleton-bar {
   display: inline-block;
   height: 12px;
-  border-radius: 4px;
+  border-radius: var(--border-radius-s, 4px);
   background: linear-gradient(
     90deg,
-    var(--adeo-grid-skel-base, var(--color-background-secondary, #eef0f3)) 0%,
-    var(--adeo-grid-skel-highlight, var(--color-background-primary, #f8fafc)) 50%,
-    var(--adeo-grid-skel-base, var(--color-background-secondary, #eef0f3)) 100%
+    var(--grid-skel-base, var(--color-background-secondary, #eef0f3)) 0%,
+    var(--grid-skel-highlight, var(--color-background-primary, #f8fafc)) 50%,
+    var(--grid-skel-base, var(--color-background-secondary, #eef0f3)) 100%
   );
   background-size: 200% 100%;
-  animation: adeo-grid-skeleton-shimmer 1.4s ease-in-out infinite;
+  animation: grid-skeleton-shimmer 1.4s ease-in-out infinite;
 }
 
-.adeo-grid-grid-skeleton-square {
+.grid-skeleton-square {
   display: inline-block;
   width: 16px;
   height: 16px;
-  border-radius: 3px;
+  border-radius: var(--border-radius-xs, 2px);
   background: linear-gradient(
     90deg,
-    var(--adeo-grid-skel-base, var(--color-background-secondary, #eef0f3)) 0%,
-    var(--adeo-grid-skel-highlight, var(--color-background-primary, #f8fafc)) 50%,
-    var(--adeo-grid-skel-base, var(--color-background-secondary, #eef0f3)) 100%
+    var(--grid-skel-base, var(--color-background-secondary, #eef0f3)) 0%,
+    var(--grid-skel-highlight, var(--color-background-primary, #f8fafc)) 50%,
+    var(--grid-skel-base, var(--color-background-secondary, #eef0f3)) 100%
   );
   background-size: 200% 100%;
-  animation: adeo-grid-skeleton-shimmer 1.4s ease-in-out infinite;
+  animation: grid-skeleton-shimmer 1.4s ease-in-out infinite;
 }
 
-// `@keyframes adeo-grid-skeleton-shimmer` est défini dans le `<style>` non-scopé
-// de `AdeoGridCell.vue` (à côté des marching-ants) — partagé avec le
-// cell-level pending (`.adeo-grid-grid-cell--pending::after`).
+// `@keyframes grid-skeleton-shimmer` est défini dans le `<style>` non-scopé
+// de `AdGridCell.vue` (à côté des marching-ants) — partagé avec le
+// cell-level pending (`.grid-cell--pending::after`).
 
 // Respect users who opt out of motion — keep the colour delta visible but
 // freeze the animation.
 @media (prefers-reduced-motion: reduce) {
-  .adeo-grid-grid-skeleton-bar,
-  .adeo-grid-grid-skeleton-square {
+  .grid-skeleton-bar,
+  .grid-skeleton-square {
     animation: none;
-    background: var(--adeo-grid-skel-base, var(--color-background-secondary, #eef0f3));
+    background: var(--grid-skel-base, var(--color-background-secondary, #eef0f3));
   }
 }
 </style>

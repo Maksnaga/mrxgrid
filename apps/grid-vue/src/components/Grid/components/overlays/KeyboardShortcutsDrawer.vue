@@ -14,6 +14,8 @@
 
 import { MDrawer } from '@mozaic-ds/vue'
 
+defineOptions({ name: 'AdGridKeyboardShortcutsDrawer' })
+
 interface ShortcutItem {
   keys: string
   label: string
@@ -107,9 +109,9 @@ function close() {
 </script>
 
 <template>
-  <!-- See AdeoGridFilterDrawer.vue for why we Teleport to <body>. -->
+  <!-- See AdGridFilterDrawer.vue for why we Teleport to <body>. -->
   <Teleport to="body">
-  <!-- See AdeoGroupingDrawer.vue for why `close-on-overlay` stays
+  <!-- See AdGridGroupingDrawer.vue for why `close-on-overlay` stays
        disabled (Mozaic's MDrawer fires it on dialog-body whitespace). -->
   <MDrawer
     :open="open"
@@ -149,8 +151,8 @@ function close() {
 
   &__group-title {
     margin: 0 0 8px;
-    font-size: 13px;
-    font-weight: 600;
+    font-size: var(--font-size-100, 13px);
+    font-weight: var(--font-weight-semi-bold, 600);
     color: var(--color-text-primary, #222);
   }
 
@@ -180,21 +182,21 @@ function close() {
     display: inline-block;
     padding: 2px 6px;
     border: 1px solid var(--color-border-primary, #ddd);
-    border-radius: 3px;
+    border-radius: var(--border-radius-xs, 2px);
     background: var(--color-background-secondary, #f5f5f5);
-    font-family: ui-monospace, SFMono-Regular, monospace;
-    font-size: 11px;
+    font-family: var(--font-family-monospace, ui-monospace, SFMono-Regular, monospace);
+    font-size: var(--font-size-25, 11px);
     color: var(--color-text-primary, #222);
   }
 
   &__separator {
     color: var(--color-text-secondary, #999);
-    font-size: 11px;
+    font-size: var(--font-size-25, 11px);
   }
 
   &__label {
     margin: 0;
-    font-size: 12px;
+    font-size: var(--font-size-50, 12px);
     color: var(--color-text-primary, #222);
   }
 

@@ -1,5 +1,5 @@
 /**
- * Column-level models — Angular parity (moz-grid).
+ * Column-level models — Angular parity (ad-grid).
  *
  * Phase 0 scope: only the new supporting types live here. The existing
  * `ColumnDef` stays in `types.ts`; new optional fields are added there

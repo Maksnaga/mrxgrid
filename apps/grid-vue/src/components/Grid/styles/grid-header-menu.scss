@@ -1,7 +1,7 @@
 /* Ported from Angular `components/header-menu/grid-header-menu.scss`.
  * Translation: :host → .grid-header-menu-root */
 
-@layer adeo-grid {
+@layer grid {
   .grid-header-menu-root {
     position: absolute;
     z-index: 200;

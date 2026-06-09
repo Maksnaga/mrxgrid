@@ -1,11 +1,11 @@
 import type { Meta, StoryObj } from '@storybook/vue3-vite'
 import { ref } from 'vue'
-import { AdeoGrid } from '@/components/AdeoGrid'
+import { AdGridVue } from '@/components/Grid'
 import { lmColumns, lmProducts } from './_fixtures'
 
 const meta = {
   title: 'Stories/Basics/Density · Fullscreen · Row identity',
-  component: AdeoGrid,
+  component: AdGridVue,
   tags: ['autodocs'],
   args: { rows: [] },
   parameters: {
@@ -25,7 +25,7 @@ Trois props transversales que toute intégration touche tôt ou tard : la densit
       },
     },
   },
-} satisfies Meta<typeof AdeoGrid>
+} satisfies Meta<typeof AdGridVue>
 
 export default meta
 type Story = StoryObj<typeof meta>
@@ -37,7 +37,7 @@ export const Density: Story = {
         story: `
 ## Density
 
-Trois variantes au choix via \`:density\`. Les hauteurs de ligne sont définies dans \`AdeoGrid.vue\` (\`DENSITY_ROW_HEIGHT\` constant) :
+Trois variantes au choix via \`:density\`. Les hauteurs de ligne sont définies dans \`Grid.vue\` (\`DENSITY_ROW_HEIGHT\` constant) :
 
 | Variant | Row height |
 |---------|-----------|
@@ -45,24 +45,24 @@ Trois variantes au choix via \`:density\`. Les hauteurs de ligne sont définies 
 | \`default\` | 48px |
 | \`comfortable\` | 64px |
 
-Les paddings des cellules suivent en SCSS (\`.adeo-grid-grid-wrapper--compact\`, \`.adeo-grid-grid-wrapper--comfortable\` modifiers).
+Les paddings des cellules suivent en SCSS (\`.grid-wrapper--compact\`, \`.grid-wrapper--comfortable\` modifiers).
 
 ### Implémentation
 
 \`\`\`vue
 <script setup>
-import type { DataDensity } from '@/components/AdeoGrid'
+import type { DataDensity } from '@/components/Grid'
 const density = ref<DataDensity>('default')
 </script>
 
 <template>
-  <AdeoGrid :columns="columns" :rows="rows" :density="density" />
+  <ad-grid-vue :columns="columns" :rows="rows" :density="density" />
 </template>
 \`\`\`
 
 ### Tip
 
-Le \`<AdeoTableMenuDrawer>\` expose un toggle de density natif — branchez son \`@apply\` pour piloter cette prop sans roll-your-own.
+Le \`<ad-grid-settings-drawer>\` expose un toggle de density natif — branchez son \`@apply\` pour piloter cette prop sans roll-your-own.
         `,
       },
     },
@@ -75,15 +75,15 @@ Le \`<AdeoTableMenuDrawer>\` expose un toggle de density natif — branchez son 
   },
   args: { density: 'default' },
   render: (args) => ({
-    components: { AdeoGrid },
+    components: { AdGridVue },
     setup: () => ({ lmColumns, lmProducts, args }),
     template: `
-      <div class="sb-adeo-grid-shell">
+      <div class="sb-grid-shell">
         <h2>Density</h2>
         <p>Switch via prop <code>:density</code>. Hauteurs ligne : compact <code>25px</code>, default <code>37px</code>, comfortable <code>45px</code>.</p>
-        <div class="sb-adeo-grid-toolbar">Density actuelle : <code>{{ args.density }}</code></div>
-        <div class="sb-adeo-grid-frame">
-          <AdeoGrid :height="560" :columns="lmColumns" :rows="lmProducts" :density="args.density" />
+        <div class="sb-grid-toolbar">Density actuelle : <code>{{ args.density }}</code></div>
+        <div class="sb-grid-frame">
+          <ad-grid-vue :height="560" :columns="lmColumns" :rows="lmProducts" :density="args.density" />
         </div>
       </div>
     `,
@@ -101,23 +101,23 @@ export const Fullscreen: Story = {
 
 ### Gotcha #1 — la toolbar disparaît
 
-Si vous rendez votre toolbar en *sibling* de \`<AdeoGrid>\`, le mode fullscreen va la cacher derrière le grid. **Mettez-la dans le slot \`#toolbar\`** :
+Si vous rendez votre toolbar en *sibling* de \`<ad-grid-vue>\`, le mode fullscreen va la cacher derrière le grid. **Mettez-la dans le slot \`#toolbar\`** :
 
 \`\`\`vue
-<AdeoGrid :fullscreen="isFullscreen" :columns="cols" :rows="rows">
+<ad-grid-vue :fullscreen="isFullscreen" :columns="cols" :rows="rows">
   <template #toolbar>
-    <AdeoGridToolbar
+    <ad-grid-toolbar
       show-fullscreen
       :fullscreen="isFullscreen"
       @toggle-fullscreen="isFullscreen = !isFullscreen"
     />
   </template>
-</AdeoGrid>
+</ad-grid-vue>
 \`\`\`
 
 ### Gotcha #2 — la prop est unidirectionnelle
 
-\`fullscreen\` est une *prop* lue par la grille — pas un v-model. Le toolbar émet \`@toggle-fullscreen\`, à vous de flip la \`ref\`. Si vous voulez l'auto-câbler, utilisez \`<AdeoGridSmartToolbar v-model:fullscreen="isFullscreen">\`.
+\`fullscreen\` est une *prop* lue par la grille — pas un v-model. Le toolbar émet \`@toggle-fullscreen\`, à vous de flip la \`ref\`. Si vous voulez l'auto-câbler, utilisez \`<ad-grid-toolbar v-model:fullscreen="isFullscreen">\`.
 
 ### Tip
 
@@ -127,25 +127,25 @@ Combinez avec un \`<Teleport>\` parent si votre layout principal a un \`overflow
     },
   },
   render: () => ({
-    components: { AdeoGrid },
+    components: { AdGridVue },
     setup() {
       const fs = ref(false)
       return { lmColumns, lmProducts, fs }
     },
     template: `
-      <div class="sb-adeo-grid-shell">
+      <div class="sb-grid-shell">
         <h2>Fullscreen</h2>
         <p>Quand <code>:fullscreen</code> est <code>true</code> le grid couvre tout le viewport. Place tes contrôles (et la toolbar) dans le slot <code>#toolbar</code> pour qu'ils restent visibles.</p>
-        <div class="sb-adeo-grid-frame">
-          <AdeoGrid :height="560" :columns="lmColumns" :rows="lmProducts" :fullscreen="fs">
+        <div class="sb-grid-frame">
+          <ad-grid-vue :height="560" :columns="lmColumns" :rows="lmProducts" :fullscreen="fs">
             <template #toolbar>
-              <div class="sb-adeo-grid-toolbar" style="border-radius: 0; border-left: 0; border-right: 0; border-top: 0">
+              <div class="sb-grid-toolbar" style="border-radius: 0; border-left: 0; border-right: 0; border-top: 0">
                 <button type="button" @click="fs = !fs">
                   {{ fs ? '↩ Quitter plein écran' : '⛶ Passer en plein écran' }}
                 </button>
               </div>
             </template>
-          </AdeoGrid>
+          </ad-grid-vue>
         </div>
       </div>
     `,
@@ -171,7 +171,7 @@ type RowIdResolver = (row: Record<string, unknown>, index: number) => string | n
 ### Implémentation
 
 \`\`\`vue
-<AdeoGrid
+<ad-grid-vue
   :columns="columns"
   :rows="rows"
   :row-id="(row) => String(row.sku)"
@@ -202,7 +202,7 @@ Si \`rowId\` n'est pas passé, la grille utilise :
     },
   },
   render: () => ({
-    components: { AdeoGrid },
+    components: { AdGridVue },
     setup: () => ({
       lmColumns,
       lmProducts,
@@ -210,11 +210,11 @@ Si \`rowId\` n'est pas passé, la grille utilise :
       rowId: (row: Record<string, unknown>) => String(row.sku),
     }),
     template: `
-      <div class="sb-adeo-grid-shell">
+      <div class="sb-grid-shell">
         <h2>Row identity via <code>:rowId</code></h2>
         <p>Indispensable pour persister la sélection / les formules / l'expansion à travers un re-tri ou un lazy-load. Ici, on utilise la <code>sku</code> du produit.</p>
-        <div class="sb-adeo-grid-frame">
-          <AdeoGrid :height="560" :columns="lmColumns" :rows="lmProducts" :row-id="rowId" />
+        <div class="sb-grid-frame">
+          <ad-grid-vue :height="560" :columns="lmColumns" :rows="lmProducts" :row-id="rowId" />
         </div>
       </div>
     `,

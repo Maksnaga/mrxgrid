@@ -1,6 +1,6 @@
 /**
  * Filter model — multi-condition filter builder with AND/OR combinators.
- * Angular parity (moz-grid).
+ * Angular parity (ad-grid).
  *
  * Evaluation is left-associative (no operator precedence). Grouped /
  * parenthesised conditions (`(a AND b) OR c`) are out of scope for the MVP.
@@ -121,10 +121,10 @@ export interface FilterColumnDescriptor {
    * builder mounts `filter.component` and forwards `filter.filterParams`;
    * the engine evaluates `filter.doesFilterPass` per row.
    */
-  filter?: AdeoFilterConfig<unknown, unknown, unknown>
+  filter?: FilterConfig<unknown, unknown, unknown>
   /**
    * Reference to the source `ColumnDef` — set by the engine's
-   * `describeColumn`. The builder forwards this through `AdeoFilterParams.column`
+   * `describeColumn`. The builder forwards this through `FilterParams.column`
    * to the filter component. Consumers building descriptors manually (e.g.
    * in stories) can omit it; the builder falls back to a synthesised
    * minimal column shape.
@@ -139,25 +139,25 @@ export interface FilterColumnDescriptor {
 /**
  * A Vue component used as a custom filter UI (wrap with `markRaw()`).
  * Mounted by the builder via `<component :is>`. The component receives a
- * single `params` prop ({@link AdeoFilterParams}) bundling everything it
+ * single `params` prop ({@link FilterParams}) bundling everything it
  * needs to read state, resolve values, and announce changes.
  */
-export type AdeoFilterComponent = Raw<Component>
+export type FilterComponent = Raw<Component>
 
 /**
  * Predicate that decides whether a single row passes the filter. Lives on
- * {@link AdeoFilterConfig.doesFilterPass} — **not** on the component — so
+ * {@link FilterConfig.doesFilterPass} — **not** on the component — so
  * the predicate is column configuration, not bolted onto a constructor.
  *
  * Skip it for server-mode filtering: the grid passes rows through and the
  * consumer re-fetches on `update:filter-model`.
  */
-export type AdeoDoesFilterPass<T = unknown, M = unknown> = (
-  params: AdeoDoesFilterPassParams<T, M>,
+export type DoesFilterPass<T = unknown, M = unknown> = (
+  params: DoesFilterPassParams<T, M>,
 ) => boolean
 
-/** Argument passed to {@link AdeoDoesFilterPass}. */
-export interface AdeoDoesFilterPassParams<T = unknown, M = unknown> {
+/** Argument passed to {@link DoesFilterPass}. */
+export interface DoesFilterPassParams<T = unknown, M = unknown> {
   /** Row data. */
   row: T
   /** Row index in the dataset BEFORE filtering. */
@@ -184,16 +184,16 @@ export interface AdeoDoesFilterPassParams<T = unknown, M = unknown> {
  * }
  * ```
  *
- * - `component` — the UI. Receives `params: AdeoFilterParams`, calls
+ * - `component` — the UI. Receives `params: FilterParams`, calls
  *   `params.onModelChange(newModel)` on user interaction.
  * - `doesFilterPass` — the predicate. Pure function; the grid calls it on
  *   every row.
  * - `filterParams` — opaque bag forwarded as `params.filterParams` to the
  *   component (options, async loaders, …).
  */
-export interface AdeoFilterConfig<T = unknown, M = unknown, P = unknown> {
-  component: AdeoFilterComponent
-  doesFilterPass?: AdeoDoesFilterPass<T, M>
+export interface FilterConfig<T = unknown, M = unknown, P = unknown> {
+  component: FilterComponent
+  doesFilterPass?: DoesFilterPass<T, M>
   filterParams?: P
   /**
    * Optional — formats the model into a human-readable string for the
@@ -212,7 +212,7 @@ export interface AdeoFilterConfig<T = unknown, M = unknown, P = unknown> {
  * `onModelChange` to announce a new state, and uses `getValue` if it needs
  * row-level access.
  */
-export interface AdeoFilterParams<T = unknown, M = unknown, P = unknown> {
+export interface FilterParams<T = unknown, M = unknown, P = unknown> {
   /** Current filter model (null when no filter is set). */
   model: M | null
   /** Column hosting this filter. */
@@ -251,8 +251,8 @@ export interface AdeoFilterParams<T = unknown, M = unknown, P = unknown> {
  * - `getModelAsString(model)` — label rendered in the "FILTERED BY" tag
  *   bar. Defaults to the column header name when absent.
  */
-export interface AdeoFilterInstance<M = unknown> {
-  refresh?(newParams: AdeoFilterParams<unknown, M>): boolean | void
+export interface FilterInstance<M = unknown> {
+  refresh?(newParams: FilterParams<unknown, M>): boolean | void
   afterGuiAttached?(params?: { suppressFocus?: boolean }): void
   isFilterActive?(): boolean
   getModelAsString?(model: M): string

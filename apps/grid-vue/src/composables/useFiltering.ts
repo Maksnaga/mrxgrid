@@ -1,6 +1,6 @@
 import { computed, type ComputedRef, type Ref } from 'vue'
-import type { ColumnDef, RowData } from '@/components/AdeoGrid/types'
-import type { GridState } from '@/components/AdeoGrid/state/useGridState'
+import type { ColumnDef, RowData } from '@/components/Grid/types'
+import type { GridState } from '@/components/Grid/state/useGridState'
 
 export type FilterValues = Record<string, unknown>
 

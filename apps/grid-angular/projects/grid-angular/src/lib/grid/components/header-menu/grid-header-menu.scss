@@ -1,0 +1,12 @@
+:host {
+  position: absolute;
+  z-index: 200;
+}
+
+.grid-header-menu {
+  min-width: 220px; // custom value — no matching Mozaic token
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); // custom shadow — no matching Mozaic token
+  border-radius: var(--border-radius-m, 8px);
+  background: var(--color-background-primary);
+  border: 1px solid var(--color-border-primary);
+}

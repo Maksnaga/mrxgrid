@@ -46,3 +46,13 @@ storybook-static/
 
 # Claude
 .claude/
+
+# Turborepo
+.turbo/
+
+# Monorepo workspaces
+apps/*/node_modules/
+apps/*/dist/
+apps/*/storybook-static/
+packages/*/node_modules/
+packages/*/dist/

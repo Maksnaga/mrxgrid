@@ -1,5 +1,5 @@
 /**
- * Filter engine — Angular parity (moz-grid / `FilterEngine`).
+ * Filter engine — Angular parity (ad-grid / `FilterEngine`).
  *
  * Reads / writes the central `GridState`:
  * - `state.filterModel`       — multi-condition AND/OR builder
@@ -246,7 +246,7 @@ export function useFilterEngine<T = RowData>(state: GridState<T>): FilterEngine<
         filterType: 'custom',
         operators: [],
         defaultOperator: 'equals',
-        filter: customFilter as unknown as import('../models/filter.model').AdeoFilterConfig<
+        filter: customFilter as unknown as import('../models/filter.model').FilterConfig<
           unknown,
           unknown,
           unknown
@@ -419,12 +419,12 @@ function isDateRangeQuick(
 function getCustomFilterConfig<T>(
   def: ColumnDef<T> | undefined,
 ):
-  | import('../models/filter.model').AdeoFilterConfig<T, unknown, unknown>
+  | import('../models/filter.model').FilterConfig<T, unknown, unknown>
   | undefined {
   const f = def?.filter
   if (!f) return undefined
   if ('component' in f) {
-    return f as import('../models/filter.model').AdeoFilterConfig<T, unknown, unknown>
+    return f as import('../models/filter.model').FilterConfig<T, unknown, unknown>
   }
   return undefined
 }

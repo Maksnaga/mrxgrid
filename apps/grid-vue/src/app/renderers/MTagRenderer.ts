@@ -4,7 +4,7 @@
  *
  * Replaces the old library-side `renderer: 'tag'` builtin alias. Lives
  * under `src/app/renderers/` because it's consumer-side sugar — not part
- * of the AdeoGrid public API. Library consumers who want a similar tag
+ * of the Grid public API. Library consumers who want a similar tag
  * column should copy this file (or write a richer variant).
  */
 

@@ -1,16 +1,16 @@
 /* Ported from Angular `components/filter-drawer/grid-filter-drawer.scss` (no `:host`). */
 
-@layer adeo-grid {
+@layer grid {
   .filter-drawer {
     padding-bottom: 16px;
 
     &__subtitle {
       margin: 0 16px 8px;
-      font-size: 12px;
-      font-weight: 600;
+      font-size: var(--font-size-50, 12px);
+      font-weight: var(--font-weight-semi-bold, 600);
       text-transform: uppercase;
       letter-spacing: 0.06em;
-      color: var(--Text-Secondary, #555);
+      color: var(--color-text-secondary, #555);
     }
   }
 }

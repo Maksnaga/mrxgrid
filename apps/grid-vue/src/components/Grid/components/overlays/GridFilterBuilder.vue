@@ -1,6 +1,6 @@
 <script setup lang="ts">
 /**
- * Filter builder UI — Angular parity (`moz-grid-filter-builder`).
+ * Filter builder UI — Angular parity (`ad-grid-filter-builder`).
  *
  * Renders one row per `FilterCondition`:
  * [combinator] [field] [operator] [value] [(valueTo)] [remove]
@@ -31,6 +31,8 @@ import {
   type FilterCondition,
   type FilterOperator,
 } from '../../models/filter.model'
+
+defineOptions({ name: 'AdGridFilterBuilder' })
 
 // --- MSelect option helpers ---------------------------------------------------
 const COMBINATOR_OPTIONS = [
@@ -188,7 +190,7 @@ function bindAGFilterInstance(condition: FilterCondition, inst: unknown): void {
 }
 
 /**
- * `AdeoFilterParams.onModelChange` handler — emit an `update` patch with
+ * `FilterParams.onModelChange` handler — emit an `update` patch with
  * the new model. The drawer's parent maps that through the filter engine.
  */
 function onModelChange(condition: FilterCondition, nextModel: unknown): void {
@@ -250,7 +252,7 @@ function inputTypeFor(descriptor: FilterColumnDescriptor | undefined): string {
   }
 }
 
-// --- Drag reorder (same pattern as AdeoGroupingDrawer) ---
+// --- Drag reorder (same pattern as AdGridGroupingDrawer) ---
 const dragState = { from: null as number | null }
 
 function onDragStart(index: number, e: DragEvent): void {
@@ -267,25 +269,25 @@ function onDrop(index: number): void {
 </script>
 
 <template>
-  <div class="adeo-grid-filter-builder">
-    <div v-if="!conditions.length" class="adeo-grid-filter-builder__empty">
+  <div class="grid-filter-builder">
+    <div v-if="!conditions.length" class="grid-filter-builder__empty">
       No filters yet. Click <strong>Add filter</strong> to build one.
     </div>
 
     <div
       v-for="(condition, index) in conditions"
       :key="condition.id"
-      class="adeo-grid-filter-builder__row"
+      class="grid-filter-builder__row"
       draggable="true"
       @dragstart="onDragStart(index, $event)"
       @dragover.prevent
       @drop.prevent="onDrop(index)"
     >
       <!-- Combinator: "Where" for first row, AND/OR picker otherwise -->
-      <span v-if="index === 0" class="adeo-grid-filter-builder__where">Where</span>
-      <div v-else class="adeo-grid-filter-builder__slot adeo-grid-filter-builder__slot--combinator">
+      <span v-if="index === 0" class="grid-filter-builder__where">Where</span>
+      <div v-else class="grid-filter-builder__slot grid-filter-builder__slot--combinator">
         <MSelect
-          :id="`adeo-grid-filter-builder-comb-${condition.id}`"
+          :id="`grid-filter-builder-comb-${condition.id}`"
           size="s"
           :options="COMBINATOR_OPTIONS"
           :model-value="condition.combinator"
@@ -294,9 +296,9 @@ function onDrop(index: number): void {
       </div>
 
       <!-- Field picker -->
-      <div class="adeo-grid-filter-builder__slot adeo-grid-filter-builder__slot--field">
+      <div class="grid-filter-builder__slot grid-filter-builder__slot--field">
         <MSelect
-          :id="`adeo-grid-filter-builder-field-${condition.id}`"
+          :id="`grid-filter-builder-field-${condition.id}`"
           size="s"
           :options="fieldOptions()"
           :model-value="condition.field"
@@ -307,10 +309,10 @@ function onDrop(index: number): void {
       <!-- Operator picker — hidden for 'custom' filters, which own their semantics -->
       <div
         v-if="descriptorFor(condition.field)?.filterType !== 'custom'"
-        class="adeo-grid-filter-builder__slot adeo-grid-filter-builder__slot--operator"
+        class="grid-filter-builder__slot grid-filter-builder__slot--operator"
       >
         <MSelect
-          :id="`adeo-grid-filter-builder-op-${condition.id}`"
+          :id="`grid-filter-builder-op-${condition.id}`"
           size="s"
           :options="operatorOptions(condition.field)"
           :model-value="condition.operator"
@@ -329,19 +331,19 @@ function onDrop(index: number): void {
         "
         :is="descriptorFor(condition.field)!.filter!.component"
         :ref="bindRefFor(condition)"
-        class="adeo-grid-filter-builder__custom"
+        class="grid-filter-builder__custom"
         :params="buildFilterParams(condition)"
       />
       <template v-else-if="!isValueless(condition.operator)">
         <!-- set / multi-select — MCheckbox-per-option -->
         <div
           v-if="descriptorFor(condition.field)?.filterType === 'set'"
-          class="adeo-grid-filter-builder__set"
+          class="grid-filter-builder__set"
         >
           <MCheckbox
             v-for="opt in descriptorFor(condition.field)?.options ?? []"
             :key="String(opt.value)"
-            :id="`adeo-grid-filter-builder-set-${condition.id}-${String(opt.value)}`"
+            :id="`grid-filter-builder-set-${condition.id}-${String(opt.value)}`"
             :model-value="isSetChecked(condition, opt.value)"
             :label="opt.label"
             @update:modelValue="(v: boolean) => onSetToggle(condition, opt.value, v)"
@@ -351,10 +353,10 @@ function onDrop(index: number): void {
         <!-- boolean -->
         <div
           v-else-if="descriptorFor(condition.field)?.filterType === 'boolean'"
-          class="adeo-grid-filter-builder__slot adeo-grid-filter-builder__slot--value"
+          class="grid-filter-builder__slot grid-filter-builder__slot--value"
         >
           <MSelect
-            :id="`adeo-grid-filter-builder-bool-${condition.id}`"
+            :id="`grid-filter-builder-bool-${condition.id}`"
             size="s"
             :options="BOOLEAN_OPTIONS"
             :model-value="booleanSelectValue(condition)"
@@ -364,9 +366,9 @@ function onDrop(index: number): void {
 
         <!-- range: value + valueTo -->
         <template v-else-if="isRange(condition.operator)">
-          <div class="adeo-grid-filter-builder__slot adeo-grid-filter-builder__slot--value">
+          <div class="grid-filter-builder__slot grid-filter-builder__slot--value">
             <MTextInput
-              :id="`adeo-grid-filter-builder-val-${condition.id}`"
+              :id="`grid-filter-builder-val-${condition.id}`"
               size="s"
               :type="inputTypeFor(descriptorFor(condition.field))"
               :model-value="asString(condition.value.value)"
@@ -374,10 +376,10 @@ function onDrop(index: number): void {
               @input="(e: Event) => onTextInput(condition.id, e, condition.field)"
             />
           </div>
-          <span class="adeo-grid-filter-builder__range-sep">–</span>
-          <div class="adeo-grid-filter-builder__slot adeo-grid-filter-builder__slot--value">
+          <span class="grid-filter-builder__range-sep">–</span>
+          <div class="grid-filter-builder__slot grid-filter-builder__slot--value">
             <MTextInput
-              :id="`adeo-grid-filter-builder-val-to-${condition.id}`"
+              :id="`grid-filter-builder-val-to-${condition.id}`"
               size="s"
               :type="inputTypeFor(descriptorFor(condition.field))"
               :model-value="asString(condition.value.valueTo)"
@@ -388,9 +390,9 @@ function onDrop(index: number): void {
         </template>
 
         <!-- scalar -->
-        <div v-else class="adeo-grid-filter-builder__slot adeo-grid-filter-builder__slot--value">
+        <div v-else class="grid-filter-builder__slot grid-filter-builder__slot--value">
           <MTextInput
-            :id="`adeo-grid-filter-builder-val-${condition.id}`"
+            :id="`grid-filter-builder-val-${condition.id}`"
             size="s"
             :type="inputTypeFor(descriptorFor(condition.field))"
             :model-value="asString(condition.value.value)"
@@ -403,7 +405,7 @@ function onDrop(index: number): void {
       <MIconButton
         ghost
         size="s"
-        class="adeo-grid-filter-builder__remove"
+        class="grid-filter-builder__remove"
         aria-label="Remove condition"
         @click="emit('remove', condition.id)"
       >
@@ -411,7 +413,7 @@ function onDrop(index: number): void {
       </MIconButton>
     </div>
 
-    <div class="adeo-grid-filter-builder__footer">
+    <div class="grid-filter-builder__footer">
       <MButton
         ghost
         size="s"
@@ -427,7 +429,7 @@ function onDrop(index: number): void {
         ghost
         size="s"
         appearance="danger"
-        class="adeo-grid-filter-builder__clear"
+        class="grid-filter-builder__clear"
         @click="emit('clear')"
       >
         Clear all
@@ -437,43 +439,43 @@ function onDrop(index: number): void {
 </template>
 
 <style scoped>
-.adeo-grid-filter-builder {
+.grid-filter-builder {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family: var(--font-family, system-ui, -apple-system, sans-serif);
 }
 
-.adeo-grid-filter-builder__empty {
+.grid-filter-builder__empty {
   padding: 24px 8px;
   text-align: center;
-  color: #64748b;
-  font-size: 13px;
-  background: #f8fafc;
-  border: 1px dashed #cbd5e1;
-  border-radius: 6px;
+  color: var(--color-text-secondary, #64748b);
+  font-size: var(--font-size-100, 13px);
+  background: var(--color-background-secondary, #f8fafc);
+  border: 1px dashed var(--color-border-primary, #cbd5e1);
+  border-radius: var(--border-radius-m, 8px);
 }
 
-.adeo-grid-filter-builder__row {
+.grid-filter-builder__row {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 6px;
   padding: 8px;
-  border: 1px solid #e2e8f0;
-  border-radius: 6px;
-  background: white;
+  border: 1px solid var(--color-border-primary, #e2e8f0);
+  border-radius: var(--border-radius-m, 8px);
+  background: var(--color-background-primary, white);
   cursor: grab;
 }
 
-.adeo-grid-filter-builder__row:active {
+.grid-filter-builder__row:active {
   cursor: grabbing;
 }
 
-.adeo-grid-filter-builder__where {
-  font-size: 12px;
-  font-weight: 600;
-  color: #64748b;
+.grid-filter-builder__where {
+  font-size: var(--font-size-50, 12px);
+  font-weight: var(--font-weight-semi-bold, 600);
+  color: var(--color-text-secondary, #64748b);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   padding: 0 4px;
@@ -481,43 +483,43 @@ function onDrop(index: number): void {
 }
 
 /* Slot widths — let each input area participate in flex layout. */
-.adeo-grid-filter-builder__slot {
+.grid-filter-builder__slot {
   display: flex;
   align-items: center;
 }
 
-.adeo-grid-filter-builder__slot--combinator {
+.grid-filter-builder__slot--combinator {
   flex: 0 0 auto;
   width: 88px;
 }
 
-.adeo-grid-filter-builder__slot--field,
-.adeo-grid-filter-builder__slot--operator {
+.grid-filter-builder__slot--field,
+.grid-filter-builder__slot--operator {
   flex: 0 0 auto;
   min-width: 140px;
 }
 
-.adeo-grid-filter-builder__slot--value {
+.grid-filter-builder__slot--value {
   flex: 1 1 160px;
   min-width: 120px;
 }
 
-.adeo-grid-filter-builder__slot--value > * {
+.grid-filter-builder__slot--value > * {
   flex: 1 1 0;
   min-width: 0;
 }
 
-.adeo-grid-filter-builder__custom {
+.grid-filter-builder__custom {
   flex: 1 1 200px;
   min-width: 150px;
 }
 
-.adeo-grid-filter-builder__range-sep {
-  font-weight: 600;
-  color: #64748b;
+.grid-filter-builder__range-sep {
+  font-weight: var(--font-weight-semi-bold, 600);
+  color: var(--color-text-secondary, #64748b);
 }
 
-.adeo-grid-filter-builder__set {
+.grid-filter-builder__set {
   display: flex;
   flex-wrap: wrap;
   gap: 4px 12px;
@@ -525,18 +527,18 @@ function onDrop(index: number): void {
   min-width: 150px;
 }
 
-.adeo-grid-filter-builder__remove {
+.grid-filter-builder__remove {
   margin-left: auto;
   flex-shrink: 0;
 }
 
-.adeo-grid-filter-builder__footer {
+.grid-filter-builder__footer {
   display: flex;
   gap: 8px;
   padding-top: 4px;
 }
 
-.adeo-grid-filter-builder__clear {
+.grid-filter-builder__clear {
   margin-left: auto;
 }
 </style>

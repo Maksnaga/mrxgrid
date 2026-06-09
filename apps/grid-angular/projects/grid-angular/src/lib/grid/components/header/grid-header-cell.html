@@ -1,0 +1,50 @@
+<div
+  class="grid-header-cell"
+  [class.grid-header-cell--sorted]="columnState().sort !== null"
+  [class.grid-header-cell--last]="isLast()"
+  [class.grid-header-cell--pinned-end]="pinnedEnd()"
+  [class.grid-header-cell--formula-mode]="showColumnLetter()"
+>
+  @if (showColumnLetter()) {
+  <span class="grid-header-cell__col-letter" aria-hidden="true">{{ columnLetter() }}</span>
+  }
+  <div class="grid-header-cell__content" (click)="onHeaderClick($event)">
+    <span class="grid-header-cell__label">{{ label() }}</span>
+    @if (columnState().sort === 'asc') {
+    <ChevronUp20 class="grid-header-cell__sort-icon" />
+    } @if (columnState().sort === 'desc') {
+    <ChevronDown20 class="grid-header-cell__sort-icon" />
+    } @if (columnState().sort !== null && columnState().sortIndex !== null && isMultiSortActive()) {
+    <span class="grid-header-cell__sort-badge" aria-hidden="true">{{
+      (columnState().sortIndex ?? 0) + 1
+    }}</span>
+    }
+  </div>
+
+  @if (!def().headerMenuDisabled) {
+  <button
+    type="button"
+    class="grid-header-cell__menu-trigger"
+    [class.grid-header-cell__menu-trigger--filtered]="hasActiveFilter()"
+    [attr.aria-label]="'Column settings for ' + label()"
+    [attr.title]="filterTooltip()"
+    [mozActionListboxTrigger]="menuItems()"
+    actionListboxPosition="below"
+    mozGridFilterOverlay
+    (itemClick)="onMenuItemClick($event)"
+    (click)="$event.stopPropagation()"
+  >
+    @if (hasActiveFilter()) {
+    <Filter20 />
+    } @else {
+    <Settings20 />
+    }
+  </button>
+  } @if (def().resizable !== false && (!isLast() || pinnedEnd())) {
+  <div
+    class="grid-header-cell__resize-handle"
+    [class.grid-header-cell__resize-handle--left]="pinnedEnd()"
+    (mousedown)="resizeStart.emit($event)"
+  ></div>
+  }
+</div>

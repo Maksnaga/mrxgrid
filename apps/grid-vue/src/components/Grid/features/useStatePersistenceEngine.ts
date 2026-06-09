@@ -1,5 +1,5 @@
 /**
- * State persistence engine — Angular parity (moz-grid / `StatePersistenceEngine`).
+ * State persistence engine — Angular parity (ad-grid / `StatePersistenceEngine`).
  *
  * Round-trips column layout (width / order / visibility / pin side), active
  * sorts and filter conditions through `localStorage`. Designed for the

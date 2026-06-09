@@ -1,8 +1,8 @@
 <script setup lang="ts">
 /**
- * Filter drawer — Angular parity (`moz-grid-filter-drawer`).
+ * Filter drawer — Angular parity (`ad-grid-filter-drawer`).
  *
- * Wraps `AdeoGridFilterBuilder` in an `MDrawer`. Uses a **local draft** of the
+ * Wraps `AdGridFilterBuilder` in an `MDrawer`. Uses a **local draft** of the
  * filter model that resets every time the drawer opens, so the user can edit
  * freely and commit with Apply (or discard with Cancel). When
  * `applyMode === 'auto'`, edits are emitted immediately and the footer is
@@ -20,7 +20,7 @@
 
 import { computed, ref, watch } from 'vue'
 import { MDrawer, MButton } from '@mozaic-ds/vue'
-import AdeoGridFilterBuilder from './AdeoGridFilterBuilder.vue'
+import AdGridFilterBuilder from './GridFilterBuilder.vue'
 import {
   generateConditionId,
   type FilterApplyMode,
@@ -28,6 +28,8 @@ import {
   type FilterCondition,
   type FilterModel,
 } from '../../models/filter.model'
+
+defineOptions({ name: 'AdGridFilterDrawer' })
 
 const props = defineProps<{
   open: boolean
@@ -77,7 +79,7 @@ function cloneConditions(list: FilterCondition[]): FilterCondition[] {
     // Deep-clone the opaque AG-Grid-style filter model so two drafts don't
     // alias the same nested object. `structuredClone` falls back to a JSON
     // round-trip for older runtimes (the model is required to be
-    // JSON-serializable anyway — see AdeoFilterInstance docs).
+    // JSON-serializable anyway — see FilterInstance docs).
     model: c.model == null ? c.model : cloneModel(c.model),
   }))
 }
@@ -162,7 +164,7 @@ function onCancel(): void {
   <!--
     Teleport the drawer to <body> so it sits OUTSIDE the grid's stacking
     context. Without this the MDrawer renders as a descendant of
-    `.adeo-grid-grid-root` and shares its (numerically tied) z-index with the
+    `.grid-root` and shares its (numerically tied) z-index with the
     grid's sticky header + pinned columns (both z-index 5). Because the
     pinned cells follow the drawer in DOM order, they would paint on top
     of the dialog and the user would see status badges / column headers
@@ -182,8 +184,8 @@ function onCancel(): void {
       position="right"
       @update:open="emit('update:open', $event)"
     >
-      <div class="adeo-grid-filter-drawer">
-        <AdeoGridFilterBuilder
+      <div class="grid-filter-drawer">
+        <ad-grid-filter-builder
           :conditions="draft"
           :columns="columns"
           @add="onAdd"
@@ -195,7 +197,7 @@ function onCancel(): void {
       </div>
 
       <template v-if="mode === 'manual'" #footer>
-        <div class="adeo-grid-filter-drawer__footer">
+        <div class="grid-filter-drawer__footer">
           <MButton appearance="accent" @click="onApply">Apply</MButton>
           <MButton :outlined="true" @click="onCancel">Cancel</MButton>
         </div>
@@ -205,15 +207,12 @@ function onCancel(): void {
 </template>
 
 <style scoped>
-.adeo-grid-filter-drawer {
+.grid-filter-drawer {
   padding: 8px 0;
-  font-family:
-    system-ui,
-    -apple-system,
-    sans-serif;
+  font-family: var(--font-family, system-ui, -apple-system, sans-serif);
 }
 
-.adeo-grid-filter-drawer__footer {
+.grid-filter-drawer__footer {
   display: flex;
   gap: 12px;
   justify-content: center;

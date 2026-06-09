@@ -1,0 +1,107 @@
+<div
+  class="grid-row"
+  role="row"
+  [class.grid-row--selected]="isSelected()"
+  [style.height.px]="state.rowHeight()"
+>
+  <!-- Expand utility (sticky, leftmost) -->
+  @if (showExpand()) {
+  <button
+    class="grid-row__expand grid-row__sticky-utility"
+    [style.left.px]="0"
+    (click)="onExpandClick($event)"
+    [attr.aria-label]="isExpanded() ? 'Collapse row ' + rowIndex() : 'Expand row ' + rowIndex()"
+    type="button"
+  >
+    @if (isExpanded()) {
+    <ChevronDown20 />
+    } @else {
+    <ChevronRight20 />
+    }
+  </button>
+  }
+
+  <!-- Checkbox utility (sticky, after expand) -->
+  @if (showCheckbox()) {
+  <div
+    class="grid-row__checkbox grid-row__sticky-utility"
+    [style.left.px]="showExpand() ? 36 : 0"
+    (click)="onCheckboxClick($event)"
+  >
+    <moz-checkbox
+      [id]="'grid-row-' + rowIndex() + '-checkbox'"
+      [label]="'Select row ' + rowIndex()"
+      [ngModel]="isSelected()"
+    />
+  </div>
+  }
+
+  <!-- Pinned-left columns (sticky) -->
+  @for (col of state.pinnedLeftColumns(); track trackByField($index, col); let i = $index, last = $last) {
+  <ad-grid-cell
+    [row]="row()"
+    [rowIndex]="rowIndex()"
+    [colIndex]="i"
+    [colState]="col"
+    [def]="state.columnDefMap().get(col.field)!"
+    [isLast]="false"
+    [pinnedSticky]="'left'"
+    [pinnedOffset]="utilityLeftWidth() + state.pinnedLeftCumulativeOffsets()[i]"
+    [pinnedEdge]="last && state.pinnedLeftColumns().length > 0 ? 'left' : null"
+    (commitEdit)="onCommitEdit()"
+    (cancelEdit)="onCancelEdit()"
+  />
+  }
+
+  <!-- Leading column spacer -->
+  @if (state.leadingColumnSpacer() > 0) {
+  <div
+    class="grid-row__h-spacer"
+    aria-hidden="true"
+    [style.width.px]="state.leadingColumnSpacer()"
+    [style.min-width.px]="state.leadingColumnSpacer()"
+  ></div>
+  }
+
+  <!-- Unpinned (rendered slice) -->
+  @for (col of state.renderedUnpinnedColumns(); track trackByField($index, col); let i = $index, last = $last) {
+  <ad-grid-cell
+    [row]="row()"
+    [rowIndex]="rowIndex()"
+    [colIndex]="state.pinnedLeftColumns().length + state.effectiveColumnRange().start + i"
+    [colState]="col"
+    [def]="state.columnDefMap().get(col.field)!"
+    [isLast]="last && state.trailingColumnSpacer() === 0 && state.pinnedRightColumns().length === 0"
+    (commitEdit)="onCommitEdit()"
+    (cancelEdit)="onCancelEdit()"
+  />
+  }
+
+  <!-- Trailing column spacer -->
+  @if (state.trailingColumnSpacer() > 0) {
+  <div
+    class="grid-row__h-spacer"
+    aria-hidden="true"
+    [style.width.px]="state.trailingColumnSpacer()"
+    [style.min-width.px]="state.trailingColumnSpacer()"
+  ></div>
+  }
+
+  <!-- Pinned-right columns (sticky) -->
+  @for (col of state.pinnedRightColumns(); track trackByField($index, col); let i = $index, first = $first, last = $last) {
+  <ad-grid-cell
+    [row]="row()"
+    [rowIndex]="rowIndex()"
+    [colIndex]="state.pinnedLeftColumns().length + state.unpinnedColumns().length + i"
+    [colState]="col"
+    [def]="state.columnDefMap().get(col.field)!"
+    [isLast]="last"
+    [pinnedEnd]="true"
+    [pinnedSticky]="'right'"
+    [pinnedOffset]="state.pinnedRightCumulativeOffsets()[i]"
+    [pinnedEdge]="first ? 'right' : null"
+    (commitEdit)="onCommitEdit()"
+    (cancelEdit)="onCancelEdit()"
+  />
+  }
+</div>

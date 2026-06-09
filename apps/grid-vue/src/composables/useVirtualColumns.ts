@@ -1,5 +1,5 @@
 import { computed, onUnmounted, shallowRef, watch, type ComputedRef, type Ref } from 'vue'
-import type { ColumnDef } from '@/components/AdeoGrid/types'
+import type { ColumnDef } from '@/components/Grid/types'
 
 const DEFAULT_COL_WIDTH = 150
 
@@ -9,7 +9,7 @@ export interface VirtualColumnsOptions {
   overscan?: number
   defaultWidth?: number
   /** When false, `_compute` is short-circuited and the spacer widths stay
-   *  at `'0px'` — see callers that toggle this via the `virtualColumns` prop. */
+   *  at `'0px'`. The grid always enables it; this flag is retained for tests. */
   enabled?: Ref<boolean> | boolean
 }
 

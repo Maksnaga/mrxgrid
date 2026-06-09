@@ -1,6 +1,6 @@
 import { computed, type ComputedRef, type Ref, type WritableComputedRef } from 'vue'
-import type { ColumnDef, RowData } from '@/components/AdeoGrid/types'
-import type { GridState } from '@/components/AdeoGrid/state/useGridState'
+import type { ColumnDef, RowData } from '@/components/Grid/types'
+import type { GridState } from '@/components/Grid/state/useGridState'
 
 export interface CellEditState {
   rowIndex: number
@@ -96,7 +96,7 @@ export function useCellEditing(options: CellEditingOptions) {
     if (!isEditable(field)) return
     const row = rows.value[rowIndex]
     if (!row) return
-    // Same valueGetter routing as the visual render path (cf. AdeoGridRow.vue
+    // Same valueGetter routing as the visual render path (cf. AdGridRow.vue
     // `cellValue`). Without this, columns whose value is computed on-the-fly
     // (synthetic / stress-test / derived fields not present on the row
     // object) open the editor blank — `row[field]` returns undefined and

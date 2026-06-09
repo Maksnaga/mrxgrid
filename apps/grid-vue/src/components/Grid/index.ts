@@ -1,43 +1,42 @@
-export { default as AdeoGrid } from './AdeoGrid.vue'
-export { default as AdeoColumn } from './AdeoColumn.vue'
+export { default as AdGridVue } from './Grid.vue'
+export { default as Column } from './Column.vue'
 
 // Body
-export { default as AdeoGridBody } from './components/body/AdeoGridBody.vue'
-export { default as AdeoGridSkeletonBody } from './components/body/AdeoGridSkeletonBody.vue'
-export { default as AdeoGridSkeletonRow } from './components/body/AdeoGridSkeletonRow.vue'
-export { default as AdeoGridDetailRow } from './components/body/AdeoGridDetailRow.vue'
+export { default as AdGridBody } from './components/body/GridBody.vue'
+export { default as AdGridSkeletonBody } from './components/body/GridSkeletonBody.vue'
+export { default as AdGridSkeletonRow } from './components/body/GridSkeletonRow.vue'
+export { default as AdGridDetailRow } from './components/body/GridDetailRow.vue'
 
 // Header
-export { default as AdeoGridHeader } from './components/header/AdeoGridHeader.vue'
-export { default as AdeoGridHeaderCell } from './components/header/AdeoGridHeaderCell.vue'
-export { default as AdeoGridHeaderMenu } from './components/header/AdeoGridHeaderMenu.vue'
+export { default as AdGridHeader } from './components/header/GridHeader.vue'
+export { default as AdGridHeaderCell } from './components/header/GridHeaderCell.vue'
+export { default as AdGridHeaderMenu } from './components/header/GridHeaderMenu.vue'
 
 // Footer
-export { default as AdeoGridFooter } from './components/footer/AdeoGridFooter.vue'
-export { default as AdeoGridLoadingIndicator } from './components/footer/AdeoGridLoadingIndicator.vue'
+export { default as AdGridFooter } from './components/footer/GridFooter.vue'
+export { default as AdGridLoadingIndicator } from './components/footer/GridLoadingIndicator.vue'
 
 // Overlays
-export { default as AdeoGridSelectionBar } from './components/overlays/AdeoGridSelectionBar.vue'
-export { default as AdeoGridToolbar } from './components/overlays/AdeoGridToolbar.vue'
-export { default as AdeoGridSmartToolbar } from './components/overlays/AdeoGridSmartToolbar.vue'
-export { default as AdeoGroupingDrawer } from './components/overlays/AdeoGroupingDrawer.vue'
-export { default as AdeoTableMenuDrawer } from './components/overlays/AdeoTableMenuDrawer.vue'
-export { default as AdeoGridFilterBuilder } from './components/overlays/AdeoGridFilterBuilder.vue'
-export { default as AdeoGridFilterDrawer } from './components/overlays/AdeoGridFilterDrawer.vue'
-export { default as AdeoGridFilterTagsBar } from './components/overlays/AdeoGridFilterTagsBar.vue'
-export { default as AdeoColumnVisibilityPanel } from './components/overlays/AdeoColumnVisibilityPanel.vue'
-export { default as AdeoKeyboardShortcutsDrawer } from './components/overlays/AdeoKeyboardShortcutsDrawer.vue'
-export { default as AdeoFormulaBar } from './components/overlays/AdeoFormulaBar.vue'
-export { default as AdeoFormulaReferenceDrawer } from './components/overlays/AdeoFormulaReferenceDrawer.vue'
+export { default as AdGridSelectionBar } from './components/overlays/GridSelectionBar.vue'
+export { default as AdGridToolbar } from './components/overlays/GridToolbar.vue'
+export { default as AdGridGroupingDrawer } from './components/overlays/GroupingDrawer.vue'
+export { default as AdGridSettingsDrawer } from './components/overlays/TableMenuDrawer.vue'
+export { default as AdGridFilterBuilder } from './components/overlays/GridFilterBuilder.vue'
+export { default as AdGridFilterDrawer } from './components/overlays/GridFilterDrawer.vue'
+export { default as AdGridFilterTagsBar } from './components/overlays/GridFilterTagsBar.vue'
+export { default as AdGridColumnVisibilityPanel } from './components/overlays/ColumnVisibilityPanel.vue'
+export { default as AdGridKeyboardShortcutsDrawer } from './components/overlays/KeyboardShortcutsDrawer.vue'
+export { default as AdGridFormulaBar } from './components/overlays/FormulaBar.vue'
+export { default as AdGridFormulaReferenceDrawer } from './components/overlays/FormulaReferenceDrawer.vue'
 
 // Declarative column registry — exposed so consumers can build their own
 // column-like components by registering directly.
 export {
-  ADEO_GRID_COLUMN_REGISTRY_KEY,
-  injectAdeoColumnRegistry,
-  type AdeoColumnRegistration,
-  type AdeoColumnRegistry,
-} from './state/AdeoColumnRegistry'
+  GRID_COLUMN_REGISTRY_KEY,
+  injectColumnRegistry,
+  type ColumnRegistration,
+  type ColumnRegistry,
+} from './state/ColumnRegistry'
 
 // Note: `defineStatusRenderer` + `BUILTIN_RENDERERS` ("tag" alias) were
 // consumer-side convenience helpers (status badges, generic MTag wrapper)
@@ -79,7 +78,7 @@ export {
 } from '@/composables/useUndoRedoPlugin'
 
 // Plugin contract — for consumers writing their own plugins.
-export type { AdeoGridPlugin, AdeoGridPluginContext } from './models/plugin.model'
+export type { GridPlugin, GridPluginContext } from './models/plugin.model'
 
 // Legacy Vue types + Angular-parity models (re-exported via types.ts).
 export * from './types'
@@ -104,6 +103,18 @@ export {
 export { useGridEngine } from './engine/useGridEngine'
 export type { GridEngine } from './engine/useGridEngine'
 
+// Server-side grouping engine — Angular-parity twin of `useServerGrouping`.
+// Produces `DisplayRow<T>[]` (discriminated union from `models/display-row.model`)
+// instead of the legacy `__adg`-prefixed flat `RowData` list. Lives at
+// `gridEngine.serverGroup` and is exposed via `Grid.vue`'s template ref
+// (`setServerGroupRoots`, `setServerGroupChildren`, `expandServerGroup`).
+export {
+  useServerGroupEngine,
+  type ServerGroupEngine,
+  type ServerGroupingOptions as ServerGroupEngineOptions,
+  type GroupSummary as ServerGroupSummary,
+} from './features/useServerGroupEngine'
+
 // Composable-scoped types kept at the barrel for now. `CellEditEvent` and
 // `CellEditState` remain the legacy (`useCellEditing`) shapes; the Angular-
 // parity variants are available as `GridCellEditEvent` / `GridCellEditState`
@@ -111,5 +122,5 @@ export type { GridEngine } from './engine/useGridEngine'
 export type { GroupEntry } from '@/composables/useGrouping'
 export type { CellEditEvent, CellEditState } from '@/composables/useCellEditing'
 export type { SelectionModel } from '@/composables/useRowSelection'
-export type { GroupingItem } from './components/overlays/AdeoGroupingDrawer.vue'
-export type { DataDensity } from './components/overlays/AdeoTableMenuDrawer.vue'
+export type { GroupingItem } from './components/overlays/GroupingDrawer.vue'
+export type { DataDensity } from './components/overlays/TableMenuDrawer.vue'

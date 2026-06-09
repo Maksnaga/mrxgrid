@@ -1,5 +1,5 @@
 /**
- * Pagination engine — Angular parity (moz-grid / `PaginationEngine`).
+ * Pagination engine — Angular parity (ad-grid / `PaginationEngine`).
  *
  * Reads / writes the central `GridState`:
  * - `state.pageIndex` (0-based, matches Angular)

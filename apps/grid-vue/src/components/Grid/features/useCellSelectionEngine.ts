@@ -1,5 +1,5 @@
 /**
- * Cell selection engine — Angular parity (moz-grid / `CellSelectionEngine`).
+ * Cell selection engine — Angular parity (ad-grid / `CellSelectionEngine`).
  *
  * Central authority for everything that lives under `focusedCell` /
  * `selectedCell` / `cellRange` / `isDragging` / `fillAnchor` / `fillTarget`.
@@ -110,7 +110,7 @@ export function useCellSelectionEngine<T = RowData>(
     // dragging). Without this, `onActivateCell` (sync focusCell) followed
     // by `watch(activeCell)` (async focusCell) re-mutates `focusedCell`
     // with a new `{row, col}` object on every tick, looping the watcher
-    // → "Maximum recursive updates exceeded" in <AdeoGrid>.
+    // → "Maximum recursive updates exceeded" in <ad-grid-vue>.
     const existing = state.focusedCell.value
     if (
       existing?.row === row &&
@@ -177,7 +177,7 @@ export function useCellSelectionEngine<T = RowData>(
 
   /**
    * Shift+Click / Shift+Arrow — extend from anchor to (row, col) without
-   * requiring isDragging. Used by AdeoGrid.vue to replace the legacy
+   * requiring isDragging. Used by Grid.vue to replace the legacy
    * `useCellSelection.extendTo()` call-sites.
    */
   function extendRangeTo(row: number, col: number): void {
@@ -373,14 +373,30 @@ export function useCellSelectionEngine<T = RowData>(
   }
 
   function selectAll(): void {
-    const bounds = pageBounds()
     const maxCol = state.visibleColumns.value.length - 1
     if (maxCol < 0) return
-    state.focusedCell.value = { row: bounds.start, col: 0 }
+    // Span the full dataset, not the paginated page. When pagination is
+    // disabled (the common case), `visibleRowCount` is `0` and the old
+    // `pageBounds()` returned `{0,0}` — Ctrl/Cmd+A would only mark row 0.
+    // Falling back to `sourceData.length` makes Ctrl+A work end-to-end
+    // regardless of whether pagination is on, and matches the "select all
+    // visible" intent.
+    const totalRows = state.sourceData.value.length
+    if (totalRows === 0) return
+    const startRow = state.pageIndex.value * state.pageSize.value
+    const pageEnd = state.visibleRowCount.value > 0
+      ? startRow + state.visibleRowCount.value - 1
+      : totalRows - 1
+    const endRow = Math.min(pageEnd, totalRows - 1)
+    // DON'T re-write focusedCell — a write fires reactive watchers
+    // (useActiveCell / Grid.vue) which can cascade into `focusCell()` and
+    // clear `cellRange` back to `null` via L133. The anchor stays where it
+    // was (or remains null) and the range itself becomes the source of
+    // truth for the "select all" visual.
     state.focusSource.value = 'keyboard'
     state.cellRange.value = {
-      start: { row: bounds.start, col: 0 },
-      end: { row: bounds.end, col: maxCol },
+      start: { row: startRow, col: 0 },
+      end: { row: endRow, col: maxCol },
     }
   }
 

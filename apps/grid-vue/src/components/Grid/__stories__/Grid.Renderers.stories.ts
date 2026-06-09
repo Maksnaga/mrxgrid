@@ -1,14 +1,14 @@
 import type { Meta, StoryObj } from '@storybook/vue3-vite'
 import { defineComponent, h, markRaw } from 'vue'
-import { AdeoGrid } from '@/components/AdeoGrid'
-import type { ColumnDef } from '@/components/AdeoGrid'
+import { AdGridVue } from '@/components/Grid'
+import type { ColumnDef } from '@/components/Grid'
 import { defineStatusRenderer } from '@/app/renderers/defineStatusRenderer'
 import { MTagRenderer } from '@/app/renderers/MTagRenderer'
 import { lmProducts, type LMProduct } from './_fixtures'
 
 const meta = {
   title: 'Stories/Renderers/Text · Tag · Status · Custom · Slot',
-  component: AdeoGrid,
+  component: AdGridVue,
   tags: ['autodocs'],
   args: { rows: [] },
   parameters: {
@@ -47,7 +47,7 @@ interface CellRendererProps<TRow = RowData, TValue = unknown> {
       },
     },
   },
-} satisfies Meta<typeof AdeoGrid>
+} satisfies Meta<typeof AdGridVue>
 
 export default meta
 type Story = StoryObj<typeof meta>
@@ -87,7 +87,7 @@ const columns: ColumnDef[] = [
     },
   },
   render: () => ({
-    components: { AdeoGrid },
+    components: { AdGridVue },
     setup() {
       const cols: ColumnDef<LMProduct>[] = [
         { field: 'sku', headerName: 'Réf', width: '120px' },
@@ -97,11 +97,11 @@ const columns: ColumnDef[] = [
       return { cols, rows: lmProducts.slice(0, 10) }
     },
     template: `
-      <div class="sb-adeo-grid-shell">
+      <div class="sb-grid-shell">
         <h2>Default <code>'text'</code> renderer</h2>
         <p>Aucun <code>renderer</code> spécifié = texte brut. <code>valueFormatter</code> reste appliqué.</p>
-        <div class="sb-adeo-grid-frame">
-          <AdeoGrid :height="560" :columns="cols" :rows="rows" />
+        <div class="sb-grid-frame">
+          <ad-grid-vue :height="560" :columns="cols" :rows="rows" />
         </div>
       </div>
     `,
@@ -157,7 +157,7 @@ Toutes les valeurs rendues en bleu \`info\`.
     },
   },
   render: () => ({
-    components: { AdeoGrid },
+    components: { AdGridVue },
     setup() {
       const cols: ColumnDef<LMProduct>[] = [
         { field: 'name', headerName: 'Produit', width: '260px' },
@@ -175,11 +175,11 @@ Toutes les valeurs rendues en bleu \`info\`.
       return { cols, rows: lmProducts.slice(0, 10) }
     },
     template: `
-      <div class="sb-adeo-grid-shell">
+      <div class="sb-grid-shell">
         <h2>Built-in <code>'tag'</code> renderer</h2>
         <p>Pour rendre une catégorie en MTag sans typer chaque valeur. Ajoute un <code>labelMap</code> dans <code>rendererProps</code> pour des couleurs par valeur.</p>
-        <div class="sb-adeo-grid-frame">
-          <AdeoGrid :height="560" :columns="cols" :rows="rows" />
+        <div class="sb-grid-frame">
+          <ad-grid-vue :height="560" :columns="cols" :rows="rows" />
         </div>
       </div>
     `,
@@ -198,7 +198,7 @@ Helper qui retourne un component \`markRaw\` typé pour les enums status. Mêmes
 ### Implémentation
 
 \`\`\`ts
-import { defineStatusRenderer } from '@/components/AdeoGrid'
+import { defineStatusRenderer } from '@/components/Grid'
 
 type ProductStatus = 'in-stock' | 'low' | 'out' | 'preorder'
 
@@ -228,7 +228,7 @@ Identique fonctionnellement. \`defineStatusRenderer\` ajoute :
     },
   },
   render: () => ({
-    components: { AdeoGrid },
+    components: { AdGridVue },
     setup() {
       const StatusCell = defineStatusRenderer<LMProduct['status']>({
         'in-stock': { label: 'En stock', appearance: 'success' },
@@ -244,11 +244,11 @@ Identique fonctionnellement. \`defineStatusRenderer\` ajoute :
       return { cols, rows: lmProducts.slice(0, 12) }
     },
     template: `
-      <div class="sb-adeo-grid-shell">
+      <div class="sb-grid-shell">
         <h2><code>defineStatusRenderer()</code></h2>
         <p>Helper qui mappe une valeur enum vers <code>{ label, appearance }</code> et rend un MTag typé. La sortie est <code>markRaw</code>'d pour ne pas être proxy-ée par Vue.</p>
-        <div class="sb-adeo-grid-frame">
-          <AdeoGrid :height="560" :columns="cols" :rows="rows" />
+        <div class="sb-grid-frame">
+          <ad-grid-vue :height="560" :columns="cols" :rows="rows" />
         </div>
       </div>
     `,
@@ -304,7 +304,7 @@ Vous pouvez en déclarer juste un sous-ensemble (ex. \`{ value: { type: Number }
 
 ### \`markRaw\` est-il obligatoire ?
 
-Pas obligatoire mais **recommandé** : sans, Vue réactive tout le component à chaque assignation, ce qui est inutile (le component n'est qu'un constructeur). Avec virtual-scroll qui ré-instancie souvent, l'overhead se voit.
+Pas obligatoire mais **recommandé** : sans, Vue réactive tout le component à chaque assignation, ce qui est inutile (le component n'est qu'un constructeur). Avec qui ré-instancie souvent, l'overhead se voit.
 
 ### SFC component ?
 
@@ -314,7 +314,7 @@ Marche aussi : \`import StarRating from './StarRating.vue'\`. Pas besoin de \`ma
     },
   },
   render: () => ({
-    components: { AdeoGrid },
+    components: { AdGridVue },
     setup() {
       const StarRating = markRaw(
         defineComponent({
@@ -339,11 +339,11 @@ Marche aussi : \`import StarRating from './StarRating.vue'\`. Pas besoin de \`ma
       return { cols, rows: lmProducts.slice(0, 10) }
     },
     template: `
-      <div class="sb-adeo-grid-shell">
+      <div class="sb-grid-shell">
         <h2>Custom Vue renderer component</h2>
         <p>Pass un component Vue dans <code>renderer</code>. Il reçoit les <code>CellRendererProps</code> (<code>value, row, field, rowIndex, column</code>).</p>
-        <div class="sb-adeo-grid-frame">
-          <AdeoGrid :height="560" :columns="cols" :rows="rows" />
+        <div class="sb-grid-frame">
+          <ad-grid-vue :height="560" :columns="cols" :rows="rows" />
         </div>
       </div>
     `,
@@ -374,7 +374,7 @@ Plus rapide qu'un component custom pour des renderers ad-hoc — pas besoin d'un
 ### Implémentation
 
 \`\`\`vue
-<AdeoGrid :columns="columns" :rows="rows">
+<ad-grid-vue :columns="columns" :rows="rows">
   <template #cell-promo="{ value, row }">
     <span :class="{ promo: value, normal: !value }">
       {{ value ? '🔥 PROMO' : '—' }}
@@ -387,7 +387,7 @@ Plus rapide qu'un component custom pour des renderers ad-hoc — pas besoin d'un
     </strong>
     <span v-else>{{ value.toFixed(2) }} €</span>
   </template>
-</AdeoGrid>
+</ad-grid-vue>
 \`\`\`
 
 ### Slot vs renderer — lequel choisir ?
@@ -408,7 +408,7 @@ Si slot ET renderer sont définis pour la même colonne, le **slot l'emporte** �
     },
   },
   render: () => ({
-    components: { AdeoGrid },
+    components: { AdGridVue },
     setup() {
       const cols: ColumnDef<LMProduct>[] = [
         { field: 'name', headerName: 'Produit', width: '260px' },
@@ -418,11 +418,11 @@ Si slot ET renderer sont définis pour la même colonne, le **slot l'emporte** �
       return { cols, rows: lmProducts.slice(0, 10) }
     },
     template: `
-      <div class="sb-adeo-grid-shell">
+      <div class="sb-grid-shell">
         <h2>Per-field cell slot · <code>#cell-promo</code></h2>
         <p>Plus rapide qu'un component custom pour des renderers ad-hoc. Le slot <code>#cell-{field}</code> reçoit <code>{ value, row, rowIndex }</code>.</p>
-        <div class="sb-adeo-grid-frame">
-          <AdeoGrid :height="560" :columns="cols" :rows="rows">
+        <div class="sb-grid-frame">
+          <ad-grid-vue :height="560" :columns="cols" :rows="rows">
             <template #cell-promo="{ value }">
               <span :style="{
                 padding: '2px 8px',
@@ -433,7 +433,7 @@ Si slot ET renderer sont définis pour la même colonne, le **slot l'emporte** �
                 color: value ? '#e02020' : '#6c727c',
               }">{{ value ? '🔥 PROMO' : '—' }}</span>
             </template>
-          </AdeoGrid>
+          </ad-grid-vue>
         </div>
       </div>
     `,

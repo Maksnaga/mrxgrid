@@ -1,0 +1,151 @@
+<div class="filter-builder">
+  @if (showSubtitle()) {
+  <p class="filter-builder__subtitle">Show rows</p>
+  }
+
+  <div class="filter-builder__rows" cdkDropList (cdkDropListDropped)="onDrop($event)">
+    @for (cond of draft(); track cond.id; let idx = $index; let first = $first) {
+    <div class="filter-builder__row" cdkDrag>
+      <!-- Combinator -->
+      <div class="filter-builder__combinator">
+        @if (first) {
+        <span class="filter-builder__combinator-label">Where</span>
+        } @else {
+        <select
+          class="filter-builder__select filter-builder__select--combinator"
+          [value]="cond.combinator"
+          [attr.aria-label]="'Combinator for condition ' + (idx + 1)"
+          (change)="onCombinatorChange(cond.id, $any($event.target).value)"
+        >
+          <option value="and">And</option>
+          <option value="or">Or</option>
+        </select>
+        }
+      </div>
+
+      <!-- Column -->
+      <select
+        class="filter-builder__select filter-builder__select--column"
+        [value]="cond.field"
+        [attr.aria-label]="'Column for condition ' + (idx + 1)"
+        (change)="onFieldChange(cond.id, $any($event.target).value)"
+      >
+        @for (col of availableColumns(); track col.field) {
+        <option [value]="col.field" [selected]="col.field === cond.field">
+          {{ col.headerName }}
+        </option>
+        }
+      </select>
+
+      <!-- Operator (hidden for custom filters — the component owns its own semantics) -->
+      @let col = columnsById().get(cond.field);
+      @if (col?.filterType !== 'custom') {
+      <select
+        class="filter-builder__select filter-builder__select--operator"
+        [value]="cond.operator"
+        [attr.aria-label]="'Operator for condition ' + (idx + 1)"
+        (change)="onOperatorChange(cond.id, $any($event.target).value)"
+      >
+        @for (op of col?.operators ?? []; track op) {
+        <option [value]="op" [selected]="op === cond.operator">{{ operatorLabels[op] }}</option>
+        }
+      </select>
+      }
+
+      <!-- Value -->
+      <div class="filter-builder__value">
+        @if (col?.filterType === 'custom' && col?.filterComponent) {
+        @let filterCmp = col?.filterComponent ?? null;
+        @if (filterCmp) {
+        <ng-container
+          mozCustomFilterHost
+          [componentType]="filterCmp"
+          [condition]="cond"
+          (conditionChange)="onValueChange(cond.id, $event)"
+        />
+        }
+        } @else if (needsValue(cond.operator)) {
+        @if (col?.filterType === 'set') {
+        <select
+          class="filter-builder__select filter-builder__select--set"
+          multiple
+          size="4"
+          [attr.aria-label]="'Values for condition ' + (idx + 1)"
+          (change)="onSetValueChange(cond.id, $event)"
+        >
+          @for (opt of col?.options ?? []; track $any(opt.value)) {
+          <option [value]="opt.value" [selected]="isSetValueSelected(cond, opt.value)">
+            {{ opt.label }}
+          </option>
+          }
+        </select>
+        } @else if (col?.filterType === 'boolean') {
+        <select
+          class="filter-builder__select"
+          [value]="cond.value.value === true ? 'true' : 'false'"
+          [attr.aria-label]="'Value for condition ' + (idx + 1)"
+          (change)="onValueChange(cond.id, { value: $any($event.target).value === 'true' })"
+        >
+          <option value="true">True</option>
+          <option value="false">False</option>
+        </select>
+        } @else {
+        <input
+          class="filter-builder__input"
+          [type]="inputTypeFor(cond.operator, col?.filterType ?? 'text')"
+          [value]="cond.value.value ?? ''"
+          [attr.aria-label]="'Value for condition ' + (idx + 1)"
+          (input)="onValueChange(cond.id, { value: $any($event.target).value })"
+        />
+        @if (needsRange(cond.operator)) {
+        <span class="filter-builder__range-sep">–</span>
+        <input
+          class="filter-builder__input"
+          [type]="inputTypeFor(cond.operator, col?.filterType ?? 'text')"
+          [value]="cond.value.valueTo ?? ''"
+          [attr.aria-label]="'Upper bound for condition ' + (idx + 1)"
+          (input)="onValueChange(cond.id, { valueTo: $any($event.target).value })"
+        />
+        } } }
+      </div>
+
+      <!-- Delete -->
+      <button
+        type="button"
+        moz-button
+        [ghost]="true"
+        [size]="'s'"
+        [iconPosition]="'only'"
+        [attr.aria-label]="'Remove condition ' + (idx + 1)"
+        (click)="removeCondition(cond.id)"
+      >
+        <Cross20 icon />
+      </button>
+
+      <!-- Drag handle -->
+      <span
+        class="filter-builder__drag"
+        cdkDragHandle
+        [attr.aria-label]="'Reorder condition ' + (idx + 1)"
+      >
+        <Drag20 />
+      </span>
+    </div>
+    }
+  </div>
+
+  <button
+    moz-button
+    type="button"
+    class="filter-builder__add"
+    [appearance]="'accent'"
+    [ghost]="true"
+    [size]="'s'"
+    [iconPosition]="'left'"
+    [disabled]="availableColumns().length === 0"
+    (click)="addCondition()"
+  >
+    <ListAdd20 icon />
+    Add condition
+  </button>
+</div>

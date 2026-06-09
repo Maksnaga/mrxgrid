@@ -1,16 +1,16 @@
 <script setup lang="ts">
 /**
- * Skeleton body — drop-in replacement for `AdeoGridBody` while loading.
+ * Skeleton body — drop-in replacement for `AdGridBody` while loading.
  *
- * Rendered by `AdeoGrid.vue` whenever `props.loading === true`. It mirrors
+ * Rendered by `Grid.vue` whenever `props.loading === true`. It mirrors
  * the column layout (utility cells + left-pinned + center + right-pinned)
- * via `AdeoGridSkeletonRow` and stacks `count` shimmer rows.
+ * via `AdGridSkeletonRow` and stacks `count` shimmer rows.
  *
  * Notes
  * -----
  * - Intentionally not virtualised: skeleton counts are small (auto-sized
  *   to fit the visible viewport — usually 8 to 20 rows) so we save the
- *   virtual-scroll complexity and the row math doesn't need to stay in
+ * complexity and the row math doesn't need to stay in
  *   sync with the real `totalHeight` while loading.
  * - Sets `min-width: gridContentWidth` so the sticky-pinned cells get
  *   enough horizontal room — same as the real body.
@@ -18,7 +18,9 @@
 
 import type { CSSProperties } from 'vue'
 import type { ColumnDef } from '../../types'
-import AdeoGridSkeletonRow from './AdeoGridSkeletonRow.vue'
+import AdGridSkeletonRow from './GridSkeletonRow.vue'
+
+defineOptions({ name: 'AdGridSkeletonBody' })
 
 defineProps<{
   /** Number of skeleton rows to render. */
@@ -47,12 +49,12 @@ defineProps<{
 
 <template>
   <div
-    class="adeo-grid-grid-body adeo-grid-body--skeleton"
+    class="grid-body grid-body--skeleton"
     :style="{ minWidth: gridContentWidth ? `max(100%, ${gridContentWidth})` : '100%' }"
     aria-busy="true"
     aria-live="polite"
   >
-    <AdeoGridSkeletonRow
+    <ad-grid-skeleton-row
       v-for="i in count"
       :key="'skel-' + i"
       :row-index="i - 1"
@@ -74,7 +76,7 @@ defineProps<{
 </template>
 
 <style scoped lang="scss">
-.adeo-grid-grid-body {
+.grid-body {
   position: relative;
 }
 </style>

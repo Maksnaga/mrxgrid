@@ -1,0 +1,48 @@
+<!--
+  Storybook injects this file into the <head> of the preview iframe.
+  This is the convention Mozaic apps follow to ship brand fonts :
+  `@mozaic-ds/tokens` only sets the CSS variable `--font-family` to a
+  bare name (Roboto / Ubuntu / Inter / LeroyMerlin), it does NOT load
+  the font files. The host app is expected to make those families
+  available — the demo Vue app does it via the `<link rel="stylesheet">`
+  in `apps/grid-vue/index.html`. Storybook has its own generated
+  `iframe.html` so it doesn't inherit those tags, hence this file.
+
+  - Roboto / Ubuntu / Inter come straight from Google Fonts.
+  - LeroyMerlin Sans isn't on Google Fonts. The woff/woff2 files are
+    shipped in the `@mozaic-ds/web-fonts` package; they're copied into
+    `apps/grid-vue/public/fonts/` and served by Storybook through the
+    `staticDirs: ['../public']` config in `.storybook/main.ts`.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link
+  href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&family=Ubuntu:wght@300;400;500;700&family=Inter:wght@300;400;500;600;700&display=swap"
+  rel="stylesheet">
+
+<style>
+  @font-face {
+    font-family: 'LeroyMerlin';
+    src: url('/fonts/LeroyMerlinSans-Web-Light.woff2') format('woff2'),
+         url('/fonts/LeroyMerlinSans-Web-Light.woff') format('woff');
+    font-weight: 300;
+    font-style: normal;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: 'LeroyMerlin';
+    src: url('/fonts/LeroyMerlinSans-Web-Regular.woff2') format('woff2'),
+         url('/fonts/LeroyMerlinSans-Web-Regular.woff') format('woff');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: 'LeroyMerlin';
+    src: url('/fonts/LeroyMerlinSans-Web-SemiBold.woff2') format('woff2'),
+         url('/fonts/LeroyMerlinSans-Web-SemiBold.woff') format('woff');
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+  }
+</style>

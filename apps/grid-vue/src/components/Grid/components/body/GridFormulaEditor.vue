@@ -20,6 +20,8 @@ import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { tokenizeFormulaEditor } from '../../features/formula/formula-tokenizer'
 import { paletteColorVar } from '../../features/formula/formula-ref-palette'
 
+defineOptions({ name: 'AdGridFormulaEditor' })
+
 const props = defineProps<{
   modelValue: string
   fieldOrder: readonly string[]
@@ -69,7 +71,7 @@ function tokensToHtml(text: string): string {
   for (const t of tokens) {
     if (t.start > cursor) out += escapeHtml(text.slice(cursor, t.start))
     const piece = escapeHtml(text.slice(t.start, t.end))
-    const cls = `adeo-grid-tok adeo-grid-tok--${t.kind}`
+    const cls = `grid-tok grid-tok--${t.kind}`
     if (t.kind === 'ref' && piece) {
       const resolver = props.colorFor ?? fallbackColorFor
       const { cssVar } = resolver(piece)
@@ -178,7 +180,7 @@ defineExpose({
 <template>
   <div
     ref="root"
-    class="adeo-grid-formula-editor"
+    class="grid-formula-editor"
     contenteditable="plaintext-only"
     spellcheck="false"
     role="textbox"
@@ -190,18 +192,18 @@ defineExpose({
 </template>
 
 <style scoped lang="scss">
-.adeo-grid-formula-editor {
+.grid-formula-editor {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   padding: m.get-spacing('100') m.get-spacing('150');
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 12.5px;
+  font-family: var(--font-family-monospace, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-size: 12.5px; /* custom value — no matching Mozaic token (between 12px and 13px) */
   line-height: 1.4;
   background: var(--color-background-primary, #fff);
   color: var(--color-text-primary, #1f2937);
-  outline: 2px solid var(--color-text-accent, #0071ce);
+  outline: 2px solid var(--color-brand-primary, #0071ce);
   outline-offset: -2px;
   overflow: hidden;
   white-space: nowrap;
@@ -209,46 +211,46 @@ defineExpose({
   caret-color: var(--color-text-primary, #1f2937);
 }
 
-.adeo-grid-formula-editor :deep(.adeo-grid-tok) {
+.grid-formula-editor :deep(.grid-tok) {
   white-space: pre;
 }
 
-.adeo-grid-formula-editor :deep(.adeo-grid-tok--ref) {
-  font-weight: 600;
+.grid-formula-editor :deep(.grid-tok--ref) {
+  font-weight: var(--font-weight-semi-bold, 600);
 }
 
-.adeo-grid-formula-editor :deep(.adeo-grid-tok--fn) {
-  color: #0071ce;
-  font-weight: 700;
+.grid-formula-editor :deep(.grid-tok--fn) {
+  color: var(--color-brand-primary, #0071ce);
+  font-weight: var(--font-weight-bold, 700);
   text-transform: uppercase;
 }
 
-.adeo-grid-formula-editor :deep(.adeo-grid-tok--number) {
-  color: #b45309;
+.grid-formula-editor :deep(.grid-tok--number) {
+  color: #b45309; /* syntax highlight amber — custom value, no matching Mozaic token */
 }
 
-.adeo-grid-formula-editor :deep(.adeo-grid-tok--string) {
-  color: #047857;
+.grid-formula-editor :deep(.grid-tok--string) {
+  color: #047857; /* syntax highlight green — custom value, no matching Mozaic token */
 }
 
-.adeo-grid-formula-editor :deep(.adeo-grid-tok--bool) {
-  color: #7c3aed;
-  font-weight: 600;
+.grid-formula-editor :deep(.grid-tok--bool) {
+  color: #7c3aed; /* syntax highlight purple — custom value, no matching Mozaic token */
+  font-weight: var(--font-weight-semi-bold, 600);
 }
 
-.adeo-grid-formula-editor :deep(.adeo-grid-tok--op),
-.adeo-grid-formula-editor :deep(.adeo-grid-tok--comma),
-.adeo-grid-formula-editor :deep(.adeo-grid-tok--colon) {
-  color: #6b7280;
+.grid-formula-editor :deep(.grid-tok--op),
+.grid-formula-editor :deep(.grid-tok--comma),
+.grid-formula-editor :deep(.grid-tok--colon) {
+  color: var(--color-text-secondary, #6b7280);
 }
 
-.adeo-grid-formula-editor :deep(.adeo-grid-tok--lparen),
-.adeo-grid-formula-editor :deep(.adeo-grid-tok--rparen) {
-  color: #1e293b;
-  font-weight: 700;
+.grid-formula-editor :deep(.grid-tok--lparen),
+.grid-formula-editor :deep(.grid-tok--rparen) {
+  color: var(--color-text-primary, #1e293b);
+  font-weight: var(--font-weight-bold, 700);
 }
 
-.adeo-grid-formula-editor :deep(.adeo-grid-tok--unknown) {
+.grid-formula-editor :deep(.grid-tok--unknown) {
   color: var(--color-status-text-error, #d11717);
   text-decoration: underline wavy;
 }

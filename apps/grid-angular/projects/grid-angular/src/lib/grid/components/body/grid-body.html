@@ -1,0 +1,57 @@
+<div
+  class="grid-body__container"
+  #bodyContainer
+  [style.min-width.px]="state.totalContentWidth() + utilityLeftWidth()"
+>
+  <!-- Top spacer (replaces translateY): forces visible rows to render at the
+       correct vertical position. Pure block flow, no transform → keeps the
+       sticky containing block on the scroll container. -->
+  <div
+    class="grid-body__spacer"
+    aria-hidden="true"
+    [style.height.px]="state.topSpacerHeight()"
+  ></div>
+
+  @if (state.isLoading()) {
+  @for (i of skeletonRows(); track i) {
+  <ad-grid-skeleton-row [showCheckbox]="showCheckbox()" [showExpand]="showExpand()" />
+  } } @else {
+  @for (idx of visibleIndices(); track idx) {
+  @let displayRow = engine.displayRows()[idx];
+  @if (displayRow.type === 'data') {
+  <ad-grid-row
+    [row]="displayRow.data"
+    [rowIndex]="displayRow.index"
+    [showCheckbox]="showCheckbox()"
+    [showExpand]="showExpand()"
+    [attr.data-row-index]="idx"
+    #rowEl
+    (cellEdit)="cellEdit.emit($event)"
+    (cellEditCancel)="cellEditCancel.emit($event)"
+    (rowSelectionToggle)="rowSelectionToggle.emit()"
+  />
+  @if (isRowExpanded(displayRow.data)) {
+  <ad-grid-detail-row
+    [data]="displayRow.data"
+    [rowIndex]="displayRow.index"
+    [rowKey]="getRowKey(displayRow.data)"
+    [detailTemplate]="detailTemplate()"
+    [style.width.px]="state.scrollViewportWidth()"
+  />
+  } } @else if (displayRow.type === 'group') {
+  <ad-grid-group-row
+    [groupRow]="displayRow.group"
+    [style.width.px]="state.scrollViewportWidth()"
+    (toggleExpand)="groupToggle.emit($event)"
+  />
+  } }
+  }
+
+  <!-- Bottom spacer: makes the scroll container tall enough to expose the
+       full virtual range. -->
+  <div
+    class="grid-body__spacer"
+    aria-hidden="true"
+    [style.height.px]="state.bottomSpacerHeight()"
+  ></div>
+</div>

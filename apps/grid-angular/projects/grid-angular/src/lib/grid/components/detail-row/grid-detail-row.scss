@@ -1,0 +1,30 @@
+:host {
+  display: block;
+  position: sticky;
+  left: 0;
+  overflow: hidden;
+  box-sizing: border-box;
+
+  /* No `content-visibility` / `contain-intrinsic-size` — they're
+     unnecessary now that we pre-measure detail rows in the hidden
+     <ad-grid-measurement-zone> BEFORE mounting them in the visible
+     layout. The engine already has the cached measurement when the
+     real row appears, and the virtual scroll engine reads the same
+     height from `ExpandableRowEngine.measureRow` to build offsets, so
+     there is nothing left to lazy-skip. */
+}
+
+.grid-detail-row {
+  padding: var(--spacing-200, 16px);
+  background: var(--color-background-secondary, #f8f9fa);
+  border-bottom: 1px solid var(--color-border-primary);
+  border-top: 1px solid var(--color-border-primary);
+}
+
+.grid-detail-row__default {
+  margin: 0;
+  font-size: var(--font-size-50, 12px);
+  color: var(--color-text-secondary);
+  white-space: pre-wrap;
+  word-break: break-all;
+}

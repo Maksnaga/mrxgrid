@@ -1,12 +1,12 @@
 /* Ported from Angular `components/body/grid-body.scss`.
  * Translations applied:
  *   :host                                    → .grid-body
- *   ::ng-deep .cdk-virtual-scrollable        → .adeo-grid-virtual-viewport
- *   ::ng-deep .cdk-virtual-scroll-content-wrapper → .adeo-grid-virtual-viewport__content
- *   ::ng-deep moz-grid-row moz-grid-cell:last-child → .grid-row .grid-cell-root:last-child
+ *   ::ng-deep .cdk-virtual-scrollable        → .grid-virtual-viewport
+ *   ::ng-deep .cdk-virtual-scroll-content-wrapper → .grid-virtual-viewport__content
+ *   ::ng-deep ad-grid-row ad-grid-cell:last-child → .grid-row .grid-cell-root:last-child
  */
 
-@layer adeo-grid {
+@layer grid {
   .grid-body {
     display: flex;
     flex-direction: column;
@@ -25,12 +25,12 @@
     height: 0;
   }
 
-  .grid-body .adeo-grid-virtual-viewport {
+  .grid-body .grid-virtual-viewport {
     overscroll-behavior: none;
   }
 
   /* Allow position:sticky for frozen columns inside rows */
-  .grid-body .adeo-grid-virtual-viewport__content {
+  .grid-body .grid-virtual-viewport__content {
     contain: none !important;
   }
 

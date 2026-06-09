@@ -9,7 +9,7 @@
  * Each dataset exposes:
  *   - columns:   ColumnDef[] tuned to the data
  *   - rows:      a small (~20 rows) deterministic sample for fast snapshots
- *   - large(n):  generator producing n synthetic rows for virtual-scroll demos
+ *   - large(n):  generator producing n synthetic rows for demos
  */
 
 import type { ColumnDef, RowData } from '../types'
@@ -193,7 +193,7 @@ const eur = new Intl.NumberFormat('fr-FR', {
 })
 
 // Exported as `ColumnDef[]` (default `RowData`) rather than `ColumnDef<LMProduct>[]`
-// so the array is freely assignable to `AdeoGrid`'s `columns` prop. `ColumnDef<T>`
+// so the array is freely assignable to `Grid`'s `columns` prop. `ColumnDef<T>`
 // is contravariant in `T` (callbacks like `valueGetter`/`sortComparator` take
 // `row: T`), so a narrower `ColumnDef<LMProduct>[]` is NOT assignable to
 // `ColumnDef<RowData>[]`. Consumers that need the narrower type (e.g. typed
@@ -247,7 +247,7 @@ export const lmColumns: ColumnDef[] = [
     editable: true,
     cellEditor: 'number',
     valueFormatter: (v) => (typeof v === 'number' ? eur.format(v) : ''),
-    cellClass: 'adeo-grid-cell-num',
+    cellClass: 'grid-cell-num',
   },
   {
     field: 'stock',
@@ -259,7 +259,7 @@ export const lmColumns: ColumnDef[] = [
     editable: true,
     cellEditor: 'number',
     cellValidator: (v) => (typeof v === 'number' && v >= 0 ? null : { message: 'Stock négatif interdit' }),
-    cellClass: 'adeo-grid-cell-num',
+    cellClass: 'grid-cell-num',
   },
   {
     field: 'status',
@@ -466,7 +466,7 @@ export const adeoColumns: ColumnDef[] = [
     editable: true,
     cellEditor: 'number',
     valueFormatter: (v) => (typeof v === 'number' ? eur.format(v) : ''),
-    cellClass: 'adeo-grid-cell-num',
+    cellClass: 'grid-cell-num',
   },
   {
     field: 'startDate',
@@ -592,7 +592,7 @@ export const bricoColumns: ColumnDef[] = [
     filterType: 'number',
     editable: true,
     cellEditor: 'number',
-    cellClass: 'adeo-grid-cell-num',
+    cellClass: 'grid-cell-num',
   },
   {
     field: 'defective',
@@ -601,7 +601,7 @@ export const bricoColumns: ColumnDef[] = [
     sortable: true,
     filterable: true,
     filterType: 'number',
-    cellClass: 'adeo-grid-cell-num',
+    cellClass: 'grid-cell-num',
   },
   {
     field: 'flag',

@@ -1,8 +1,8 @@
 /**
- * Top-level grid options — Angular parity (moz-grid).
+ * Top-level grid options — Angular parity (ad-grid).
  *
  * These are the same defaults as Angular's `DEFAULT_GRID_OPTIONS`. In Vue
- * they are consumed by `<AdeoGrid>` as prop defaults via `withDefaults(...)`.
+ * they are consumed by `<ad-grid-vue>` as prop defaults via `withDefaults(...)`.
  */
 
 export interface GridOptions<T = unknown> {

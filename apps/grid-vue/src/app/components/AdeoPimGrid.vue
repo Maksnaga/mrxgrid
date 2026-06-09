@@ -15,9 +15,10 @@
  */
 
 import { computed, markRaw, ref, h, defineComponent, type PropType } from 'vue'
-import { AdeoGrid, type ColumnDef, type CellEditEvent } from '@/components/AdeoGrid'
+import { AdGridVue, type ColumnDef, type CellEditEvent } from '@/components/Grid'
 import { MTag, MTextInput } from '@mozaic-ds/vue'
 import { Search24 } from '@mozaic-ds/icons-vue'
+import { MTagRenderer } from '../renderers/MTagRenderer'
 import productsData from '../mock/adeo-products.json'
 
 // ---------------------------------------------------------------------------
@@ -80,8 +81,20 @@ const YesNoRenderer = markRaw(
     setup(props) {
       return () => {
         const v = coerceYesNo(props.value)
-        if (v === true) return h(MTag, { type: 'success', size: 's', label: 'Yes' })
-        if (v === false) return h(MTag, { type: 'danger', size: 's', label: 'No' })
+        if (v === true)
+          return h(MTag, {
+            type: 'informative',
+            size: 's',
+            label: 'Yes',
+            style: { background: '#dcfce7', color: '#166534', fontWeight: 600 },
+          })
+        if (v === false)
+          return h(MTag, {
+            type: 'informative',
+            size: 's',
+            label: 'No',
+            style: { background: '#fee2e2', color: '#991b1b', fontWeight: 600 },
+          })
         return h(
           'span',
           { style: 'color: var(--color-text-secondary, #94a3b8)' },
@@ -228,9 +241,9 @@ const HINT_DEFAULT_WIDTH: Record<ColumnHint, string> = {
   text: '160px',
 }
 
-function buildColumn(meta: AdeoFieldMeta): ColumnDef<AdeoProduct> {
+function buildColumn(meta: AdeoFieldMeta): ColumnDef {
   const hint: ColumnHint = HINTS[meta.key] ?? 'text'
-  const col: ColumnDef<AdeoProduct> = {
+  const col: ColumnDef = {
     field: meta.key,
     headerName: meta.label,
     width: HINT_DEFAULT_WIDTH[hint],
@@ -259,10 +272,10 @@ function buildColumn(meta: AdeoFieldMeta): ColumnDef<AdeoProduct> {
       col.filterType = 'boolean'
       break
     case 'brand':
-      col.renderer = 'tag'
+      col.renderer = MTagRenderer
       break
     case 'enum':
-      col.renderer = 'tag'
+      col.renderer = MTagRenderer
       break
     case 'kg':
       col.valueFormatter = fmtKg
@@ -315,7 +328,7 @@ function buildColumn(meta: AdeoFieldMeta): ColumnDef<AdeoProduct> {
   return col
 }
 
-const columns = computed<ColumnDef<AdeoProduct>[]>(() =>
+const columns = computed<ColumnDef[]>(() =>
   payload.meta.fields.map(buildColumn),
 )
 
@@ -411,12 +424,12 @@ function onCellEdit(e: CellEditEvent): void {
       </MTextInput>
     </header>
 
-    <AdeoGrid
+    <ad-grid-vue
       class="adeo-pim__grid"
       :columns="columns"
       :rows="visibleRows"
       :row-id="(row) => String((row as AdeoProduct).id)"
-      :virtual-columns="true"
+
       :multi-sort="true"
       :height="640"
       selectable
@@ -434,7 +447,7 @@ function onCellEdit(e: CellEditEvent): void {
   gap: 12px;
   min-height: 0;
   /* Pas de `flex: 1` ici : ça override la `height: 640px` inline que
-     `<AdeoGrid>` applique à sa racine et le grid mange toute la viewport.
+     `<ad-grid-vue>` applique à sa racine et le grid mange toute la viewport.
      On laisse le flow vertical naturel — la section grandit selon le
      contenu, et la grille respecte son `:height="640"`. */
 }

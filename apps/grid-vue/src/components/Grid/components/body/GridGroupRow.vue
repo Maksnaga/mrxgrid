@@ -12,6 +12,8 @@ import type { CSSProperties } from 'vue'
 import { ChevronDown20, ChevronRight20 } from '@mozaic-ds/icons-vue'
 import type { ColumnDef } from '../../types'
 
+defineOptions({ name: 'AdGridGroupRow' })
+
 defineProps<{
   /** The grouped field's header name (e.g. "Status"). */
   headerName: string
@@ -49,27 +51,27 @@ const INDENT_PX = 24
 </script>
 
 <template>
-  <div class="adeo-grid-group-row" role="row" @click="emit('toggle')">
+  <div class="grid-group-row" role="row" @click="emit('toggle')">
     <!-- Sticky-left: chevron + (field above value) + count. The count
          sits right next to the title — the whole block stays anchored
          to the visible viewport during horizontal scroll. -->
-    <div class="adeo-grid-group-row__label" :style="{ paddingLeft: `${depth * INDENT_PX + 16}px` }">
-      <component :is="expanded ? ChevronDown20 : ChevronRight20" class="adeo-grid-group-row__toggle" aria-hidden="true" />
-      <div class="adeo-grid-group-row__info">
-        <span class="adeo-grid-group-row__field">{{ headerName }}</span>
-        <span class="adeo-grid-group-row__value">{{ value ?? '(empty)' }}</span>
+    <div class="grid-group-row__label" :style="{ paddingLeft: `${depth * INDENT_PX + 16}px` }">
+      <component :is="expanded ? ChevronDown20 : ChevronRight20" class="grid-group-row__toggle" aria-hidden="true" />
+      <div class="grid-group-row__info">
+        <span class="grid-group-row__field">{{ headerName }}</span>
+        <span class="grid-group-row__value">{{ value ?? '(empty)' }}</span>
       </div>
-      <span class="adeo-grid-group-row__count">{{ count }}</span>
+      <span class="grid-group-row__count">{{ count }}</span>
     </div>
   </div>
 </template>
 
 <style scoped lang="scss">
-.adeo-grid-group-row {
+.grid-group-row {
   display: flex;
   align-items: center;
   min-height: 64px;
-  background-color: #f8fafc;
+  background-color: var(--color-background-secondary, #f8fafc);
   border-bottom: 1px solid var(--color-border-primary);
   cursor: pointer;
   user-select: none;
@@ -79,8 +81,8 @@ const INDENT_PX = 24
   box-sizing: border-box;
 }
 
-.adeo-grid-group-row:hover {
-  background-color: #f1f5f9;
+.grid-group-row:hover {
+  background-color: var(--color-background-tertiary, #f1f5f9);
 }
 
 // Sticky-left: keeps the chevron + label anchored to the visible
@@ -88,7 +90,7 @@ const INDENT_PX = 24
 // horizontally. Background matches the row (sits above the body cells
 // it slides over) — `z-index` lifts it above any sticky pinned cell
 // the body might paint underneath.
-.adeo-grid-group-row__label {
+.grid-group-row__label {
   position: sticky;
   left: 0;
   display: flex;
@@ -100,42 +102,42 @@ const INDENT_PX = 24
   z-index: 2;
 }
 
-.adeo-grid-group-row__toggle {
+.grid-group-row__toggle {
   flex-shrink: 0;
   width: 20px;
   height: 20px;
-  color: #475569;
+  color: var(--color-text-secondary, #475569);
   display: inline-flex;
   align-items: center;
   justify-content: center;
 }
 
-.adeo-grid-group-row__toggle :deep(svg) {
+.grid-group-row__toggle :deep(svg) {
   width: 100%;
   height: 100%;
   fill: currentColor;
 }
 
-.adeo-grid-group-row__info {
+.grid-group-row__info {
   display: flex;
   flex-direction: column;
   gap: 2px;
   min-width: 0;
 }
 
-.adeo-grid-group-row__field {
-  font-size: 12px;
-  font-weight: 500;
+.grid-group-row__field {
+  font-size: var(--font-size-50, 12px);
+  font-weight: var(--font-weight-medium, 500);
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: #64748b;
+  color: var(--color-text-secondary, #64748b);
   line-height: 1.2;
 }
 
-.adeo-grid-group-row__value {
-  font-size: 18px;
-  font-weight: 700;
-  color: #1e293b;
+.grid-group-row__value {
+  font-size: var(--font-size-300, 16px); /* 18px has no matching Mozaic token — using --font-size-300 (16px) */
+  font-weight: var(--font-weight-bold, 700);
+  color: var(--color-text-primary, #1e293b);
   line-height: 1.2;
   white-space: nowrap;
   overflow: hidden;
@@ -146,16 +148,16 @@ const INDENT_PX = 24
 // background so it reads as a count, not a tappable element. Lives
 // inside `__label`, so it inherits the sticky-left anchoring during
 // horizontal scroll.
-.adeo-grid-group-row__count {
+.grid-group-row__count {
   flex-shrink: 0;
   display: inline-flex;
   align-items: center;
   padding: 2px 10px;
-  border-radius: 999px;
-  background-color: #e2e8f0;
-  font-size: 12px;
-  font-weight: 600;
-  color: #475569;
+  border-radius: var(--border-radius-full, 50%);
+  background-color: var(--color-border-secondary, #e2e8f0);
+  font-size: var(--font-size-50, 12px);
+  font-weight: var(--font-weight-semi-bold, 600);
+  color: var(--color-text-secondary, #475569);
   line-height: 1.2;
 }
 </style>

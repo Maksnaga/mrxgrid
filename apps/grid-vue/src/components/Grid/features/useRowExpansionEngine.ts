@@ -1,12 +1,12 @@
 /**
- * Row expansion engine — Angular parity (moz-grid / `ExpandableRowEngine`).
+ * Row expansion engine — Angular parity (ad-grid / `ExpandableRowEngine`).
  *
  * Reads / writes the central `GridState`:
  * - `state.expandedRowIds` — set of row IDs currently expanded
  *
  * The legacy Vue composable (`useRowExpansion`) keyed on row *index*; the
  * Angular engine keys on **row ID** (resolved via `rowIdField`). This engine
- * mirrors the Angular shape — the double-write in `AdeoGrid.vue` maps the
+ * mirrors the Angular shape — the double-write in `Grid.vue` maps the
  * legacy index-set to the Angular-parity id-set.
  */
 

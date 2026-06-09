@@ -1,7 +1,7 @@
 /* Ported from Angular `components/header/grid-header.scss`.
  * Translations: :host → .grid-header-root, ::ng-deep .checkbox → .checkbox */
 
-@layer adeo-grid {
+@layer grid {
   .grid-header-root {
     display: block;
     flex-shrink: 0;

@@ -8,7 +8,7 @@
  */
 
 import { computed } from 'vue'
-import type { CellRendererProps } from '@/components/AdeoGrid'
+import type { CellRendererProps } from '@/components/Grid'
 
 const props = defineProps<CellRendererProps>()
 

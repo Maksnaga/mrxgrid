@@ -3,7 +3,7 @@
  *
  * Permet de marquer des cellules ou des rows individuelles comme "en
  * attente d'une mutation serveur" sans setter le `loading` global du
- * `useProductList`. Le `<AdeoGrid>` consomme les deux refs exposés ici
+ * `useProductList`. Le `<ad-grid-vue>` consomme les deux refs exposés ici
  * via les props `pendingCells` + `pendingRowIds` :
  *
  *   - `pendingCells` → shimmer overlay par cellule (la valeur reste

@@ -1,5 +1,5 @@
 /**
- * Row selection engine — Angular parity (moz-grid / `RowSelectionEngine`).
+ * Row selection engine — Angular parity (ad-grid / `RowSelectionEngine`).
  *
  * Reads / writes the central `GridState`:
  * - `state.selectedRowIds`    — IDs the user explicitly selected (page mode)

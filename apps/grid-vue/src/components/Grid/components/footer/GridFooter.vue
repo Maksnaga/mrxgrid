@@ -1,19 +1,21 @@
 <script setup lang="ts">
 /**
- * Grid footer — Angular parity (`moz-grid-footer`).
+ * Grid footer — Angular parity (`ad-grid-footer`).
  *
- * Thin composition that stacks `AdeoGridLoadingIndicator` (shown while more
- * rows are being fetched) above `AdeoGridPagination`. All pagination props
+ * Thin composition that stacks `AdGridLoadingIndicator` (shown while more
+ * rows are being fetched) above `AdGridPagination`. All pagination props
  * and events are forwarded 1-for-1; the footer has no logic of its own.
  *
  * The footer is only the *shell*. The parent grid continues to own the
  * pagination/loading state and wires it back via the engine — this component
- * just groups the two pieces so the root `AdeoGrid.vue` can render a single
- * `<AdeoGridFooter>` block instead of two siblings.
+ * just groups the two pieces so the root `Grid.vue` can render a single
+ * `<ad-grid-footer>` block instead of two siblings.
  */
 
-import AdeoGridPagination from './AdeoGridPagination.vue'
-import AdeoGridLoadingIndicator from './AdeoGridLoadingIndicator.vue'
+import AdGridPagination from './GridPagination.vue'
+import AdGridLoadingIndicator from './GridLoadingIndicator.vue'
+
+defineOptions({ name: 'AdGridFooter' })
 
 defineProps<{
   /** Show pagination controls (parent already decides based on loadingStrategy). */
@@ -23,7 +25,7 @@ defineProps<{
   /** Optional label override for the loading indicator. */
   loadingText?: string
 
-  // ——— forwarded to AdeoGridPagination ——————————————————————————————————
+  // ——— forwarded to AdGridPagination ——————————————————————————————————
   currentPage: number
   pageSize: number
   totalPages: number
@@ -42,10 +44,10 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <div class="adeo-grid-grid-footer">
-    <AdeoGridLoadingIndicator v-if="loading" :text="loadingText" />
+  <div class="grid-footer">
+    <ad-grid-loading-indicator v-if="loading" :text="loadingText" />
 
-    <AdeoGridPagination
+    <ad-grid-pagination
       v-if="showPagination"
       :current-page="currentPage"
       :page-size="pageSize"
@@ -63,7 +65,7 @@ const emit = defineEmits<{
 </template>
 
 <style scoped>
-.adeo-grid-grid-footer {
+.grid-footer {
   display: flex;
   flex-direction: column;
 }

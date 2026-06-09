@@ -1,0 +1,182 @@
+:host {
+  display: block;
+  height: 100%;
+  background: inherit;
+}
+
+:host.grid-header-cell-host--pinned {
+  background: var(--color-background-primary, #fff);
+}
+
+:host.grid-header-cell-host--pinned-left-edge {
+  box-shadow: 4px 0 8px -2px rgba(0, 0, 0, 0.1); // custom pinned shadow — no matching Mozaic token
+}
+
+:host.grid-header-cell-host--pinned-right-edge {
+  box-shadow: -4px 0 8px -2px rgba(0, 0, 0, 0.1); // custom pinned shadow — no matching Mozaic token
+}
+
+.grid-header-cell {
+  display: flex;
+  align-items: center;
+  position: relative;
+  height: 100%;
+  padding: 0 var(--spacing-100, 8px);
+  border-right: 1px solid var(--color-border-primary);
+  user-select: none;
+  box-sizing: border-box;
+  min-width: 0;
+  background: inherit;
+}
+
+.grid-header-cell--pinned-end {
+  border-right: none;
+  border-left: 1px solid var(--color-border-primary);
+}
+
+:host(:first-child) .grid-header-cell--pinned-end {
+  border-left: none;
+}
+
+.grid-header-cell--last {
+  border-right: none;
+}
+
+/*
+  Spreadsheet-style column letter shown only while the user is editing a
+  cell that accepts formulas. The badge sits at the start of the header
+  in a soft chip so it's discoverable yet doesn't compete with the
+  business label. Tinted background lights up the whole header for
+  symmetry with Excel's selection highlight.
+ */
+.grid-header-cell--formula-mode {
+  background: var(--color-status-background-info, #eef6ff);
+  transition: background-color 120ms ease-out;
+}
+
+.grid-header-cell__col-letter {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px; // custom value — no matching Mozaic token
+  height: 18px; // custom value — no matching Mozaic token
+  padding: 0 var(--spacing-050, 4px);
+  margin-right: var(--spacing-050, 4px);
+  border-radius: 3px; // custom value — no matching Mozaic token (between xs=2px and s=4px)
+  background: var(--color-status-icon-info, #2374b9);
+  color: var(--color-text-primary-inverse, #fff);
+  font-size: 11px; // custom value — no matching Mozaic token
+  font-weight: var(--font-weight-semi-bold, 600);
+  letter-spacing: 0.02em;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.grid-header-cell__content {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-050, 4px);
+  flex: 1;
+  min-width: 0;
+  cursor: pointer;
+}
+
+.grid-header-cell__label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--color-text-secondary);
+  // Use the runtime brand CSS variable so the header font follows the
+  // theme selected by the consumer (LM Sans / Roboto / Inter…), instead of
+  // the compile-time Sass `$font-family` baked into the published library.
+  font-family: var(--font-family);
+  font-size: var(--font-size-50);
+  font-weight: var(--font-weight-bold, 700);
+  text-transform: uppercase;
+}
+
+.grid-header-cell__sort-icon {
+  flex-shrink: 0;
+  color: var(--color-text-primary);
+}
+
+// Multi-sort index badge: small round chip next to the sort arrow that tells
+// the user the sort priority (1 = primary sort, 2 = secondary, …).
+.grid-header-cell__sort-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 16px; // custom value — no matching Mozaic token
+  height: 16px; // custom value — no matching Mozaic token
+  padding: 0 3px; // custom value — no matching Mozaic token
+  border-radius: var(--border-radius-full, 50%);
+  background: var(--color-status-standalone-info, #0071ce);
+  color: var(--color-text-primary-inverse, #fff);
+  font-size: 10px; // custom value — no matching Mozaic token
+  font-weight: var(--font-weight-bold, 700);
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.grid-header-cell__menu-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 28px; // custom value — no matching Mozaic token
+  height: 28px; // custom value — no matching Mozaic token
+  padding: 0;
+  border: none;
+  border-radius: var(--border-radius-s, 4px);
+  background: transparent;
+  cursor: pointer;
+  color: var(--color-text-secondary);
+  opacity: 0;
+  transition: opacity 150ms ease;
+}
+
+.grid-header-cell__menu-trigger:hover {
+  background: var(--color-background-secondary, rgba(0, 0, 0, 0.06));
+  color: var(--color-text-primary);
+}
+
+.grid-header-cell:hover .grid-header-cell__menu-trigger {
+  opacity: 1;
+}
+
+// Keep the gear/filter button always visible when the column has an
+// active filter, so users can see at a glance which columns are filtered.
+.grid-header-cell__menu-trigger--filtered {
+  opacity: 1;
+  color: var(--color-status-standalone-info, #0071ce);
+}
+
+.grid-header-cell__resize-handle {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px; // custom value — no matching Mozaic token
+  cursor: col-resize;
+  z-index: 1;
+}
+
+.grid-header-cell__resize-handle:hover {
+  background: var(--color-background-accent-inverse);
+}
+
+.grid-header-cell__resize-handle--left {
+  right: auto;
+  left: 0;
+}
+
+:host(.grid-header-cell-host--reorderable) .grid-header-cell__content {
+  cursor: grab;
+}
+
+:host(.grid-header-cell-host--dragging) {
+  outline: 2px solid var(--color-background-accent-inverse);
+  outline-offset: -2px;
+  opacity: 0.85;
+  z-index: 1;
+}

@@ -1,5 +1,5 @@
 /**
- * Cell validation engine — Angular parity (moz-grid / `CellValidationEngine`).
+ * Cell validation engine — Angular parity (ad-grid / `CellValidationEngine`).
  *
  * Tracks a `Map<"rowIndex:field", CellError>` of validation results produced
  * by each column's `cellValidator`. After the sync analysis, the public

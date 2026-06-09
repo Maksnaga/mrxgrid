@@ -1,0 +1,56 @@
+<div class="group-drawer__list" cdkDropList (cdkDropListDropped)="onDrop($event)">
+  @for (item of draftGrouped(); track item.field; let idx = $index) {
+  <div class="group-drawer__item" cdkDrag>
+    <span class="group-drawer__drag-handle" cdkDragHandle>
+      <Drag20 />
+    </span>
+    <span class="group-drawer__item-label">{{ item.headerName }}</span>
+    <select
+      class="group-drawer__sort-select"
+      [value]="item.sortDirection"
+      [attr.aria-label]="'Sort direction for ' + item.headerName"
+      (change)="onSortDirectionChange(idx, $event)"
+    >
+      <option value="asc">A → Z</option>
+      <option value="desc">Z → A</option>
+    </select>
+    <button
+      type="button"
+      moz-button
+      [attr.aria-label]="'Remove ' + item.headerName"
+      (click)="removeGroup(item.field)"
+      [iconPosition]="'only'"
+      [size]="'s'"
+      [ghost]="true"
+    >
+      <Cross20 icon />
+    </button>
+  </div>
+  }
+</div>
+
+@if (available().length > 0) {
+<div class="group-drawer__available">
+  <h4 class="group-drawer__section-title">Available columns</h4>
+  @for (col of available(); track col.field) {
+  <div class="group-drawer__available-item">
+    <span class="group-drawer__available-label">{{ col.headerName }}</span>
+    <button
+      type="button"
+      class="group-drawer__add-btn"
+      [attr.aria-label]="'Add ' + col.headerName + ' as group'"
+      (click)="addGroup(col.field)"
+    >
+      <ListAdd20 />
+    </button>
+  </div>
+  }
+</div>
+} @if (draftGrouped().length === 0 && available().length === 0) {
+<p class="group-drawer__empty">No groupable columns available.</p>
+}
+
+<ng-template mozDrawerFooter>
+  <button moz-button (click)="apply()" [appearance]="'accent'">Apply</button>
+  <button moz-button [outlined]="true" (click)="reset()">Reset</button>
+</ng-template>

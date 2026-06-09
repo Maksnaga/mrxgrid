@@ -1,11 +1,11 @@
 import type { Meta, StoryObj } from '@storybook/vue3-vite'
-import { AdeoGrid } from '@/components/AdeoGrid'
-import type { ColumnDef, RowData } from '@/components/AdeoGrid'
+import { AdGridVue } from '@/components/Grid'
+import type { ColumnDef, RowData } from '@/components/Grid'
 import { lmColumns, generateLMProducts } from './_fixtures'
 
 const meta = {
   title: 'Stories/Virtual Scroll/Vertical · Horizontal · Both',
-  component: AdeoGrid,
+  component: AdGridVue,
   tags: ['autodocs'],
   args: { rows: [] },
   parameters: {
@@ -14,12 +14,7 @@ const meta = {
         component: `
 # Virtual scroll
 
-Le virtual scroll est ce qui permet à AdeoGrid de tenir 100k+ rows × 150+ colonnes sans crash. Deux axes indépendants :
-
-| Prop | Effet |
-|------|-------|
-| \`virtual-scroll\` | Vertical — ne rend que les lignes du viewport + overscan |
-| \`virtual-columns\` | Horizontal — ne rend que les colonnes du viewport + pinned |
+Le virtual scroll est ce qui permet à Grid de tenir 100k+ rows × 150+ colonnes sans crash. Toujours actif sur les deux axes — aucun input à brancher.
 
 ### Architecture
 
@@ -27,6 +22,7 @@ Le virtual scroll est ce qui permet à AdeoGrid de tenir 100k+ rows × 150+ colo
 - Plafond dur de **80 lignes rendues max** pour éviter la dégradation perf avec rowHeight petit.
 - Spacer DIV haut (height-based) au lieu de \`translateY\` — \`translate\` créerait un containing block qui casserait la sticky des pinned columns.
 - \`ResizeObserver\` synchronise la container height pour le mode fullscreen / density change.
+- Sur l'axe horizontal, les pinned (start/end) restent toujours rendues — la slice virtualisée ne couvre que la zone unpinned.
 
 ### Props utiles
 
@@ -43,7 +39,7 @@ Pour les detail rows / group rows à hauteur dynamique, utilisez \`useVariableHe
       },
     },
   },
-} satisfies Meta<typeof AdeoGrid>
+} satisfies Meta<typeof AdGridVue>
 
 export default meta
 type Story = StoryObj<typeof meta>
@@ -56,11 +52,12 @@ export const VerticalLargeDataset: Story = {
         story: `
 ## Vertical virtual scroll
 
+La virtualisation verticale est toujours active — passe juste \`columns\`, \`rows\` et \`container-height\`.
+
 \`\`\`vue
-<AdeoGrid
+<ad-grid-vue
   :columns="columns"
   :rows="rows100k"
-  virtual-scroll
   :container-height="600"
 />
 \`\`\`
@@ -80,20 +77,20 @@ export const VerticalLargeDataset: Story = {
 
 ### Tip
 
-Pour un wrapper parent \`flex\`/\`grid\` qui contraint la hauteur, mettez \`:height="'100%'"\` sur \`<AdeoGrid>\` et laissez \`container-height\` à \`auto\`. Le \`ResizeObserver\` adaptera.
+Pour un wrapper parent \`flex\`/\`grid\` qui contraint la hauteur, mettez \`:height="'100%'"\` sur \`<ad-grid-vue>\` et laissez \`container-height\` à \`auto\`. Le \`ResizeObserver\` adaptera.
         `,
       },
     },
   },
   render: () => ({
-    components: { AdeoGrid },
+    components: { AdGridVue },
     setup: () => ({ lmColumns, rows: generateLMProducts(100_000) }),
     template: `
-      <div class="sb-adeo-grid-shell">
+      <div class="sb-grid-shell">
         <h2>Vertical virtual scroll · 100 000 lignes</h2>
-        <p>Active <code>:virtual-scroll="true"</code> et passe une <code>:container-height</code>. Seules les lignes visibles + overscan sont rendues.</p>
-        <div class="sb-adeo-grid-frame" style="height: 600px">
-          <AdeoGrid :height="560" :columns="lmColumns" :rows="rows" virtual-scroll :container-height="600" />
+        <p>Passe une <code>:container-height</code>. Seules les lignes visibles + overscan sont rendues — la virtualisation verticale est toujours active.</p>
+        <div class="sb-grid-frame" style="height: 600px">
+          <ad-grid-vue :height="560" :columns="lmColumns" :rows="rows" :container-height="600" />
         </div>
       </div>
     `,
@@ -108,12 +105,12 @@ export const HorizontalManyColumns: Story = {
         story: `
 ## Horizontal virtual scroll
 
+La virtualisation horizontale est toujours active — sous ~20 colonnes l'engine se contente d'un no-op.
+
 \`\`\`vue
-<AdeoGrid
+<ad-grid-vue
   :columns="columns200"
   :rows="rows"
-  virtual-columns
-  virtual-scroll
   :container-height="520"
 />
 \`\`\`
@@ -124,21 +121,16 @@ export const HorizontalManyColumns: Story = {
 - Les pinned (start/end) restent toujours rendues — elles ne sont pas virtualisées
 - \`column-overscan\` (default 2) buffer pour scrolls rapides
 
-### Quand l'activer
-
-- > 50 colonnes : gain visible
-- < 30 colonnes : pas la peine, le coût de re-render est négligeable
-
 ### Limites
 
 - Le \`columnOrder\` (drag-drop) fonctionne sur la liste *complète*, pas juste la slice — geste cohérent
-- L'expander row utilise \`grid-template-columns\` côté CSS, qui ne va pas bien avec virtual columns. Si vous combinez avec \`expandable\`, l'expand row utilise un \`<AdeoGridDetailRow>\` full-width — pas affecté.
+- L'expander row utilise \`grid-template-columns\` côté CSS. Combiné avec \`expandable\`, l'expand row passe en \`<ad-grid-detail-row>\` full-width — pas affecté.
         `,
       },
     },
   },
   render: () => ({
-    components: { AdeoGrid },
+    components: { AdGridVue },
     setup() {
       // Wide columns = 200, plus a few "real" columns from the LM dataset on the left.
       const cols: ColumnDef[] = [
@@ -159,11 +151,11 @@ export const HorizontalManyColumns: Story = {
       return { cols, rows }
     },
     template: `
-      <div class="sb-adeo-grid-shell">
+      <div class="sb-grid-shell">
         <h2>Horizontal virtual scroll · 200 colonnes</h2>
-        <p>Active <code>:virtual-columns="true"</code>. Les colonnes hors viewport ne sont pas rendues, les pinned restent collées.</p>
-        <div class="sb-adeo-grid-frame" style="height: 520px">
-          <AdeoGrid :height="560" :columns="cols" :rows="rows" virtual-columns virtual-scroll :container-height="520" />
+        <p>Les colonnes hors viewport ne sont pas rendues, les pinned restent collées. Virtualisation horizontale toujours active.</p>
+        <div class="sb-grid-frame" style="height: 520px">
+          <ad-grid-vue :height="560" :columns="cols" :rows="rows" :container-height="520" />
         </div>
       </div>
     `,
@@ -178,12 +170,12 @@ export const BothAxes: Story = {
         story: `
 ## Both axes (la combo "stress test")
 
+Les deux engines sont toujours actifs — rien à brancher.
+
 \`\`\`vue
-<AdeoGrid
+<ad-grid-vue
   :columns="columns100"
   :rows="rows50k"
-  virtual-scroll
-  virtual-columns
   :container-height="560"
 />
 \`\`\`
@@ -212,7 +204,7 @@ Ouvrez la story, scrollez bestially. La courbe FPS dans les DevTools doit rester
     },
   },
   render: () => ({
-    components: { AdeoGrid },
+    components: { AdGridVue },
     setup() {
       const cols: ColumnDef[] = [
         { field: 'sku', headerName: 'Réf', width: '120px', pinned: 'start' },
@@ -226,11 +218,11 @@ Ouvrez la story, scrollez bestially. La courbe FPS dans les DevTools doit rester
       return { cols, rows }
     },
     template: `
-      <div class="sb-adeo-grid-shell">
+      <div class="sb-grid-shell">
         <h2>50 000 × 100 cellules virtualisées</h2>
         <p>Le grid combine <code>useVirtualScroll</code> + <code>useVirtualColumns</code> pour ne jamais rendre plus de ~80 lignes × ~30 colonnes en simultané.</p>
-        <div class="sb-adeo-grid-frame" style="height: 560px">
-          <AdeoGrid :height="560" :columns="cols" :rows="rows" virtual-scroll virtual-columns :container-height="560" />
+        <div class="sb-grid-frame" style="height: 560px">
+          <ad-grid-vue :height="560" :columns="cols" :rows="rows" :container-height="560" />
         </div>
       </div>
     `,

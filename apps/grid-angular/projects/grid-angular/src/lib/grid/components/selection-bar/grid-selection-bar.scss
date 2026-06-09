@@ -1,0 +1,76 @@
+:host {
+  display: block;
+  position: absolute;
+  bottom: 60px; // custom value — no matching Mozaic token
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  pointer-events: none;
+}
+
+.selection-bar {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-050, 4px);
+  padding: 6px var(--spacing-150, 12px); // 6px — custom value, no matching Mozaic token
+  background: var(--color-background-primary, #fff);
+  border: 1px solid var(--color-border-primary, #e0e0e0);
+  border-radius: var(--border-radius-m, 8px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12); // custom shadow — no matching Mozaic token
+  white-space: nowrap;
+  font-size: var(--font-size-100, 14px);
+  color: var(--color-text-primary);
+}
+
+.selection-bar__close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px; // custom value — no matching Mozaic token
+  height: 28px; // custom value — no matching Mozaic token
+  border: none;
+  border-radius: var(--border-radius-full, 50%);
+  background: var(--color-background-secondary, #f5f5f5);
+  cursor: pointer;
+  color: var(--color-text-secondary, #666);
+  padding: 0;
+}
+
+.selection-bar__close:hover {
+  background: var(--color-border-primary, #e0e0e0);
+}
+
+.selection-bar__count {
+  padding: 0 var(--spacing-100, 8px);
+}
+
+.selection-bar__divider {
+  width: 1px;
+  height: 20px; // custom value — no matching Mozaic token
+  background: var(--color-border-primary, #e0e0e0);
+  margin: 0 var(--spacing-050, 4px);
+}
+
+.selection-bar__action {
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 6px var(--spacing-150, 12px); // 6px — custom value, no matching Mozaic token
+  border-radius: var(--border-radius-s, 4px);
+  font-size: var(--font-size-100, 14px);
+  font-weight: var(--font-weight-medium, 500);
+  color: var(--color-text-primary);
+}
+
+.selection-bar__action:hover {
+  background: var(--color-background-secondary, #f5f5f5);
+}
+
+.selection-bar__action--danger {
+  color: var(--color-status-standalone-error, #d32f2f);
+}
+
+.selection-bar__action--danger:hover {
+  background: rgba(211, 47, 47, 0.08); // danger hover tint — no matching Mozaic token
+}

@@ -1,0 +1,287 @@
+/* ─────────────────────────────────────────────────────────────────────
+   Portal Storybook — typography polish for rendered Markdown content.
+
+   The `<Markdown>` block from `@storybook/addon-docs/blocks` renders
+   our chapter files (`packages/docs/grid-spec/*.md`) inside the
+   `.sbdocs-content` container. By default that renders raw with no
+   table borders, weak heading hierarchy, and no code-block treatment.
+
+   Below we apply a tasteful, GitHub-inspired stylesheet so the spec
+   reads like proper documentation rather than dumped Markdown.
+   Everything is scoped under `.sbdocs-content` to avoid leaking into
+   the Storybook chrome.
+   ───────────────────────────────────────────────────────────────────── */
+
+.sbdocs-content {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 32px 40px 80px;
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu,
+    Cantarell, sans-serif;
+  font-size: 15px;
+  line-height: 1.65;
+  color: #1f2328;
+  background: #fff;
+}
+
+/* ── Headings ─────────────────────────────────────────────────── */
+
+.sbdocs-content h1 {
+  margin: 0 0 24px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #d0d7de;
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: #1f2328;
+}
+
+.sbdocs-content h2 {
+  margin: 40px 0 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #eaeef2;
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  color: #1f2328;
+  scroll-margin-top: 24px;
+}
+
+.sbdocs-content h3 {
+  margin: 28px 0 12px;
+  font-size: 19px;
+  font-weight: 600;
+  color: #1f2328;
+}
+
+.sbdocs-content h4 {
+  margin: 20px 0 10px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #4a5468;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 13px;
+}
+
+/* Invisible anchor injected before each heading so cross-refs land
+   below the top nav without overlap. */
+.sbdocs-content a[id] {
+  display: block;
+  position: relative;
+  top: -16px;
+  visibility: hidden;
+}
+
+/* ── Paragraphs / lists ───────────────────────────────────────── */
+
+.sbdocs-content p {
+  margin: 0 0 14px;
+}
+
+.sbdocs-content ul,
+.sbdocs-content ol {
+  margin: 0 0 14px;
+  padding-left: 28px;
+}
+
+.sbdocs-content li {
+  margin: 4px 0;
+}
+
+.sbdocs-content li > ul,
+.sbdocs-content li > ol {
+  margin: 4px 0;
+}
+
+/* ── Inline code ──────────────────────────────────────────────── */
+
+.sbdocs-content code:not(pre code) {
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(175, 184, 193, 0.2);
+  color: #cf2222;
+  font-family: 'SF Mono', SFMono-Regular, ui-monospace, Menlo, Consolas,
+    'Roboto Mono', monospace;
+  font-size: 0.875em;
+}
+
+.sbdocs-content h2 code:not(pre code),
+.sbdocs-content h3 code:not(pre code) {
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  font-size: 0.95em;
+}
+
+/* ── Code blocks ──────────────────────────────────────────────── */
+
+.sbdocs-content pre {
+  margin: 14px 0 18px;
+  padding: 14px 16px;
+  border-radius: 8px;
+  background: #f6f8fa;
+  border: 1px solid #d0d7de;
+  overflow-x: auto;
+  font-family: 'SF Mono', SFMono-Regular, ui-monospace, Menlo, Consolas,
+    'Roboto Mono', monospace;
+  font-size: 13px;
+  line-height: 1.55;
+  color: #1f2328;
+}
+
+.sbdocs-content pre code {
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  border-radius: 0;
+  font-size: inherit;
+}
+
+/* ── Tables ───────────────────────────────────────────────────── */
+
+.sbdocs-content table {
+  width: 100%;
+  margin: 14px 0 20px;
+  border-collapse: collapse;
+  border: 1px solid #d0d7de;
+  border-radius: 8px;
+  overflow: hidden;
+  font-size: 14px;
+  display: table;
+}
+
+.sbdocs-content thead {
+  background: #f6f8fa;
+}
+
+.sbdocs-content th {
+  padding: 10px 14px;
+  text-align: left;
+  font-weight: 600;
+  color: #1f2328;
+  border-bottom: 1px solid #d0d7de;
+  border-right: 1px solid #eaeef2;
+  white-space: nowrap;
+}
+
+.sbdocs-content th:last-child {
+  border-right: none;
+}
+
+.sbdocs-content tbody tr {
+  border-bottom: 1px solid #eaeef2;
+  transition: background-color 0.1s;
+}
+
+.sbdocs-content tbody tr:last-child {
+  border-bottom: none;
+}
+
+.sbdocs-content tbody tr:hover {
+  background: #f6f8fa;
+}
+
+.sbdocs-content td {
+  padding: 8px 14px;
+  vertical-align: top;
+  border-right: 1px solid #eaeef2;
+  color: #1f2328;
+}
+
+.sbdocs-content td:last-child {
+  border-right: none;
+}
+
+.sbdocs-content td code:not(pre code) {
+  white-space: nowrap;
+}
+
+/* ── Blockquotes ─────────────────────────────────────────────── */
+
+.sbdocs-content blockquote {
+  margin: 14px 0 18px;
+  padding: 4px 16px;
+  border-left: 4px solid #d0d7de;
+  background: #f6f8fa;
+  color: #4a5468;
+  font-style: normal;
+  border-radius: 0 6px 6px 0;
+}
+
+.sbdocs-content blockquote p {
+  margin: 8px 0;
+}
+
+.sbdocs-content blockquote p:first-child {
+  margin-top: 8px;
+}
+
+.sbdocs-content blockquote p:last-child {
+  margin-bottom: 8px;
+}
+
+/* ── Links ────────────────────────────────────────────────────── */
+
+.sbdocs-content a:not([id]) {
+  color: #0969da;
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-bottom-color 0.1s;
+}
+
+.sbdocs-content a:not([id]):hover {
+  border-bottom-color: #0969da;
+}
+
+/* ── Horizontal rule ─────────────────────────────────────────── */
+
+.sbdocs-content hr {
+  margin: 32px 0;
+  border: none;
+  border-top: 1px solid #d0d7de;
+  height: 1px;
+}
+
+/* ── Emphasis ────────────────────────────────────────────────── */
+
+.sbdocs-content strong {
+  font-weight: 600;
+  color: #1f2328;
+}
+
+.sbdocs-content em {
+  font-style: italic;
+}
+
+/* ── Embedded ASCII art / diagrams (in pre blocks) ───────────── */
+
+/* The spec uses ASCII box-drawing diagrams. They live in regular fenced
+   code blocks (no language) so the default pre styles already apply.
+   Just make sure they don't wrap. */
+.sbdocs-content pre {
+  white-space: pre;
+  tab-size: 2;
+}
+
+/* ── Storybook docs container override ──────────────────────── */
+
+/* The default `.docs-story` and `.sb-show-main` containers sometimes
+   add their own padding. Reset for our content rendered via
+   `<Markdown>` block. */
+.docs-story {
+  background: #fff;
+}
+
+/* Make the side TOC (if Storybook generates one) tighter visually. */
+.sbdocs-toc {
+  font-size: 13px;
+}
+.sbdocs-toc a {
+  text-decoration: none;
+  color: #4a5468;
+}
+.sbdocs-toc a:hover {
+  color: #0969da;
+}

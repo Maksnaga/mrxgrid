@@ -211,7 +211,7 @@ export function useFormulaEngine(gridState: GridState): FormulaEngine {
   }
 
   function syncFromSource(allowFormula: (field: string) => boolean): void {
-    // Use the grid-level rowId resolver (driven by `props.rowId` in AdeoGrid)
+    // Use the grid-level rowId resolver (driven by `props.rowId` in Grid)
     // instead of a hard-coded field name — that way grids whose rows have
     // no `id` field still register their formulas. Fixes a regression where
     // stress-test rows shaped as `{col_0, col_1, …}` silently skipped sync.

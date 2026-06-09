@@ -1,0 +1,13 @@
+<!-- .storybook/preview-head.html -->
+<!--
+  Brand preset webfonts. Mozaic only ships @font-face for Leroy Merlin Sans
+  (via import-font-lm()); the other presets reference fonts by name only
+  (--font-family: Roboto / Inter / Ubuntu). They must be loaded here so the
+  preview iframe can actually render them when switching brand in the toolbar.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Inter:wght@300;400;500;600;700&family=Ubuntu:wght@300;400;500;700&display=swap"
+  rel="stylesheet"
+/>

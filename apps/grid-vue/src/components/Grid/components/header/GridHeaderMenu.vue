@@ -12,7 +12,7 @@
  * button's `DOMRect` (passed by the parent header). We don't use Mozaic's
  * `<MPopover>` here because its activator slot relies on the native HTML
  * popover API binding (`popovertarget`), which doesn't compose with our
- * existing `AdeoGridHeader` → `AdeoGridHeaderCell` → emit-up flow. Keeping
+ * existing `AdGridHeader` → `AdGridHeaderCell` → emit-up flow. Keeping
  * the teleport gives us the Mozaic-styled item list without restructuring
  * the header virtualisation.
  */
@@ -31,6 +31,8 @@ import {
   Size20,
 } from '@mozaic-ds/icons-vue'
 import type { ColumnDef, ColumnMenuAction, SortDirection } from '../../types'
+
+defineOptions({ name: 'AdGridHeaderMenu' })
 
 const props = defineProps<{
   field: string
@@ -242,7 +244,7 @@ onBeforeUnmount(() => {
   <Teleport to="body">
     <div
       ref="menuRef"
-      class="adeo-grid-grid-header-menu"
+      class="grid-header-menu"
       :style="{
         top: `${placement.top}px`,
         left: `${placement.left}px`,
@@ -255,7 +257,7 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped lang="scss">
-.adeo-grid-grid-header-menu {
+.grid-header-menu {
   position: fixed;
   z-index: 9999;
   min-width: 240px;

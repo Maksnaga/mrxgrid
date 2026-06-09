@@ -1,5 +1,5 @@
 /**
- * Cell-level models — Angular parity (moz-grid).
+ * Cell-level models — Angular parity (ad-grid).
  *
  * `{ row, col }` coord space matches Angular; the legacy `{ rowIndex, field }`
  * shape from Vue's `CellPosition` stays in `types.ts` for compat.

@@ -2,21 +2,21 @@
 /**
  * Declarative column definition — alternative to the `:columns` prop.
  *
- * Mirrors Angular `<moz-grid-column-def field="…">` content children. Use
- * inside `<AdeoGrid>` to attach scoped slots (`#cell`, `#edit`, `#filter`,
- * `#header`) directly to the column. The `<AdeoColumn>` itself renders no
+ * Mirrors Angular `<ad-grid-column-def field="…">` content children. Use
+ * inside `<ad-grid-vue>` to attach scoped slots (`#cell`, `#edit`, `#filter`,
+ * `#header`) directly to the column. The `<ad-grid-column>` itself renders no
  * DOM — it only registers a `ColumnDef` (and slot presence flags) into the
- * `AdeoColumnRegistry` provided by the parent grid.
+ * `ColumnRegistry` provided by the parent grid.
  *
  * @example
- * <AdeoGrid :rows="rows">
- *   <AdeoColumn field="name" header-name="Name" />
- *   <AdeoColumn field="status" header-name="Status">
+ * <ad-grid-vue :rows="rows">
+ *   <ad-grid-column field="name" header-name="Name" />
+ *   <ad-grid-column field="status" header-name="Status">
  *     <template #cell="{ value }">
  *       <MozBadge>{{ value }}</MozBadge>
  *     </template>
- *   </AdeoColumn>
- * </AdeoGrid>
+ *   </ad-grid-column>
+ * </ad-grid-vue>
  */
 
 import { computed, onMounted, onScopeDispose, useSlots, watch } from 'vue'
@@ -24,8 +24,10 @@ import type { Component, Raw } from 'vue'
 import type { ColumnDef, FilterDef, RowData } from './types'
 import type { CellError } from './models/cell.model'
 import type { CellEditorType } from './models/column.model'
-import type { AdeoFilterConfig } from './models/filter.model'
-import { injectAdeoColumnRegistry } from './state/AdeoColumnRegistry'
+import type { FilterConfig } from './models/filter.model'
+import { injectColumnRegistry } from './state/ColumnRegistry'
+
+defineOptions({ name: 'AdGridColumn' })
 
 let _orderSeq = 0
 
@@ -66,7 +68,7 @@ const props = withDefaults(
      * Filter config — inline filter row config ({ type, options, … }) or
      * custom filter config ({ component, doesFilterPass, filterParams }).
      */
-    filter?: FilterDef | AdeoFilterConfig<RowData, unknown, unknown>
+    filter?: FilterDef | FilterConfig<RowData, unknown, unknown>
   }>(),
   {
     sortable: true,
@@ -79,12 +81,12 @@ const props = withDefaults(
 )
 
 const slots = useSlots()
-const registry = injectAdeoColumnRegistry()
+const registry = injectColumnRegistry()
 const order = _orderSeq++
 
 if (!registry && import.meta.env?.DEV) {
   console.warn(
-    `[adeo-grid] <AdeoColumn field="${props.field}"> rendered outside a <AdeoGrid> — registration ignored.`,
+    `[grid] <ad-grid-column field="${props.field}"> rendered outside a <ad-grid-vue> — registration ignored.`,
   )
 }
 
@@ -158,6 +160,6 @@ onScopeDispose(() => {
 
 <template>
   <!-- Render-less component: only registers itself, no DOM. The slots are
-       captured by the registry and forwarded by <AdeoGrid> at render time. -->
+       captured by the registry and forwarded by <ad-grid-vue> at render time. -->
   <div style="display: none"></div>
 </template>

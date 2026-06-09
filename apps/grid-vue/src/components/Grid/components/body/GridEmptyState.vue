@@ -11,14 +11,16 @@
  *     glyph, leaving the action zone open for the consumer to wire up
  *     "Add row" / "Import" / etc. via the `#actions` slot.
  *
- * Composers can either replace the whole thing via `<AdeoGrid #empty>` or
+ * Composers can either replace the whole thing via `<ad-grid-vue #empty>` or
  * keep the default layout and just inject custom actions through
- * `<AdeoGrid #empty-actions>`. The component animates in subtly so it
+ * `<ad-grid-vue #empty-actions>`. The component animates in subtly so it
  * feels intentional rather than abrupt when filters change.
  */
 import { computed } from 'vue'
 import { Database48, Filter48 } from '@mozaic-ds/icons-vue'
 import { MButton } from '@mozaic-ds/vue'
+
+defineOptions({ name: 'AdGridEmptyState' })
 
 const props = defineProps<{
   /** True when at least one column filter is active — drives variant. */
@@ -53,17 +55,17 @@ const subtitle = computed(() => {
 </script>
 
 <template>
-  <div class="adeo-grid-empty" role="status" :data-variant="variant">
-    <div class="adeo-grid-empty__card">
-      <div class="adeo-grid-empty__halo" aria-hidden="true">
-        <Filter48 v-if="variant === 'filtered'" class="adeo-grid-empty__icon" />
-        <Database48 v-else class="adeo-grid-empty__icon" />
+  <div class="grid-empty" role="status" :data-variant="variant">
+    <div class="grid-empty__card">
+      <div class="grid-empty__halo" aria-hidden="true">
+        <Filter48 v-if="variant === 'filtered'" class="grid-empty__icon" />
+        <Database48 v-else class="grid-empty__icon" />
       </div>
 
-      <h3 class="adeo-grid-empty__title">{{ headline }}</h3>
-      <p class="adeo-grid-empty__subtitle">{{ subtitle }}</p>
+      <h3 class="grid-empty__title">{{ headline }}</h3>
+      <p class="grid-empty__subtitle">{{ subtitle }}</p>
 
-      <div class="adeo-grid-empty__actions">
+      <div class="grid-empty__actions">
         <!-- Built-in action when filters are active -->
         <MButton v-if="variant === 'filtered'" theme="primary" size="m" @click="emit('clearFilters')">
           Effacer les filtres
@@ -78,10 +80,10 @@ const subtitle = computed(() => {
 </template>
 
 <style scoped lang="scss">
-.adeo-grid-empty {
+.grid-empty {
   // Center the card inside its parent (the grid wrapper area). `flex-1`
   // ensures the card takes the remaining vertical space when the grid
-  // wrapper is constrained — same reason `.adeo-grid-grid-wrapper` itself uses
+  // wrapper is constrained — same reason `.grid-wrapper` itself uses
   // `flex: 1` in the root.
   flex: 1;
   min-height: 240px;
@@ -89,10 +91,10 @@ const subtitle = computed(() => {
   align-items: center;
   justify-content: center;
   padding: 32px 24px;
-  animation: adeo-grid-empty-in 240ms ease-out;
+  animation: grid-empty-in 240ms ease-out;
 }
 
-.adeo-grid-empty__card {
+.grid-empty__card {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -101,11 +103,11 @@ const subtitle = computed(() => {
   padding: 32px 28px 28px;
 }
 
-.adeo-grid-empty__halo {
+.grid-empty__halo {
   position: relative;
   width: 96px;
   height: 96px;
-  border-radius: 50%;
+  border-radius: var(--border-radius-full, 50%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -120,7 +122,7 @@ const subtitle = computed(() => {
     content: '';
     position: absolute;
     inset: -8px;
-    border-radius: 50%;
+    border-radius: var(--border-radius-full, 50%);
     background: var(--color-text-accent, #0071ce);
     opacity: 0.08;
     z-index: -1;
@@ -128,45 +130,45 @@ const subtitle = computed(() => {
   }
 }
 
-.adeo-grid-empty[data-variant='filtered'] .adeo-grid-empty__halo {
+.grid-empty[data-variant='filtered'] .grid-empty__halo {
   background:
     radial-gradient(circle at 30% 30%,
-      #fef3c7,
+      /* amber tint — custom value, no matching Mozaic token */ #fef3c7,
       var(--color-background-secondary, #f3f4f6));
 
   &::after {
-    background: #d97706;
+    background: #d97706; /* amber glow — custom value, no matching Mozaic token */
     opacity: 0.12;
   }
 }
 
-.adeo-grid-empty__icon {
+.grid-empty__icon {
   width: 48px;
   height: 48px;
   color: var(--color-text-accent, #0071ce);
 }
 
-.adeo-grid-empty[data-variant='filtered'] .adeo-grid-empty__icon {
-  color: #b45309;
+.grid-empty[data-variant='filtered'] .grid-empty__icon {
+  color: #b45309; /* amber icon — custom value, no matching Mozaic token */
 }
 
-.adeo-grid-empty__title {
+.grid-empty__title {
   margin: 0 0 8px;
-  font-size: 18px;
-  font-weight: 700;
+  font-size: var(--font-size-300, 16px); /* 18px has no matching Mozaic token — using --font-size-300 (16px) */
+  font-weight: var(--font-weight-bold, 700);
   letter-spacing: -0.01em;
   color: var(--color-text-primary, #0f172a);
 }
 
-.adeo-grid-empty__subtitle {
+.grid-empty__subtitle {
   margin: 0 0 24px;
   max-width: 380px;
-  font-size: 13.5px;
+  font-size: var(--font-size-100, 13px); /* 13.5px has no exact Mozaic token — using --font-size-100 (13px) */
   line-height: 1.55;
   color: var(--color-text-secondary, #475569);
 }
 
-.adeo-grid-empty__actions {
+.grid-empty__actions {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
@@ -174,11 +176,11 @@ const subtitle = computed(() => {
   justify-content: center;
 }
 
-.adeo-grid-empty__actions:empty {
+.grid-empty__actions:empty {
   display: none;
 }
 
-@keyframes adeo-grid-empty-in {
+@keyframes grid-empty-in {
   from {
     opacity: 0;
     transform: translateY(8px) scale(0.98);
@@ -191,7 +193,7 @@ const subtitle = computed(() => {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .adeo-grid-empty {
+  .grid-empty {
     animation: none;
   }
 }

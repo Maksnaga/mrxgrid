@@ -4,7 +4,9 @@ import type { CSSProperties } from 'vue'
 import type { CellFlags, ColumnDef, RowData } from '../../types'
 import { MButton, MCheckbox, MLoader } from '@mozaic-ds/vue'
 import { ChevronDown20, ChevronRight20 } from '@mozaic-ds/icons-vue'
-import AdeoGridCell from './AdeoGridCell.vue'
+import AdGridCell from './GridCell.vue'
+
+defineOptions({ name: 'AdGridRow' })
 
 const EMPTY_FLAGS: CellFlags = {}
 
@@ -46,14 +48,14 @@ const props = defineProps<{
   /**
    * True quand cette row entière est en attente d'une mutation serveur
    * (bulk delete, drawer save, etc.). Drive un dim global + un mini
-   * spinner Mozaic — voir `props.pendingRowIds` côté `<AdeoGrid>`.
+   * spinner Mozaic — voir `props.pendingRowIds` côté `<ad-grid-vue>`.
    */
   pending?: boolean
 }>()
 
 /** Inline style for an unpinned center cell. The `fillField` column gets
  *  `min-width: declaredWidth` only — the `flex: 1 1 auto` lives on
- *  `.adeo-grid-grid-cell--fill` (scoped to AdeoGridCell) so it isn't lost in
+ *  `.grid-cell--fill` (scoped to AdGridCell) so it isn't lost in
  *  the parent/child `:style` fall-through merge.
  *
  *  Non-fill cells get BOTH `width` and `minWidth` set to the declared
@@ -108,17 +110,17 @@ const emit = defineEmits<{
 
 <template>
   <!-- Skeleton row -->
-  <div v-if="isSkeleton" class="adeo-grid-grid-row adeo-grid-row--skeleton" aria-hidden="true">
-    <div class="adeo-grid-grid-skeleton-cell">
-      <div class="adeo-grid-grid-skeleton-shimmer" />
+  <div v-if="isSkeleton" class="grid-row grid-row--skeleton" aria-hidden="true">
+    <div class="grid-skeleton-cell">
+      <div class="grid-skeleton-shimmer" />
     </div>
   </div>
 
   <!-- Data row -->
   <div
     v-else
-    class="adeo-grid-grid-row"
-    :class="{ 'adeo-grid-grid-row--selected': selected, 'adeo-grid-grid-row--pending': pending }"
+    class="grid-row"
+    :class="{ 'grid-row--selected': selected, 'grid-row--pending': pending }"
     :aria-busy="pending ? 'true' : undefined"
     role="row"
   >
@@ -128,34 +130,34 @@ const emit = defineEmits<{
          entière fait le reste du signal visuel. -->
     <MLoader
       v-if="pending"
-      class="adeo-grid-grid-row-spinner"
+      class="grid-row-spinner"
       size="xs"
       aria-label="Modification en cours"
     />
     <!-- Row number (sticky-left, auto-on with formula columns) -->
-    <div v-if="showRowNumbers" class="adeo-grid-grid-cell adeo-grid-rownum-cell"
-      :class="{ 'adeo-grid-grid-cell--pinned': hasPinned }" :style="getUtilityStyle('rownum', false)" role="rowheader">
+    <div v-if="showRowNumbers" class="grid-cell grid-rownum-cell"
+      :class="{ 'grid-cell--pinned': hasPinned }" :style="getUtilityStyle('rownum', false)" role="rowheader">
       {{ rowNumber }}
     </div>
 
     <!-- Checkbox (sticky left when pinned) -->
-    <div v-if="selectable" class="adeo-grid-grid-cell adeo-grid-checkbox-cell" :class="{ 'adeo-grid-grid-cell--pinned': hasPinned }"
+    <div v-if="selectable" class="grid-cell grid-checkbox-cell" :class="{ 'grid-cell--pinned': hasPinned }"
       :style="getUtilityStyle('checkbox', false)" role="gridcell"
       @click.capture="(e: MouseEvent) => emit('toggleSelect', e)">
-      <MCheckbox :id="`adeo-grid-row-cb-${rowIndex}`" :model-value="selected" />
+      <MCheckbox :id="`grid-row-cb-${rowIndex}`" :model-value="selected" />
     </div>
 
     <!-- Expand button (sticky left when pinned) -->
-    <div v-if="expandable" class="adeo-grid-grid-cell adeo-grid-expand-cell" :class="{ 'adeo-grid-grid-cell--pinned': hasPinned }"
+    <div v-if="expandable" class="grid-cell grid-expand-cell" :class="{ 'grid-cell--pinned': hasPinned }"
       :style="getUtilityStyle('expand', false)" role="gridcell">
-      <MButton class="adeo-grid-grid-expand-btn" type="button" :ghost="true"
+      <MButton class="grid-expand-btn" type="button" :ghost="true"
         :aria-label="expanded ? 'Collapse row' : 'Expand row'" :aria-expanded="expanded" @click="emit('toggleExpand')">
-        <component :is="expanded ? ChevronDown20 : ChevronRight20" class="adeo-grid-grid-expand-icon" aria-hidden="true" />
+        <component :is="expanded ? ChevronDown20 : ChevronRight20" class="grid-expand-icon" aria-hidden="true" />
       </MButton>
     </div>
 
     <!-- Left-pinned columns (always rendered, sticky left) -->
-    <AdeoGridCell v-for="(col, idx) in pinnedLeftColumns" :key="'pl-' + col.field" :value="cellValue(col, row)" :row="row"
+    <ad-grid-cell v-for="(col, idx) in pinnedLeftColumns" :key="'pl-' + col.field" :value="cellValue(col, row)" :row="row"
       :field="col.field" :row-index="rowIndex" :column="col" :active="activeField === col.field"
       :editing="editingField === col.field" :edit-value="editingField === col.field ? editValue : undefined"
       :selected="flags(col.field).selected" :edge-top="flags(col.field).edgeTop"
@@ -165,9 +167,9 @@ const emit = defineEmits<{
       :invalid="flags(col.field).invalid" :invalid-message="flags(col.field).invalidMessage"
       :cut-source="flags(col.field).cutSource" :pending="flags(col.field).pending" :cut-edge-top="flags(col.field).cutEdgeTop"
       :cut-edge-bottom="flags(col.field).cutEdgeBottom" :cut-edge-left="flags(col.field).cutEdgeLeft"
-      :cut-edge-right="flags(col.field).cutEdgeRight" class="adeo-grid-grid-cell--pinned" :class="{
-        'adeo-grid-grid-cell--pinned-left-edge': idx === pinnedLeftColumns.length - 1,
-        'adeo-grid-grid-cell--pinned-row-start': idx === 0,
+      :cut-edge-right="flags(col.field).cutEdgeRight" class="grid-cell--pinned" :class="{
+        'grid-cell--pinned-left-edge': idx === pinnedLeftColumns.length - 1,
+        'grid-cell--pinned-row-start': idx === 0,
       }" :style="{
         ...getPinnedStyle('left', idx, false),
         width: getColumnWidth ? getColumnWidth(col.field) : undefined,
@@ -179,16 +181,16 @@ const emit = defineEmits<{
       <template v-if="$slots.cell" #default="cellSlot">
         <slot name="cell" v-bind="cellSlot" />
       </template>
-    </AdeoGridCell>
+    </ad-grid-cell>
 
     <!-- Left spacer (for virtual center columns). Skip rendering when the
          width is missing or `0px` so the row doesn't carry a phantom flex
          child that would otherwise expand inside the trailing empty space. -->
-    <div v-if="leftSpacerWidth && leftSpacerWidth !== '0px'" aria-hidden="true" class="adeo-grid-grid-spacer"
+    <div v-if="leftSpacerWidth && leftSpacerWidth !== '0px'" aria-hidden="true" class="grid-spacer"
       :style="{ width: leftSpacerWidth, minWidth: leftSpacerWidth }" />
 
     <!-- Center columns (virtual slice or all unpinned) -->
-    <AdeoGridCell v-for="col in columns" :key="col.field" :value="cellValue(col, row)" :row="row" :field="col.field"
+    <ad-grid-cell v-for="col in columns" :key="col.field" :value="cellValue(col, row)" :row="row" :field="col.field"
       :row-index="rowIndex" :column="col" :active="activeField === col.field" :editing="editingField === col.field"
       :edit-value="editingField === col.field ? editValue : undefined" :selected="flags(col.field).selected"
       :edge-top="flags(col.field).edgeTop" :edge-bottom="flags(col.field).edgeBottom"
@@ -199,7 +201,7 @@ const emit = defineEmits<{
       :pending="flags(col.field).pending"
       :cut-edge-top="flags(col.field).cutEdgeTop" :cut-edge-bottom="flags(col.field).cutEdgeBottom"
       :cut-edge-left="flags(col.field).cutEdgeLeft" :cut-edge-right="flags(col.field).cutEdgeRight"
-      :class="{ 'adeo-grid-grid-cell--fill': fillField && col.field === fillField }" :style="centerCellStyle(col.field)"
+      :class="{ 'grid-cell--fill': fillField && col.field === fillField }" :style="centerCellStyle(col.field)"
       @activate="emit('activateCell', col.field, $event)" @edit-start="emit('editStart', col.field)"
       @edit-input="emit('editInput', $event)" @edit-commit="emit('editCommit', $event)"
       @edit-cancel="emit('editCancel')" @edit-blur="emit('editBlur')"
@@ -207,14 +209,14 @@ const emit = defineEmits<{
       <template v-if="$slots.cell" #default="cellSlot">
         <slot name="cell" v-bind="cellSlot" />
       </template>
-    </AdeoGridCell>
+    </ad-grid-cell>
 
     <!-- Right spacer (for virtual center columns). See note on left spacer. -->
-    <div v-if="rightSpacerWidth && rightSpacerWidth !== '0px'" aria-hidden="true" class="adeo-grid-grid-spacer"
+    <div v-if="rightSpacerWidth && rightSpacerWidth !== '0px'" aria-hidden="true" class="grid-spacer"
       :style="{ width: rightSpacerWidth, minWidth: rightSpacerWidth }" />
 
     <!-- Right-pinned columns (always rendered, sticky right) -->
-    <AdeoGridCell v-for="(col, idx) in pinnedRightColumns" :key="'pr-' + col.field" :value="cellValue(col, row)" :row="row"
+    <ad-grid-cell v-for="(col, idx) in pinnedRightColumns" :key="'pr-' + col.field" :value="cellValue(col, row)" :row="row"
       :field="col.field" :row-index="rowIndex" :column="col" :active="activeField === col.field"
       :editing="editingField === col.field" :edit-value="editingField === col.field ? editValue : undefined"
       :selected="flags(col.field).selected" :edge-top="flags(col.field).edgeTop"
@@ -224,9 +226,9 @@ const emit = defineEmits<{
       :invalid="flags(col.field).invalid" :invalid-message="flags(col.field).invalidMessage"
       :cut-source="flags(col.field).cutSource" :pending="flags(col.field).pending" :cut-edge-top="flags(col.field).cutEdgeTop"
       :cut-edge-bottom="flags(col.field).cutEdgeBottom" :cut-edge-left="flags(col.field).cutEdgeLeft"
-      :cut-edge-right="flags(col.field).cutEdgeRight" class="adeo-grid-grid-cell--pinned" :class="{
-        'adeo-grid-grid-cell--pinned-right-edge': idx === 0,
-        'adeo-grid-grid-cell--pinned-row-end': idx === pinnedRightColumns.length - 1,
+      :cut-edge-right="flags(col.field).cutEdgeRight" class="grid-cell--pinned" :class="{
+        'grid-cell--pinned-right-edge': idx === 0,
+        'grid-cell--pinned-row-end': idx === pinnedRightColumns.length - 1,
       }" :style="{
         ...getPinnedStyle('right', idx, false),
         width: getColumnWidth ? getColumnWidth(col.field) : undefined,
@@ -238,20 +240,20 @@ const emit = defineEmits<{
       <template v-if="$slots.cell" #default="cellSlot">
         <slot name="cell" v-bind="cellSlot" />
       </template>
-    </AdeoGridCell>
+    </ad-grid-cell>
   </div>
 </template>
 
 <style scoped lang="scss">
-.adeo-grid-grid-row {
+.grid-row {
   display: flex;
-  height: var(--adeo-grid-row-height, 48px);
+  height: var(--grid-row-height, 48px);
   background-color: var(--color-background-primary);
   contain: style;
   min-width: 100%;
 }
 
-.adeo-grid-grid-row--selected {
+.grid-row--selected {
   background-color: var(--color-background-accent);
 }
 
@@ -261,13 +263,13 @@ const emit = defineEmits<{
 // events pour que l'utilisateur ne déclenche pas une 2e mutation sur la
 // même row. Le mini spinner Mozaic flotte à droite, anchored au coin
 // trailing pour ne pas pousser le layout des cellules.
-.adeo-grid-grid-row--pending {
+.grid-row--pending {
   position: relative;
   opacity: 0.55;
   pointer-events: none;
 }
 
-.adeo-grid-grid-row-spinner {
+.grid-row-spinner {
   position: absolute;
   right: 12px;
   top: 50%;
@@ -282,27 +284,27 @@ const emit = defineEmits<{
 // flooding the whole cell rectangle. `inset: 3px` is what gives the chip
 // its size — without it the pseudo collapses to 0×0 and the hover is
 // invisible.
-:deep(.adeo-grid-grid-cell)::before {
+:deep(.grid-cell)::before {
   content: '';
   position: absolute;
-  border-radius: 4px;
+  border-radius: var(--border-radius-s, 4px);
   background: transparent;
   pointer-events: none;
   z-index: -1;
 }
 
-:deep(.adeo-grid-grid-cell:hover)::before {
-  background: #f1f3f4;
+:deep(.grid-cell:hover)::before {
+  background: var(--color-background-tertiary, #f1f3f4);
 }
 
-:deep(.adeo-grid-grid-cell--active)::before,
-:deep(.adeo-grid-grid-cell--selected)::before,
-:deep(.adeo-grid-grid-cell--fill-target)::before,
-:deep(.adeo-grid-grid-cell--fill-target-invalid)::before {
+:deep(.grid-cell--active)::before,
+:deep(.grid-cell--selected)::before,
+:deep(.grid-cell--fill-target)::before,
+:deep(.grid-cell--fill-target-invalid)::before {
   background: transparent;
 }
 
-.adeo-grid-grid-cell {
+.grid-cell {
   padding: m.get-spacing('100') m.get-spacing('150');
   border-bottom: m.get-token('border-width', 's') solid var(--color-border-primary);
   color: var(--color-text-primary);
@@ -310,31 +312,31 @@ const emit = defineEmits<{
   flex-shrink: 0;
 }
 
-.adeo-grid-grid-cell--pinned {
+.grid-cell--pinned {
   background-color: inherit;
 }
 
-:deep(.adeo-grid-grid-cell--pinned.adeo-grid-grid-cell--selected) {
+:deep(.grid-cell--pinned.grid-cell--selected) {
   background-color: var(--color-background-accent);
 }
 
-:deep(.adeo-grid-grid-cell--pinned.adeo-grid-grid-cell--fill-target) {
+:deep(.grid-cell--pinned.grid-cell--fill-target) {
   background-color: var(--color-background-accent);
 }
 
 // `clip-path` extends the cell's painting region 4px past the pinned edge
-// so the drop-shadow (set via `--adeo-grid-cell-outer-shadow` inside
-// `AdeoGridCell.vue`'s `box-shadow` stack) is visible across the boundary.
-.adeo-grid-grid-cell--pinned-left-edge {
+// so the drop-shadow (set via `--grid-cell-outer-shadow` inside
+// `AdGridCell.vue`'s `box-shadow` stack) is visible across the boundary.
+.grid-cell--pinned-left-edge {
   clip-path: inset(0 -4px 0 0);
 }
 
-.adeo-grid-grid-cell--pinned-right-edge {
+.grid-cell--pinned-right-edge {
   clip-path: inset(0 0 0 -4px);
 }
 
-.adeo-grid-checkbox-cell,
-.adeo-grid-expand-cell {
+.grid-checkbox-cell,
+.grid-expand-cell {
   width: 50px;
   text-align: center;
   display: flex;
@@ -342,21 +344,21 @@ const emit = defineEmits<{
   justify-content: center;
 }
 
-.adeo-grid-rownum-cell {
-  width: 56px;
+.grid-rownum-cell {
+  width: 56px; /* custom value — no matching Mozaic token */
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 11px;
-  font-weight: 600;
+  font-family: var(--font-family-monospace, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-size: var(--font-size-25, 11px);
+  font-weight: var(--font-weight-semi-bold, 600);
   color: var(--color-text-tertiary, #6c727c);
   background: var(--color-background-secondary, #f6f7f8);
   border-right: 1px solid var(--color-border-primary, #e3e6ea);
   padding: 0;
 }
 
-.adeo-grid-grid-expand-btn {
+.grid-expand-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -370,40 +372,40 @@ const emit = defineEmits<{
   color: var(--color-text-secondary);
 }
 
-.adeo-grid-grid-expand-btn:hover {
+.grid-expand-btn:hover {
   background: var(--color-background-secondary);
   color: var(--color-text-primary);
 }
 
-.adeo-grid-grid-expand-icon {
+.grid-expand-icon {
   width: 20px;
   height: 20px;
 }
 
-.adeo-grid-grid-expand-icon :deep(svg) {
+.grid-expand-icon :deep(svg) {
   width: 100%;
   height: 100%;
   fill: currentColor;
 }
 
-.adeo-grid-grid-spacer {
+.grid-spacer {
   flex-shrink: 0;
   padding: 0;
   border: none;
 }
 
-.adeo-grid-row--skeleton {
+.grid-row--skeleton {
   pointer-events: none;
   min-width: 100%;
 }
 
-.adeo-grid-grid-skeleton-cell {
+.grid-skeleton-cell {
   flex: 1;
   padding: m.get-spacing('100') m.get-spacing('150');
   border-bottom: m.get-token('border-width', 's') solid var(--color-border-primary);
 }
 
-.adeo-grid-grid-skeleton-shimmer {
+.grid-skeleton-shimmer {
   height: 14px;
   border-radius: m.get-radius('s');
   background: linear-gradient(90deg,
@@ -411,10 +413,10 @@ const emit = defineEmits<{
       var(--color-background-primary) 50%,
       var(--color-background-secondary) 75%);
   background-size: 200% 100%;
-  animation: adeo-grid-shimmer 1.4s infinite linear;
+  animation: grid-shimmer 1.4s infinite linear;
 }
 
-@keyframes adeo-grid-shimmer {
+@keyframes grid-shimmer {
   0% {
     background-position: 200% 0;
   }
@@ -427,12 +429,12 @@ const emit = defineEmits<{
 
 <style>
 /* Mozaic checkbox overrides inside grid cells */
-.adeo-grid-checkbox-cell .mc-checkbox {
+.grid-checkbox-cell .mc-checkbox {
   padding: 0;
   gap: 0;
 }
 
-.adeo-grid-checkbox-cell .mc-checkbox__label {
+.grid-checkbox-cell .mc-checkbox__label {
   display: none;
 }
 </style>

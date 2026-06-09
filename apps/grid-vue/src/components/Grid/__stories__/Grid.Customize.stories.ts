@@ -1,19 +1,19 @@
 import type { Meta, StoryObj } from '@storybook/vue3-vite'
 import { ref, watch } from 'vue'
 import {
-  AdeoColumn,
-  AdeoGrid,
-  AdeoGridToolbar,
-  AdeoTableMenuDrawer,
+  Column,
+  AdGridVue,
+  AdGridToolbar,
+  AdGridSettingsDrawer,
   useUndoRedoPlugin,
-} from '@/components/AdeoGrid'
-import type { ColumnDef, DataDensity } from '@/components/AdeoGrid'
-import type { AdeoGridPlugin } from '@/components/AdeoGrid/models/plugin.model'
+} from '@/components/Grid'
+import type { ColumnDef, DataDensity } from '@/components/Grid'
+import type { GridPlugin } from '@/components/Grid/models/plugin.model'
 import { lmColumns, lmProducts } from './_fixtures'
 
 const meta = {
   title: 'Stories/Customization/Persist · Plugins · Toolbar · Declarative',
-  component: AdeoGrid,
+  component: AdGridVue,
   tags: ['autodocs'],
   args: { rows: [] },
   parameters: {
@@ -28,14 +28,14 @@ Cinq mécanismes d'extension à connaître :
 |-----------|-----------|--------|
 | \`persist-key\` | Auto-save layout en localStorage | 1 prop |
 | \`#toolbar\` slot + drawers | Toolbar + actions custom | layout |
-| \`<AdeoGridSmartToolbar>\` | Toolbar batteries-included | 1 component |
-| Plugins (\`AdeoGridPlugin\`) | Behavior cross-cutting | 1 fonction |
-| \`<AdeoColumn>\` declarative | Definition de colonnes en SFC | template |
+| \`<ad-grid-toolbar>\` | Toolbar batteries-included | 1 component |
+| Plugins (\`GridPlugin\`) | Behavior cross-cutting | 1 fonction |
+| \`<ad-grid-column>\` declarative | Definition de colonnes en SFC | template |
 
 ### Plugins API
 
 \`\`\`ts
-interface AdeoGridPlugin {
+interface GridPlugin {
   name: string
   init: (ctx: { state: GridState; engine: GridEngine }) => (() => void) | void
 }
@@ -51,7 +51,7 @@ Le retour de \`init\` est appelé en cleanup au unmount. Idéal pour :
       },
     },
   },
-} satisfies Meta<typeof AdeoGrid>
+} satisfies Meta<typeof AdGridVue>
 
 export default meta
 type Story = StoryObj<typeof meta>
@@ -64,7 +64,7 @@ export const PersistedLayout: Story = {
 ## \`persist-key\`
 
 \`\`\`vue
-<AdeoGrid persist-key="my-grid-v1" :columns="columns" :rows="rows" />
+<ad-grid-vue persist-key="my-grid-v1" :columns="columns" :rows="rows" />
 \`\`\`
 
 ### Ce qui est persisté
@@ -76,7 +76,7 @@ export const PersistedLayout: Story = {
 
 ### Storage
 
-\`localStorage["adeo-grid-grid-state:" + persistKey]\` — JSON sérialisé. Versionnez votre clé (\`v1\`, \`v2\`) si vous changez la shape de vos columns/données pour invalider l'ancien état.
+\`localStorage["grid-state:" + persistKey]\` — JSON sérialisé. Versionnez votre clé (\`v1\`, \`v2\`) si vous changez la shape de vos columns/données pour invalider l'ancien état.
 
 ### API impérative
 
@@ -95,15 +95,15 @@ Ne réutilisez pas la même clé sur deux grilles à dataset différent — l'é
     },
   },
   render: () => ({
-    components: { AdeoGrid },
+    components: { AdGridVue },
     setup: () => ({ lmColumns, lmProducts }),
     template: `
-      <div class="sb-adeo-grid-shell">
+      <div class="sb-grid-shell">
         <h2>Persisted layout · <code>:persist-key</code></h2>
         <p>Le grid sauve largeur / ordre / visibilité / pin / sort / filtres dans <code>localStorage</code> sous la clé fournie. Reload, retrouve l'état.</p>
-        <div class="sb-adeo-grid-toolbar">Trie / pin / cache une colonne, recharge la page → l'état est restauré depuis <code>localStorage["lm-products-v1"]</code>.</div>
-        <div class="sb-adeo-grid-frame">
-          <AdeoGrid :height="560" :columns="lmColumns" :rows="lmProducts" persist-key="lm-products-v1" />
+        <div class="sb-grid-toolbar">Trie / pin / cache une colonne, recharge la page → l'état est restauré depuis <code>localStorage["lm-products-v1"]</code>.</div>
+        <div class="sb-grid-frame">
+          <ad-grid-vue :height="560" :columns="lmColumns" :rows="lmProducts" persist-key="lm-products-v1" />
         </div>
       </div>
     `,
@@ -125,7 +125,7 @@ Pattern "fine control" : vous wirez tout à la main pour avoir le full pilotage.
 \`\`\`vue
 <script setup lang="ts">
 import { ref } from 'vue'
-import { AdeoGrid, AdeoGridToolbar, AdeoTableMenuDrawer } from '@/components/AdeoGrid'
+import { AdGridVue, AdGridToolbar, AdGridSettingsDrawer } from '@/components/Grid'
 
 const settingsOpen = ref(false)
 const fullscreen   = ref(false)
@@ -145,7 +145,7 @@ function onApply(payload: {
 </script>
 
 <template>
-  <AdeoGrid
+  <ad-grid-vue
     :columns="columns"
     :rows="rows"
     :density="density"
@@ -154,16 +154,16 @@ function onApply(payload: {
     :column-order="columnOrder"
   >
     <template #toolbar>
-      <AdeoGridToolbar
+      <ad-grid-toolbar
         show-fullscreen show-settings
         :fullscreen="fullscreen"
         @toggle-fullscreen="fullscreen = !fullscreen"
         @settings="settingsOpen = !settingsOpen"
       />
     </template>
-  </AdeoGrid>
+  </ad-grid-vue>
 
-  <AdeoTableMenuDrawer
+  <ad-grid-settings-drawer
     :open="settingsOpen"
     :columns="columns"
     :hidden-fields="hiddenFields"
@@ -182,13 +182,13 @@ Important pour fullscreen : si la toolbar est en sibling, elle disparaît derri�
 
 ### Si vous voulez moins de plomberie
 
-Utilisez \`<AdeoGridSmartToolbar>\` qui bundle ce wiring (voir story *Devtools / Event console*).
+Utilisez \`<ad-grid-toolbar>\` qui bundle ce wiring (voir story *Devtools / Event console*).
         `,
       },
     },
   },
   render: () => ({
-    components: { AdeoGrid, AdeoGridToolbar, AdeoTableMenuDrawer },
+    components: { AdGridVue, AdGridToolbar, AdGridSettingsDrawer },
     setup() {
       const settingsOpen = ref(false)
       const fullscreen = ref(false)
@@ -224,11 +224,11 @@ Utilisez \`<AdeoGridSmartToolbar>\` qui bundle ce wiring (voir story *Devtools /
       }
     },
     template: `
-      <div class="sb-adeo-grid-shell">
+      <div class="sb-grid-shell">
         <h2>Toolbar + Settings drawer combo</h2>
-        <p><code>AdeoGridToolbar</code> est rendu via le slot <code>#toolbar</code> du grid : il reste donc visible quand on passe en plein écran. Le drawer ferme via la croix ou en cliquant l'overlay.</p>
-        <div class="sb-adeo-grid-frame">
-          <AdeoGrid :height="560"
+        <p><code>AdGridToolbar</code> est rendu via le slot <code>#toolbar</code> du grid : il reste donc visible quand on passe en plein écran. Le drawer ferme via la croix ou en cliquant l'overlay.</p>
+        <div class="sb-grid-frame">
+          <ad-grid-vue :height="560"
             :columns="lmColumns"
             :rows="lmProducts"
             :density="density"
@@ -238,7 +238,7 @@ Utilisez \`<AdeoGridSmartToolbar>\` qui bundle ce wiring (voir story *Devtools /
             @update:hidden-fields="hiddenFields = $event"
           >
             <template #toolbar>
-              <AdeoGridToolbar
+              <ad-grid-toolbar
                 show-fullscreen
                 show-settings
                 :fullscreen="fullscreen"
@@ -246,9 +246,9 @@ Utilisez \`<AdeoGridSmartToolbar>\` qui bundle ce wiring (voir story *Devtools /
                 @settings="settingsOpen = !settingsOpen"
               />
             </template>
-          </AdeoGrid>
+          </ad-grid-vue>
         </div>
-        <AdeoTableMenuDrawer
+        <ad-grid-settings-drawer
           :open="settingsOpen"
           :columns="lmColumns"
           :density="density"
@@ -268,14 +268,14 @@ export const Plugins: Story = {
     docs: {
       description: {
         story: `
-## Plugins (\`AdeoGridPlugin\`)
+## Plugins (\`GridPlugin\`)
 
 Pattern d'extension cross-cutting : un plugin reçoit \`{ state, engine }\` au mount et retourne une fonction de cleanup.
 
 ### Signature
 
 \`\`\`ts
-interface AdeoGridPlugin {
+interface GridPlugin {
   name: string
   init: (ctx: { state: GridState; engine: GridEngine }) => (() => void) | void
 }
@@ -284,7 +284,7 @@ interface AdeoGridPlugin {
 ### Exemple : auto-save dans une URL query string
 
 \`\`\`ts
-const urlSyncPlugin: AdeoGridPlugin = {
+const urlSyncPlugin: GridPlugin = {
   name: 'url-sync',
   init({ state }) {
     const stop = watch(
@@ -304,7 +304,7 @@ const urlSyncPlugin: AdeoGridPlugin = {
 \`\`\`
 
 \`\`\`vue
-<AdeoGrid :plugins="[urlSyncPlugin]" :columns="cols" :rows="rows" />
+<ad-grid-vue :plugins="[urlSyncPlugin]" :columns="cols" :rows="rows" />
 \`\`\`
 
 ### Patterns courants
@@ -325,13 +325,13 @@ Voir story suivante.
     },
   },
   render: () => ({
-    components: { AdeoGrid },
+    components: { AdGridVue },
     setup() {
       const log = ref<string[]>([])
 
       // Tiny audit-log plugin: watches state on init, returns a cleanup
       // that logs disposal.
-      const auditPlugin: AdeoGridPlugin = {
+      const auditPlugin: GridPlugin = {
         name: 'audit',
         init({ state }) {
           log.value.push('plugin:init')
@@ -351,15 +351,15 @@ Voir story suivante.
       return { lmColumns, lmProducts, log, plugins: [auditPlugin] }
     },
     template: `
-      <div class="sb-adeo-grid-shell">
+      <div class="sb-grid-shell">
         <h2>Plugins (<code>:plugins</code>)</h2>
         <p>Un plugin reçoit <code>{ state, engine }</code>. Idéal pour l'audit, l'analytics, des keybindings custom — tout sans toucher le core.</p>
-        <div class="sb-adeo-grid-toolbar">Audit log :
+        <div class="sb-grid-toolbar">Audit log :
           <code v-for="(l, i) in log.slice(-3)" :key="i" style="margin-left: 6px">{{ l }}</code>
           <code v-if="!log.length">vide</code>
         </div>
-        <div class="sb-adeo-grid-frame">
-          <AdeoGrid :height="560" :columns="lmColumns" :rows="lmProducts" :plugins="plugins" />
+        <div class="sb-grid-frame">
+          <ad-grid-vue :height="560" :columns="lmColumns" :rows="lmProducts" :plugins="plugins" />
         </div>
       </div>
     `,
@@ -379,15 +379,15 @@ Deux options pour activer l'undo/redo des cell edits + fills + bulk deletes :
 ### Option 1 — \`history-id\` (le plus simple)
 
 \`\`\`vue
-<AdeoGrid :columns="cols" :rows="rows" history-id="my-grid" />
+<ad-grid-vue :columns="cols" :rows="rows" history-id="my-grid" />
 \`\`\`
 
-Persiste la stack en \`localStorage["adeo-grid-grid-history:my-grid"]\` automatiquement.
+Persiste la stack en \`localStorage["grid-history:my-grid"]\` automatiquement.
 
 ### Option 2 — \`useUndoRedoPlugin\` (avancé)
 
 \`\`\`ts
-import { useUndoRedoPlugin } from '@/components/AdeoGrid'
+import { useUndoRedoPlugin } from '@/components/Grid'
 const plugins = [useUndoRedoPlugin({ storageKey: 'my-grid' })]
 \`\`\`
 
@@ -411,7 +411,7 @@ Cell edits, fills, bulk deletes — pas le sort/filter/pin/hide (transitions UX,
     },
   },
   render: () => ({
-    components: { AdeoGrid },
+    components: { AdGridVue },
     setup() {
       // Editable copy of the LM dataset — the undo plugin reverts cell
       // values through the same `cellEdit` pipeline the consumer wires up.
@@ -426,7 +426,7 @@ Cell edits, fills, bulk deletes — pas le sort/filter/pin/hide (transitions UX,
         if (r) (r as Record<string, unknown>)[e.field] = e.newValue
       }
 
-      // History stacks persist under `adeo-grid-history:lm-undo-demo` so a
+      // History stacks persist under `grid-history:lm-undo-demo` so a
       // page reload keeps your undo trail. Cmd/Ctrl+Z and Cmd/Ctrl+Shift+Z
       // (or Cmd/Ctrl+Y) trigger undo/redo at the window level.
       const undoPlugin = useUndoRedoPlugin({ storageKey: 'lm-undo-demo' })
@@ -434,15 +434,15 @@ Cell edits, fills, bulk deletes — pas le sort/filter/pin/hide (transitions UX,
       return { rows, editableColumns, plugins: [undoPlugin], onCellEdit }
     },
     template: `
-      <div class="sb-adeo-grid-shell">
+      <div class="sb-grid-shell">
         <h2>Undo / Redo plugin</h2>
         <p>
           Drop-in <code>useUndoRedoPlugin({ storageKey })</code>. Edits, paste, fill, cut, delete are
           recorded automatically; <kbd>⌘Z</kbd>&nbsp;/&nbsp;<kbd>⌘⇧Z</kbd> (or <kbd>⌘Y</kbd>) revert / replay
-          them. Stacks survive a reload via <code>localStorage["adeo-grid-grid-history:lm-undo-demo"]</code>.
+          them. Stacks survive a reload via <code>localStorage["grid-history:lm-undo-demo"]</code>.
         </p>
-        <div class="sb-adeo-grid-frame">
-          <AdeoGrid :height="560"
+        <div class="sb-grid-frame">
+          <ad-grid-vue :height="560"
             :columns="editableColumns"
             :rows="rows"
             :plugins="plugins"
@@ -456,30 +456,30 @@ Cell edits, fills, bulk deletes — pas le sort/filter/pin/hide (transitions UX,
 }
 
 export const DeclarativeColumns: Story = {
-  name: '<AdeoColumn> declarative API',
+  name: '<ad-grid-column> declarative API',
   parameters: {
     docs: {
       description: {
         story: `
-## Declarative \`<AdeoColumn>\` children
+## Declarative \`<ad-grid-column>\` children
 
 Alternative à la prop \`:columns\` : déclarez chaque colonne en SFC enfant. Plus lisible quand vous avez beaucoup de slots inline ou de logic Vue.
 
 ### Implémentation
 
 \`\`\`vue
-<AdeoGrid :rows="rows" selectable>
-  <AdeoColumn field="sku" header-name="Réf" :width="120" pinned="start" />
-  <AdeoColumn field="name" header-name="Produit" :width="260" sortable filterable filter-type="text" />
-  <AdeoColumn field="price" header-name="Prix" :width="110" sortable editable cell-editor="number">
+<ad-grid-vue :rows="rows" selectable>
+  <ad-grid-column field="sku" header-name="Réf" :width="120" pinned="start" />
+  <ad-grid-column field="name" header-name="Produit" :width="260" sortable filterable filter-type="text" />
+  <ad-grid-column field="price" header-name="Prix" :width="110" sortable editable cell-editor="number">
     <template #cell="{ value }">{{ value.toFixed(2) }} €</template>
-  </AdeoColumn>
-</AdeoGrid>
+  </ad-grid-column>
+</ad-grid-vue>
 \`\`\`
 
 ### vs prop \`:columns\`
 
-| Critère | \`:columns\` | \`<AdeoColumn>\` |
+| Critère | \`:columns\` | \`<ad-grid-column>\` |
 |---------|------------|----------------|
 | Slots par colonne | Via \`#cell-{field}\` racine | Slots enfants directs |
 | Génération dynamique | Naturel | \`v-for\` (plus verbeux) |
@@ -488,37 +488,37 @@ Alternative à la prop \`:columns\` : déclarez chaque colonne en SFC enfant. Pl
 ### Combiner les deux
 
 \`\`\`vue
-<AdeoGrid :columns="propCols" :rows="rows">
-  <AdeoColumn field="custom" header-name="Custom">
+<ad-grid-vue :columns="propCols" :rows="rows">
+  <ad-grid-column field="custom" header-name="Custom">
     <template #cell="{ row }">…</template>
-  </AdeoColumn>
-</AdeoGrid>
+  </ad-grid-column>
+</ad-grid-vue>
 \`\`\`
 
-Quand un \`field\` matche entre les deux APIs, le \`<AdeoColumn>\` enfant **override** la version prop. Pratique pour ajouter un slot sans réécrire la \`ColumnDef\`.
+Quand un \`field\` matche entre les deux APIs, le \`<ad-grid-column>\` enfant **override** la version prop. Pratique pour ajouter un slot sans réécrire la \`ColumnDef\`.
 
 ### Sous le capot
 
-Chaque \`<AdeoColumn>\` s'enregistre via \`provide(ADEO_GRID_COLUMN_REGISTRY_KEY)\`. \`AdeoGrid\` merge avec \`props.columns\` pour produire \`mergedColumns\` (le registry gagne en cas de collision sur \`field\`).
+Chaque \`<ad-grid-column>\` s'enregistre via \`provide(GRID_COLUMN_REGISTRY_KEY)\`. \`Grid\` merge avec \`props.columns\` pour produire \`mergedColumns\` (le registry gagne en cas de collision sur \`field\`).
         `,
       },
     },
   },
   render: () => ({
-    components: { AdeoGrid, AdeoColumn },
+    components: { AdGridVue, Column },
     setup: () => ({ lmProducts }),
     template: `
-      <div class="sb-adeo-grid-shell">
-        <h2>Declarative columns via <code>&lt;AdeoColumn&gt;</code></h2>
+      <div class="sb-grid-shell">
+        <h2>Declarative columns via <code>&lt;Column&gt;</code></h2>
         <p>Alternative à la prop <code>:columns</code>. Pratique quand chaque colonne porte des slots ou des règles spécifiques au template.</p>
-        <div class="sb-adeo-grid-frame">
-          <AdeoGrid :height="560" :rows="lmProducts">
-            <AdeoColumn field="sku" headerName="Réf" width="120px" pinned="start" />
-            <AdeoColumn field="name" headerName="Produit" width="260px" :editable="true" />
-            <AdeoColumn field="brand" headerName="Marque" width="140px" :sortable="true" />
-            <AdeoColumn field="price" headerName="Prix" width="110px" :sortable="true" :editable="true" />
-            <AdeoColumn field="store" headerName="Magasin" width="180px" pinned="end" />
-          </AdeoGrid>
+        <div class="sb-grid-frame">
+          <ad-grid-vue :height="560" :rows="lmProducts">
+            <ad-grid-column field="sku" headerName="Réf" width="120px" pinned="start" />
+            <ad-grid-column field="name" headerName="Produit" width="260px" :editable="true" />
+            <ad-grid-column field="brand" headerName="Marque" width="140px" :sortable="true" />
+            <ad-grid-column field="price" headerName="Prix" width="110px" :sortable="true" :editable="true" />
+            <ad-grid-column field="store" headerName="Magasin" width="180px" pinned="end" />
+          </ad-grid-vue>
         </div>
       </div>
     `,

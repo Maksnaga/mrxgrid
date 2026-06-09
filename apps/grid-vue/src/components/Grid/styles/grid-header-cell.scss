@@ -3,7 +3,7 @@
 
 @use '@mozaic-ds/styles/tools/t.font' as *;
 
-@layer adeo-grid {
+@layer grid {
   .grid-header-cell-root {
     display: block;
     height: 100%;
@@ -68,11 +68,11 @@
     height: 18px;
     padding: 0 4px;
     margin-right: var(--spacing-xs, 4px);
-    border-radius: 3px;
+    border-radius: var(--border-radius-xs, 2px);
     background: var(--color-state-info-strong, #2374b9);
-    color: #fff;
-    font-size: 11px;
-    font-weight: 600;
+    color: #fff; /* white on info-strong — intentional, no token */
+    font-size: var(--font-size-25, 11px);
+    font-weight: var(--font-weight-semi-bold, 600);
     letter-spacing: 0.02em;
     line-height: 1;
     flex-shrink: 0;
@@ -94,7 +94,7 @@
     color: var(--color-text-secondary);
     @include set-font-family();
     font-size: var(--font-size-50);
-    font-weight: 700;
+    font-weight: var(--font-weight-bold, 700);
     text-transform: uppercase;
   }
 
@@ -131,7 +131,7 @@
 
   .grid-header-cell__menu-trigger--filtered {
     opacity: 1;
-    color: var(--Status-Standalone-element-Primary, #0071ce);
+    color: var(--color-brand-primary, #0071ce);
   }
 
   .grid-header-cell__resize-handle {

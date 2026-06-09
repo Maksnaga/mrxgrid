@@ -1,5 +1,5 @@
 /**
- * Inline edit engine — Angular parity (moz-grid / `InlineEditEngine`).
+ * Inline edit engine — Angular parity (ad-grid / `InlineEditEngine`).
  *
  * Owns the `cellEditState` lifecycle: start (click / F2 / Enter), typing-to-
  * edit (Excel-style, `startEditWithChar`), draft updates, commit, cancel.

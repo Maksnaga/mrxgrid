@@ -29,8 +29,8 @@ describe('FormulaRefPalette', () => {
   })
 
   it('emits a CSS var reference', () => {
-    expect(paletteColorVar(3)).toBe('var(--moz-grid-ref-color-3)')
-    expect(paletteColorVar(99)).toBe('var(--moz-grid-ref-color-3)')
+    expect(paletteColorVar(3)).toBe('var(--ad-grid-ref-color-3)')
+    expect(paletteColorVar(99)).toBe('var(--ad-grid-ref-color-3)')
   })
 })
 
@@ -92,8 +92,8 @@ describe('useRefHighlight (composable)', () => {
     const svc = useRefHighlight()
     svc.setHighlights([hl(svc, 'A1', [cellA1]), hl(svc, 'B1', [cellB1])])
     const map = svc.colorByCell.value
-    expect(map.get('r1|price')).toBe('var(--moz-grid-ref-color-0)')
-    expect(map.get('r1|qty')).toBe('var(--moz-grid-ref-color-1)')
+    expect(map.get('r1|price')).toBe('var(--ad-grid-ref-color-0)')
+    expect(map.get('r1|qty')).toBe('var(--ad-grid-ref-color-1)')
   })
 
   it('same ref key across updates keeps the same color slot', () => {

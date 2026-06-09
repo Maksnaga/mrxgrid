@@ -1,12 +1,12 @@
 import type { Meta, StoryObj } from '@storybook/vue3-vite'
 import { ref } from 'vue'
-import { AdeoGrid } from '@/components/AdeoGrid'
-import type { RowData } from '@/components/AdeoGrid'
+import { AdGridVue } from '@/components/Grid'
+import type { RowData } from '@/components/Grid'
 import { generateLMProducts, lmColumns, type LMProduct } from './_fixtures'
 
 const meta = {
   title: 'Stories/Lazy Loading/Page-based · Infinite scroll',
-  component: AdeoGrid,
+  component: AdGridVue,
   tags: ['autodocs'],
   args: { rows: [] },
   parameters: {
@@ -33,7 +33,7 @@ Pour l'infinite scroll, le \`rows\` array peut être **sparse** : remplissez aux
       },
     },
   },
-} satisfies Meta<typeof AdeoGrid>
+} satisfies Meta<typeof AdGridVue>
 
 export default meta
 type Story = StoryObj<typeof meta>
@@ -84,11 +84,11 @@ async function onVisibleRangeChange(start: number, end: number) {
 </script>
 
 <template>
-  <AdeoGrid
+  <ad-grid-vue
     :columns="columns"
     :rows="rows"
     :total-count="TOTAL"
-    virtual-scroll
+
     :container-height="560"
     :on-visible-range-change="onVisibleRangeChange"
   />
@@ -117,7 +117,7 @@ const onVisible = debounce(handler, 60)
     },
   },
   render: () => ({
-    components: { AdeoGrid },
+    components: { AdGridVue },
     setup() {
       const PAGE = 200
       const rows = ref<LMProduct[]>([])
@@ -154,18 +154,18 @@ const onVisible = debounce(handler, 60)
       return { lmColumns, rows, totalCount: SERVER_TOTAL, loading, requested, onVisibleRangeChange }
     },
     template: `
-      <div class="sb-adeo-grid-shell">
+      <div class="sb-grid-shell">
         <h2>Infinite scroll via <code>onVisibleRangeChange</code></h2>
         <p>Le grid signale la fenêtre visible ; on fetch la page correspondante. <code>:total-count</code> garde la scrollbar stable indépendamment des lignes déjà chargées.</p>
-        <div class="sb-adeo-grid-toolbar">
+        <div class="sb-grid-toolbar">
           {{ loading ? '⏳ chargement…' : '✓ idle' }} · dernière requête : <code>{{ requested }}</code>
         </div>
-        <div class="sb-adeo-grid-frame" style="height: 560px">
-          <AdeoGrid :height="560"
+        <div class="sb-grid-frame" style="height: 560px">
+          <ad-grid-vue :height="560"
             :columns="lmColumns"
             :rows="rows"
             :total-count="totalCount"
-            virtual-scroll
+
             :container-height="560"
             :on-visible-range-change="onVisibleRangeChange"
           />
@@ -202,12 +202,12 @@ async function onPageChange(p: {
 </script>
 
 <template>
-  <AdeoGrid
+  <ad-grid-vue
     :columns="columns"
     :rows="rows"
     :total-count="total"
     :pagination="true"
-    virtual-scroll
+
     :container-height="560"
     @page-change="onPageChange"
   />
@@ -228,7 +228,7 @@ Si vous filtrez ou triez côté serveur, écoutez aussi \`@filter-change\` et ut
     },
   },
   render: () => ({
-    components: { AdeoGrid },
+    components: { AdGridVue },
     setup() {
       const rows = ref<LMProduct[]>(allRows.slice(0, 50))
       const lastChange = ref<string>('—')
@@ -244,17 +244,17 @@ Si vous filtrez ou triez côté serveur, écoutez aussi \`@filter-change\` et ut
       return { lmColumns, rows, lastChange, onPageChange, totalCount: SERVER_TOTAL }
     },
     template: `
-      <div class="sb-adeo-grid-shell">
+      <div class="sb-grid-shell">
         <h2>Page-based lazy fetch (no infinite scroll)</h2>
         <p>Avec <code>:pagination="true"</code> + <code>:total-count</code>, on écoute <code>pageChange</code> pour fetch uniquement la page courante.</p>
-        <div class="sb-adeo-grid-toolbar">{{ lastChange }}</div>
-        <div class="sb-adeo-grid-frame" style="height: 560px">
-          <AdeoGrid :height="560"
+        <div class="sb-grid-toolbar">{{ lastChange }}</div>
+        <div class="sb-grid-frame" style="height: 560px">
+          <ad-grid-vue :height="560"
             :columns="lmColumns"
             :rows="rows"
             :total-count="totalCount"
             :pagination="true"
-            virtual-scroll
+
             :container-height="560"
             @page-change="onPageChange"
           />

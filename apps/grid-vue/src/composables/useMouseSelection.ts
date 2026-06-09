@@ -1,5 +1,5 @@
 import { ref, computed, isRef, onBeforeUnmount, type Ref } from 'vue'
-import type { ColumnDef, RowData } from '@/components/AdeoGrid/types'
+import type { ColumnDef, RowData } from '@/components/Grid/types'
 
 export interface MouseSelectionOptions {
   allColumns: Ref<ColumnDef[]>
@@ -78,7 +78,7 @@ export function useMouseSelection(options: MouseSelectionOptions) {
   function getHeaderHeight(): number {
     const el = wrapperRef.value
     if (!el) return 0
-    const header = el.querySelector('.adeo-grid-grid-sticky-header') ?? el.querySelector('.adeo-grid-grid-header')
+    const header = el.querySelector('.grid-sticky-header') ?? el.querySelector('.grid-header')
     if (!header) return 0
     return header.getBoundingClientRect().height
   }

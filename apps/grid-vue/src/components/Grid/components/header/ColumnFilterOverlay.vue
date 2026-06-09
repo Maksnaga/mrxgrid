@@ -6,7 +6,7 @@
  * Manages one or more `Draft` rows locally (one row = one operator/value
  * pair for the column). Live-applies on every change: operator picks
  * commit immediately, free-typed values debounce at 200ms. The host
- * (`AdeoGrid`) routes each emit through the existing filter engine so
+ * (`Grid`) routes each emit through the existing filter engine so
  * the FILTERED BY tag bar updates without an explicit "Apply" press.
  *
  * Adding a row appends a new draft anchored to the same column. Removing
@@ -32,6 +32,8 @@ import type {
   FilterOperator,
   FilterValue,
 } from '../../models/filter.model'
+
+defineOptions({ name: 'AdGridColumnFilterOverlay' })
 
 const props = defineProps<{
   /** Field of the column the overlay was opened from — used to seed the
@@ -338,7 +340,7 @@ function onValueSelect(d: Draft, v: string | number) {
 }
 
 /**
- * `AdeoFilterParams.onModelChange` — invoked by the filter component each
+ * `FilterParams.onModelChange` — invoked by the filter component each
  * time it announces a new model. Mirrors the model onto the draft, then
  * emits `apply` (still active) or `remove` (cleared). Idempotent: a
  * subsequent `onModelChange(null)` is a safe no-op when nothing was set.
@@ -641,7 +643,7 @@ onBeforeUnmount(() => {
   <Teleport to="body">
     <div
       ref="overlayRef"
-      class="adeo-grid-column-filter-overlay"
+      class="grid-column-filter-overlay"
       :style="{
         top: `${position.top}px`,
         left: `${position.left}px`,
@@ -650,29 +652,29 @@ onBeforeUnmount(() => {
       :aria-label="`Filter ${column.headerName}`"
     >
       <div
-        class="adeo-grid-column-filter-overlay__header"
+        class="grid-column-filter-overlay__header"
         title="Drag to move"
         @mousedown="onHeaderMouseDown"
       >
-        <div class="adeo-grid-column-filter-overlay__title">Filter</div>
-        <div class="adeo-grid-column-filter-overlay__subtitle">Show rows</div>
+        <div class="grid-column-filter-overlay__title">Filter</div>
+        <div class="grid-column-filter-overlay__subtitle">Show rows</div>
       </div>
 
       <div
         v-for="(draft, idx) in drafts"
         :key="draft.id"
-        class="adeo-grid-column-filter-overlay__row"
-        :class="{ 'adeo-grid-column-filter-overlay__row--dragging': dragFromIndex === idx }"
+        class="grid-column-filter-overlay__row"
+        :class="{ 'grid-column-filter-overlay__row--dragging': dragFromIndex === idx }"
         draggable="true"
         @dragstart="onDragStart(idx, $event)"
         @dragover="onDragOver(idx, $event)"
         @drop.prevent="onDrop(idx)"
         @dragend="onDragEnd"
       >
-        <span v-if="idx === 0" class="adeo-grid-column-filter-overlay__where">Where</span>
-        <div v-else class="adeo-grid-column-filter-overlay__combinator-slot">
+        <span v-if="idx === 0" class="grid-column-filter-overlay__where">Where</span>
+        <div v-else class="grid-column-filter-overlay__combinator-slot">
           <MSelect
-            :id="`adeo-grid-col-filter-comb-${draft.id}`"
+            :id="`grid-col-filter-comb-${draft.id}`"
             size="s"
             :options="COMBINATOR_OPTIONS"
             :model-value="draft.combinator"
@@ -680,9 +682,9 @@ onBeforeUnmount(() => {
           />
         </div>
 
-        <div class="adeo-grid-column-filter-overlay__field-slot">
+        <div class="grid-column-filter-overlay__field-slot">
           <MSelect
-            :id="`adeo-grid-col-filter-field-${draft.id}`"
+            :id="`grid-col-filter-field-${draft.id}`"
             size="s"
             :options="fieldOptions"
             :model-value="draft.field"
@@ -692,10 +694,10 @@ onBeforeUnmount(() => {
 
         <div
           v-if="!customFilterFor(getColumn(draft.field))"
-          class="adeo-grid-column-filter-overlay__operator-slot"
+          class="grid-column-filter-overlay__operator-slot"
         >
           <MSelect
-            :id="`adeo-grid-col-filter-op-${draft.id}`"
+            :id="`grid-col-filter-op-${draft.id}`"
             size="s"
             :options="getOperatorOptions(draft.field)"
             :model-value="draft.operator"
@@ -710,7 +712,7 @@ onBeforeUnmount(() => {
              builder hooks `refresh()` / `afterGuiAttached()` via the ref. -->
         <div
           v-if="customFilterFor(getColumn(draft.field))"
-          class="adeo-grid-column-filter-overlay__value-slot"
+          class="grid-column-filter-overlay__value-slot"
         >
           <component
             :is="customFilterFor(getColumn(draft.field))!.component"
@@ -719,10 +721,10 @@ onBeforeUnmount(() => {
           />
         </div>
 
-        <div v-else-if="!isValueless(draft.operator)" class="adeo-grid-column-filter-overlay__value-slot">
+        <div v-else-if="!isValueless(draft.operator)" class="grid-column-filter-overlay__value-slot">
           <MSelect
             v-if="getValueOptions(draft.field)"
-            :id="`adeo-grid-col-filter-val-${draft.id}`"
+            :id="`grid-col-filter-val-${draft.id}`"
             size="s"
             :options="getValueOptions(draft.field)!"
             :model-value="selectValue(draft.value)"
@@ -730,7 +732,7 @@ onBeforeUnmount(() => {
           />
           <template v-else>
             <MTextInput
-              :id="`adeo-grid-col-filter-val-${draft.id}`"
+              :id="`grid-col-filter-val-${draft.id}`"
               size="s"
               :type="getInputType(draft.field)"
               :model-value="draft.value == null ? '' : String(draft.value)"
@@ -738,7 +740,7 @@ onBeforeUnmount(() => {
             />
             <MTextInput
               v-if="isRange(draft.operator)"
-              :id="`adeo-grid-col-filter-val-to-${draft.id}`"
+              :id="`grid-col-filter-val-to-${draft.id}`"
               size="s"
               :type="getInputType(draft.field)"
               :model-value="draft.valueTo == null ? '' : String(draft.valueTo)"
@@ -751,14 +753,14 @@ onBeforeUnmount(() => {
           ghost
           size="s"
           :aria-label="`Remove condition`"
-          class="adeo-grid-column-filter-overlay__remove"
+          class="grid-column-filter-overlay__remove"
           @click="onRemoveDraft(draft)"
         >
           <template #icon><Trash24 /></template>
         </MIconButton>
 
         <span
-          class="adeo-grid-column-filter-overlay__drag-handle"
+          class="grid-column-filter-overlay__drag-handle"
           aria-hidden="true"
           title="Drag to reorder"
         >
@@ -766,7 +768,7 @@ onBeforeUnmount(() => {
         </span>
       </div>
 
-      <div class="adeo-grid-column-filter-overlay__add-wrapper">
+      <div class="grid-column-filter-overlay__add-wrapper">
         <MButton
           ghost
           size="s"
@@ -783,21 +785,21 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped lang="scss">
-.adeo-grid-column-filter-overlay {
+.grid-column-filter-overlay {
   position: fixed;
   z-index: 9999;
   width: min(720px, calc(100vw - 32px));
   background: var(--color-background-primary, #fff);
   border: 1px solid var(--color-border-primary, #e2e8f0);
-  border-radius: 12px;
-  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12);
-  font-family: var(--font-family), system-ui, -apple-system, sans-serif;
+  border-radius: var(--border-radius-l, 16px);
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12); /* custom shadow — no matching Mozaic token */
+  font-family: var(--font-family, system-ui, -apple-system, sans-serif);
   padding: 14px 16px 12px;
 }
 
 // Header — "Filter" title + "Show rows" subtitle. Also doubles as the drag
 // handle for the whole overlay (see `onHeaderMouseDown`).
-.adeo-grid-column-filter-overlay__header {
+.grid-column-filter-overlay__header {
   margin-bottom: 12px;
   padding-bottom: 4px;
   cursor: grab;
@@ -808,22 +810,22 @@ onBeforeUnmount(() => {
   }
 }
 
-.adeo-grid-column-filter-overlay__title {
-  font-size: 16px;
-  font-weight: 600;
+.grid-column-filter-overlay__title {
+  font-size: var(--font-size-300, 16px);
+  font-weight: var(--font-weight-semi-bold, 600);
   color: var(--color-text-primary, #0f172a);
   line-height: 1.3;
 }
 
-.adeo-grid-column-filter-overlay__subtitle {
-  font-size: 13px;
-  font-weight: 400;
+.grid-column-filter-overlay__subtitle {
+  font-size: var(--font-size-100, 13px);
+  font-weight: var(--font-weight-regular, 400);
   color: var(--color-text-secondary, #64748b);
   line-height: 1.4;
   margin-top: 2px;
 }
 
-.adeo-grid-column-filter-overlay__row {
+.grid-column-filter-overlay__row {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -831,51 +833,51 @@ onBeforeUnmount(() => {
   padding: 4px;
 }
 
-.adeo-grid-column-filter-overlay__row + .adeo-grid-column-filter-overlay__row {
+.grid-column-filter-overlay__row + .grid-column-filter-overlay__row {
   margin-top: 4px;
 }
 
-.adeo-grid-column-filter-overlay__row--dragging {
+.grid-column-filter-overlay__row--dragging {
   opacity: 0.4;
 }
 
-.adeo-grid-column-filter-overlay__where {
-  font-size: 13px;
-  font-weight: 600;
+.grid-column-filter-overlay__where {
+  font-size: var(--font-size-100, 13px);
+  font-weight: var(--font-weight-semi-bold, 600);
   color: var(--color-text-secondary, #475569);
   flex-shrink: 0;
   padding: 0 6px;
   min-width: 50px;
 }
 
-.adeo-grid-column-filter-overlay__combinator-slot {
+.grid-column-filter-overlay__combinator-slot {
   flex: 0 0 auto;
   width: 88px;
 }
 
-.adeo-grid-column-filter-overlay__field-slot,
-.adeo-grid-column-filter-overlay__operator-slot {
+.grid-column-filter-overlay__field-slot,
+.grid-column-filter-overlay__operator-slot {
   flex: 0 0 auto;
   min-width: 140px;
 }
 
-.adeo-grid-column-filter-overlay__value-slot {
+.grid-column-filter-overlay__value-slot {
   flex: 1 1 200px;
   min-width: 160px;
   display: flex;
   gap: 6px;
 }
 
-.adeo-grid-column-filter-overlay__value-slot > * {
+.grid-column-filter-overlay__value-slot > * {
   flex: 1 1 0;
   min-width: 0;
 }
 
-.adeo-grid-column-filter-overlay__remove {
+.grid-column-filter-overlay__remove {
   flex-shrink: 0;
 }
 
-.adeo-grid-column-filter-overlay__drag-handle {
+.grid-column-filter-overlay__drag-handle {
   flex-shrink: 0;
   display: inline-flex;
   align-items: center;
@@ -887,13 +889,13 @@ onBeforeUnmount(() => {
   user-select: none;
 }
 
-.adeo-grid-column-filter-overlay__drag-handle:hover {
+.grid-column-filter-overlay__drag-handle:hover {
   color: var(--color-text-secondary, #64748b);
 }
 
 // Wrapper around the `MButton`-based "Add condition" CTA — just gives it
 // the same horizontal indent as the rows above so it lines up under "Where".
-.adeo-grid-column-filter-overlay__add-wrapper {
+.grid-column-filter-overlay__add-wrapper {
   margin-top: 8px;
   padding: 0 4px;
 }

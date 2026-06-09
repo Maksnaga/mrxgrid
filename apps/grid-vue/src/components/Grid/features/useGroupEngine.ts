@@ -1,5 +1,5 @@
 /**
- * Group engine — Angular parity (moz-grid / `GroupEngine`).
+ * Group engine — Angular parity (ad-grid / `GroupEngine`).
  *
  * Owns `state.groupColumns` + `state.expandedGroups` and produces a flat
  * `DisplayRow<T>[]` from a data slice when grouping is active. Output mixes

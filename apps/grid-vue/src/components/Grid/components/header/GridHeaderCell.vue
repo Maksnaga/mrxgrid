@@ -1,16 +1,16 @@
 <script setup lang="ts">
 /**
- * Header cell — Angular parity (`moz-grid-header-cell`).
+ * Header cell — Angular parity (`ad-grid-header-cell`).
  *
- * One header cell, as rendered by `AdeoGridHeader`. Formerly the cell markup
- * was duplicated three times in `AdeoGridHeader.vue` (left-pinned / center /
+ * One header cell, as rendered by `AdGridHeader`. Formerly the cell markup
+ * was duplicated three times in `AdGridHeader.vue` (left-pinned / center /
  * right-pinned). This component consolidates the three copies into a single
  * definition; the parent keeps control of positioning (pinning offsets,
  * spacers, sticky layers, edge shadows) via the `cellStyle` / `cellClass`
  * props.
  *
  * Responsibilities of this component:
- *   - render the header cell wrapper (`div.adeo-grid-grid-header-cell`)
+ *   - render the header cell wrapper (`div.grid-header-cell`)
  *   - render label + sort indicator + kebab menu trigger
  *   - render the resize handle when enabled
  *   - forward mousedown events for column drag (parent wires up reorder)
@@ -22,8 +22,11 @@
 import { computed, type CSSProperties } from 'vue'
 import { Settings20, Filter20, SortDown20, SortTop20 } from '@mozaic-ds/icons-vue'
 import type { ColumnDef, SortDirection } from '../../types'
-import { injectAdeoGridSlots, resolveHeaderSlot } from '../../state/AdeoGridSlots'
+import { injectGridSlots, resolveHeaderSlot } from '../../state/GridSlots'
 import { useGridContext } from '../../state/GridContext'
+
+defineOptions({ name: 'AdGridHeaderCell' })
+
 // B25 — engine-layer sort guard: read lastResizeEndedAt from GridState
 // (written by useColumnResizeEngine on mouseup). This is the sole check;
 // the legacy wasResizingRecently() module flag has been removed.
@@ -81,8 +84,8 @@ const sortIcon = computed(() => {
   return null
 })
 
-// Phase 3.3 — resolve `#header-{field}` / `<AdeoColumn> #header` / `#header` slot.
-const _gridSlots = injectAdeoGridSlots()
+// Phase 3.3 — resolve `#header-{field}` / `<ad-grid-column> #header` / `#header` slot.
+const _gridSlots = injectGridSlots()
 const resolvedHeaderSlot = computed(() => resolveHeaderSlot(_gridSlots, props.column.field))
 
 // --- Filter-aware kebab icon + tooltip (Angular parity) ---
@@ -125,8 +128,8 @@ function onHeaderMouseDown(e: MouseEvent): void {
   // Don't start column drag from resize handle or menu button
   const target = e.target as HTMLElement
   if (
-    target.closest('.adeo-grid-grid-resize-handle') ||
-    target.closest('.adeo-grid-grid-menu-trigger')
+    target.closest('.grid-resize-handle') ||
+    target.closest('.grid-menu-trigger')
   ) {
     return
   }
@@ -142,7 +145,7 @@ function onHeaderClick(e: MouseEvent): void {
   // those have their own behaviour. Slot-rendered controls in `#header-{field}`
   // can opt out by calling `event.stopPropagation()`.
   const target = e.target as HTMLElement
-  if (target.closest('.adeo-grid-grid-resize-handle') || target.closest('.adeo-grid-grid-menu-trigger')) {
+  if (target.closest('.grid-resize-handle') || target.closest('.grid-menu-trigger')) {
     return
   }
   // Suppress the synthetic click fired by the browser right after a
@@ -167,7 +170,7 @@ function onResizeMouseDown(e: MouseEvent): void {
 </script>
 
 <template>
-  <div class="adeo-grid-grid-header-cell" :class="[cellClass, { 'adeo-grid-grid-header-cell--moving': isMoving }]" :style="fill
+  <div class="grid-header-cell" :class="[cellClass, { 'grid-header-cell--moving': isMoving }]" :style="fill
     ? {
       ...cellStyle,
       // basis 0 (not auto) so a long header label can't push the
@@ -186,34 +189,34 @@ function onResizeMouseDown(e: MouseEvent): void {
       cursor: isSortable ? 'pointer' : 'grab',
     }
     " role="columnheader" :data-field="column.field" @mousedown="onHeaderMouseDown" @click="onHeaderClick">
-    <span class="adeo-grid-grid-header-content">
+    <span class="grid-header-content">
       <component v-if="resolvedHeaderSlot" :is="resolvedHeaderSlot" :column="column"
         :sort-direction="sortDirection ?? null" />
-      <span v-else class="adeo-grid-grid-header-label">{{ column.headerName }}</span>
-      <span v-if="sortIcon" class="adeo-grid-grid-sort-indicator" aria-hidden="true">
-        <component :is="sortIcon" class="adeo-grid-grid-sort-icon" />
-        <span v-if="sortIndex" class="adeo-grid-grid-sort-index">
+      <span v-else class="grid-header-label">{{ column.headerName }}</span>
+      <span v-if="sortIcon" class="grid-sort-indicator" aria-hidden="true">
+        <component :is="sortIcon" class="grid-sort-icon" />
+        <span v-if="sortIndex" class="grid-sort-index">
           {{ sortIndex }}
         </span>
       </span>
       <button
         type="button"
-        class="adeo-grid-grid-menu-trigger"
-        :class="{ 'adeo-grid-grid-menu-trigger--has-filter': hasActiveFilter }"
+        class="grid-menu-trigger"
+        :class="{ 'grid-menu-trigger--has-filter': hasActiveFilter }"
         :aria-label="menuTooltip ?? 'Menu de la colonne'"
         :title="menuTooltip"
         @click.stop="onMenuClick"
       >
-        <component :is="menuIcon" class="adeo-grid-grid-menu-icon" />
+        <component :is="menuIcon" class="grid-menu-icon" />
       </button>
     </span>
-    <div v-if="resizable" class="adeo-grid-grid-resize-handle" :class="{ 'adeo-grid-grid-resize-handle--left': resizeFromLeft }"
+    <div v-if="resizable" class="grid-resize-handle" :class="{ 'grid-resize-handle--left': resizeFromLeft }"
       @mousedown.prevent="onResizeMouseDown" />
   </div>
 </template>
 
 <style scoped lang="scss">
-.adeo-grid-grid-header-cell {
+.grid-header-cell {
   padding: m.get-spacing('100') m.get-spacing('150');
   text-align: left;
   font-size: m.get-font-size('50');
@@ -235,7 +238,7 @@ function onResizeMouseDown(e: MouseEvent): void {
   // header. The resize floor is the primary defense; this is the
   // safety net for declared widths.
   overflow: hidden;
-  // Stretch to the row's 47px height (set on `.adeo-grid-grid-header`) and
+  // Stretch to the row's 47px height (set on `.grid-header`) and
   // vertically center the inline content (label + sort indicator + kebab).
   // Padding stays for horizontal spacing — overflow stays inside the cell.
   display: flex;
@@ -244,15 +247,15 @@ function onResizeMouseDown(e: MouseEvent): void {
 
 // Pinned columns at the grid extremity carry no border on their outer
 // edge — the table boundary itself is the visual separator.
-.adeo-grid-grid-header-cell.adeo-grid-grid-cell--pinned-row-end {
+.grid-header-cell.grid-cell--pinned-row-end {
   border-right: none;
 }
 
-.adeo-grid-grid-header-cell.adeo-grid-grid-cell--pinned-row-start {
+.grid-header-cell.grid-cell--pinned-row-start {
   border-left: none;
 }
 
-.adeo-grid-grid-header-content {
+.grid-header-content {
   display: flex;
   align-items: center;
   gap: m.get-spacing('050');
@@ -264,7 +267,7 @@ function onResizeMouseDown(e: MouseEvent): void {
   min-width: 0;
 }
 
-.adeo-grid-grid-header-label {
+.grid-header-label {
   // `flex: 1 1 0` + `min-width: 0` is the canonical recipe for a
   // shrinkable flex child whose content would otherwise set a non-zero
   // min-content. Without `min-width: 0` the label refuses to shrink
@@ -284,32 +287,32 @@ function onResizeMouseDown(e: MouseEvent): void {
   line-height: 1.25;
 }
 
-.adeo-grid-grid-sort-indicator {
+.grid-sort-indicator {
   display: inline-flex;
   align-items: center;
   gap: 2px;
   flex-shrink: 0;
 }
 
-.adeo-grid-grid-sort-icon {
+.grid-sort-icon {
   width: 20px;
   height: 20px;
   display: block;
   fill: currentColor;
 }
 
-.adeo-grid-grid-sort-icon :deep(svg) {
+.grid-sort-icon :deep(svg) {
   width: 100%;
   height: 100%;
 }
 
-.adeo-grid-grid-sort-index {
-  font-size: 9px;
+.grid-sort-index {
+  font-size: 9px; /* custom value — no matching Mozaic token (below --font-size-25 = 11px) */
   color: var(--color-text-tertiary);
   vertical-align: super;
 }
 
-.adeo-grid-grid-menu-trigger {
+.grid-menu-trigger {
   background: none;
   border: none;
   cursor: pointer;
@@ -324,34 +327,34 @@ function onResizeMouseDown(e: MouseEvent): void {
   justify-content: center;
 }
 
-.adeo-grid-grid-menu-icon {
+.grid-menu-icon {
   width: 16px;
   height: 16px;
   display: block;
   fill: currentColor;
 }
 
-.adeo-grid-grid-menu-icon :deep(svg) {
+.grid-menu-icon :deep(svg) {
   width: 100%;
   height: 100%;
 }
 
-.adeo-grid-grid-header-cell:hover .adeo-grid-grid-menu-trigger {
+.grid-header-cell:hover .grid-menu-trigger {
   opacity: 1;
 }
 
-.adeo-grid-grid-menu-trigger:hover {
+.grid-menu-trigger:hover {
   color: var(--color-text-primary);
 }
 
 // When a filter is active on this column the menu trigger stays permanently
 // visible (opacity 1) and uses the brand accent colour to signal the state.
-.adeo-grid-grid-menu-trigger--has-filter {
+.grid-menu-trigger--has-filter {
   opacity: 1;
   color: var(--color-text-accent, #2563eb);
 }
 
-.adeo-grid-grid-resize-handle {
+.grid-resize-handle {
   position: absolute;
   top: 0;
   right: 0;
@@ -360,12 +363,12 @@ function onResizeMouseDown(e: MouseEvent): void {
   cursor: col-resize;
 }
 
-.adeo-grid-grid-resize-handle--left {
+.grid-resize-handle--left {
   right: auto;
   left: 0;
 }
 
-.adeo-grid-grid-resize-handle:hover {
+.grid-resize-handle:hover {
   background-color: var(--color-border-secondary);
 }
 </style>

@@ -2,14 +2,14 @@
 /**
  * Mini-grid embarqué qui affiche les mouvements de stock d'un produit.
  *
- * Démontre le pattern "grid dans grid" : la même `<AdeoGrid>` est
+ * Démontre le pattern "grid dans grid" : la même `<ad-grid-vue>` est
  * réutilisable en lecture seule, compacte, sans toolbar et avec ses
  * propres colonnes — typique d'une vue "détail" qui contient ses
  * sous-tableaux.
  */
 
 import { markRaw, onMounted, ref, watch } from 'vue'
-import { AdeoGrid, type ColumnDef } from '@/components/AdeoGrid'
+import { AdGridVue, type ColumnDef } from '@/components/Grid'
 import { getProductMovements } from '../../mock/api'
 import type { StockMovement } from '../../mock/seed'
 import MovementTypeCell from './MovementTypeCell.vue'
@@ -54,14 +54,14 @@ const columns: ColumnDef[] = [
     headerName: 'Qté',
     width: '70px',
     sortable: true,
-    cellClass: 'adeo-grid-cell-num',
+    cellClass: 'grid-cell-num',
   },
   {
     field: 'balance',
     headerName: 'Solde',
     width: '80px',
     sortable: true,
-    cellClass: 'adeo-grid-cell-num',
+    cellClass: 'grid-cell-num',
   },
   {
     field: 'reason',
@@ -77,7 +77,7 @@ const columns: ColumnDef[] = [
 </script>
 
 <template>
-  <AdeoGrid
+  <ad-grid-vue
     class="product-movements-grid"
     :columns="columns"
     :rows="rows"
@@ -89,7 +89,7 @@ const columns: ColumnDef[] = [
   >
     <!-- Pas de toolbar — vue lecture seule purement informative. -->
     <template #toolbar><span /></template>
-  </AdeoGrid>
+  </ad-grid-vue>
 </template>
 
 <style scoped lang="scss">

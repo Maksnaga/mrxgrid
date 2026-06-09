@@ -9,7 +9,7 @@
 import {
   generateLMProducts,
   type LMProduct,
-} from '@/components/AdeoGrid/__stories__/_fixtures'
+} from '@/components/Grid/__stories__/_fixtures'
 
 export type { LMProduct }
 
@@ -33,7 +33,7 @@ export interface StockMovement {
  * Combien de produits dans la démo.
  *
  * 100 000 — assez pour démontrer que le grid encaisse une vraie volumétrie
- * "enterprise" (catalogue national) avec le virtual-scroll expansion-aware.
+ * "enterprise" (catalogue national) avec le expansion-aware.
  * Le `generateLMProducts` reste rapide à ce volume (~150 ms au boot,
  * fait une seule fois en module load).
  */

@@ -1,8 +1,8 @@
 /* Ported from Angular `components/formula-reference-drawer/grid-formula-reference-drawer.scss`.
- * Translation: `:has(moz-grid-formula-reference-drawer)` rule + custom-element selector
+ * Translation: `:has(ad-grid-formula-reference-drawer)` rule + custom-element selector
  * dropped (Vue components don't render with their tag name). */
 
-@layer adeo-grid {
+@layer grid {
   .formula-ref {
     display: flex;
     flex-direction: column;
@@ -70,7 +70,7 @@
   .formula-ref__group-title {
     margin: 0 0 8px;
     font-size: var(--font-size-s, 14px);
-    font-weight: 700;
+    font-weight: var(--font-weight-bold, 700);
     color: var(--color-text-secondary);
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -105,7 +105,7 @@
 
   .formula-ref__name {
     font-size: var(--font-size-s, 14px);
-    font-weight: 700;
+    font-weight: var(--font-weight-bold, 700);
     color: var(--color-text-primary);
     letter-spacing: 0.3px;
   }

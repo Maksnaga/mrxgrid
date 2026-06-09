@@ -1,7 +1,7 @@
 /**
- * Central grid state — Angular parity (moz-grid / `GridStateManager`).
+ * Central grid state — Angular parity (ad-grid / `GridStateManager`).
  *
- * Each `<AdeoGrid>` instance creates one `GridState` via `useGridState()` and
+ * Each `<ad-grid-vue>` instance creates one `GridState` via `useGridState()` and
  * provides it under `GRID_STATE_KEY`. Feature composables read/write through
  * the returned refs/computeds. Names match Angular 1-for-1: when in doubt,
  * read `projects/mozaic-ng/src/lib/grid/state/grid-state.ts` side-by-side.
@@ -90,12 +90,21 @@ export interface GridState<T = RowData> {
   // --- Group ---
   readonly groupColumns: Ref<GroupEntry[]>
   readonly expandedGroups: Ref<Set<string>>
+  /**
+   * Grouping evaluation mode — `'client'` (default) runs the in-memory
+   * `GroupEngine`, `'server'` routes group summaries + per-group row pages
+   * through `ServerGroupEngine` (`useServerGroupEngine`). Decoupled from the
+   * grid-level `mode` so server pagination and client grouping can coexist
+   * when the consumer wants a per-page client grouping on top of paginated
+   * server data.
+   */
+  readonly groupMode: Ref<'client' | 'server'>
 
   // --- Filter ---
   readonly filterModel: Ref<FilterModel>
   /**
    * Filter evaluation mode, decoupled from the grid-level `mode`. Default `'client'`.
-   * `AdeoGrid.vue` derives it from the `filterMode` prop (falling back to `serverFilter`).
+   * `Grid.vue` derives it from the `filterMode` prop (falling back to `serverFilter`).
    */
   readonly filterMode: Ref<FilterMode>
 
@@ -165,7 +174,7 @@ export interface GridState<T = RowData> {
    * Resolves the stable row id from a row + its index in `sourceData`. Used
    * by the formula engine and any downstream feature that needs row ids
    * without assuming a specific field name. Default reads `row[rowIdField]`,
-   * but `AdeoGrid` overrides this with the user-supplied `rowId` function
+   * but `Grid` overrides this with the user-supplied `rowId` function
    * prop so grids whose row data has no `id` field still work end-to-end.
    */
   readonly rowIdResolver: Ref<
@@ -185,7 +194,7 @@ export interface GridState<T = RowData> {
   /**
    * `performance.now()` timestamp of the last column-resize mouseup.
    * Written by `useColumnResizeEngine` (engine layer). Sub-components
-   * (notably `AdeoGridHeaderCell`) read this to suppress the synthetic
+   * (notably `AdGridHeaderCell`) read this to suppress the synthetic
    * click-after-mouseup that would otherwise trigger a spurious sort
    * within ~200 ms of a resize.  Exposed on `GridState` so it is
    * injectable via `useGridContext()` without requiring the full engine.
@@ -224,7 +233,7 @@ export interface GridState<T = RowData> {
   updateColumnState(field: string, updates: Partial<ColumnStateEntry>): void
 }
 
-/** Create a fresh grid state. Call once per `<AdeoGrid>` instance. */
+/** Create a fresh grid state. Call once per `<ad-grid-vue>` instance. */
 export function useGridState<T = RowData>(): GridState<T> {
   // --- Source data ---
   const sourceData = ref([]) as Ref<T[]>
@@ -247,6 +256,7 @@ export function useGridState<T = RowData>(): GridState<T> {
   // --- Group ---
   const groupColumns = ref<GroupEntry[]>([])
   const expandedGroups = ref<Set<string>>(new Set())
+  const groupMode = ref<'client' | 'server'>('client')
 
   // --- Filter ---
   const filterModel = ref<FilterModel>({ conditions: [] })
@@ -266,7 +276,10 @@ export function useGridState<T = RowData>(): GridState<T> {
   const scrollContentTotalWidth = ref(0)
 
   // --- Horizontal virtual scroll ---
-  const horizontalVirtualScrollEnabled = ref(false)
+  // Default ON: column virtualization is always-on for the consumer
+  // (no input gate). Internal code (e.g. column-drag) may toggle this
+  // off transiently to avoid clipping the drag preview.
+  const horizontalVirtualScrollEnabled = ref(true)
   const visibleColumnRange = ref<{ start: number; end: number }>({ start: 0, end: 0 })
 
   // --- UI ---
@@ -309,7 +322,7 @@ export function useGridState<T = RowData>(): GridState<T> {
   const draggingColumn = ref<string | null>(null)
   const dropIndicatorIndex = ref<number | null>(null)
 
-  // --- Column-resize timestamp (read by AdeoGridHeaderCell sort guard) ---
+  // --- Column-resize timestamp (read by AdGridHeaderCell sort guard) ---
   const lastResizeEndedAt = ref(0)
 
   // --- Formula bar edit mode ---
@@ -458,6 +471,7 @@ export function useGridState<T = RowData>(): GridState<T> {
     activeSorts,
     groupColumns,
     expandedGroups,
+    groupMode,
     filterModel,
     filterMode,
     pageIndex,

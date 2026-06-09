@@ -1,0 +1,23 @@
+@if (selectedCount() > 0) {
+<div class="selection-bar" role="toolbar" aria-label="Bulk actions">
+  <button
+    type="button"
+    class="selection-bar__close"
+    aria-label="Clear selection"
+    (click)="onClear()"
+  >
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+      <path d="M8 6.586L12.293 2.293a1 1 0 1 1 1.414 1.414L9.414 8l4.293 4.293a1 1 0 0 1-1.414 1.414L8 9.414l-4.293 4.293a1 1 0 0 1-1.414-1.414L6.586 8 2.293 3.707a1 1 0 0 1 1.414-1.414L8 6.586z"/>
+    </svg>
+  </button>
+  <span class="selection-bar__count">
+    <strong>{{ selectedCount() }}</strong> {{ selectionLabel() }}
+  </span>
+  <div class="selection-bar__divider"></div>
+  <button type="button" class="selection-bar__action" (click)="editClick.emit()">Edit</button>
+  <button type="button" class="selection-bar__action" (click)="copyClick.emit()">Copy</button>
+  <button type="button" class="selection-bar__action" (click)="pasteClick.emit()">Paste</button>
+  <button type="button" class="selection-bar__action" (click)="exportClick.emit()">Export</button>
+  <button type="button" class="selection-bar__action selection-bar__action--danger" (click)="deleteClick.emit()">Delete</button>
+</div>
+}

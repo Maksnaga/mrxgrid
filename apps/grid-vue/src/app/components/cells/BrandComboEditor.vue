@@ -17,7 +17,7 @@
 
 import { computed } from 'vue'
 import { MCombobox } from '@mozaic-ds/vue'
-import type { ColumnDef } from '@/components/AdeoGrid'
+import type { ColumnDef } from '@/components/Grid'
 
 const props = defineProps<{
   /** Champ de la colonne (utilisé pour générer un id stable). */
@@ -68,7 +68,7 @@ function onUpdate(v: string | number | null | (string | number)[]): void {
 
 <template>
   <MCombobox
-    :id="`adeo-grid-cell-combo-${field}-${rowIndex}`"
+    :id="`grid-cell-combo-${field}-${rowIndex}`"
     size="s"
     searchable
     clearable

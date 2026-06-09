@@ -1,0 +1,39 @@
+.grid-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: var(--spacing-100, 8px);
+  padding: var(--spacing-400, 32px) var(--spacing-300, 24px);
+  width: 100%;
+  height: 100%;
+  min-height: 240px; // custom value — no matching Mozaic token
+  color: var(--color-text-secondary, #555);
+
+  &__icon {
+    color: var(--color-text-tertiary, #97a1a8);
+    margin-bottom: var(--spacing-050, 4px);
+    display: inline-flex;
+  }
+
+  &__title {
+    margin: 0;
+    font-size: var(--font-size-150, 16px);
+    font-weight: var(--font-weight-semi-bold, 600);
+    color: var(--color-text-primary, #222);
+  }
+
+  &__description {
+    margin: 0;
+    max-width: 360px; // custom value — no matching Mozaic token
+    font-size: var(--font-size-100, 14px);
+    line-height: var(--line-height-m, 1.4);
+  }
+
+  &--no-results {
+    .grid-empty-state__icon {
+      color: var(--color-status-standalone-info, #0071ce);
+    }
+  }
+}

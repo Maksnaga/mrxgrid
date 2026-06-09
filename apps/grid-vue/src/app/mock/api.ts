@@ -10,7 +10,7 @@
  * aux composants consumer — c'est l'intérêt du contrat `Promise<…>`.
  */
 
-import type { FilterModel } from '@/components/AdeoGrid'
+import type { FilterModel } from '@/components/Grid'
 import { delay, maybeThrow } from './latency'
 import { productStore } from './store'
 import { generateMovements, type LMProduct, type StockMovement } from './seed'

@@ -3,7 +3,7 @@
 ## 1. Problème observé
 
 Aujourd'hui le grid expose un seul flag `loading: boolean`. Quand il est `true`,
-`AdeoGridBody` est entièrement remplacé par `<AdeoGridSkeletonBody>` qui rend N
+`GridBody` est entièrement remplacé par `<ad-grid-skeleton-body>` qui rend N
 rows shimmer.
 
 Côté demo, `useProductList.refetch()` setle `list.loading.value = true` pour
@@ -37,7 +37,7 @@ Ce qu'on veut :
 Le grid expose **3 props indépendants**, chacun pour un cas distinct :
 
 ```ts
-interface AdeoGridProps {
+interface GridProps {
   /**
    * Skeleton plein écran (body intégralement remplacé). Réservé au
    * cas "rows vides + premier fetch en vol".
@@ -74,7 +74,7 @@ on peut avoir un bulk delete (rowIds) ET en parallèle un cell edit (pendingCell
 ET un refetch (refreshing). L'enum forcerait à prioriser, là on superpose les
 indicateurs naturellement.
 
-### 2.2 Mapping côté `AdeoGridCell` (cell-level)
+### 2.2 Mapping côté `GridCell` (cell-level)
 
 Le composable d'édition expose déjà `getCellFlags(rowIndex, field): CellFlags`
 qui drive les classes/edges de chaque cellule. On ajoute un flag `pending` :
@@ -89,26 +89,26 @@ interface CellFlags {
 }
 ```
 
-Dans `AdeoGrid.vue`, on construit un `pendingLookup: Map<string, true>` indexé
+Dans `Grid.vue`, on construit un `pendingLookup: Map<string, true>` indexé
 par `${rowId}:${field}` à partir de `props.pendingCells`. `getCellFlags` consulte
 cette Map et set le flag.
 
-Côté `AdeoGridCell.vue`, le flag `pending` ajoute la classe `.adeo-grid-cell--pending`
+Côté `GridCell.vue`, le flag `pending` ajoute la classe `.grid-cell--pending`
 qui rend un overlay shimmer **par-dessus** la valeur (et pas à la place — la
 valeur reste lisible en filigrane, ce qui aide à comprendre quel champ
 exactement est en train d'être pushé).
 
-### 2.3 Mapping côté `AdeoGridRow` (row-level)
+### 2.3 Mapping côté `GridRow` (row-level)
 
 Symmétrique : `pendingRowIds` devient un `pendingRowLookup: Map<rowId, true>`
-dans `AdeoGrid.vue`. `AdeoGridRow` reçoit un nouveau prop `pending: boolean` et
-applique `.adeo-grid-row--pending` → `opacity: 0.55` + `pointer-events: none` + un
+dans `Grid.vue`. `GridRow` reçoit un nouveau prop `pending: boolean` et
+applique `.grid-row--pending` → `opacity: 0.55` + `pointer-events: none` + un
 mini-spinner Mozaic dans la première cellule.
 
 ### 2.4 Refreshing — barre de progression
 
 Quand `refreshing=true` et **pas** `loading=true`, on rend la barre fine
-existante (`.adeo-grid-loading-bar`) au-dessus du wrapper, sans toucher au
+existante (`.grid-loading-bar`) au-dessus du wrapper, sans toucher au
 body. C'est déjà le comportement actuel quand `loading=true` mais on déplace
 ce signal sous un prop dédié pour pouvoir l'activer indépendamment du full
 skeleton.
@@ -213,15 +213,15 @@ Premier load (refresh navigateur) → `loading=true` → skeleton plein.
 
 ### 4.1 Cell shimmer (pending)
 
-Overlay absolute sur `.adeo-grid-cell` qui hérite du gradient déjà défini dans
-`AdeoGridSkeletonRow.vue`. CSS approximatif :
+Overlay absolute sur `.grid-cell` qui hérite du gradient déjà défini dans
+`GridSkeletonRow.vue`. CSS approximatif :
 
 ```scss
-.adeo-grid-cell--pending {
+.grid-cell--pending {
   position: relative;
 }
 
-.adeo-grid-cell--pending::after {
+.grid-cell--pending::after {
   content: '';
   position: absolute;
   inset: 4px 8px;
@@ -244,12 +244,12 @@ la cellule visible et place le shimmer **dedans**, pas par-dessus la bordure.
 ### 4.2 Row dim (pending)
 
 ```scss
-.adeo-grid-row--pending {
+.grid-row--pending {
   opacity: 0.55;
   pointer-events: none;
 }
 
-.adeo-grid-row--pending .adeo-grid-row-spinner {
+.grid-row--pending .grid-row-spinner {
   position: absolute;
   left: 16px;
   top: 50%;
@@ -263,7 +263,7 @@ le dim global suffit.
 
 ### 4.3 Top progress bar (refreshing)
 
-Déjà présente (`.adeo-grid-loading-bar`) — on la décorrèle du flag `loading`
+Déjà présente (`.grid-loading-bar`) — on la décorrèle du flag `loading`
 en la rendant sous `props.refreshing` au lieu de `props.loading` :
 
 ```vue
@@ -279,11 +279,11 @@ au-dessus" — comportement actuel inchangé.)
 
 | Fichier | Changement |
 |---|---|
-| `AdeoGrid.vue` | + props `refreshing`, `pendingRowIds`, `pendingCells` ; + `pendingCellLookup` computed ; étendre `getCellFlags` ; étendre `loading` bar gating |
+| `Grid.vue` | + props `refreshing`, `pendingRowIds`, `pendingCells` ; + `pendingCellLookup` computed ; étendre `getCellFlags` ; étendre `loading` bar gating |
 | `types.ts` | + champ `pending?: boolean` sur `CellFlags` |
-| `AdeoGridCell.vue` | + classe `adeo-grid-cell--pending` selon `flags.pending` ; + styles overlay shimmer |
-| `AdeoGridRow.vue` | + prop `pending?: boolean` + classe `adeo-grid-row--pending` + spinner |
-| `AdeoGridBody.vue` | + prop `pendingRowSet` + pass-through au row |
+| `GridCell.vue` | + classe `adeo-grid-cell--pending` selon `flags.pending` ; + styles overlay shimmer |
+| `GridRow.vue` | + prop `pending?: boolean` + classe `adeo-grid-row--pending` + spinner |
+| `GridBody.vue` | + prop `pendingRowSet` + pass-through au row |
 
 Zéro breaking change : les 3 nouveaux props sont opt-in, default `false` /
 `[]`. Les consumers qui ne touchent à rien gardent le comportement actuel.
@@ -371,6 +371,6 @@ Total ~3h30 si tout se passe bien.
    c'est dans le scope du grid ou du consumer.
 
 4. **Le composable `usePendingMutations` reste-t-il demo-only** ou on l'extrait
-   dans `@/components/AdeoGrid` pour que les autres consumers en profitent ?
+   dans `@/components/Grid` pour que les autres consumers en profitent ?
    → Proposition : demo-only pour PR 1-4, extraction en PR 6 si on a un autre
    consumer qui en a besoin.

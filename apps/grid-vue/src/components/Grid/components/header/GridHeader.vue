@@ -2,13 +2,13 @@
 import { computed, ref, type CSSProperties } from 'vue'
 import type { ColumnDef, ColumnMenuAction, SelectionState, SortDirection } from '../../types'
 import { MCheckbox } from '@mozaic-ds/vue'
-import AdeoGridHeaderCell from './AdeoGridHeaderCell.vue'
-import AdeoGridHeaderMenu from './AdeoGridHeaderMenu.vue'
-import AdeoColumnFilterOverlay from './AdeoColumnFilterOverlay.vue'
+import AdGridHeaderCell from './GridHeaderCell.vue'
+import AdGridHeaderMenu from './GridHeaderMenu.vue'
+import AdGridColumnFilterOverlay from './ColumnFilterOverlay.vue'
 import type { FilterCondition } from '../../models/filter.model'
 import { useGridContext } from '../../state/GridContext'
 
-defineOptions({ inheritAttrs: false })
+defineOptions({ name: 'AdGridHeader', inheritAttrs: false })
 
 const props = defineProps<{
   /** Center (unpinned) columns — may be a virtualized slice. */
@@ -175,14 +175,14 @@ function isResizable(col: ColumnDef): boolean {
 
 <template>
   <div
-    class="adeo-grid-grid-header"
+    class="grid-header"
     role="row"
     :style="{ minWidth: contentMinWidth ? `max(100%, ${contentMinWidth})` : '100%' }"
   >
     <!-- Row-number column header (auto-on with formula columns) -->
     <div
       v-if="showRowNumbers"
-      class="adeo-grid-grid-header-cell adeo-grid-rownum-cell"
+      class="grid-header-cell grid-rownum-cell"
       :style="getUtilityStyle('rownum', true)"
       role="columnheader"
       aria-label="Row number"
@@ -191,13 +191,13 @@ function isResizable(col: ColumnDef): boolean {
     <!-- Checkbox (sticky left when pinned) -->
     <div
       v-if="selectable"
-      class="adeo-grid-grid-header-cell adeo-grid-checkbox-cell"
-      :class="{ 'adeo-grid-grid-cell--pinned': hasPinned }"
+      class="grid-header-cell grid-checkbox-cell"
+      :class="{ 'grid-cell--pinned': hasPinned }"
       :style="getUtilityStyle('checkbox', true)"
       role="columnheader"
     >
       <MCheckbox
-        id="adeo-grid-header-cb-all"
+        id="grid-header-cb-all"
         :model-value="selectionState === 'all'"
         :indeterminate="selectionState === 'some'"
         @update:model-value="emit('toggleAll')"
@@ -207,23 +207,23 @@ function isResizable(col: ColumnDef): boolean {
     <!-- Expand placeholder (sticky left when pinned) -->
     <div
       v-if="expandable"
-      class="adeo-grid-grid-header-cell adeo-grid-expand-cell"
-      :class="{ 'adeo-grid-grid-cell--pinned': hasPinned }"
+      class="grid-header-cell grid-expand-cell"
+      :class="{ 'grid-cell--pinned': hasPinned }"
       :style="getUtilityStyle('expand', true)"
       role="columnheader"
     />
 
     <!-- Left-pinned columns -->
-    <AdeoGridHeaderCell
+    <ad-grid-header-cell
       v-for="(col, idx) in pinnedLeftColumns"
       :key="'pl-' + col.field"
       :column="col"
       :width="widthFor(col)"
       :cell-style="getPinnedStyle('left', idx, true)"
       :cell-class="{
-        'adeo-grid-grid-cell--pinned': true,
-        'adeo-grid-grid-cell--pinned-left-edge': idx === pinnedLeftColumns.length - 1,
-        'adeo-grid-grid-cell--pinned-row-start': idx === 0,
+        'grid-cell--pinned': true,
+        'grid-cell--pinned-left-edge': idx === pinnedLeftColumns.length - 1,
+        'grid-cell--pinned-row-start': idx === 0,
       }"
       :sort-direction="getSortDirection?.(col.field)"
       :sort-index="getSortIndex?.(col.field)"
@@ -238,7 +238,7 @@ function isResizable(col: ColumnDef): boolean {
     <div
       v-if="leftSpacerWidth && leftSpacerWidth !== '0px'"
       aria-hidden="true"
-      class="adeo-grid-grid-header-cell--spacer"
+      class="grid-header-cell--spacer"
       :style="{
         width: leftSpacerWidth,
         minWidth: leftSpacerWidth,
@@ -246,7 +246,7 @@ function isResizable(col: ColumnDef): boolean {
     />
 
     <!-- Center columns -->
-    <AdeoGridHeaderCell
+    <ad-grid-header-cell
       v-for="col in columns"
       :key="col.field"
       :column="col"
@@ -265,7 +265,7 @@ function isResizable(col: ColumnDef): boolean {
     <div
       v-if="rightSpacerWidth && rightSpacerWidth !== '0px'"
       aria-hidden="true"
-      class="adeo-grid-grid-header-cell--spacer"
+      class="grid-header-cell--spacer"
       :style="{
         width: rightSpacerWidth,
         minWidth: rightSpacerWidth,
@@ -273,16 +273,16 @@ function isResizable(col: ColumnDef): boolean {
     />
 
     <!-- Right-pinned columns -->
-    <AdeoGridHeaderCell
+    <ad-grid-header-cell
       v-for="(col, idx) in pinnedRightColumns"
       :key="'pr-' + col.field"
       :column="col"
       :width="widthFor(col)"
       :cell-style="getPinnedStyle('right', idx, true)"
       :cell-class="{
-        'adeo-grid-grid-cell--pinned': true,
-        'adeo-grid-grid-cell--pinned-right-edge': idx === 0,
-        'adeo-grid-grid-cell--pinned-row-end': idx === pinnedRightColumns.length - 1,
+        'grid-cell--pinned': true,
+        'grid-cell--pinned-right-edge': idx === 0,
+        'grid-cell--pinned-row-end': idx === pinnedRightColumns.length - 1,
       }"
       :sort-direction="getSortDirection?.(col.field)"
       :sort-index="getSortIndex?.(col.field)"
@@ -295,7 +295,7 @@ function isResizable(col: ColumnDef): boolean {
   </div>
 
   <!-- Column menu -->
-  <AdeoGridHeaderMenu
+  <ad-grid-header-menu
     v-if="openMenuField && menuTriggerRect && openMenuColumn"
     :field="openMenuField"
     :column="openMenuColumn"
@@ -307,7 +307,7 @@ function isResizable(col: ColumnDef): boolean {
   />
 
   <!-- Per-column "Filter in this column" overlay (Sprint 5) -->
-  <AdeoColumnFilterOverlay
+  <ad-grid-column-filter-overlay
     v-if="openFilterField && filterTriggerRect && openFilterColumn"
     :field="openFilterField"
     :column="openFilterColumn"
@@ -322,7 +322,7 @@ function isResizable(col: ColumnDef): boolean {
 </template>
 
 <style scoped lang="scss">
-.adeo-grid-grid-header {
+.grid-header {
   display: flex;
   // `min-height` (not fixed `height`) so the header row can grow when a
   // long column name wraps to multiple lines.
@@ -331,8 +331,8 @@ function isResizable(col: ColumnDef): boolean {
 }
 
 /* Stub cells (checkbox / expand / spacers) still live in the header itself.
-   The data-header cell styles now come from `AdeoGridHeaderCell`. */
-.adeo-grid-grid-header-cell {
+   The data-header cell styles now come from `AdGridHeaderCell`. */
+.grid-header-cell {
   padding: m.get-spacing('100') m.get-spacing('150');
   text-align: left;
   font-size: m.get-font-size('50');
@@ -353,29 +353,29 @@ function isResizable(col: ColumnDef): boolean {
   align-items: center;
 }
 
-.adeo-grid-grid-header-cell--spacer {
+.grid-header-cell--spacer {
   background-color: var(--color-background-primary);
   border-bottom: m.get-token('border-width', 's') solid var(--color-border-primary);
   flex-shrink: 0;
   padding: 0;
 }
 
-.adeo-grid-grid-cell--pinned {
+.grid-cell--pinned {
   background-color: var(--color-background-primary);
 }
 
-.adeo-grid-grid-cell--pinned-left-edge {
+.grid-cell--pinned-left-edge {
   box-shadow: 2px 0 4px rgba(0, 0, 0, 0.06);
   clip-path: inset(0 -4px 0 0);
 }
 
-.adeo-grid-grid-cell--pinned-right-edge {
+.grid-cell--pinned-right-edge {
   box-shadow: -2px 0 4px rgba(0, 0, 0, 0.06);
   clip-path: inset(0 0 0 -4px);
 }
 
-.adeo-grid-checkbox-cell,
-.adeo-grid-expand-cell {
+.grid-checkbox-cell,
+.grid-expand-cell {
   width: 50px;
   text-align: center;
   display: flex;
@@ -384,7 +384,7 @@ function isResizable(col: ColumnDef): boolean {
   text-transform: none;
 }
 
-.adeo-grid-rownum-cell {
+.grid-rownum-cell {
   width: 56px;
   background: var(--color-background-secondary, #f6f7f8);
   border-right: 1px solid var(--color-border-primary, #e3e6ea);
@@ -393,12 +393,12 @@ function isResizable(col: ColumnDef): boolean {
 
 <style>
 /* Mozaic checkbox overrides inside header cells */
-.adeo-grid-grid-header .adeo-grid-checkbox-cell .mc-checkbox {
+.grid-header .grid-checkbox-cell .mc-checkbox {
   padding: 0;
   gap: 0;
 }
 
-.adeo-grid-grid-header .adeo-grid-checkbox-cell .mc-checkbox__label {
+.grid-header .grid-checkbox-cell .mc-checkbox__label {
   display: none;
 }
 </style>

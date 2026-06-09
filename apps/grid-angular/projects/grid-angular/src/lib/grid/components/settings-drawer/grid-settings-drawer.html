@@ -1,0 +1,65 @@
+@switch (screen()) { @case ('main') {
+<div class="settings-list">
+  <button type="button" class="settings-list__item" (click)="goTo('density')">
+    <div class="settings-list__item-text">
+      <span class="settings-list__item-title">Data density</span>
+      <span class="settings-list__item-subtitle">{{ densityLabel() }}</span>
+    </div>
+    <ChevronRight20 />
+  </button>
+  <button type="button" class="settings-list__item" (click)="goTo('columns')">
+    <div class="settings-list__item-text">
+      <span class="settings-list__item-title">Display columns</span>
+      <span class="settings-list__item-subtitle">{{ columnsLabel() }}</span>
+    </div>
+    <ChevronRight20 />
+  </button>
+</div>
+} @case ('density') {
+<div class="settings-density">
+  <label class="settings-density__label">Data density</label>
+  <moz-select
+    name="density"
+    [options]="densityOptions"
+    [ngModel]="draftDensity()"
+    (ngModelChange)="draftDensity.set($event)"
+  />
+</div>
+} @case ('columns') {
+<div class="settings-columns">
+  <input
+    class="settings-columns__search"
+    type="text"
+    placeholder="Find a column"
+    [value]="searchQuery()"
+    (input)="onSearchInput($event)"
+    aria-label="Search columns"
+  />
+  <div class="settings-columns__list" cdkDropList (cdkDropListDropped)="onColumnDrop($event)">
+    @for (col of filteredColumns(); track col.field) {
+    <div class="settings-columns__item" cdkDrag>
+      <div class="settings-columns__item-left">
+        <span class="settings-columns__drag-handle" cdkDragHandle>
+          <Drag20 />
+        </span>
+        <span class="settings-columns__item-label">{{ col.headerName }}</span>
+      </div>
+      <moz-toggle
+        [id]="'col-toggle-' + col.field"
+        [ngModel]="col.visible"
+        (ngModelChange)="onColumnToggle(col.field, $event)"
+      />
+    </div>
+    }
+  </div>
+  <div class="settings-columns__bulk-actions">
+    <button type="button" class="settings-columns__bulk-btn" (click)="hideAll()">Hide all</button>
+    <button type="button" class="settings-columns__bulk-btn" (click)="showAll()">Show all</button>
+  </div>
+</div>
+} }
+
+<ng-template mozDrawerFooter>
+  <button moz-button (click)="apply()" [appearance]="'accent'">Apply</button>
+  <button moz-button [outlined]="true" (click)="reset()">Reset</button>
+</ng-template>

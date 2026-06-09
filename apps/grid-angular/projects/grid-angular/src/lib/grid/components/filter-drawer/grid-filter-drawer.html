@@ -1,0 +1,15 @@
+<div class="filter-drawer">
+  <p class="filter-drawer__subtitle">{{ activeCount() }} active filter(s)</p>
+  <ad-grid-filter-builder
+    [model]="draft()"
+    [availableColumns]="availableColumns"
+    [applyMode]="'manual'"
+    [showSubtitle]="false"
+    (modelChange)="onDraftChange($event)"
+  />
+</div>
+
+<ng-template mozDrawerFooter>
+  <button moz-button [appearance]="'accent'" (click)="apply()">Apply</button>
+  <button moz-button [outlined]="true" (click)="clearAll()">Clear all</button>
+</ng-template>

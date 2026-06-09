@@ -1,0 +1,25 @@
+<div class="shortcuts">
+  @for (group of groups; track group.title) {
+  <section class="shortcuts__group">
+    <h4 class="shortcuts__group-title">{{ group.title }}</h4>
+    <dl class="shortcuts__list">
+      @for (item of group.items; track item.keys) {
+      <div class="shortcuts__item">
+        <dt class="shortcuts__keys">
+          @for (part of item.parts; track $index) { @if (part === '+' || part === '/') {
+          <span class="shortcuts__separator">{{ part }}</span>
+          } @else {
+          <kbd class="shortcuts__key">{{ part }}</kbd>
+          } }
+        </dt>
+        <dd class="shortcuts__label">{{ item.label }}</dd>
+      </div>
+      }
+    </dl>
+  </section>
+  }
+</div>
+
+<ng-template mozDrawerFooter>
+  <button moz-button (click)="close()">Close</button>
+</ng-template>

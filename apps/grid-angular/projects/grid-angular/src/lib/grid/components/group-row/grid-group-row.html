@@ -1,0 +1,18 @@
+<div
+  class="grid-group-row"
+  role="row"
+  [style.padding-left.px]="groupRow().depth * 24 + 16"
+  (click)="toggleExpand.emit(groupRow().groupKey)"
+>
+  <span
+    class="grid-group-row__toggle"
+    [class.grid-group-row__toggle--expanded]="groupRow().expanded"
+  >
+    <ChevronRight20 />
+  </span>
+  <div class="grid-group-row__info">
+    <span class="grid-group-row__field">{{ fieldLabel() }}</span>
+    <span class="grid-group-row__value">{{ groupValue() }}</span>
+  </div>
+  <span class="grid-group-row__count">{{ groupRow().count }}</span>
+</div>

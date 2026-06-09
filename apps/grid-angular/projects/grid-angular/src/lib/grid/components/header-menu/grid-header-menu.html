@@ -1,0 +1,8 @@
+@if (isOpen()) {
+  <div class="grid-header-menu" (click)="$event.stopPropagation()">
+    <moz-action-listbox
+      [items]="menuItems()"
+      (itemClick)="onItemClick($event)"
+    />
+  </div>
+}

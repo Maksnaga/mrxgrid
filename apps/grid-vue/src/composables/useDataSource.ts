@@ -1,5 +1,5 @@
 import { computed, ref, shallowRef, watch, type Ref } from 'vue'
-import type { RowData } from '@/components/AdeoGrid/types'
+import type { RowData } from '@/components/Grid/types'
 
 /** Sentinel row shown while real data is still loading. */
 const LOADING_ROW: RowData = Object.freeze({ __adgSkeleton: true })
@@ -46,7 +46,7 @@ export interface DataSourceOptions {
  *            │ rows ref (length = totalRows)
  *            ▼
  * ┌──────────────────────────────────────────────────────┐
- * │  AdeoGrid                                             │
+ * │  Grid                                             │
  * │  (receives rows prop, renders via virtual scroll)    │
  * └──────────────────────────────────────────────────────┘
  * ```
@@ -102,7 +102,7 @@ export function useDataSource(options: DataSourceOptions) {
   /**
    * Dense rows array of length totalRows.
    * Cached rows are real data; uncached slots are the LOADING_ROW sentinel.
-   * The grid's AdeoGridCell renders `value ?? ''`, so loading rows show blank.
+   * The grid's AdGridCell renders `value ?? ''`, so loading rows show blank.
    */
   const rows = computed<RowData[]>(() => {
     // Touch version so Vue tracks the dependency.
@@ -197,7 +197,7 @@ export function useDataSource(options: DataSourceOptions) {
   }
 
   return {
-    /** Dense RowData[] of length totalRows — pass to AdeoGrid :rows. */
+    /** Dense RowData[] of length totalRows — pass to Grid :rows. */
     rows,
     /** True while any page is being fetched. */
     isLoading,

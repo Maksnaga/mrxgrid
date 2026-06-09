@@ -1,13 +1,13 @@
 /* Ported from Angular `components/filter-builder/grid-filter-builder.scss`.
  * Translation: :host → .grid-filter-builder-root */
 
-@layer adeo-grid {
+@layer grid {
   .grid-filter-builder-root {
     display: block;
-    background: var(--Background-Primary, #fff);
-    border: 1px solid var(--Border-Primary, #cdd4d8);
-    border-radius: 6px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    background: var(--color-background-primary, #fff);
+    border: 1px solid var(--color-border-primary, #cdd4d8);
+    border-radius: var(--border-radius-m, 8px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12); /* custom shadow — no matching Mozaic token */
   }
 
   .filter-builder {
@@ -18,11 +18,11 @@
 
     &__subtitle {
       margin: 0;
-      font-size: 12px;
-      font-weight: 600;
+      font-size: var(--font-size-50, 12px);
+      font-weight: var(--font-weight-semi-bold, 600);
       text-transform: uppercase;
       letter-spacing: 0.06em;
-      color: var(--Text-Secondary, #555);
+      color: var(--color-text-secondary, #555);
     }
 
     &__rows {
@@ -36,12 +36,12 @@
       align-items: center;
       gap: 8px;
       padding: 6px 8px;
-      border: 1px solid var(--Border-Primary, #e0e0e0);
-      border-radius: 6px;
-      background: var(--Background-Primary, #fff);
+      border: 1px solid var(--color-border-primary, #e0e0e0);
+      border-radius: var(--border-radius-m, 8px);
+      background: var(--color-background-primary, #fff);
 
       &.cdk-drag-preview {
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12); /* custom shadow — no matching Mozaic token */
       }
 
       &.cdk-drag-placeholder {
@@ -58,17 +58,17 @@
       display: inline-block;
       width: 100%;
       padding: 6px 8px;
-      font-weight: 600;
-      color: var(--Text-Secondary, #555);
+      font-weight: var(--font-weight-semi-bold, 600);
+      color: var(--color-text-secondary, #555);
     }
 
     &__select,
     &__input {
       font: inherit;
       padding: 6px 8px;
-      border: 1px solid var(--Border-Primary, #ccc);
-      border-radius: 4px;
-      background: #fff;
+      border: 1px solid var(--color-border-primary, #ccc);
+      border-radius: var(--border-radius-s, 4px);
+      background: var(--color-background-primary, #fff);
       min-height: 32px;
       box-sizing: border-box;
     }
@@ -102,13 +102,13 @@
     }
 
     &__range-sep {
-      color: var(--Text-Secondary, #777);
+      color: var(--color-text-secondary, #777);
     }
 
     &__drag {
       display: inline-flex;
       cursor: grab;
-      color: var(--Text-Secondary, #777);
+      color: var(--color-text-secondary, #777);
 
       &:active {
         cursor: grabbing;
@@ -123,13 +123,13 @@
       padding: 6px 10px;
       background: transparent;
       border: none;
-      color: var(--Status-Standalone-element-Primary, #0071ce);
+      color: var(--color-brand-primary, #0071ce);
       font: inherit;
       cursor: pointer;
-      border-radius: 4px;
+      border-radius: var(--border-radius-s, 4px);
 
       &:hover:not([disabled]) {
-        background: var(--Background-Secondary, #f4f4f4);
+        background: var(--color-background-secondary, #f4f4f4);
       }
 
       &[disabled] {

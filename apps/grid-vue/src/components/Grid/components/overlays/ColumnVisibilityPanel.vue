@@ -2,15 +2,17 @@
 import { computed, inject } from 'vue'
 import { GRID_STATE_KEY } from '../../state/GridContext'
 
+defineOptions({ name: 'AdGridColumnVisibilityPanel' })
+
 /**
  * Popover panel listing currently hidden columns. Distinct from the full
  * settings drawer — typically opened from a "+ N hidden" chip in the header
- * strip. Mirrors Angular `MozGridColumnVisibilityPanelComponent`.
+ * strip. Mirrors Angular `AdeoGridColumnVisibilityPanelComponent`.
  *
  * Reads `gridState.columnStates[].visible` and `columnDefs` directly via
  * the injected `GridContext`. Emits restore intents for the host to wire.
  *
- * Tolerant to mounting outside `<AdeoGrid>` — when no context is found, the
+ * Tolerant to mounting outside `<ad-grid-vue>` — when no context is found, the
  * panel renders an empty list (not an error). This lets it sit beside the
  * grid in a toolbar without forcing the host to wrap everything in slots.
  */
@@ -72,7 +74,7 @@ function onRestoreAll(): void {
   flex-wrap: wrap;
 
   &__label {
-    font-size: 12px;
+    font-size: var(--font-size-50, 12px);
     color: var(--color-text-secondary, #666);
   }
 
@@ -82,9 +84,9 @@ function onRestoreAll(): void {
     gap: 4px;
     padding: 2px 8px;
     border: 1px solid var(--color-border-primary, #ddd);
-    border-radius: 12px;
+    border-radius: var(--border-radius-l, 16px);
     background: var(--color-background-primary, #fff);
-    font-size: 12px;
+    font-size: var(--font-size-50, 12px);
     cursor: pointer;
 
     &:hover {
@@ -93,7 +95,7 @@ function onRestoreAll(): void {
   }
 
   &__chip-icon {
-    font-weight: bold;
+    font-weight: var(--font-weight-bold, 700);
     color: var(--color-text-secondary, #666);
   }
 
@@ -103,7 +105,7 @@ function onRestoreAll(): void {
     border: none;
     background: transparent;
     color: var(--color-text-accent, #1a73e8);
-    font-size: 12px;
+    font-size: var(--font-size-50, 12px);
     cursor: pointer;
     text-decoration: underline;
   }

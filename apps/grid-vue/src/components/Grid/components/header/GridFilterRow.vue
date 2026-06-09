@@ -3,17 +3,19 @@
  * Filter row — Sprint 6 (REFONTE-PLAN-V2 §2.5).
  *
  * Lays out the per-column filter cells under the header. Each cell is
- * delegated to `AdeoGridFilterCell`, which resolves slot → filterRenderer
+ * delegated to `AdGridFilterCell`, which resolves slot → filterRenderer
  * → built-in Mozaic input. This component only handles layout (left-pinned
- * / center / right-pinned, virtual-scroll spacers, utility cells) and
+ * / center / right-pinned, spacers, utility cells) and
  * per-field debounce of free-typed text input.
  *
- * Visibility of the row itself is controlled upstream by `AdeoGrid.hasFilterRow`.
+ * Visibility of the row itself is controlled upstream by `Grid.hasFilterRow`.
  */
 
 import { reactive, type CSSProperties } from 'vue'
 import type { ColumnDef } from '../../types'
-import AdeoGridFilterCell from './AdeoGridFilterCell.vue'
+import AdGridFilterCell from './GridFilterCell.vue'
+
+defineOptions({ name: 'AdGridFilterRow' })
 
 defineProps<{
   /** Center (unpinned) columns — may be a virtualized slice. */
@@ -69,31 +71,31 @@ function widthFor(col: ColumnDef, getter?: (f: string) => string | undefined): s
 
 <template>
   <div
-    class="adeo-grid-filter-row"
+    class="grid-filter-row"
     role="row"
     :style="{ minWidth: contentMinWidth ? `max(100%, ${contentMinWidth})` : '100%' }"
   >
     <!-- Row number spacer -->
     <div
       v-if="showRowNumbers"
-      class="adeo-grid-filter-cell adeo-grid-filter-cell--rownum"
-      :class="{ 'adeo-grid-grid-cell--pinned': hasPinned }"
+      class="grid-filter-cell grid-filter-cell--rownum"
+      :class="{ 'grid-cell--pinned': hasPinned }"
       :style="getUtilityStyle('rownum', true)"
     />
 
     <!-- Checkbox spacer -->
     <div
       v-if="selectable"
-      class="adeo-grid-filter-cell adeo-grid-filter-cell--utility"
-      :class="{ 'adeo-grid-grid-cell--pinned': hasPinned }"
+      class="grid-filter-cell grid-filter-cell--utility"
+      :class="{ 'grid-cell--pinned': hasPinned }"
       :style="getUtilityStyle('checkbox', true)"
     />
 
     <!-- Expand spacer -->
     <div
       v-if="expandable"
-      class="adeo-grid-filter-cell adeo-grid-filter-cell--utility"
-      :class="{ 'adeo-grid-grid-cell--pinned': hasPinned }"
+      class="grid-filter-cell grid-filter-cell--utility"
+      :class="{ 'grid-cell--pinned': hasPinned }"
       :style="getUtilityStyle('expand', true)"
     />
 
@@ -101,8 +103,8 @@ function widthFor(col: ColumnDef, getter?: (f: string) => string | undefined): s
     <div
       v-for="(col, idx) in pinnedLeftColumns"
       :key="'fl-' + col.field"
-      class="adeo-grid-filter-cell adeo-grid-cell--pinned"
-      :class="{ 'adeo-grid-grid-cell--pinned-left-edge': idx === pinnedLeftColumns.length - 1 }"
+      class="grid-filter-cell grid-cell--pinned"
+      :class="{ 'grid-cell--pinned-left-edge': idx === pinnedLeftColumns.length - 1 }"
       :data-field="col.field"
       :style="{
         ...getPinnedStyle('left', idx, true),
@@ -110,7 +112,7 @@ function widthFor(col: ColumnDef, getter?: (f: string) => string | undefined): s
         minWidth: widthFor(col, getColumnWidth),
       }"
     >
-      <AdeoGridFilterCell
+      <ad-grid-filter-cell
         :column="col"
         :value="filters[col.field]"
         @input="(v) => onInput(col.field, v)"
@@ -122,7 +124,7 @@ function widthFor(col: ColumnDef, getter?: (f: string) => string | undefined): s
     <div
       v-if="leftSpacerWidth && leftSpacerWidth !== '0px'"
       aria-hidden="true"
-      class="adeo-grid-filter-cell--spacer"
+      class="grid-filter-cell--spacer"
       :style="{ width: leftSpacerWidth, minWidth: leftSpacerWidth }"
     />
 
@@ -130,7 +132,7 @@ function widthFor(col: ColumnDef, getter?: (f: string) => string | undefined): s
     <div
       v-for="col in columns"
       :key="col.field"
-      class="adeo-grid-filter-cell"
+      class="grid-filter-cell"
       :data-field="col.field"
       :style="
         fillField && col.field === fillField
@@ -138,7 +140,7 @@ function widthFor(col: ColumnDef, getter?: (f: string) => string | undefined): s
           : { width: widthFor(col, getColumnWidth), minWidth: widthFor(col, getColumnWidth) }
       "
     >
-      <AdeoGridFilterCell
+      <ad-grid-filter-cell
         :column="col"
         :value="filters[col.field]"
         @input="(v) => onInput(col.field, v)"
@@ -150,7 +152,7 @@ function widthFor(col: ColumnDef, getter?: (f: string) => string | undefined): s
     <div
       v-if="rightSpacerWidth && rightSpacerWidth !== '0px'"
       aria-hidden="true"
-      class="adeo-grid-filter-cell--spacer"
+      class="grid-filter-cell--spacer"
       :style="{ width: rightSpacerWidth, minWidth: rightSpacerWidth }"
     />
 
@@ -158,10 +160,10 @@ function widthFor(col: ColumnDef, getter?: (f: string) => string | undefined): s
     <div
       v-for="(col, idx) in pinnedRightColumns"
       :key="'fr-' + col.field"
-      class="adeo-grid-filter-cell adeo-grid-cell--pinned"
+      class="grid-filter-cell grid-cell--pinned"
       :class="{
-        'adeo-grid-grid-cell--pinned-right-edge': idx === 0,
-        'adeo-grid-grid-cell--pinned-row-end': idx === pinnedRightColumns.length - 1,
+        'grid-cell--pinned-right-edge': idx === 0,
+        'grid-cell--pinned-row-end': idx === pinnedRightColumns.length - 1,
       }"
       :data-field="col.field"
       :style="{
@@ -170,7 +172,7 @@ function widthFor(col: ColumnDef, getter?: (f: string) => string | undefined): s
         minWidth: widthFor(col, getColumnWidth),
       }"
     >
-      <AdeoGridFilterCell
+      <ad-grid-filter-cell
         :column="col"
         :value="filters[col.field]"
         @input="(v) => onInput(col.field, v)"
@@ -181,13 +183,13 @@ function widthFor(col: ColumnDef, getter?: (f: string) => string | undefined): s
 </template>
 
 <style scoped lang="scss">
-.adeo-grid-filter-row {
+.grid-filter-row {
   display: flex;
   min-height: 2.75rem;
   background-color: var(--color-background-primary);
 }
 
-.adeo-grid-filter-cell {
+.grid-filter-cell {
   padding: m.get-spacing('050') m.get-spacing('100');
   border-right: m.get-token('border-width', 's') solid var(--color-border-primary);
   border-bottom: m.get-token('border-width', 's') solid var(--color-border-primary);
@@ -200,45 +202,45 @@ function widthFor(col: ColumnDef, getter?: (f: string) => string | undefined): s
 
 // Spacer cells (virtual-scroll gaps + utility columns) carry no vertical
 // separator — they're layout-only, not data columns.
-.adeo-grid-filter-cell--spacer,
-.adeo-grid-filter-cell--utility {
+.grid-filter-cell--spacer,
+.grid-filter-cell--utility {
   border-right: none;
 }
 
 // Dernière colonne right-pinned : bord externe sur la limite de la table,
 // donc on supprime le `border-right` qui doublerait le bord du wrapper.
-// Mirror exact du même fix sur `AdeoGridHeaderCell` et `AdeoGridRow`.
-.adeo-grid-filter-cell.adeo-grid-grid-cell--pinned-row-end {
+// Mirror exact du même fix sur `AdGridHeaderCell` et `AdGridRow`.
+.grid-filter-cell.grid-cell--pinned-row-end {
   border-right: none;
 }
 
-.adeo-grid-filter-cell--utility {
+.grid-filter-cell--utility {
   width: 50px;
 }
 
-.adeo-grid-filter-cell--rownum {
+.grid-filter-cell--rownum {
   width: 56px;
   background: var(--color-background-secondary, #f6f7f8);
   border-right: 1px solid var(--color-border-primary, #e3e6ea);
 }
 
-.adeo-grid-filter-cell--spacer {
+.grid-filter-cell--spacer {
   background-color: var(--color-background-primary);
   border-bottom: m.get-token('border-width', 's') solid var(--color-border-primary);
   flex-shrink: 0;
   padding: 0;
 }
 
-.adeo-grid-grid-cell--pinned {
+.grid-cell--pinned {
   background-color: var(--color-background-primary);
 }
 
-.adeo-grid-grid-cell--pinned-left-edge {
+.grid-cell--pinned-left-edge {
   box-shadow: 2px 0 4px rgba(0, 0, 0, 0.06);
   clip-path: inset(0 -4px 0 0);
 }
 
-.adeo-grid-grid-cell--pinned-right-edge {
+.grid-cell--pinned-right-edge {
   box-shadow: -2px 0 4px rgba(0, 0, 0, 0.06);
   clip-path: inset(0 0 0 -4px);
 }

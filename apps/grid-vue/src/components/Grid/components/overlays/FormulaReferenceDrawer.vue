@@ -13,6 +13,8 @@
 
 import { MDrawer } from '@mozaic-ds/vue'
 
+defineOptions({ name: 'AdGridFormulaReferenceDrawer' })
+
 interface FunctionDoc {
   name: string
   category: string
@@ -173,7 +175,7 @@ const emit = defineEmits<{
   /**
    * Emitted when the user clicks a function name. The `text` payload is
    * the function name with an open paren appended (e.g. `"SUM("`) — wire
-   * this to `AdeoFormulaBar.insertText(text)` so the function lands at the
+   * this to `AdGridFormulaBar.insertText(text)` so the function lands at the
    * caret with the cursor ready to type arguments.
    */
   insert: [text: string]
@@ -190,9 +192,9 @@ function close() {
 </script>
 
 <template>
-  <!-- See AdeoGridFilterDrawer.vue for why we Teleport to <body>. -->
+  <!-- See AdGridFilterDrawer.vue for why we Teleport to <body>. -->
   <Teleport to="body">
-  <!-- See AdeoGroupingDrawer.vue for why `close-on-overlay` stays
+  <!-- See AdGridGroupingDrawer.vue for why `close-on-overlay` stays
        disabled (Mozaic's MDrawer fires it on dialog-body whitespace). -->
   <MDrawer
     :open="open"
@@ -238,8 +240,8 @@ function close() {
 
   &__title {
     margin: 0;
-    font-size: 14px;
-    font-weight: 600;
+    font-size: var(--font-size-200, 14px);
+    font-weight: var(--font-weight-semi-bold, 600);
   }
 
   &__body {
@@ -254,8 +256,8 @@ function close() {
 
   &__category-title {
     margin: 0 0 8px;
-    font-size: 12px;
-    font-weight: 600;
+    font-size: var(--font-size-50, 12px);
+    font-weight: var(--font-weight-semi-bold, 600);
     text-transform: uppercase;
     letter-spacing: 0.04em;
     color: var(--color-text-secondary, #666);
@@ -272,7 +274,7 @@ function close() {
 
   &__item {
     border: 1px solid var(--color-border-primary, #eee);
-    border-radius: 4px;
+    border-radius: var(--border-radius-s, 4px);
     padding: 8px 10px;
     background: var(--color-background-primary, #fff);
   }
@@ -282,10 +284,10 @@ function close() {
     padding: 0;
     border: none;
     background: transparent;
-    font-family: ui-monospace, SFMono-Regular, monospace;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--color-text-accent, #1a73e8);
+    font-family: var(--font-family-monospace, ui-monospace, SFMono-Regular, monospace);
+    font-size: var(--font-size-100, 13px);
+    font-weight: var(--font-weight-semi-bold, 600);
+    color: var(--color-background-accent-inverse, #1a73e8);
     cursor: pointer;
 
     &:hover {
@@ -296,14 +298,14 @@ function close() {
   &__signature {
     display: block;
     margin-top: 2px;
-    font-family: ui-monospace, SFMono-Regular, monospace;
-    font-size: 11px;
+    font-family: var(--font-family-monospace, ui-monospace, SFMono-Regular, monospace);
+    font-size: var(--font-size-25, 11px);
     color: var(--color-text-secondary, #666);
   }
 
   &__description {
     margin: 4px 0 0;
-    font-size: 12px;
+    font-size: var(--font-size-50, 12px);
     color: var(--color-text-primary, #222);
   }
 
@@ -311,10 +313,10 @@ function close() {
     display: inline-block;
     margin-top: 4px;
     padding: 2px 6px;
-    border-radius: 3px;
+    border-radius: var(--border-radius-xs, 2px);
     background: var(--color-background-secondary, #f5f5f5);
-    font-family: ui-monospace, SFMono-Regular, monospace;
-    font-size: 11px;
+    font-family: var(--font-family-monospace, ui-monospace, SFMono-Regular, monospace);
+    font-size: var(--font-size-25, 11px);
   }
 
   &__footer {

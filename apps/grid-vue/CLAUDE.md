@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-AdeoGrid is a high-performance Vue 3 + TypeScript data grid component (AG-Grid-style) built on Mozaic Design System (`@mozaic-ds/vue`). Designed for 100k+ rows × 150+ columns with dual-axis virtual scroll. The repo is mid-migration from a legacy composable-based architecture toward an "Angular-parity" engine architecture (mirroring `mozaic-ng`'s `moz-grid`); both layers coexist today — see Architecture below.
+Grid is a high-performance Vue 3 + TypeScript data grid component (AG-Grid-style) built on Mozaic Design System (`@mozaic-ds/vue`). Designed for 100k+ rows × 150+ columns with dual-axis virtual scroll. The repo is mid-migration from a legacy composable-based architecture toward an "Angular-parity" engine architecture (mirroring `mozaic-ng`'s `ad-grid`); both layers coexist today — see Architecture below.
 
 The README.md is the comprehensive user-facing API reference (props, events, slots, ColumnDef, every feature). Treat it as authoritative for public API.
 
@@ -27,7 +27,7 @@ The README.md is the comprehensive user-facing API reference (props, events, slo
 
 E2E tests auto-start the dev server and run **headed** locally; CI uses `npm run preview` (port 4173) and runs headless. First-time setup: `npx playwright install`.
 
-Unit tests live in two places: `src/__tests__/` (Vue/composable tests) and `src/components/AdeoGrid/features/__tests__/` (engine tests).
+Unit tests live in two places: `src/__tests__/` (Vue/composable tests) and `src/components/Grid/features/__tests__/` (engine tests).
 
 ## Architecture
 
@@ -35,51 +35,51 @@ Unit tests live in two places: `src/__tests__/` (Vue/composable tests) and `src/
 
 The grid currently runs on **two parallel implementations** of the same features. Don't pick one over the other arbitrarily — match the surrounding code:
 
-1. **Legacy composables** (`src/composables/use*.ts`) — owns most of the runtime today. `AdeoGrid.vue` imports ~20 of these directly and wires them by hand. Each composable holds its own local state.
-2. **Engine layer** (`src/components/AdeoGrid/{state,engine,features,models}/`) — the Angular-parity port. Central `GridState` + `useGridEngine()` orchestrates a pure-computed pipeline:
+1. **Legacy composables** (`src/composables/use*.ts`) — owns most of the runtime today. `Grid.vue` imports ~20 of these directly and wires them by hand. Each composable holds its own local state.
+2. **Engine layer** (`src/components/Grid/{state,engine,features,models}/`) — the Angular-parity port. Central `GridState` + `useGridEngine()` orchestrates a pure-computed pipeline:
    `sourceData → sortedData → filteredData → paginatedData → displayRows`
-   Each `*Engine.ts` reads/writes `GridState` instead of owning local state. New features and refactors land here. `AdeoGrid.vue` already creates a `GridState` and calls `useGridEngine()` alongside the legacy composables — they're wired in parallel and both write to the same DOM.
+   Each `*Engine.ts` reads/writes `GridState` instead of owning local state. New features and refactors land here. `Grid.vue` already creates a `GridState` and calls `useGridEngine()` alongside the legacy composables — they're wired in parallel and both write to the same DOM.
 
 When in doubt about engine semantics, the comment headers in `state/useGridState.ts` and `engine/useGridEngine.ts` explicitly reference the Angular source files (`projects/mozaic-ng/src/lib/grid/...`) for 1:1 comparison.
 
-### Component hierarchy (`src/components/AdeoGrid/`)
+### Component hierarchy (`src/components/Grid/`)
 
 ```
-AdeoGrid.vue                 root orchestrator (props/events, provides GridState + ColumnRegistry)
-AdeoColumn.vue               declarative column API — registers via ADEO_GRID_COLUMN_REGISTRY_KEY
+Grid.vue                 root orchestrator (props/events, provides GridState + ColumnRegistry)
+Column.vue               declarative column API — registers via GRID_COLUMN_REGISTRY_KEY
 components/
-  header/                   AdeoGridHeader, AdeoGridHeaderCell, AdeoGridHeaderMenu, AdeoGridFilterRow,
-                            AdeoGridFilterCell, AdeoColumnFilterOverlay, AdeoGridGroupBar,
-                            AdeoGridHiddenBar, AdeoGridSpreadsheetHeader, AdeoGridTagBar
-  body/                     AdeoGridBody, AdeoGridRow, AdeoGridCell, AdeoGridGroupRow,
-                            AdeoGridDetailRow, AdeoGridFormulaEditor, AdeoGridEmptyState
-  footer/                   AdeoGridFooter, AdeoGridLoadingIndicator
+  header/                   GridHeader, GridHeaderCell, GridHeaderMenu, GridFilterRow,
+                            GridFilterCell, ColumnFilterOverlay, GridGroupBar,
+                            GridHiddenBar, GridSpreadsheetHeader, GridTagBar
+  body/                     GridBody, GridRow, GridCell, GridGroupRow,
+                            GridDetailRow, GridFormulaEditor, GridEmptyState
+  footer/                   GridFooter, GridLoadingIndicator
   overlays/                 toolbar, drawers, panels, formula bar/reference,
                             keyboard shortcuts, filter builder/drawer, selection bar
 __stories__/                Storybook stories per feature area
 styles/                     scoped SCSS partials, see styles/README.md
 ```
 
-`index.ts` is the barrel — consumers `import { AdeoGrid, ... } from '@/components/AdeoGrid'`. It also re-exports `useGridState`, `useGridEngine`, `defineStatusRenderer`, formula APIs, and the plugin contract.
+`index.ts` is the barrel — consumers `import { AdGridVue, ... } from '@/components/Grid'`. It also re-exports `useGridState`, `useGridEngine`, `defineStatusRenderer`, formula APIs, and the plugin contract.
 
 `types.ts` holds legacy interfaces (`ColumnDef`, `RowData`, `CellFlags`, `SelectionRange`, `FillEvent`, `GroupRowMeta`, …) and `isGroupRow()` type guard. Newer typed shapes live as split `models/*.model.ts` files (cell, column, filter, sort, pagination, grid-events, grid-options, plugin, formula, display-row).
 
 ### Composables (`src/composables/`)
 
-Legacy feature implementations wired into `AdeoGrid.vue`:
+Legacy feature implementations wired into `Grid.vue`:
 
 `useColumns`, `useSorting`, `useGrouping`, `useServerGrouping`, `useFiltering`, `usePinnedColumns`, `useColumnResize`, `useColumnDnD`, `useAutosize`, `useVirtualScroll`, `useVirtualColumns`, `useVirtualGrid`, `useDataSource`, `useLazyRows`, `usePagination`, `useRowSelection`, `useRowExpansion`, `useActiveCell`, `useCellSelection`, `useMouseSelection`, `useCellEditing`, `useFillHandle`, `useClipboard`, `useKeyboard`, `useTeleportListbox`, `useUndoRedoPlugin`.
 
-Engine equivalents under `src/components/AdeoGrid/features/` end in `Engine.ts` (e.g. `useSortEngine`, `useFilterEngine`, `useCellSelectionEngine`, `useFormulaEngine`, …) plus formula sub-package and `renderers/` (built-in cell renderers + `defineStatusRenderer`).
+Engine equivalents under `src/components/Grid/features/` end in `Engine.ts` (e.g. `useSortEngine`, `useFilterEngine`, `useCellSelectionEngine`, `useFormulaEngine`, …) plus formula sub-package and `renderers/` (built-in cell renderers + `defineStatusRenderer`).
 
 ### Key invariants
 
-- **GridState provide/inject** — `AdeoGrid.vue` calls `useGridState()` and provides under `GRID_STATE_KEY`. Sub-components read it via `useGridContext()` (alias `injectGridState` for back-compat).
-- **Column registry** — `AdeoColumn` children register via `ADEO_GRID_COLUMN_REGISTRY_KEY`. When both `:columns` prop and `<AdeoColumn>` children are provided, the registry overrides the prop on matching `field`.
-- **Slots context** — provided under `ADEO_GRID_SLOTS_KEY`. Per-field slots (`#cell-{field}`, `#header-{field}`, `#filter-{field}`, `#edit-{field}`) resolve before generic ones.
-- **Plugin contract** — `<AdeoGrid :plugins="[plugin]" />`. Each plugin receives `{ state, engine }` on `init` and returns a cleanup function.
+- **GridState provide/inject** — `Grid.vue` calls `useGridState()` and provides under `GRID_STATE_KEY`. Sub-components read it via `useGridContext()` (alias `injectGridState` for back-compat).
+- **Column registry** — `Column` children register via `GRID_COLUMN_REGISTRY_KEY`. When both `:columns` prop and `<Column>` children are provided, the registry overrides the prop on matching `field`.
+- **Slots context** — provided under `GRID_SLOTS_KEY`. Per-field slots (`#cell-{field}`, `#header-{field}`, `#filter-{field}`, `#edit-{field}`) resolve before generic ones.
+- **Plugin contract** — `<ad-grid-vue :plugins="[plugin]" />`. Each plugin receives `{ state, engine }` on `init` and returns a cleanup function.
 - **Imperative ref API** — `grid.value.exportCsv()`, `undo()`, `setFormula()`, `validateAll()`, `persistView()`, `tree.flatten()`, etc. Full list in README "Imperative ref API" table.
-- **Density row heights** (must match SCSS padding): `compact: 32`, `default: 48`, `comfortable: 64` — defined in `AdeoGrid.vue` as `DENSITY_ROW_HEIGHT`. (The legacy `defaults.ts` constant uses different numbers for the engine layer; treat the `AdeoGrid.vue` constants as authoritative for visual rendering.)
+- **Density row heights** (must match SCSS padding): `compact: 32`, `default: 48`, `comfortable: 64` — defined in `Grid.vue` as `DENSITY_ROW_HEIGHT`. (The legacy `defaults.ts` constant uses different numbers for the engine layer; treat the `Grid.vue` constants as authoritative for visual rendering.)
 - **Group row metadata** — group rows use `__adg`-prefixed fields (`__adgType`, `__adgKey`, `__adgDepth`, …) to avoid collisions with user data. Use `isGroupRow()` from `types.ts`.
 - **Formula engine** — active iff any column has `allowFormula: true`. Auto-detects `=...` strings in `props.rows`, evaluates via topological DAG, re-evaluates dependents on upstream edits.
 
@@ -105,6 +105,6 @@ Pinia and vue-router are installed but currently unused — no stores or routes 
 - **TypeScript strict mode** with `noUncheckedIndexedAccess: true`
 - **No semicolons**, single quotes, 100-char print width (Prettier)
 - **Path alias:** `@` → `./src` (mirrored in Storybook's `viteFinal`)
-- **Scoped CSS** in SFCs; shared SCSS partials in `src/components/AdeoGrid/styles/`
+- **Scoped CSS** in SFCs; shared SCSS partials in `src/components/Grid/styles/`
 - **Dual linting:** oxlint runs first (correctness), then eslint (vue/ts rules)
 - **Node:** `^20.19.0 || >=22.12.0`

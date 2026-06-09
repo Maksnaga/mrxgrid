@@ -1,11 +1,11 @@
 import type { Meta, StoryObj } from '@storybook/vue3-vite'
 import { ref } from 'vue'
-import { AdeoGrid } from '@/components/AdeoGrid'
+import { AdGridVue } from '@/components/Grid'
 import { generateLMProducts, lmColumns } from './_fixtures'
 
 const meta = {
   title: 'Stories/Pagination/Default · Custom page sizes',
-  component: AdeoGrid,
+  component: AdGridVue,
   tags: ['autodocs'],
   args: { rows: [] },
   parameters: {
@@ -14,7 +14,7 @@ const meta = {
         component: `
 # Pagination
 
-Activez le footer pagination via la prop \`pagination\`. Compose proprement avec virtual-scroll : la grille ne rend que la page courante (donc \`pageSize × rowHeight\` lignes en DOM).
+Activez le footer pagination via la prop \`pagination\`. Compose proprement avec : la grille ne rend que la page courante (donc \`pageSize × rowHeight\` lignes en DOM).
 
 | Forme | Comportement |
 |-------|--------------|
@@ -33,7 +33,7 @@ Activez le footer pagination via la prop \`pagination\`. Compose proprement avec
       },
     },
   },
-} satisfies Meta<typeof AdeoGrid>
+} satisfies Meta<typeof AdGridVue>
 
 export default meta
 type Story = StoryObj<typeof meta>
@@ -46,19 +46,19 @@ export const Default: Story = {
 ## Pagination par défaut
 
 \`\`\`vue
-<AdeoGrid
+<ad-grid-vue
   :columns="columns"
   :rows="rows"
   :pagination="true"
-  virtual-scroll
+
   :container-height="500"
   @page-change="onPageChange"
 />
 \`\`\`
 
-### Pourquoi pagination + virtual-scroll ensemble
+### Pourquoi pagination + ensemble
 
-La pagination réduit le set à \`pageSize\` lignes (~25–100). Le virtual-scroll est juste là pour le rendu fluide des grandes pages — sans coût quand la page est petite. Pas d'antinomie.
+La pagination réduit le set à \`pageSize\` lignes (~25–100). Le est juste là pour le rendu fluide des grandes pages — sans coût quand la page est petite. Pas d'antinomie.
 
 ### \`@page-change\` payload
 
@@ -81,7 +81,7 @@ Pas d'API \`grid.goToPage()\` exposée actuellement — utilisez le footer ou la
     },
   },
   render: () => ({
-    components: { AdeoGrid },
+    components: { AdGridVue },
     setup() {
       const lastPage = ref<string>('—')
       function onPageChange(p: { page: number; pageSize: number; startIndex: number; endIndex: number }) {
@@ -90,12 +90,12 @@ Pas d'API \`grid.goToPage()\` exposée actuellement — utilisez le footer ou la
       return { lmColumns, rows: generateLMProducts(523), lastPage, onPageChange }
     },
     template: `
-      <div class="sb-adeo-grid-shell">
+      <div class="sb-grid-shell">
         <h2>Pagination par défaut</h2>
         <p>Pass <code>:pagination="true"</code> pour activer le footer pagination avec les tailles standard. L'évent <code>pageChange</code> remonte page courante + indices.</p>
-        <div class="sb-adeo-grid-toolbar">Dernier <code>pageChange</code> : <code>{{ lastPage }}</code></div>
-        <div class="sb-adeo-grid-frame">
-          <AdeoGrid :height="560" :columns="lmColumns" :rows="rows" :pagination="true" virtual-scroll :container-height="500" @page-change="onPageChange" />
+        <div class="sb-grid-toolbar">Dernier <code>pageChange</code> : <code>{{ lastPage }}</code></div>
+        <div class="sb-grid-frame">
+          <ad-grid-vue :height="560" :columns="lmColumns" :rows="rows" :pagination="true" :container-height="500" @page-change="onPageChange" />
         </div>
       </div>
     `,
@@ -127,11 +127,11 @@ const pagination = { pageSizeOptions: [10, 25, 50, 100, 250], defaultPageSize: 2
 \`\`\`
 
 \`\`\`vue
-<AdeoGrid
+<ad-grid-vue
   :columns="columns"
   :rows="rows"
   :pagination="pagination"
-  virtual-scroll
+
   :container-height="500"
 />
 \`\`\`
@@ -144,18 +144,18 @@ Si vous avez 1M de rows et faites du server-side, combinez avec \`:total-count="
     },
   },
   render: () => ({
-    components: { AdeoGrid },
+    components: { AdGridVue },
     setup: () => ({
       lmColumns,
       rows: generateLMProducts(523),
       pagination: { pageSizeOptions: [10, 25, 50, 100, 250], defaultPageSize: 25 },
     }),
     template: `
-      <div class="sb-adeo-grid-shell">
+      <div class="sb-grid-shell">
         <h2>Custom page sizes</h2>
         <p>Pass <code>:pagination="{ pageSizeOptions, defaultPageSize }"</code> pour customiser le dropdown "Rows per page".</p>
-        <div class="sb-adeo-grid-frame">
-          <AdeoGrid :height="560" :columns="lmColumns" :rows="rows" :pagination="pagination" virtual-scroll :container-height="500" />
+        <div class="sb-grid-frame">
+          <ad-grid-vue :height="560" :columns="lmColumns" :rows="rows" :pagination="pagination" :container-height="500" />
         </div>
       </div>
     `,

@@ -1,5 +1,5 @@
 /**
- * Catalogue du tutoriel "Construire une datagrid pro avec AdeoGrid".
+ * Catalogue du tutoriel "Construire une datagrid pro avec Grid".
  *
  * Le tutoriel est structuré en PHASES (groupes de steps) et chaque step
  * est une feature unitaire que le dev peut copier-coller dans son app :
@@ -53,14 +53,14 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
     id: 'install',
     number: 1,
     phase: 'Démarrage rapide',
-    title: 'Installer et importer AdeoGrid',
-    objective: 'Mettre en place les dépendances pour utiliser AdeoGrid dans un projet Vue 3.',
+    title: 'Installer et importer Grid',
+    objective: 'Mettre en place les dépendances pour utiliser Grid dans un projet Vue 3.',
     explanation: [
-      'AdeoGrid est packagé en ESM Vue 3 + TypeScript et a deux dépendances peer : <code>vue@^3.5</code> et <code>@mozaic-ds/vue</code> (le design system Mozaic d\'Adeo qui fournit les inputs, modals, drawers, etc.). Toutes les exports publics sont accessibles depuis le barrel <code>@/components/AdeoGrid</code>.',
-      'Pour ce demo, on importe le composant principal <code>AdeoGrid</code> et le type <code>ColumnDef</code> qui décrit chaque colonne. Le reste (types CellRendererProps, renderers built-in, filtres, plugins, etc.) est exposé au même niveau.',
+      'Grid est packagé en ESM Vue 3 + TypeScript et a deux dépendances peer : <code>vue@^3.5</code> et <code>@mozaic-ds/vue</code> (le design system Mozaic d\'Adeo qui fournit les inputs, modals, drawers, etc.). Toutes les exports publics sont accessibles depuis le barrel <code>@/components/Grid</code>.',
+      'Pour ce demo, on importe le composant principal <code>Grid</code> et le type <code>ColumnDef</code> qui décrit chaque colonne. Le reste (types CellRendererProps, renderers built-in, filtres, plugins, etc.) est exposé au même niveau.',
     ],
     snippet: `<script setup lang="ts">
-import { AdeoGrid, type ColumnDef } from '@/components/AdeoGrid'
+import { AdGridVue, type ColumnDef } from '@/components/Grid'
 import type { LMProduct } from './mock/seed'
 
 const rows: LMProduct[] = [/* ... vos données ... */]
@@ -68,7 +68,7 @@ const columns: ColumnDef[] = [/* ... voir étape 2 ... */]
 </script>
 
 <template>
-  <AdeoGrid :columns="columns" :rows="rows" />
+  <ad-grid-vue :columns="columns" :rows="rows" />
 </template>`,
     snippetLang: 'vue',
   },
@@ -82,7 +82,7 @@ const columns: ColumnDef[] = [/* ... voir étape 2 ... */]
       'Chaque colonne est un objet typé avec au minimum <code>field</code> (clé d\'accès dans la row) et <code>headerName</code> (libellé affiché). Tu peux ajouter <code>width</code> (px ou %), <code>pinned: \'start\' | \'end\'</code> pour épingler à gauche/droite, et plein d\'autres options optionnelles selon les features que tu actives.',
       'Le grid lit chaque cellule comme <code>col.valueGetter?.(row) ?? row[col.field]</code>. Si tu déclares un <code>valueGetter</code>, il prend la main partout (rendu, tri, filtre, copy/paste, fill handle, édition, export). Sinon le grid lit directement <code>row[col.field]</code>. Voir étape 9 pour le pattern colonne calculée.',
     ],
-    snippet: `import type { ColumnDef } from '@/components/AdeoGrid'
+    snippet: `import type { ColumnDef } from '@/components/Grid'
 
 const columns: ColumnDef[] = [
   {
@@ -104,7 +104,7 @@ const columns: ColumnDef[] = [
     headerName: 'Prix',
     width: '110px',
     sortable: true,
-    cellClass: 'adeo-grid-cell-num', // classe CSS appliquée à la cellule
+    cellClass: 'grid-cell-num', // classe CSS appliquée à la cellule
   },
   {
     field: 'status',
@@ -128,25 +128,25 @@ const columns: ColumnDef[] = [
     objective: 'Adapter la hauteur, la densité des lignes et activer le plein écran.',
     explanation: [
       '<code>:height</code> fixe la hauteur du grid en pixels — utile quand on veut un viewport scrollable. <code>:density</code> contrôle la hauteur des lignes : <code>\'compact\'</code> (32px), <code>\'default\'</code> (48px), <code>\'comfortable\'</code> (64px). <code>:fullscreen</code> est un v-model qui passe le grid en <code>position: fixed</code> plein écran.',
-      'Pour gros datasets (>1000 lignes), pense aussi à <code>:virtual-scroll="true"</code> (vertical) et <code>:virtual-columns="true"</code> (horizontal) qui slice automatiquement ce qui est rendu.',
+      'La virtualisation 2D (vertical + horizontal) est toujours active sous le capot — rien à brancher, le grid encaisse 100k+ lignes / 200+ colonnes sans config.',
     ],
     snippet: `<script setup lang="ts">
 import { ref } from 'vue'
-import type { DataDensity } from '@/components/AdeoGrid'
+import type { DataDensity } from '@/components/Grid'
 
 const fullscreen = ref(false)
 const density = ref<DataDensity>('default')
 </script>
 
 <template>
-  <AdeoGrid
+  <ad-grid-vue
     :columns="columns"
     :rows="rows"
     :height="640"
     :density="density"
     :fullscreen="fullscreen"
-    :virtual-scroll="true"
-    :virtual-columns="true"
+
+
   />
   <button @click="fullscreen = !fullscreen">
     {{ fullscreen ? 'Quitter' : 'Plein écran' }}
@@ -170,7 +170,7 @@ const density = ref<DataDensity>('default')
     ],
     snippet: `<script setup lang="ts">
 import { ref } from 'vue'
-import { AdeoGrid } from '@/components/AdeoGrid'
+import { AdGridVue } from '@/components/Grid'
 
 const rows = ref<Product[]>([])
 const total = ref(0)
@@ -194,7 +194,7 @@ const paginationConfig = {
 </script>
 
 <template>
-  <AdeoGrid
+  <ad-grid-vue
     :columns="columns"
     :rows="rows"
     :total-count="total"
@@ -276,7 +276,7 @@ async function refetch() {
 </script>
 
 <template>
-  <AdeoGrid
+  <ad-grid-vue
     :columns="columns"
     :rows="rows"
     :loading="loading"
@@ -300,7 +300,7 @@ async function refetch() {
     ],
     snippet: `// StatusCell.vue
 <script setup lang="ts">
-import type { CellRendererProps } from '@/components/AdeoGrid'
+import type { CellRendererProps } from '@/components/Grid'
 import { MStatusBadge } from '@mozaic-ds/vue'
 
 const props = defineProps<CellRendererProps>()
@@ -442,7 +442,7 @@ const columns: ColumnDef[] = [
 ]
 
 // Côté template
-<AdeoGrid
+<ad-grid-vue
   :columns="columns"
   :rows="rows"
   @cell-edit="async (e) => {
@@ -458,13 +458,13 @@ const columns: ColumnDef[] = [
     title: 'Éditeur custom : combobox via slot #edit-{field}',
     objective: 'Remplacer l\'éditeur par défaut par n\'importe quel composant Vue (combobox, color picker, slider, …).',
     explanation: [
-      'Quand les éditeurs built-in ne suffisent pas, déclare <code>cellEditor: \'custom\'</code> sur la colonne et fournis le composant via le slot <code>#edit-{field}</code> sur <code>&lt;AdeoGrid&gt;</code>. Le scope du slot expose : <code>value, editValue, updateValue, commit, cancel, setValue, row, field, rowIndex, column</code>.',
+      'Quand les éditeurs built-in ne suffisent pas, déclare <code>cellEditor: \'custom\'</code> sur la colonne et fournis le composant via le slot <code>#edit-{field}</code> sur <code>&lt;Grid&gt;</code>. Le scope du slot expose : <code>value, editValue, updateValue, commit, cancel, setValue, row, field, rowIndex, column</code>.',
       'Appelle <code>updateValue(v)</code> pour pousser le draft, <code>commit(\'stay\')</code> pour valider sans déplacer l\'active cell (utile pour combobox), <code>commit(\'down\')</code> pour valider + bouger d\'une ligne (style Excel). <code>cancel()</code> ferme sans modification.',
     ],
     snippet: `// BrandComboEditor.vue
 <script setup lang="ts">
 import { MCombobox } from '@mozaic-ds/vue'
-import type { ColumnDef } from '@/components/AdeoGrid'
+import type { ColumnDef } from '@/components/Grid'
 
 const props = defineProps<{
   field: string
@@ -493,7 +493,7 @@ function onPick(v: string | number | null | (string | number)[]) {
 </template>
 
 // DemoPage.vue
-<AdeoGrid :columns="columns" :rows="rows">
+<ad-grid-vue :columns="columns" :rows="rows">
   <template #edit-brand="{ field, rowIndex, column, editValue, updateValue, commit }">
     <BrandComboEditor
       :field="field"
@@ -504,7 +504,7 @@ function onPick(v: string | number | null | (string | number)[]) {
       :commit="commit"
     />
   </template>
-</AdeoGrid>
+</ad-grid-vue>
 
 // Côté colonne
 { field: 'brand', editable: true, cellEditor: 'custom',
@@ -526,7 +526,7 @@ function onPick(v: string | number | null | (string | number)[]) {
       'Le fill handle apparaît automatiquement quand une cellule éditable est sélectionnée — c\'est le petit carré bleu en bas-droite. Drag pour propager. L\'event <code>@fill</code> émet un batch de <code>{ rowIndex, field, value }</code> que tu peux pusher en bulk à ton API en groupant par champ.',
       'C\'est une seule operation logique du point de vue history (1 fill = 1 undo).',
     ],
-    snippet: `<AdeoGrid
+    snippet: `<ad-grid-vue
   :columns="columns"
   :rows="rows"
   @fill="onFill"
@@ -594,7 +594,7 @@ async function onFill(event: {
   },
 ]
 
-<AdeoGrid
+<ad-grid-vue
   :columns="columns"
   :rows="rows"
   :filter-mode="'server'"
@@ -612,7 +612,7 @@ async function onFill(event: {
       'Le slot <code>#filter-{field}</code> reçoit <code>{ column, value, setValue, clear }</code>. Tu rends ce que tu veux et appelles <code>setValue(v)</code> quand l\'utilisateur change la valeur, <code>clear()</code> quand il efface.',
       'Le grid pose le slot dans la zone de la filter row, alignée sur la colonne — pas besoin de gérer la position.',
     ],
-    snippet: `<AdeoGrid :columns="columns" :rows="rows">
+    snippet: `<ad-grid-vue :columns="columns" :rows="rows">
   <template #filter-price="{ value, setValue, clear }">
     <PriceRangeSlider
       :range="value as { min: number; max: number } | null"
@@ -621,7 +621,7 @@ async function onFill(event: {
       @update="(range) => range ? setValue(range) : clear()"
     />
   </template>
-</AdeoGrid>
+</ad-grid-vue>
 
 // Côté colonne — juste filterable: true, pas besoin de filter: { type }
 { field: 'price', headerName: 'Prix', filterable: true }`,
@@ -720,7 +720,7 @@ function onSelectionChange(payload: unknown) {
 </script>
 
 <template>
-  <AdeoGrid
+  <ad-grid-vue
     :columns="columns"
     :rows="rows"
     selectable
@@ -746,9 +746,9 @@ function onSelectionChange(payload: unknown) {
     objective: 'Drill-down inline : un panneau qui s\'ouvre sous la row avec des détails.',
     explanation: [
       '<code>expandable</code> ajoute un chevron sticky-left, le slot <code>#expand-row</code> rend le contenu déplié. Le scope expose <code>{ row, index }</code>. <code>:expanded-row-height</code> (default 320px) sert au math du virtual scroll — ajuste si ton contenu est plus grand.',
-      'Le pattern courant : un mini-grid imbriqué (mouvements de stock, historique, sous-éléments). AdeoGrid se réutilise lui-même en read-only.',
+      'Le pattern courant : un mini-grid imbriqué (mouvements de stock, historique, sous-éléments). Grid se réutilise lui-même en read-only.',
     ],
-    snippet: `<AdeoGrid
+    snippet: `<ad-grid-vue
   :columns="columns"
   :rows="rows"
   expandable
@@ -757,11 +757,11 @@ function onSelectionChange(payload: unknown) {
   <template #expand-row="{ row }">
     <ProductDetailExpand :product="row" />
   </template>
-</AdeoGrid>
+</ad-grid-vue>
 
 // ProductDetailExpand.vue
 <script setup lang="ts">
-import { AdeoGrid } from '@/components/AdeoGrid'
+import { AdGridVue } from '@/components/Grid'
 import { getProductMovements } from '../mock/api'
 
 const props = defineProps<{ product: Product }>()
@@ -774,14 +774,14 @@ onMounted(async () => {
 <template>
   <div class="detail">
     <h3>{{ product.name }}</h3>
-    <AdeoGrid
+    <ad-grid-vue
       :columns="movementColumns"
       :rows="movements"
       :height="220"
       density="compact"
     >
       <template #toolbar><span /></template>   <!-- pas de toolbar -->
-    </AdeoGrid>
+    </ad-grid-vue>
   </div>
 </template>`,
     snippetLang: 'vue',
@@ -834,7 +834,7 @@ async function onCellEdit(e) {
   )
 }
 
-<AdeoGrid
+<ad-grid-vue
   :columns="columns"
   :rows="rows"
   :pending-cells="pendingCells"
@@ -855,10 +855,10 @@ async function onCellEdit(e) {
     title: 'Toolbar custom (#toolbar)',
     objective: 'Customiser la zone toolbar — search, import/export, CTA — sans réécrire les built-in features.',
     explanation: [
-      'Le slot <code>#toolbar</code> remplace la toolbar par défaut. Tu peux y poser <code>&lt;AdeoGridSmartToolbar&gt;</code> qui expose en one-liner les features built-in (<code>fullscreen, settings, filters, group, keyboard, export</code>) et entourer avec tes propres éléments.',
+      'Le slot <code>#toolbar</code> remplace la toolbar par défaut. Tu peux y poser <code>&lt;ad-grid-toolbar&gt;</code> qui expose en one-liner les features built-in (<code>fullscreen, settings, filters, group, keyboard, export</code>) et entourer avec tes propres éléments.',
       'Le pattern courant : <code>[search input] [SmartToolbar] [tes actions custom]</code>.',
     ],
-    snippet: `<AdeoGrid :columns="columns" :rows="rows">
+    snippet: `<ad-grid-vue :columns="columns" :rows="rows">
   <template #toolbar>
     <div class="my-toolbar">
       <MTextInput
@@ -867,7 +867,7 @@ async function onCellEdit(e) {
         input-type="search"
       />
 
-      <AdeoGridSmartToolbar
+      <ad-grid-toolbar
         :grid="gridRef"
         :columns="columns"
         :show-fullscreen="true"
@@ -886,7 +886,7 @@ async function onCellEdit(e) {
       </MButton>
     </div>
   </template>
-</AdeoGrid>`,
+</ad-grid-vue>`,
     snippetLang: 'vue',
     seeAlso: {
       label: 'ToolbarActions complet',

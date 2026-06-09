@@ -1,0 +1,33 @@
+{
+  "name": "adeo-grid-monorepo",
+  "version": "0.0.0",
+  "private": true,
+  "packageManager": "pnpm@9.15.0",
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0",
+    "pnpm": ">=9.0.0"
+  },
+  "scripts": {
+    "build": "turbo run build",
+    "build:vue": "pnpm --filter @adeo/grid-vue build",
+    "build:angular": "pnpm --filter @adeo/grid-angular build",
+    "test": "turbo run test",
+    "lint": "turbo run lint",
+    "storybook": "turbo run storybook",
+    "storybook:vue": "pnpm --filter @adeo/grid-vue storybook",
+    "storybook:angular": "pnpm --filter @adeo/grid-angular storybook",
+    "storybook:portal": "pnpm --filter @adeo/storybook-portal storybook",
+    "dev": "turbo run dev",
+    "clean": "turbo run clean && rm -rf node_modules .turbo",
+    "format": "prettier --write .",
+    "changeset": "changeset",
+    "version": "changeset version",
+    "release": "turbo run build && changeset publish"
+  },
+  "devDependencies": {
+    "@changesets/cli": "^2.27.0",
+    "prettier": "^3.4.0",
+    "turbo": "^2.3.0",
+    "typescript": "~5.9.3"
+  }
+}

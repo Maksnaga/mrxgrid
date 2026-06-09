@@ -2,17 +2,17 @@ import type { Meta, StoryObj } from '@storybook/vue3-vite'
 import { computed, defineComponent, h, markRaw, onMounted, ref } from 'vue'
 import { MCombobox } from '@mozaic-ds/vue'
 import { teleportListbox, type TeleportListboxController } from '@/composables/useTeleportListbox'
-import { AdeoGrid, AdeoGridFilterDrawer, AdeoGridToolbar } from '@/components/AdeoGrid'
-import type { ColumnDef } from '@/components/AdeoGrid'
+import { AdGridVue, AdGridFilterDrawer, AdGridToolbar } from '@/components/Grid'
+import type { ColumnDef } from '@/components/Grid'
 import {
   DEFAULT_OPERATORS,
   DEFAULT_OPERATOR_PER_TYPE,
   type FilterColumnDescriptor,
   type FilterDataType,
   type FilterModel,
-  type AdeoDoesFilterPassParams,
-  type AdeoFilterParams,
-} from '@/components/AdeoGrid/models/filter.model'
+  type DoesFilterPassParams,
+  type FilterParams,
+} from '@/components/Grid/models/filter.model'
 import { lmColumns, lmProducts, type LMProduct } from './_fixtures'
 
 // Custom filter component — Mozaic `<MCombobox>` in multi-select mode for
@@ -33,7 +33,7 @@ const CategoryComboFilter = defineComponent({
   props: {
     params: { type: Object, required: true },
   },
-  setup(props: { params: AdeoFilterParams<LMProduct, string[]> }, { expose }) {
+  setup(props: { params: FilterParams<LMProduct, string[]> }, { expose }) {
     // Options derived from the demo dataset. A real implementation would
     // accept them via `params.filterParams` or fetch them asynchronously.
     const options = Array.from(new Set(lmProducts.map((r) => r.category)))
@@ -71,7 +71,7 @@ const CategoryComboFilter = defineComponent({
       isFilterActive: () => Array.isArray(model.value) && model.value.length > 0,
       // Called when the grid's model changes from a source OTHER than this
       // component (drawer apply, persistView restore). Re-sync local state.
-      refresh: (newParams: AdeoFilterParams<LMProduct, string[]>): boolean => {
+      refresh: (newParams: FilterParams<LMProduct, string[]>): boolean => {
         const m = newParams.model
         model.value = Array.isArray(m) && m.length > 0 ? m : null
         return true
@@ -100,7 +100,7 @@ const CategoryComboFilter = defineComponent({
 
 // Pure predicate — declared alongside the component on the column. The
 // engine calls it once per row; no Vue instance involved.
-const categoryDoesFilterPass = (p: AdeoDoesFilterPassParams<LMProduct, string[]>): boolean => {
+const categoryDoesFilterPass = (p: DoesFilterPassParams<LMProduct, string[]>): boolean => {
   if (!Array.isArray(p.model) || p.model.length === 0) return true
   const v = p.getValue('category')
   return typeof v === 'string' && p.model.includes(v)
@@ -124,7 +124,7 @@ const PriceRangeFilter = defineComponent({
   props: {
     params: { type: Object, required: true },
   },
-  setup(props: { params: AdeoFilterParams<LMProduct, PriceModel> }, { expose }) {
+  setup(props: { params: FilterParams<LMProduct, PriceModel> }, { expose }) {
     // Local mutable state. `null` means "no filter" → the engine drops the
     // condition. The grid's source-of-truth lives on `params.model` and is
     // re-synced via `refresh()` when changed externally.
@@ -150,7 +150,7 @@ const PriceRangeFilter = defineComponent({
 
     expose({
       isFilterActive: () => model.value !== null,
-      refresh: (newParams: AdeoFilterParams<LMProduct, PriceModel>): boolean => {
+      refresh: (newParams: FilterParams<LMProduct, PriceModel>): boolean => {
         model.value = newParams.model ?? null
         return true
       },
@@ -175,7 +175,7 @@ const PriceRangeFilter = defineComponent({
 })
 
 // Pure predicate — declared alongside the component on the column.
-const priceDoesFilterPass = (p: AdeoDoesFilterPassParams<LMProduct, PriceModel>): boolean => {
+const priceDoesFilterPass = (p: DoesFilterPassParams<LMProduct, PriceModel>): boolean => {
   const v = p.getValue('price')
   if (typeof v !== 'number' || !p.model) return false
   return v >= p.model.min && v <= p.model.max
@@ -183,7 +183,7 @@ const priceDoesFilterPass = (p: AdeoDoesFilterPassParams<LMProduct, PriceModel>)
 
 const meta = {
   title: 'Stories/Filtering/Inline · Drawer · Server-side',
-  component: AdeoGrid,
+  component: AdGridVue,
   tags: ['autodocs'],
   args: { rows: [] },
   parameters: {
@@ -192,15 +192,15 @@ const meta = {
         component: `
 # Filtering
 
-AdeoGrid expose **trois surfaces de filtrage complémentaires**, à activer indépendamment selon votre UX :
+Grid expose **trois surfaces de filtrage complémentaires**, à activer indépendamment selon votre UX :
 
 | Surface | Quand l'utiliser | Activation |
 |---------|------------------|------------|
 | **Inline filter row** | Filtres rapides "1 input par colonne" sous le header | \`filterable: true\` + \`filterType\` sur la \`ColumnDef\` |
-| **Filter drawer** | Builder multi-conditions avec combinators AND/OR | \`<AdeoGridFilterDrawer>\` + \`grid.setFilterModel()\` |
+| **Filter drawer** | Builder multi-conditions avec combinators AND/OR | \`<ad-grid-filter-drawer>\` + \`grid.setFilterModel()\` |
 | **Server-side** | La grille n'évalue rien client-side, elle émet \`filterChange\` | prop \`server-filter\` |
 
-Les surfaces composent : un filtre du drawer **ET** un filtre inline filtrent la même donnée (intersection). Toutes les conditions partagent le même engine ([\`useFilterEngine\`](src/components/AdeoGrid/features/useFilterEngine.ts)).
+Les surfaces composent : un filtre du drawer **ET** un filtre inline filtrent la même donnée (intersection). Toutes les conditions partagent le même engine ([\`useFilterEngine\`](src/components/Grid/features/useFilterEngine.ts)).
 
 ## Types de filtre supportés (\`filterType\`)
 
@@ -221,7 +221,7 @@ Les surfaces composent : un filtre du drawer **ET** un filtre inline filtrent la
       },
     },
   },
-} satisfies Meta<typeof AdeoGrid>
+} satisfies Meta<typeof AdGridVue>
 
 export default meta
 type Story = StoryObj<typeof meta>
@@ -254,12 +254,12 @@ const columns: ColumnDef[] = [
 \`\`\`
 
 \`\`\`vue
-<AdeoGrid :columns="columns" :rows="rows" />
+<ad-grid-vue :columns="columns" :rows="rows" />
 \`\`\`
 
 ### Comment ça marche en interne
 
-1. La filter row ([\`AdeoGridFilterRow.vue\`](src/components/AdeoGrid/components/header/AdeoGridFilterRow.vue)) itère les colonnes et délègue à \`AdeoGridFilterCell\` qui choisit le bon input selon \`filterType\`.
+1. La filter row ([\`AdGridFilterRow.vue\`](src/components/Grid/components/header/AdGridFilterRow.vue)) itère les colonnes et délègue à \`AdGridFilterCell\` qui choisit le bon input selon \`filterType\`.
 2. Sur input, le filter engine maintient un \`Record<field, value>\` (\`quickFilters\` dans \`GridState\`).
 3. Le pipeline \`sourceData → sortedData → **filteredData** → paginatedData → displayRows\` re-calcule \`filteredData\` réactivement.
 4. Texte → debounce 250ms ; select / date → commit immédiat.
@@ -276,14 +276,14 @@ const columns: ColumnDef[] = [
     },
   },
   render: () => ({
-    components: { AdeoGrid },
+    components: { AdGridVue },
     setup: () => ({ lmColumns, lmProducts }),
     template: `
-      <div class="sb-adeo-grid-shell">
+      <div class="sb-grid-shell">
         <h2>Inline filter row</h2>
         <p>Chaque colonne marquée <code>filterable: true</code> avec un <code>filterType</code> expose son input dans la rangée de filtres juste sous le header. Text, number, date et set sont built-in.</p>
-        <div class="sb-adeo-grid-frame">
-          <AdeoGrid :height="560" :columns="lmColumns" :rows="lmProducts" />
+        <div class="sb-grid-frame">
+          <ad-grid-vue :height="560" :columns="lmColumns" :rows="lmProducts" />
         </div>
       </div>
     `,
@@ -330,7 +330,7 @@ const filteredRows = computed(() =>
 </script>
 
 <template>
-  <AdeoGrid :columns="columns" :rows="filteredRows">
+  <ad-grid-vue :columns="columns" :rows="filteredRows">
     <template #filter-name>
       <input v-model="nameQuery" placeholder="Search name..." class="sb-filter-input" />
     </template>
@@ -343,7 +343,7 @@ const filteredRows = computed(() =>
     <template #filter-price>
       <input v-model.number="maxPrice" type="number" placeholder="Max price" class="sb-filter-input" />
     </template>
-  </AdeoGrid>
+  </ad-grid-vue>
 </template>
 \`\`\`
 
@@ -357,7 +357,7 @@ const filteredRows = computed(() =>
     },
   },
   render: () => ({
-    components: { AdeoGrid },
+    components: { AdGridVue },
     setup() {
       // One draft ref per slot so each input commits independently — the
       // filter row applies on the next render via the computed `filteredRows`.
@@ -397,7 +397,7 @@ const filteredRows = computed(() =>
       }
     },
     template: `
-      <div class="sb-adeo-grid-shell">
+      <div class="sb-grid-shell">
         <h2>Custom <code>#filter-{field}</code> slots</h2>
         <p>
           Le slot <code>#filter-{field}</code> reçoit <code>{ column, value, setValue, clear }</code>
@@ -406,8 +406,8 @@ const filteredRows = computed(() =>
           <code>name</code>, select avec valeur <em>All</em> sur <code>category</code>,
           input "Max price" sur <code>price</code>.
         </p>
-        <div class="sb-adeo-grid-frame">
-          <AdeoGrid :height="560" :columns="lmColumns" :rows="filteredRows">
+        <div class="sb-grid-frame">
+          <ad-grid-vue :height="560" :columns="lmColumns" :rows="filteredRows">
             <!-- Name: text search filling the cell width. -->
             <template #filter-name>
               <input
@@ -442,7 +442,7 @@ const filteredRows = computed(() =>
                 @input="maxPrice = ($event.target.value === '' ? null : Number($event.target.value))"
               />
             </template>
-          </AdeoGrid>
+          </ad-grid-vue>
         </div>
       </div>
     `,
@@ -456,7 +456,7 @@ export const FilterDrawer: Story = {
         story: `
 ## Multi-condition filter drawer
 
-\`AdeoGridFilterDrawer\` ouvre un panneau latéral où l'utilisateur empile des conditions (\`field\` × \`operator\` × \`value\`) reliées par AND/OR. Le drawer maintient un \`FilterModel\` indépendant qui s'applique en bloc sur "Apply".
+\`AdGridFilterDrawer\` ouvre un panneau latéral où l'utilisateur empile des conditions (\`field\` × \`operator\` × \`value\`) reliées par AND/OR. Le drawer maintient un \`FilterModel\` indépendant qui s'applique en bloc sur "Apply".
 
 ### Forme du modèle
 
@@ -478,16 +478,16 @@ interface FilterCondition {
 \`\`\`vue
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { AdeoGrid, AdeoGridFilterDrawer, AdeoGridToolbar } from '@/components/AdeoGrid'
+import { AdGridVue, AdGridFilterDrawer, AdGridToolbar } from '@/components/Grid'
 import {
   DEFAULT_OPERATORS,
   DEFAULT_OPERATOR_PER_TYPE,
   type FilterColumnDescriptor,
   type FilterDataType,
   type FilterModel,
-} from '@/components/AdeoGrid/models/filter.model'
+} from '@/components/Grid/models/filter.model'
 
-const gridRef    = ref<InstanceType<typeof AdeoGrid>>()
+const gridRef    = ref<InstanceType<typeof AdGridVue>>()
 const drawerOpen = ref(false)
 const model      = ref<FilterModel>({ conditions: [] })
 
@@ -521,17 +521,17 @@ function onClear() {
 </script>
 
 <template>
-  <AdeoGrid ref="gridRef" :columns="columns" :rows="rows">
+  <ad-grid-vue ref="gridRef" :columns="columns" :rows="rows">
     <template #toolbar>
-      <AdeoGridToolbar
+      <ad-grid-toolbar
         show-filters
         :active-filter-count="model.conditions.length"
         @filters="drawerOpen = !drawerOpen"
       />
     </template>
-  </AdeoGrid>
+  </ad-grid-vue>
 
-  <AdeoGridFilterDrawer
+  <ad-grid-filter-drawer
     :open="drawerOpen"
     :columns="filterColumns"
     :model="model"
@@ -548,17 +548,17 @@ function onClear() {
 
 ### Astuce: smart toolbar
 
-Pour éviter de wirer le drawer + le model + filterColumns à la main, utilisez \`<AdeoGridSmartToolbar>\` qui les bundle. Voir story *Devtools / Event console*.
+Pour éviter de wirer le drawer + le model + filterColumns à la main, utilisez \`<ad-grid-toolbar>\` qui les bundle. Voir story *Devtools / Event console*.
         `,
       },
     },
   },
   render: () => ({
-    components: { AdeoGrid, AdeoGridFilterDrawer, AdeoGridToolbar },
+    components: { AdGridVue, AdGridFilterDrawer, AdGridToolbar },
     setup() {
       const drawerOpen = ref(false)
       const filterModel = ref<FilterModel>({ conditions: [] })
-      const gridRef = ref<InstanceType<typeof AdeoGrid>>()
+      const gridRef = ref<InstanceType<typeof AdGridVue>>()
       const columns = lmColumns
 
       const filterColumns = computed<FilterColumnDescriptor[]>(() =>
@@ -596,21 +596,21 @@ Pour éviter de wirer le drawer + le model + filterColumns à la main, utilisez 
       }
     },
     template: `
-      <div class="sb-adeo-grid-shell">
+      <div class="sb-grid-shell">
         <h2>Multi-condition filter drawer</h2>
         <p>Le drawer permet d'empiler des conditions par colonne (text contains / number between / set in…) et de les appliquer en bloc. Le drawer se ferme via la croix ou l'overlay (<code>@update:open</code>).</p>
-        <div class="sb-adeo-grid-frame">
-          <AdeoGrid :height="560" ref="gridRef" :columns="lmColumns" :rows="lmProducts">
+        <div class="sb-grid-frame">
+          <ad-grid-vue :height="560" ref="gridRef" :columns="lmColumns" :rows="lmProducts">
             <template #toolbar>
-              <AdeoGridToolbar
+              <ad-grid-toolbar
                 show-filters
                 :active-filter-count="filterModel.conditions.length"
                 @filters="drawerOpen = !drawerOpen"
               />
             </template>
-          </AdeoGrid>
+          </ad-grid-vue>
         </div>
-        <AdeoGridFilterDrawer
+        <ad-grid-filter-drawer
           :open="drawerOpen"
           :columns="filterColumns"
           :model="filterModel"
@@ -647,7 +647,7 @@ async function onFilterChange(filters: Record<string, unknown>) {
 </script>
 
 <template>
-  <AdeoGrid
+  <ad-grid-vue
     :columns="columns"
     :rows="rows"
     :total-count="total"
@@ -671,7 +671,7 @@ Si vous avez aussi du sort ou de la pagination server-side, écoutez \`@page-cha
     },
   },
   render: () => ({
-    components: { AdeoGrid },
+    components: { AdGridVue },
     setup() {
       const allRows = lmProducts
       const filtered = ref([...allRows])
@@ -691,12 +691,12 @@ Si vous avez aussi du sort ou de la pagination server-side, écoutez \`@page-cha
       return { lmColumns, filtered, lastQuery, onFilterChange }
     },
     template: `
-      <div class="sb-adeo-grid-shell">
+      <div class="sb-grid-shell">
         <h2>Server-side filtering</h2>
         <p>Avec <code>:server-filter="true"</code>, le grid n'applique pas le filtre lui-même : il émet <code>filterChange</code>, à toi de re-fetch et de repasser <code>:rows</code>.</p>
-        <div class="sb-adeo-grid-toolbar">Dernier query envoyé : <code>{{ lastQuery }}</code></div>
-        <div class="sb-adeo-grid-frame">
-          <AdeoGrid :height="560"
+        <div class="sb-grid-toolbar">Dernier query envoyé : <code>{{ lastQuery }}</code></div>
+        <div class="sb-grid-frame">
+          <ad-grid-vue :height="560"
             :columns="lmColumns"
             :rows="filtered"
             server-filter
@@ -720,7 +720,7 @@ Quand les 5 types built-in (\`text\`, \`number\`, \`date\`, \`set\`, \`boolean\`
 ### Contrat
 
 \`\`\`ts
-import type { AdeoFilterParams, AdeoDoesFilterPassParams } from '@/components/AdeoGrid'
+import type { FilterParams, DoesFilterPassParams } from '@/components/Grid'
 
 // 1. Le composant — un seul prop \`params\` qui bundle tout le contexte.
 const PriceRangeFilter = defineComponent({
@@ -774,17 +774,17 @@ La prop \`filter-mode\` est désormais **indépendante** de \`server-filter\` / 
 - \`filter-mode="client"\` (défaut) — l'engine appelle \`doesFilterPass\` sur chaque ligne.
 - \`filter-mode="server"\` — la grille passe les lignes telles quelles, à toi de re-fetch sur \`update:filter-model\`.
 
-Combinaison nouvelle (impossible avant) : **grouping serveur + filtrage client** via \`<AdeoGrid :server-grouping :filter-mode="client" />\`.
+Combinaison nouvelle (impossible avant) : **grouping serveur + filtrage client** via \`<ad-grid-vue :server-grouping :filter-mode="client" />\`.
         `,
       },
     },
   },
   render: () => ({
-    components: { AdeoGrid, AdeoGridFilterDrawer, AdeoGridToolbar },
+    components: { AdGridVue, AdGridFilterDrawer, AdGridToolbar },
     setup() {
       const drawerOpen = ref(false)
       const filterModel = ref<FilterModel>({ conditions: [] })
-      const gridRef = ref<InstanceType<typeof AdeoGrid>>()
+      const gridRef = ref<InstanceType<typeof AdGridVue>>()
       const mode = ref<'client' | 'server'>('client')
       const lastEvent = ref<string>('—')
 
@@ -845,11 +845,11 @@ Combinaison nouvelle (impossible avant) : **grouping serveur + filtrage client**
               filterType: 'custom',
               operators: [],
               defaultOperator: 'equals',
-              // FilterColumnDescriptor types filter as AdeoFilterConfig<unknown>;
+              // FilterColumnDescriptor types filter as FilterConfig<unknown>;
               // our config is typed on the row's actual shape, but the engine
               // only ever needs the shape, not the row generic. Cast widens.
               filter:
-                custom as unknown as import('@/components/AdeoGrid/models/filter.model').AdeoFilterConfig<
+                custom as unknown as import('@/components/Grid/models/filter.model').FilterConfig<
                   unknown,
                   unknown,
                   unknown
@@ -898,7 +898,7 @@ Combinaison nouvelle (impossible avant) : **grouping serveur + filtrage client**
       }
     },
     template: `
-      <div class="sb-adeo-grid-shell">
+      <div class="sb-grid-shell">
         <h2>Custom filter components</h2>
         <p>
           Deux colonnes ont un <code>filter: { component, doesFilterPass }</code> custom :
@@ -906,7 +906,7 @@ Combinaison nouvelle (impossible avant) : **grouping serveur + filtrage client**
           (dual-range slider). Ouvre le drawer via la toolbar, ajoute une condition sur
           l'une des deux colonnes — l'éditeur de valeur est remplacé et l'opérateur est masqué.
         </p>
-        <div class="sb-adeo-grid-toolbar">
+        <div class="sb-grid-toolbar">
           <label style="display: inline-flex; align-items: center; gap: 8px;">
             <strong>filter-mode :</strong>
             <select :value="mode" @change="mode = $event.target.value">
@@ -916,8 +916,8 @@ Combinaison nouvelle (impossible avant) : **grouping serveur + filtrage client**
           </label>
           <span style="margin-left: 16px;">Dernier <code>filterChange</code> : <code>{{ lastEvent }}</code></span>
         </div>
-        <div class="sb-adeo-grid-frame">
-          <AdeoGrid
+        <div class="sb-grid-frame">
+          <ad-grid-vue
             :height="560"
             ref="gridRef"
             :columns="columns"
@@ -927,15 +927,15 @@ Combinaison nouvelle (impossible avant) : **grouping serveur + filtrage client**
             @update:filter-model="filterModel = $event"
           >
             <template #toolbar>
-              <AdeoGridToolbar
+              <ad-grid-toolbar
                 show-filters
                 :active-filter-count="filterModel.conditions.length"
                 @filters="drawerOpen = !drawerOpen"
               />
             </template>
-          </AdeoGrid>
+          </ad-grid-vue>
         </div>
-        <AdeoGridFilterDrawer
+        <ad-grid-filter-drawer
           :open="drawerOpen"
           :columns="filterColumns"
           :model="filterModel"

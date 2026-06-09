@@ -1,0 +1,18 @@
+<div class="column-visibility-panel">
+  <span class="column-visibility-panel__label">Hidden columns:</span>
+  @for (col of hiddenColumns(); track col.field) {
+  <button
+    type="button"
+    class="column-visibility-panel__chip"
+    (click)="onRestore(col.field)"
+    [attr.aria-label]="'Restore column ' + col.label"
+  >
+    {{ col.label }}
+    <span class="column-visibility-panel__chip-icon" aria-hidden="true">+</span>
+  </button>
+  } @if (hiddenColumns().length > 1) {
+  <button type="button" class="column-visibility-panel__restore-all" (click)="onRestoreAll()">
+    Restore all
+  </button>
+  }
+</div>

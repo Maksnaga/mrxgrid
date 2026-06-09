@@ -1,0 +1,210 @@
+@use 'sass:meta';
+@use '@mozaic-ds/styles/tools/t.font' as *;
+@use '@mozaic-ds/styles/typography/t.titles' as *;
+@use '@mozaic-ds/styles/typography' as *;
+@use '@mozaic-ds/styles/components/tile';
+@use '@mozaic-ds/tokens' as *;
+
+$preset: leroymerlin;
+
+// Use CSS variables from the LM preset with custom root selector
+@use '@mozaic-ds/tokens/theme' as lm-theme with (
+  $root-selector: '.preset-lm'
+);
+
+// Use CSS variables from the Adeo preset with custom root selector
+@use '@mozaic-ds/tokens/adeo/theme' as adeo-theme with (
+  $root-selector: '.preset-adeo'
+);
+
+// Use CSS variables from the Mbrand preset with custom root selector
+@use '@mozaic-ds/tokens/mbrand/theme' as mbrand-theme with (
+  $root-selector: '.preset-mbrand'
+);
+
+// Use CSS variables from the Bricocenter preset with custom root selector
+@use '@mozaic-ds/tokens/bricocenter/theme' as bricocenter-theme with (
+  $root-selector: '.preset-bricocenter'
+);
+
+@use '@mozaic-ds/styles/components/controls-options' as *;
+@use '@mozaic-ds/styles/components/divider/t.divider' as *;
+@use '@mozaic-ds/styles/typography/t.bodys' as *;
+
+@if $preset == leroymerlin {
+  @include import-font-lm();
+}
+
+html {
+  // Follow the brand preset's runtime font instead of the compile-time
+  // Sass `$font-family` (which is always LM Sans here).
+  font-family: var(--font-family), sans-serif;
+  color: var(--color-text-primary);
+}
+
+body,
+.sb-show-main {
+  background-color: var(--color-background-primary) !important;
+  color: var(--color-text-primary);
+  transition: background-color 0.2s, color 0.2s;
+}
+
+svg {
+  fill: currentColor;
+}
+
+// UI
+
+.toc-list-item.is-active-li > a {
+  color: #0ecc83 !important;
+}
+
+// Homepage
+
+.hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 80vh;
+
+  &-links {
+    display: flex;
+    gap: 0.5rem;
+    padding-top: 1rem;
+
+    a {
+      --button-color-filled-accent-background: #0ecc83;
+      --button-color-filled-accent-hover-background: #0db876;
+      display: flex;
+      color: #000;
+    }
+  }
+}
+
+// Components
+
+.content-slot {
+  align-items: center;
+  background-color: #e4d9fd;
+  border-radius: $border-radius-m;
+  color: #2e0663;
+  display: flex;
+  font-weight: $font-weight-semi-bold;
+  min-height: $spacing-400;
+  justify-content: center;
+  line-height: 1.3;
+  padding: $spacing-300; // 24px
+  position: relative;
+
+  &::before {
+    content: '';
+    border-radius: 4px;
+    border: 2px dashed #883be9;
+    position: absolute;
+    inset: $spacing-100; // 8px
+  }
+
+  &-full {
+    height: 400px;
+  }
+
+  &--alt {
+    border-radius: 0;
+    background: repeating-linear-gradient(
+      130deg,
+      rgb(84 0 252 / 14%),
+      rgb(84 0 252 / 14%) 40px,
+      rgb(123 0 255 / 9%) 40px,
+      rgb(123 0 255 / 9%) 80px
+    );
+
+    &::before {
+      display: none;
+    }
+  }
+}
+
+// Accordion
+.mc-accordion + .mc-accordion {
+  margin-top: $spacing-200;
+}
+
+// Avatar
+.mc-avatar + .mc-avatar {
+  margin-top: 2rem;
+}
+
+// Listbox
+.listbox-story-wrapper {
+  height: 150px;
+
+  @media screen and (max-width: ($screen-m - 1)) {
+    height: 400px;
+  }
+}
+
+// Carousel
+.free-content {
+  margin: $spacing-100;
+
+  &__image {
+    max-width: 300px;
+  }
+
+  &__title {
+    font-size: $font-title-s;
+    font-weight: $font-weight-semi-bold;
+  }
+}
+
+// Divider
+.example-divider {
+  position: relative;
+
+  > *:not(.mc-divider) {
+    padding-left: 3rem;
+  }
+
+  &--default {
+    @include set-divider('horizontal', 'primary', '100%');
+  }
+
+  &--custom-width {
+    @include set-divider('horizontal', 'tertiary', '50%');
+  }
+
+  &--vertical {
+    @include set-divider('vertical', 'secondary', '100%');
+  }
+}
+
+// Tooltip
+.tooltip-story-wrapper {
+  height: 70px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.icon-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+  text-align: center;
+}
+
+.icon-item {
+  display: flex;
+  min-width: 13rem;
+  flex-direction: column;
+  align-items: center;
+  font-size: 14px;
+  color: #555;
+  margin-bottom: 2rem;
+}
+
+.icon-label {
+  margin-top: 0.5rem;
+}

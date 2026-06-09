@@ -1,0 +1,25 @@
+.grid-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-200, 16px);
+  padding: var(--spacing-100, 8px) var(--spacing-200, 16px);
+  border-top: 1px solid var(--color-border-primary);
+  background: var(--color-background-primary);
+  font-size: var(--font-size-100, 14px);
+  color: var(--color-text-secondary);
+}
+
+.grid-footer__info {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-050, 4px);
+}
+
+.grid-footer__page-size-label {
+  white-space: nowrap;
+}
+
+.grid-footer__count {
+  white-space: nowrap;
+}

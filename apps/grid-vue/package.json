@@ -18,7 +18,7 @@
     "lint:oxlint": "oxlint . --fix",
     "lint:eslint": "eslint . --fix --cache",
     "format": "prettier --write --experimental-cli src/",
-    "storybook": "storybook dev -p 6006",
+    "storybook": "storybook dev -p 6006 --host localhost",
     "build-storybook": "storybook build"
   },
   "dependencies": {
@@ -56,7 +56,7 @@
     "prettier": "3.8.3",
     "sass-embedded": "^1.100.0",
     "storybook": "^10.4.1",
-    "typescript": "~6.0.3",
+    "typescript": "~5.9.3",
     "vite": "^8.0.16",
     "vite-plugin-vue-devtools": "^8.1.2",
     "vitest": "^4.1.8",

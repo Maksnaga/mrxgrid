@@ -1,11 +1,11 @@
 /**
- * Sort engine — Angular parity (moz-grid / `SortEngine`).
+ * Sort engine — Angular parity (ad-grid / `SortEngine`).
  *
  * Reads / writes the central `GridState`:
  * - `state.activeSorts` — ordered multi-sort stack of `SortDef`
  * - `state.columnStates[i].sort` / `.sortIndex` — kept in sync for header UI
  *
- * Consumed by `useGridEngine.sortedData` (pipeline first stage). `AdeoGrid.vue`
+ * Consumed by `useGridEngine.sortedData` (pipeline first stage). `Grid.vue`
  * exposes the methods on the template via the returned handle.
  */
 

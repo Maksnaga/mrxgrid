@@ -1,5 +1,5 @@
 /**
- * Flat display-row model — Angular parity (moz-grid).
+ * Flat display-row model — Angular parity (ad-grid).
  *
  * Kept alongside the legacy `__adg`-prefixed flat shape used by the current
  * virtualizer. Phase 6 will decide whether to migrate the virtualizer to

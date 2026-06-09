@@ -1,11 +1,11 @@
 import type { Meta, StoryObj } from '@storybook/vue3-vite'
-import { AdeoGrid } from '@/components/AdeoGrid'
-import type { ColumnDef } from '@/components/AdeoGrid'
+import { AdGridVue } from '@/components/Grid'
+import type { ColumnDef } from '@/components/Grid'
 import { lmColumns, lmProducts, type LMProduct } from './_fixtures'
 
 const meta = {
   title: 'Stories/Sorting/Single · Multi · Custom comparator',
-  component: AdeoGrid,
+  component: AdGridVue,
   tags: ['autodocs'],
   args: { rows: [] },
   parameters: {
@@ -28,7 +28,7 @@ Le sort est piloté par \`sortable: true\` sur la \`ColumnDef\` + une *sort stac
       },
     },
   },
-} satisfies Meta<typeof AdeoGrid>
+} satisfies Meta<typeof AdGridVue>
 
 export default meta
 type Story = StoryObj<typeof meta>
@@ -53,7 +53,7 @@ const columns: ColumnDef[] = [
 \`\`\`
 
 \`\`\`vue
-<AdeoGrid :columns="columns" :rows="rows" />
+<ad-grid-vue :columns="columns" :rows="rows" />
 \`\`\`
 
 ### Tri par défaut au mount
@@ -70,14 +70,14 @@ Combinez avec \`server-filter\` ou \`server-grouping\` ; au lieu de re-trier en 
     },
   },
   render: () => ({
-    components: { AdeoGrid },
+    components: { AdGridVue },
     setup: () => ({ lmColumns, lmProducts }),
     template: `
-      <div class="sb-adeo-grid-shell">
+      <div class="sb-grid-shell">
         <h2>Single-column sort</h2>
         <p>Click sur le header → asc / desc / unsort. Toutes les colonnes <code>sortable: true</code> sont triables ; le sort indicator s'affiche dans le header.</p>
-        <div class="sb-adeo-grid-frame">
-          <AdeoGrid :height="560" :columns="lmColumns" :rows="lmProducts" />
+        <div class="sb-grid-frame">
+          <ad-grid-vue :height="560" :columns="lmColumns" :rows="lmProducts" />
         </div>
       </div>
     `,
@@ -112,7 +112,7 @@ const stack: SortDef[] = grid.getSortModel()
 
 ### Implémentation — c'est zero config
 
-Toutes les colonnes \`sortable: true\` participent automatiquement à la stack. Le \`Shift\` est intercepté par l'engine au click sur le header (\`AdeoGridHeaderCell\`).
+Toutes les colonnes \`sortable: true\` participent automatiquement à la stack. Le \`Shift\` est intercepté par l'engine au click sur le header (\`AdGridHeaderCell\`).
 
 ### Reset programmé
 
@@ -124,15 +124,15 @@ grid.clearSort()  // wipes the stack
     },
   },
   render: () => ({
-    components: { AdeoGrid },
+    components: { AdGridVue },
     setup: () => ({ lmColumns, lmProducts }),
     template: `
-      <div class="sb-adeo-grid-shell">
+      <div class="sb-grid-shell">
         <h2>Multi-column sort (sort stack)</h2>
         <p><kbd>Shift</kbd>+click sur les headers pour empiler. L'ordre du stack pilote la priorité (premier ajouté = primaire).</p>
-        <div class="sb-adeo-grid-toolbar">Essaie : Shift+click sur <code>Rayon</code>, puis Shift+click sur <code>Prix</code>.</div>
-        <div class="sb-adeo-grid-frame">
-          <AdeoGrid :height="560" :columns="lmColumns" :rows="lmProducts" />
+        <div class="sb-grid-toolbar">Essaie : Shift+click sur <code>Rayon</code>, puis Shift+click sur <code>Prix</code>.</div>
+        <div class="sb-grid-frame">
+          <ad-grid-vue :height="560" :columns="lmColumns" :rows="lmProducts" />
         </div>
       </div>
     `,
@@ -189,7 +189,7 @@ const collator = new Intl.Collator('fr', { sensitivity: 'base' })
     },
   },
   render: () => ({
-    components: { AdeoGrid },
+    components: { AdGridVue },
     setup() {
       const ENERGY_ORDER = ['A', 'B', 'C', 'D', 'E', 'F', 'G']
       const cols: ColumnDef<LMProduct>[] = [
@@ -211,11 +211,11 @@ const collator = new Intl.Collator('fr', { sensitivity: 'base' })
       return { cols, lmProducts }
     },
     template: `
-      <div class="sb-adeo-grid-shell">
+      <div class="sb-grid-shell">
         <h2>Custom sort comparator</h2>
         <p>Définis <code>sortComparator(a, b)</code> sur la colonne pour overrider le tri par défaut. Pratique pour des grades (A→G), des locales spécifiques (collation FR), des dates ISO.</p>
-        <div class="sb-adeo-grid-frame">
-          <AdeoGrid :height="560" :columns="cols" :rows="lmProducts" />
+        <div class="sb-grid-frame">
+          <ad-grid-vue :height="560" :columns="cols" :rows="lmProducts" />
         </div>
       </div>
     `,

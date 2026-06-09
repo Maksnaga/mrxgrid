@@ -1,12 +1,12 @@
 import type { Meta, StoryObj } from '@storybook/vue3-vite'
 import { computed, ref } from 'vue'
-import { AdeoGrid, AdeoGroupingDrawer, AdeoGridToolbar } from '@/components/AdeoGrid'
-import type { GroupingItem, ServerGroupingOptions, RowData } from '@/components/AdeoGrid'
+import { AdGridVue, AdGridGroupingDrawer, AdGridToolbar } from '@/components/Grid'
+import type { GroupingItem, ServerGroupingOptions, RowData } from '@/components/Grid'
 import { lmColumns, lmProducts, generateLMProducts, type LMProduct } from './_fixtures'
 
 const meta = {
   title: 'Stories/Grouping/Single · Nested · Drawer · Server-side',
-  component: AdeoGrid,
+  component: AdGridVue,
   tags: ['autodocs'],
   args: { rows: [] },
   parameters: {
@@ -20,7 +20,7 @@ Regroupe les rows par valeur d'un (ou plusieurs) champ(s). Une "group row" s'ins
 ### Activation
 
 \`\`\`vue
-<AdeoGrid :group-fields="['category', 'brand']" :columns="cols" :rows="rows" />
+<ad-grid-vue :group-fields="['category', 'brand']" :columns="cols" :rows="rows" />
 \`\`\`
 
 ### Group row metadata
@@ -50,7 +50,7 @@ Utilisez \`isGroupRow(row)\` (depuis \`types.ts\`) pour filtrer si nécessaire.
       },
     },
   },
-} satisfies Meta<typeof AdeoGrid>
+} satisfies Meta<typeof AdGridVue>
 
 export default meta
 type Story = StoryObj<typeof meta>
@@ -63,7 +63,7 @@ export const SingleField: Story = {
 ## Single-field grouping
 
 \`\`\`vue
-<AdeoGrid :group-fields="['category']" :columns="columns" :rows="rows" />
+<ad-grid-vue :group-fields="['category']" :columns="columns" :rows="rows" />
 \`\`\`
 
 Le pipeline insère une "group header row" par valeur distincte de \`category\`. Click sur la row → toggle expand/collapse.
@@ -78,14 +78,14 @@ Le pipeline insère une "group header row" par valeur distincte de \`category\`.
     },
   },
   render: () => ({
-    components: { AdeoGrid },
+    components: { AdGridVue },
     setup: () => ({ lmColumns, lmProducts, groupFields: ['category'] }),
     template: `
-      <div class="sb-adeo-grid-shell">
+      <div class="sb-grid-shell">
         <h2>Single-field grouping (par Rayon)</h2>
         <p>Pass <code>:group-fields="['category']"</code>. Une row "header de groupe" s'insère par valeur, click pour expand/collapse.</p>
-        <div class="sb-adeo-grid-frame">
-          <AdeoGrid :height="560" :columns="lmColumns" :rows="lmProducts" :group-fields="groupFields" />
+        <div class="sb-grid-frame">
+          <ad-grid-vue :height="560" :columns="lmColumns" :rows="lmProducts" :group-fields="groupFields" />
         </div>
       </div>
     `,
@@ -102,7 +102,7 @@ export const NestedFields: Story = {
 Plusieurs champs dans \`group-fields\` donnent un arbre N-aire :
 
 \`\`\`vue
-<AdeoGrid :group-fields="['category', 'brand']" ... />
+<ad-grid-vue :group-fields="['category', 'brand']" ... />
 \`\`\`
 
 Affiche : Rayon 1 → Marques de Rayon 1 → produits ; Rayon 2 → … L'ordre des champs pilote l'imbrication (premier = level 0).
@@ -121,18 +121,18 @@ Chaque group row porte sa profondeur 0-indexed. Le padding-left du label est cal
     },
   },
   render: () => ({
-    components: { AdeoGrid },
+    components: { AdGridVue },
     setup: () => ({
       lmColumns,
       rows: generateLMProducts(60),
       groupFields: ['category', 'brand'],
     }),
     template: `
-      <div class="sb-adeo-grid-shell">
+      <div class="sb-grid-shell">
         <h2>Nested grouping (Rayon → Marque)</h2>
         <p>Plusieurs niveaux dans <code>:group-fields</code> donnent un arbre. La méta des rows groupes (<code>__adgDepth</code>, <code>__adgCount</code>) est posée par le pipeline.</p>
-        <div class="sb-adeo-grid-frame">
-          <AdeoGrid :height="560" :columns="lmColumns" :rows="rows" :group-fields="groupFields" />
+        <div class="sb-grid-frame">
+          <ad-grid-vue :height="560" :columns="lmColumns" :rows="rows" :group-fields="groupFields" />
         </div>
       </div>
     `,
@@ -146,15 +146,15 @@ export const InteractiveDrawer: Story = {
         story: `
 ## Grouping drawer
 
-\`AdeoGroupingDrawer\` permet à l'utilisateur de drag-n-drop l'ordre des champs et toggle chacun. Idéal pour des dashboards où la dimension d'analyse change.
+\`AdGridGroupingDrawer\` permet à l'utilisateur de drag-n-drop l'ordre des champs et toggle chacun. Idéal pour des dashboards où la dimension d'analyse change.
 
 ### Implémentation
 
 \`\`\`vue
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { AdeoGroupingDrawer, AdeoGridToolbar } from '@/components/AdeoGrid'
-import type { GroupingItem } from '@/components/AdeoGrid'
+import { AdGridGroupingDrawer, AdGridToolbar } from '@/components/Grid'
+import type { GroupingItem } from '@/components/Grid'
 
 const drawerOpen   = ref(false)
 const activeGroups = ref<GroupingItem[]>([])
@@ -162,13 +162,13 @@ const groupFields  = computed(() => activeGroups.value.map((g) => g.field))
 </script>
 
 <template>
-  <AdeoGrid :columns="columns" :rows="rows" :group-fields="groupFields">
+  <ad-grid-vue :columns="columns" :rows="rows" :group-fields="groupFields">
     <template #toolbar>
-      <AdeoGridToolbar show-group @group="drawerOpen = !drawerOpen" />
+      <ad-grid-toolbar show-group @group="drawerOpen = !drawerOpen" />
     </template>
-  </AdeoGrid>
+  </ad-grid-vue>
 
-  <AdeoGroupingDrawer
+  <ad-grid-grouping-drawer
     :open="drawerOpen"
     :columns="columns"
     :active-groups="activeGroups"
@@ -190,13 +190,13 @@ interface GroupingItem {
 
 ### Smart toolbar
 
-Pour éviter le wiring manuel, \`<AdeoGridSmartToolbar v-model:active-groups="activeGroups">\` bundle le drawer + le wiring.
+Pour éviter le wiring manuel, \`<ad-grid-toolbar v-model:active-groups="activeGroups">\` bundle le drawer + le wiring.
         `,
       },
     },
   },
   render: () => ({
-    components: { AdeoGrid, AdeoGroupingDrawer, AdeoGridToolbar },
+    components: { AdGridVue, AdGridGroupingDrawer, AdGridToolbar },
     setup() {
       const drawerOpen = ref(false)
       const activeGroups = ref<GroupingItem[]>([])
@@ -210,17 +210,17 @@ Pour éviter le wiring manuel, \`<AdeoGridSmartToolbar v-model:active-groups="ac
       return { lmColumns, lmProducts, drawerOpen, groupFields, activeGroups, onApply, onReset }
     },
     template: `
-      <div class="sb-adeo-grid-shell">
+      <div class="sb-grid-shell">
         <h2>Grouping drawer</h2>
         <p>Le drawer permet de drag-n-drop l'ordre des champs de groupage et de toggler chacun. Idéal pour des dashboards où l'utilisateur change la dimension d'analyse.</p>
-        <div class="sb-adeo-grid-frame">
-          <AdeoGrid :height="560" :columns="lmColumns" :rows="lmProducts" :group-fields="groupFields">
+        <div class="sb-grid-frame">
+          <ad-grid-vue :height="560" :columns="lmColumns" :rows="lmProducts" :group-fields="groupFields">
             <template #toolbar>
-              <AdeoGridToolbar show-group @group="drawerOpen = !drawerOpen" />
+              <ad-grid-toolbar show-group @group="drawerOpen = !drawerOpen" />
             </template>
-          </AdeoGrid>
+          </ad-grid-vue>
         </div>
-        <AdeoGroupingDrawer
+        <ad-grid-grouping-drawer
           :open="drawerOpen"
           :columns="lmColumns"
           :active-groups="activeGroups"
@@ -267,7 +267,7 @@ const serverGrouping: ServerGroupingOptions = {
 \`\`\`
 
 \`\`\`vue
-<AdeoGrid
+<ad-grid-vue
   :columns="columns"
   :rows="[]"
   :group-fields="['category']"
@@ -293,7 +293,7 @@ const serverGrouping: ServerGroupingOptions = {
     },
   },
   render: () => ({
-    components: { AdeoGrid },
+    components: { AdGridVue },
     setup() {
       // Simulate server: 10k LM products, group summaries fetched async, and pages of rows
       // come back per group when expanded. The grid never sees the full dataset.
@@ -319,11 +319,11 @@ const serverGrouping: ServerGroupingOptions = {
       return { lmColumns, serverGrouping }
     },
     template: `
-      <div class="sb-adeo-grid-shell">
+      <div class="sb-grid-shell">
         <h2>Server-side grouping</h2>
         <p>Le grid demande <code>fetchGroups</code> à l'activation puis <code>fetchGroupRows</code> par page quand un groupe est expandé. 10 000 produits LM côté "serveur", aucun ne traverse le réseau tant que rien n'est ouvert.</p>
-        <div class="sb-adeo-grid-frame">
-          <AdeoGrid :height="560"
+        <div class="sb-grid-frame">
+          <ad-grid-vue :height="560"
             :columns="lmColumns"
             :rows="[]"
             :group-fields="['category']"

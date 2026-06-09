@@ -1,6 +1,6 @@
 import { computed, watch, type Ref, type WritableComputedRef } from 'vue'
-import type { GridState } from '@/components/AdeoGrid/state/useGridState'
-import type { RowData } from '@/components/AdeoGrid/types'
+import type { GridState } from '@/components/Grid/state/useGridState'
+import type { RowData } from '@/components/Grid/types'
 
 export interface UsePaginationOptions<T extends RowData = RowData> {
   rows: Ref<T[]>
@@ -16,7 +16,7 @@ const DEFAULT_PAGE_SIZE_OPTIONS = [10, 25, 50, 100]
  * Phase 2.5: the single source of truth is `gridState.pageIndex` (0-based)
  * and `gridState.pageSize`. The footer / API consumers keep their 1-based
  * `currentPage` shape via writable computeds that translate on the fly. The
- * mirror watch in `AdeoGrid.vue` is gone.
+ * mirror watch in `Grid.vue` is gone.
  */
 export function usePagination<T extends RowData = RowData>(
   gridState: GridState<T>,

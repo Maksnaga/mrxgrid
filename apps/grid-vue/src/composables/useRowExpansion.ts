@@ -1,14 +1,14 @@
 import { computed, type ComputedRef, type Ref } from 'vue'
-import type { GridState } from '@/components/AdeoGrid/state/useGridState'
-import type { RowData } from '@/components/AdeoGrid/types'
-import { isGroupRow } from '@/components/AdeoGrid/types'
+import type { GridState } from '@/components/Grid/state/useGridState'
+import type { RowData } from '@/components/Grid/types'
+import { isGroupRow } from '@/components/Grid/types'
 
 /**
  * Row expansion — Angular-parity storage with index-based public API.
  *
  * Phase 2.4: the single source of truth is `gridState.expandedRowIds`
  * (id-keyed, matching `useRowSelectionEngine`). The legacy `Set<number>`
- * index-based API is preserved for `AdeoGridBody` consumers — index ↔ id
+ * index-based API is preserved for `AdGridBody` consumers — index ↔ id
  * conversion is done internally via the `rowsAccessor`.
  *
  * Falls back to `String(index)` as a synthetic id when the row exposes no

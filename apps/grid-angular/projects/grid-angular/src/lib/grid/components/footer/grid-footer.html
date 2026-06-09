@@ -1,0 +1,24 @@
+<div class="grid-footer">
+  <div class="grid-footer__info">
+    <span class="grid-footer__page-size-label">Rows per page:</span>
+    <moz-select
+      name="page-size"
+      [options]="pageSizeSelectOptions()"
+      [ngModel]="currentPageSizeStr()"
+      (change)="onPageSizeChange($event)"
+      [size]="'s'"
+    />
+    <span class="grid-footer__count">
+      {{ rangeLabel() }}
+    </span>
+  </div>
+
+  <moz-pagination
+    [buttonSize]="'s'"
+    [buttonAppearance]="'rounded'"
+    id="grid-pagination"
+    [options]="paginationOptions()"
+    [value]="state.pageIndex()"
+    (updateValue)="onPageChange($event)"
+  />
+</div>

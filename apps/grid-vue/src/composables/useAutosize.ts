@@ -1,7 +1,7 @@
 import type { Ref } from 'vue'
 
-import type { GridState } from '@/components/AdeoGrid/state/useGridState'
-import type { ColumnDef, RowData } from '@/components/AdeoGrid/types'
+import type { GridState } from '@/components/Grid/state/useGridState'
+import type { ColumnDef, RowData } from '@/components/Grid/types'
 
 const MIN_WIDTH = 50
 /**
@@ -11,7 +11,7 @@ const MIN_WIDTH = 50
  */
 const DEFAULT_MAX_WIDTH = 800
 // Header overhead: sort indicator (~14px) + gap + kebab trigger (~28px with
-// padding) — measured against `AdeoGridHeaderCell.vue`.
+// padding) — measured against `AdGridHeaderCell.vue`.
 const HEADER_AFFORDANCE = 52
 // Tiny safety pad to absorb canvas-vs-DOM measurement divergence (kerning,
 // ligatures, font fallbacks). Without it, a column tuned to the very last
@@ -115,13 +115,13 @@ export function useAutosize(opts: UseAutosizeOptions) {
 
     // Hoist the layout-flush work out of the per-column loop. The
     // canvas font and padding/border reserve are derived from a real
-    // `.adeo-grid-grid-cell` via `getComputedStyle` — every call forces a
+    // `.grid-cell` via `getComputedStyle` — every call forces a
     // synchronous style recalc. Doing it once per column at 200+ cols
     // accumulates to seconds of layout time; doing it once for the
     // whole batch is sub-millisecond.
     //
     // Cells share the same font / padding regardless of which column
-    // they belong to (all `.adeo-grid-grid-cell` get the same styling). A
+    // they belong to (all `.grid-cell` get the same styling). A
     // single sample is faithful for the body measure. The header
     // affordance is added per-column as a constant on top so it
     // doesn't depend on the sample either.
@@ -134,7 +134,7 @@ export function useAutosize(opts: UseAutosizeOptions) {
   }
 
   /**
-   * Sample a real `.adeo-grid-grid-cell` to derive the canvas font + the
+   * Sample a real `.grid-cell` to derive the canvas font + the
    * padding/border reserve. Hoisted out of `measureColumn` so the
    * "autosize all" path can do it once and reuse the result across
    * every column.
@@ -215,7 +215,7 @@ export function useAutosize(opts: UseAutosizeOptions) {
     if (def.renderer != null) {
       const escaped = cssEscape(field)
       const renderedCells = wrapper.querySelectorAll<HTMLElement>(
-        `.adeo-grid-grid-cell[data-field="${escaped}"]`,
+        `.grid-cell[data-field="${escaped}"]`,
       )
       for (const cell of renderedCells) {
         // `scrollWidth` measures the content's intrinsic width — for a
@@ -238,14 +238,14 @@ export function useAutosize(opts: UseAutosizeOptions) {
   return { autosizeColumn, autosizeAllColumns }
 }
 
-/** Picks a real `.adeo-grid-grid-cell` so the canvas font matches the live cell. */
+/** Picks a real `.grid-cell` so the canvas font matches the live cell. */
 function pickStyleSample(wrapper: HTMLElement, field: string): HTMLElement {
   const escaped = cssEscape(field)
   const colCell = wrapper.querySelector(
-    `.adeo-grid-grid-cell[data-field="${escaped}"]`,
+    `.grid-cell[data-field="${escaped}"]`,
   ) as HTMLElement | null
   if (colCell) return colCell
-  const anyCell = wrapper.querySelector('.adeo-grid-grid-cell') as HTMLElement | null
+  const anyCell = wrapper.querySelector('.grid-cell') as HTMLElement | null
   return anyCell ?? wrapper
 }
 

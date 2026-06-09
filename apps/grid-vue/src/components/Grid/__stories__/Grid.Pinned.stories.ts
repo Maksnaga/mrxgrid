@@ -1,11 +1,11 @@
 import type { Meta, StoryObj } from '@storybook/vue3-vite'
-import { AdeoGrid } from '@/components/AdeoGrid'
-import type { ColumnDef } from '@/components/AdeoGrid'
+import { AdGridVue } from '@/components/Grid'
+import type { ColumnDef } from '@/components/Grid'
 import { generateLMProducts, type LMProduct } from './_fixtures'
 
 const meta = {
   title: 'Stories/Pinned Columns/Start · End · Both',
-  component: AdeoGrid,
+  component: AdGridVue,
   tags: ['autodocs'],
   args: { rows: [] },
   parameters: {
@@ -24,14 +24,14 @@ Une colonne pinned reste collée à un bord pendant le scroll horizontal — com
 
 ### Sous le capot
 
-- Les colonnes left-pinned sont rendues en premier dans la \`AdeoGridRow\` ; les right-pinned en dernier. \`useGridState\` les expose en \`pinnedLeftColumns\`, \`pinnedRightColumns\`.
+- Les colonnes left-pinned sont rendues en premier dans la \`AdGridRow\` ; les right-pinned en dernier. \`useGridState\` les expose en \`pinnedLeftColumns\`, \`pinnedRightColumns\`.
 - Le \`getPinnedStyle(side, index, isHeader)\` calcule les \`left:\` / \`right:\` cumulés selon l'ordre.
 - Le wrapper de body utilise \`min-width: totalContentWidth\` pour garantir que les rows débordent assez pour que les pinned cells "restent collées".
         `,
       },
     },
   },
-} satisfies Meta<typeof AdeoGrid>
+} satisfies Meta<typeof AdGridVue>
 
 export default meta
 type Story = StoryObj<typeof meta>
@@ -87,14 +87,14 @@ Empilez-les dans l'ordre voulu — les left-pinned apparaissent dans l'ordre dé
     },
   },
   render: () => ({
-    components: { AdeoGrid },
+    components: { AdGridVue },
     setup: () => ({ wide, rows: generateLMProducts(60) }),
     template: `
-      <div class="sb-adeo-grid-shell">
+      <div class="sb-grid-shell">
         <h2>Pinned columns (start + end)</h2>
         <p>Référence à gauche, État à droite — restent visibles pendant le scroll horizontal. Use <code>pinned: 'start' | 'end'</code> dans la def colonne.</p>
-        <div class="sb-adeo-grid-frame">
-          <AdeoGrid :height="560" :columns="wide" :rows="rows" />
+        <div class="sb-grid-frame">
+          <ad-grid-vue :height="560" :columns="wide" :rows="rows" />
         </div>
       </div>
     `,
@@ -119,7 +119,7 @@ const columns: ColumnDef[] = wide.map((c) => ({ ...c, freezable: true }))
 ### Évent
 
 \`\`\`vue
-<AdeoGrid @column-menu-action="onMenuAction" />
+<ad-grid-vue @column-menu-action="onMenuAction" />
 \`\`\`
 
 \`\`\`ts
@@ -133,24 +133,24 @@ function onMenuAction(action: ColumnMenuAction) {
 Le \`pinned\` flag mute via \`grid.persistView()\` (manuel) ou la prop \`persistKey\` (auto en \`localStorage\`). Au reload, \`grid.restoreView()\` réapplique \`pinned\`, l'ordre, les widths.
 
 \`\`\`vue
-<AdeoGrid persist-key="my-grid-v1" :columns="cols" :rows="rows" />
+<ad-grid-vue persist-key="my-grid-v1" :columns="cols" :rows="rows" />
 \`\`\`
         `,
       },
     },
   },
   render: () => ({
-    components: { AdeoGrid },
+    components: { AdGridVue },
     setup() {
       const cols: ColumnDef<LMProduct>[] = wide.map((c) => ({ ...c, freezable: true }))
       return { cols, rows: generateLMProducts(60) }
     },
     template: `
-      <div class="sb-adeo-grid-shell">
+      <div class="sb-grid-shell">
         <h2>Toggle pin via header menu</h2>
         <p>Avec <code>freezable: true</code>, le menu kebab d'une colonne expose Pin left / Pin right / Unpin. Click le menu d'une colonne pour essayer.</p>
-        <div class="sb-adeo-grid-frame">
-          <AdeoGrid :height="560" :columns="cols" :rows="rows" />
+        <div class="sb-grid-frame">
+          <ad-grid-vue :height="560" :columns="cols" :rows="rows" />
         </div>
       </div>
     `,

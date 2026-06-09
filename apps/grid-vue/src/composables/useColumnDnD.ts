@@ -1,5 +1,5 @@
 import { ref, nextTick, onBeforeUnmount, isRef, type MaybeRef, type Ref } from 'vue'
-import type { ColumnDef } from '@/components/AdeoGrid/types'
+import type { ColumnDef } from '@/components/Grid/types'
 
 const DEFAULT_WIDTH = 150
 const DEFAULT_DROP_ANIMATION_MS = 220
@@ -113,7 +113,7 @@ export function useColumnDnD(options: ColumnDnDOptions) {
   function ensureGhostEl(): HTMLElement {
     if (!_ghostEl) {
       const el = document.createElement('div')
-      el.className = 'adeo-grid-column-drag-ghost'
+      el.className = 'grid-column-drag-ghost'
       Object.assign(el.style, {
         position: 'fixed',
         pointerEvents: 'none',
@@ -166,7 +166,7 @@ export function useColumnDnD(options: ColumnDnDOptions) {
   function ensureIndicatorEl(): HTMLElement {
     if (!_indicatorEl) {
       const el = document.createElement('div')
-      el.className = 'adeo-grid-column-drag-indicator'
+      el.className = 'grid-column-drag-indicator'
       Object.assign(el.style, {
         position: 'fixed',
         pointerEvents: 'none',
@@ -241,7 +241,7 @@ export function useColumnDnD(options: ColumnDnDOptions) {
   function isColumnVirtualized(): boolean {
     const wrapper = wrapperRef.value
     if (!wrapper) return false
-    const rendered = wrapper.querySelectorAll('.adeo-grid-grid-header-cell[data-field]').length
+    const rendered = wrapper.querySelectorAll('.grid-header-cell[data-field]').length
     const total =
       leftColumns.value.length + centerColumns.value.length + rightColumns.value.length
     return rendered < total
@@ -401,7 +401,7 @@ export function useColumnDnD(options: ColumnDnDOptions) {
    * Compute the per-field visual offsets for the current cursor position
    * and apply them as inline `transform: translateX(...)` on every cell
    * sharing that `data-field`. The CSS `transition: transform` declared
-   * on `.adeo-grid-grid-wrapper[data-moving-field] [data-field]` (see AdeoGrid
+   * on `.grid-wrapper[data-moving-field] [data-field]` (see Grid
    * styles) interpolates each change smoothly.
    *
    * Same-zone moves only — cross-zone (center → pinned) stays static

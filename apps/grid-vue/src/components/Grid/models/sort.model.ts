@@ -1,5 +1,5 @@
 /**
- * Sort model — Angular parity (moz-grid).
+ * Sort model — Angular parity (ad-grid).
  *
  * `SortDirection` matches the existing Vue narrow shape (`'asc' | 'desc'`).
  * Places where Angular uses `SortDirection | null` (e.g. `ColumnStateEntry.sort`,

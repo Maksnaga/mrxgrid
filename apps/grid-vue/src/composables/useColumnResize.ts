@@ -1,5 +1,5 @@
-import type { GridState } from '@/components/AdeoGrid/state/useGridState'
-import type { RowData } from '@/components/AdeoGrid/types'
+import type { GridState } from '@/components/Grid/state/useGridState'
+import type { RowData } from '@/components/Grid/types'
 
 // Minimum width for a resizable column.
 // Aligned to 50px after sync analysis (matches useAutosize.ts and useColumnResizeEngine.ts).
@@ -8,15 +8,15 @@ const MIN_WIDTH = 50
 
 /**
  * Module-level flag — set to `true` from resize mousedown until shortly
- * after mouseup. `AdeoGridHeaderCell.onHeaderClick` consults
+ * after mouseup. `AdGridHeaderCell.onHeaderClick` consults
  * `wasResizingRecently()` to decide whether to sort.
  *
  * The browser fires a synthetic `click` event after every mouseup whose
  * mousedown landed on the same DOM subtree. During a column resize the
- * mousedown is on the `.adeo-grid-grid-resize-handle` (a child of the header
+ * mousedown is on the `.grid-resize-handle` (a child of the header
  * cell) and the mouseup is anywhere on the document; the click event
  * therefore fires on the common ancestor — the header cell itself — and
- * the `closest('.adeo-grid-grid-resize-handle')` guard in `onHeaderClick` can't
+ * the `closest('.grid-resize-handle')` guard in `onHeaderClick` can't
  * see the resize handle (because `e.target` is no longer it).
  *
  * The flag approach is preferred over a transient capture-phase click
@@ -44,7 +44,7 @@ export function wasResizingRecently(): boolean {
  * legacy `widths: ColumnWidths` reactive map is gone (it created a second
  * source that had to be kept in sync via a watch).
  *
- * Signatures kept stable so consumers (`AdeoGridHeader` → `onResizeStart`,
+ * Signatures kept stable so consumers (`AdGridHeader` → `onResizeStart`,
  * pinned/virtual layout → `getColumnWidth`) don't change.
  */
 export function useColumnResize<T = RowData>(gridState: GridState<T>) {
@@ -89,7 +89,7 @@ export function useColumnResize<T = RowData>(gridState: GridState<T>) {
       document.body.style.userSelect = savedUserSelect
 
       // Mark the resize as just-ended so the synthetic click fired by
-      // the browser on `.adeo-grid-grid-header-cell` (common ancestor of
+      // the browser on `.grid-header-cell` (common ancestor of
       // mousedown on the handle + mouseup elsewhere) is ignored by
       // `onHeaderClick` — otherwise the column gets sorted every time
       // the user resizes it.

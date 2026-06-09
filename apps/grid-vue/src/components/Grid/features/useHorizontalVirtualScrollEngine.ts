@@ -1,6 +1,6 @@
 /**
  * Horizontal virtual scroll engine — Angular parity
- * (moz-grid / `HorizontalVirtualScrollEngine`).
+ * (ad-grid / `HorizontalVirtualScrollEngine`).
  *
  * Reads / writes the central `GridState`:
  *   reads:  state.unpinnedColumns, horizontalVirtualScrollEnabled,

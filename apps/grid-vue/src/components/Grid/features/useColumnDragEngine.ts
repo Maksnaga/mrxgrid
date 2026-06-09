@@ -1,5 +1,5 @@
 /**
- * Column drag engine — Angular parity (moz-grid / `ColumnDragEngine`).
+ * Column drag engine — Angular parity (ad-grid / `ColumnDragEngine`).
  *
  * Phase 10 — complete DOM layer ownership (ghost + full-height drop line +
  * rAF auto-scroll), matching Angular's column-drag.engine.ts 1-for-1.
@@ -353,7 +353,7 @@ export function useColumnDragEngine<T = RowData>(
     }
 
     // Use the grid container as the reference for full-height sizing.
-    const gridEl = headerRow?.closest('.adeo-grid') ?? headerRow?.closest('[class*="adeo-grid"]')
+    const gridEl = headerRow?.closest('.grid-root') ?? headerRow?.closest('[class*="grid-root"]')
     if (!gridEl) return
     const gridRect = gridEl.getBoundingClientRect()
 

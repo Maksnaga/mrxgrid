@@ -1,0 +1,77 @@
+{
+  "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
+  "version": 1,
+  "newProjectRoot": "projects",
+  "projects": {
+    "grid-angular": {
+      "projectType": "library",
+      "root": "projects/grid-angular",
+      "sourceRoot": "projects/grid-angular/src",
+      "prefix": "moz",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:ng-packagr",
+          "configurations": {
+            "production": {
+              "tsConfig": "projects/grid-angular/tsconfig.lib.prod.json"
+            },
+            "development": {
+              "tsConfig": "projects/grid-angular/tsconfig.lib.json"
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "storybook": {
+          "builder": "@storybook/angular:start-storybook",
+          "options": {
+            "configDir": ".storybook",
+            "browserTarget": "grid-angular:build",
+            "compodoc": true,
+            "compodocArgs": [
+              "-e",
+              "json",
+              "-d",
+              ".",
+              "-p",
+              "projects/grid-angular/tsconfig.lib.json"
+            ],
+            "experimentalZoneless": true,
+            "port": 6007,
+            "host": "localhost"
+          }
+        },
+        "build-storybook": {
+          "builder": "@storybook/angular:build-storybook",
+          "options": {
+            "configDir": ".storybook",
+            "browserTarget": "grid-angular:build",
+            "compodoc": true,
+            "compodocArgs": [
+              "-e",
+              "json",
+              "-d",
+              ".",
+              "-p",
+              "projects/grid-angular/tsconfig.lib.json"
+            ],
+            "experimentalZoneless": true,
+            "outputDir": "storybook-static"
+          }
+        },
+        "lint": {
+          "builder": "@angular-eslint/builder:lint",
+          "options": {
+            "lintFilePatterns": [
+              "projects/grid-angular/**/*.ts",
+              "projects/grid-angular/**/*.html"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "cli": {
+    "analytics": false,
+    "schematicCollections": ["angular-eslint"]
+  }
+}

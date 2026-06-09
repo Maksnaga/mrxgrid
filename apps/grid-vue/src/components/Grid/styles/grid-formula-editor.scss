@@ -1,7 +1,7 @@
 /* Ported from Angular `components/formula-editor/formula-editor.scss` (no `:host`). */
 
-@layer adeo-grid {
-  .moz-grid-formula-editor {
+@layer grid {
+  .ad-grid-formula-editor {
     position: relative;
     width: 100%;
     height: 100%;
@@ -10,7 +10,7 @@
     min-width: 0;
   }
 
-  .moz-grid-formula-editor__overlay {
+  .ad-grid-formula-editor__overlay {
     position: absolute;
     inset: 0;
     margin: 0;
@@ -26,15 +26,15 @@
     color: var(--color-text-primary);
   }
 
-  .moz-grid-formula-editor__overlay > span {
+  .ad-grid-formula-editor__overlay > span {
     white-space: pre;
   }
 
-  .moz-grid-formula-editor__ref {
-    font-weight: 600;
+  .ad-grid-formula-editor__ref {
+    font-weight: var(--font-weight-semi-bold, 600);
   }
 
-  .moz-grid-formula-editor__input {
+  .ad-grid-formula-editor__input {
     position: relative;
     width: 100%;
     border: none;
@@ -52,11 +52,11 @@
     caret-color: var(--color-text-primary);
   }
 
-  .moz-grid-formula-editor__input::selection {
-    background: rgba(26, 115, 232, 0.25);
+  .ad-grid-formula-editor__input::selection {
+    background: var(--color-background-accent, rgba(26, 115, 232, 0.25));
   }
 
-  .moz-grid-formula-editor__panel {
+  .ad-grid-formula-editor__panel {
     list-style: none;
     margin: 0;
     padding: 4px 0;
@@ -65,14 +65,14 @@
     overflow-y: auto;
     background: var(--color-background-primary, #fff);
     border: 1px solid var(--color-border-primary, #dadce0);
-    border-radius: 6px;
-    box-shadow: 0 2px 8px rgba(60, 64, 67, 0.15), 0 4px 12px rgba(60, 64, 67, 0.1);
+    border-radius: var(--border-radius-m, 8px);
+    box-shadow: 0 2px 8px rgba(60, 64, 67, 0.15), 0 4px 12px rgba(60, 64, 67, 0.1); /* custom shadow — no matching Mozaic token */
     font-family: inherit;
     font-size: var(--font-size-s, 14px);
     color: var(--color-text-primary);
   }
 
-  .moz-grid-formula-editor__option {
+  .ad-grid-formula-editor__option {
     display: grid;
     grid-template-columns: auto 1fr;
     grid-template-rows: auto auto;
@@ -83,36 +83,36 @@
     line-height: 1.35;
   }
 
-  .moz-grid-formula-editor__option:hover,
-  .moz-grid-formula-editor__option--selected {
+  .ad-grid-formula-editor__option:hover,
+  .ad-grid-formula-editor__option--selected {
     background: var(--color-background-accent, rgba(26, 115, 232, 0.08));
   }
 
-  .moz-grid-formula-editor__option-name {
-    font-weight: 600;
+  .ad-grid-formula-editor__option-name {
+    font-weight: var(--font-weight-semi-bold, 600);
     grid-column: 1;
     grid-row: 1;
   }
 
-  .moz-grid-formula-editor__option-signature {
+  .ad-grid-formula-editor__option-signature {
     grid-column: 2;
     grid-row: 1;
     color: var(--color-text-secondary, #5f6368);
-    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-    font-size: var(--font-size-xs, 12px);
+    font-family: var(--font-family-monospace, ui-monospace, SFMono-Regular, Menlo, monospace);
+    font-size: var(--font-size-50, 12px);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
 
-  .moz-grid-formula-editor__option-summary {
+  .ad-grid-formula-editor__option-summary {
     grid-column: 1 / span 2;
     grid-row: 2;
     color: var(--color-text-secondary, #5f6368);
     font-size: var(--font-size-xs, 12px);
   }
 
-  .moz-grid-formula-editor__a11y-live {
+  .ad-grid-formula-editor__a11y-live {
     position: absolute;
     width: 1px;
     height: 1px;

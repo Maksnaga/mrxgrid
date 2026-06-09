@@ -1,0 +1,33 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "globalDependencies": ["**/.env.*local", "tsconfig.base.json"],
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "inputs": ["src/**", "tsconfig.json", "package.json", "vite.config.*", "angular.json", "ng-package.json"],
+      "outputs": ["dist/**", "build/**"]
+    },
+    "test": {
+      "dependsOn": ["^build"],
+      "inputs": ["src/**", "tests/**", "vitest.config.*", "karma.conf.*"],
+      "outputs": ["coverage/**"]
+    },
+    "lint": {
+      "inputs": ["src/**", ".eslintrc*", "eslint.config.*"]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "storybook": {
+      "cache": false,
+      "persistent": true
+    },
+    "storybook-build": {
+      "dependsOn": ["^build"],
+      "inputs": [".storybook/**", "src/**", "stories/**"],
+      "outputs": ["storybook-static/**"]
+    },
+    "clean": { "cache": false }
+  }
+}

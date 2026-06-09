@@ -2,7 +2,7 @@
 /**
  * Cyclic color palette used to highlight formula references inside the
  * editor + the grid. Colors are *not* hard-coded — the implementation
- * returns a CSS custom-property reference (`var(--moz-grid-ref-color-N)`),
+ * returns a CSS custom-property reference (`var(--ad-grid-ref-color-N)`),
  * letting consumers rebrand the palette from their own stylesheet without
  * a public component input.
  *
@@ -36,5 +36,5 @@ export class FormulaRefPalette {
 
 /** CSS custom-property reference for a given palette index. */
 export function paletteColorVar(index: number): string {
-  return `var(--moz-grid-ref-color-${index % FORMULA_REF_PALETTE_SIZE})`;
+  return `var(--ad-grid-ref-color-${index % FORMULA_REF_PALETTE_SIZE})`;
 }

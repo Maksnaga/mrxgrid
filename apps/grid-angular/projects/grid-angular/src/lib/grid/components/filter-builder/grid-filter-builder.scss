@@ -1,0 +1,119 @@
+:host {
+  display: block;
+  background: var(--color-background-primary, #fff);
+  border: 1px solid var(--color-border-primary, #cdd4d8);
+  border-radius: var(--border-radius-s, 4px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12); // custom shadow — no matching Mozaic token
+}
+
+.filter-builder {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-150, 12px);
+  padding: var(--spacing-200, 16px);
+
+  &__subtitle {
+    margin: 0;
+    font-size: var(--font-size-50, 12px);
+    font-weight: var(--font-weight-semi-bold, 600);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-text-secondary, #555);
+  }
+
+  &__rows {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-100, 8px);
+  }
+
+  &__row {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-100, 8px);
+    padding: 6px var(--spacing-100, 8px);
+    border: 1px solid var(--color-border-primary, #e0e0e0);
+    border-radius: var(--border-radius-s, 4px);
+    background: var(--color-background-primary, #fff);
+
+    &.cdk-drag-preview {
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12); // custom shadow — no matching Mozaic token
+    }
+
+    &.cdk-drag-placeholder {
+      opacity: 0.3;
+    }
+  }
+
+  &__combinator {
+    min-width: 64px; // custom value — no matching Mozaic token
+    flex: 0 0 64px; // custom value — no matching Mozaic token
+  }
+
+  &__combinator-label {
+    display: inline-block;
+    width: 100%;
+    padding: 6px var(--spacing-100, 8px);
+    font-weight: var(--font-weight-semi-bold, 600);
+    color: var(--color-text-secondary, #555);
+  }
+
+  &__select,
+  &__input {
+    font: inherit;
+    padding: 6px var(--spacing-100, 8px);
+    border: 1px solid var(--color-border-primary, #ccc);
+    border-radius: var(--border-radius-s, 4px);
+    background: var(--color-background-primary, #fff);
+    min-height: 32px; // custom value — no matching Mozaic token
+    box-sizing: border-box;
+  }
+
+  &__select--combinator {
+    width: 100%;
+  }
+
+  &__select--column,
+  &__select--operator {
+    flex: 1 1 120px; // custom value — no matching Mozaic token
+    min-width: 0;
+  }
+
+  &__select--set {
+    min-width: 160px; // custom value — no matching Mozaic token
+    height: auto;
+  }
+
+  &__value {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-050, 4px);
+    flex: 1 1 160px; // custom value — no matching Mozaic token
+    min-width: 0;
+  }
+
+  &__input {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  &__range-sep {
+    color: var(--color-text-secondary, #777);
+  }
+
+  &__drag {
+    display: inline-flex;
+    cursor: grab;
+    color: var(--color-text-secondary, #777);
+
+    &:active {
+      cursor: grabbing;
+    }
+  }
+
+  // The button is a moz-button (handles its own visuals); only the layout
+  // hint is needed so it doesn't stretch across the column flex container.
+  &__add {
+    align-self: flex-start;
+  }
+}

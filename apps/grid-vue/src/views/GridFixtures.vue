@@ -18,8 +18,8 @@
  */
 
 import { computed, onMounted, ref } from 'vue'
-import { AdeoGrid } from '@/components/AdeoGrid'
-import type { ColumnDef, RowData } from '@/components/AdeoGrid'
+import { AdGridVue } from '@/components/Grid'
+import type { ColumnDef, RowData } from '@/components/Grid'
 
 // ---------------------------------------------------------------------------
 // Fixture state — read from URL query string `?fixtures=<state>`.
@@ -131,10 +131,10 @@ onMounted(() => {
 <template>
   <div :data-fixture="state" class="fixtures-root">
     <header class="fixtures-header">
-      <h1>AdeoGrid fixtures · <code>{{ state }}</code></h1>
+      <h1>Grid fixtures · <code>{{ state }}</code></h1>
       <p class="fixtures-hint">Navigate via <code>?fixtures=&lt;state&gt;</code></p>
     </header>
-    <AdeoGrid
+    <ad-grid-vue
       :columns="columns"
       :rows="renderRows"
       :selectable="fixture.selectable"

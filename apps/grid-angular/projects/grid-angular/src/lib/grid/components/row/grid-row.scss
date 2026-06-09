@@ -1,0 +1,102 @@
+:host {
+  display: block;
+  background: var(--color-background-primary);
+  border-bottom: 1px solid var(--color-border-primary);
+  /* `scrollIntoView({ block: 'nearest' })` in keyboard navigation reads
+     these margins to clear the sticky header (~48px) and the bottom edge
+     of the viewport — without them the focused row can land flush against
+     the header and visually disappear. */
+  scroll-margin-top: 48px;
+  scroll-margin-bottom: 4px;
+}
+
+.grid-row {
+  display: flex;
+  width: max-content;
+  min-width: 100%;
+  background: inherit;
+  box-sizing: border-box;
+}
+
+.grid-row--selected {
+  background: var(--color-background-accent);
+}
+
+// Pending row: subtle shimmer overlay indicating an in-flight mutation.
+:host(.ad-grid-row--pending) {
+  position: relative;
+  overflow: hidden;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      90deg,
+      transparent 25%,
+      rgba(var(--color-primary-rgb, 26, 115, 232), 0.08) 50%,
+      transparent 75%
+    );
+    background-size: 200% 100%;
+    animation: ad-grid-row-pending-shimmer 1.5s ease-in-out infinite;
+    pointer-events: none;
+    z-index: 0;
+  }
+}
+
+@keyframes ad-grid-row-pending-shimmer {
+  0% { background-position: 200% center; }
+  100% { background-position: -200% center; }
+}
+
+.grid-row__expand,
+.grid-row__checkbox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  box-sizing: border-box;
+  background: inherit;
+  flex: 0 0 auto;
+}
+
+.grid-row__expand {
+  width: 36px;
+  min-width: 36px;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  color: var(--color-text-secondary);
+}
+
+.grid-row__expand:hover {
+  color: var(--color-text-primary);
+  background: var(--color-background-tertiary, rgba(0, 0, 0, 0.04));
+}
+
+.grid-row__checkbox {
+  width: 48px;
+  min-width: 48px;
+  cursor: pointer;
+}
+
+.grid-row__checkbox ::ng-deep .checkbox {
+  margin: 0;
+}
+
+.grid-row__checkbox ::ng-deep .checkbox__label {
+  display: none;
+}
+
+.grid-row__sticky-utility {
+  position: sticky;
+  z-index: 2;
+}
+
+.grid-row__h-spacer {
+  flex: 0 0 auto;
+  height: 100%;
+  pointer-events: none;
+  background: inherit;
+}
+

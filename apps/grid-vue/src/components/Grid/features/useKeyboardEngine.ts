@@ -1,5 +1,5 @@
 /**
- * Keyboard engine — Angular parity (moz-grid / `KeyboardEngine`).
+ * Keyboard engine — Angular parity (ad-grid / `KeyboardEngine`).
  *
  * Dispatches every non-editing key event:
  *   - Ctrl+C / V / X / Z / Y / A / D / R and Ctrl+Shift+Z → `KeyboardActions`

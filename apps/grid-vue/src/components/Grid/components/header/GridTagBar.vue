@@ -16,6 +16,8 @@
 
 import { MTag } from '@mozaic-ds/vue'
 
+defineOptions({ name: 'AdGridTagBar' })
+
 interface TagItem {
   /** Stable id used by MTag and as v-for key. */
   id: string
@@ -43,8 +45,8 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <div v-if="items.length > 0" class="moz-grid__tag-bar">
-    <span class="moz-grid__tag-bar-label">{{ label }}</span>
+  <div v-if="items.length > 0" class="ad-grid__tag-bar">
+    <span class="ad-grid__tag-bar-label">{{ label }}</span>
     <MTag
       v-for="item in items"
       :key="item.id"
@@ -58,7 +60,7 @@ const emit = defineEmits<{
     <button
       v-if="actionLabel && items.length > 1"
       type="button"
-      class="moz-grid__tag-action-btn"
+      class="ad-grid__tag-action-btn"
       @click="emit('action')"
     >
       {{ actionLabel }}
@@ -67,37 +69,37 @@ const emit = defineEmits<{
 </template>
 
 <style scoped lang="scss">
-.moz-grid__tag-bar {
+.ad-grid__tag-bar {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: m.get-spacing('100');
   padding: m.get-spacing('100') m.get-spacing('150');
-  font-size: 13px;
+  font-size: var(--font-size-100, 13px);
 }
 
-.moz-grid__tag-bar-label {
-  font-size: 11px;
-  font-weight: 700;
+.ad-grid__tag-bar-label {
+  font-size: var(--font-size-25, 11px);
+  font-weight: var(--font-weight-bold, 700);
   color: var(--color-text-secondary, #555);
   text-transform: uppercase;
   letter-spacing: 0.06em;
   flex-shrink: 0;
 }
 
-.moz-grid__tag-action-btn {
+.ad-grid__tag-action-btn {
   margin-left: m.get-spacing('100');
   padding: 2px 6px;
   border: none;
   background: transparent;
-  color: var(--Status-Standalone-element-Primary, #0071ce);
+  color: var(--color-brand-primary, #0071ce);
   font: inherit;
-  font-size: 12px;
-  font-weight: 600;
+  font-size: var(--font-size-50, 12px);
+  font-weight: var(--font-weight-semi-bold, 600);
   cursor: pointer;
 }
 
-.moz-grid__tag-action-btn:hover {
+.ad-grid__tag-action-btn:hover {
   text-decoration: underline;
 }
 </style>

@@ -1,14 +1,16 @@
 <script setup lang="ts">
 /**
- * Loading indicator — Angular parity (`moz-grid-loading-indicator`).
+ * Loading indicator — Angular parity (`ad-grid-loading-indicator`).
  *
  * Thin leaf component displayed below the grid body while the async loading
- * strategy is fetching more rows. Mirrors the Angular `<moz-grid-loading-indicator>`:
+ * strategy is fetching more rows. Mirrors the Angular `<ad-grid-loading-indicator>`:
  * a small Mozaic `MLoader` with an optional text label, sitting on top of a
  * separator to visually detach it from the last rendered row.
  */
 
 import { MLoader } from '@mozaic-ds/vue'
+
+defineOptions({ name: 'AdGridLoadingIndicator' })
 
 withDefaults(
   defineProps<{
@@ -25,13 +27,13 @@ withDefaults(
 </script>
 
 <template>
-  <div class="adeo-grid-grid-loading-indicator">
+  <div class="grid-loading-indicator">
     <MLoader :size="size" :text="text" />
   </div>
 </template>
 
 <style scoped lang="scss">
-.adeo-grid-grid-loading-indicator {
+.grid-loading-indicator {
   display: flex;
   align-items: center;
   justify-content: center;

@@ -9,7 +9,7 @@
  * ref — safer than rendering arbitrary HTML strings inside cells.
  *
  * Lives under `src/app/renderers/` because it's a consumer-side helper
- * (used by the StockDemo + stories), not a piece of the AdeoGrid library
+ * (used by the StockDemo + stories), not a piece of the Grid library
  * itself. Consumers of the library are free to copy this file or write
  * their own renderer factory.
  *

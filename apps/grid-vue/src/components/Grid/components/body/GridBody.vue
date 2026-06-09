@@ -1,8 +1,8 @@
 <script setup lang="ts">
 /**
- * Grid body — Angular parity (`moz-grid-body`).
+ * Grid body — Angular parity (`ad-grid-body`).
  *
- * Extracted from `AdeoGrid.vue` to isolate the body rendering (virtual sizer,
+ * Extracted from `Grid.vue` to isolate the body rendering (virtual sizer,
  * top spacer, per-row alternation between group headers and data rows, detail
  * rows). The parent grid keeps ownership of the scroll container, sticky
  * header and all the composables — the body is a presentational leaf that
@@ -22,12 +22,14 @@
 import type { CSSProperties } from 'vue'
 import type { CellFlags, ColumnDef, RowData } from '../../types'
 import { isGroupRow } from '../../types'
-import AdeoGridRow from './AdeoGridRow.vue'
-import AdeoGridGroupRow from './AdeoGridGroupRow.vue'
-import AdeoGridDetailRow from './AdeoGridDetailRow.vue'
+import AdGridRow from './GridRow.vue'
+import AdGridGroupRow from './GridGroupRow.vue'
+import AdGridDetailRow from './GridDetailRow.vue'
+
+defineOptions({ name: 'AdGridBody' })
 
 defineProps<{
-  /** Use the virtual-scroll variant (sizer + top spacer). */
+  /** Use the variant (sizer + top spacer). */
   virtual: boolean
   /** Min-width applied to the body wrappers so pinned columns have room. */
   gridContentWidth?: string
@@ -87,7 +89,7 @@ const emit = defineEmits<{
   fillHandleMousedown: [event: MouseEvent]
   toggleGroup: [key: string]
   /**
-   * Propagated from `AdeoGridDetailRow` whenever a detail row's intrinsic
+   * Propagated from `AdGridDetailRow` whenever a detail row's intrinsic
    * height is measured. The parent grid stores this to feed the virtual
    * scroller's `expandedRowExtraHeight` dynamically — no need for the
    * consumer to pass `:expanded-row-height` matching the slot content.
@@ -100,7 +102,7 @@ const emit = defineEmits<{
   <!-- Virtual scroll body -->
   <div
     v-if="virtual"
-    class="adeo-grid-grid-body"
+    class="grid-body"
     :style="{ minWidth: gridContentWidth ? `max(100%, ${gridContentWidth})` : '100%' }"
   >
     <!--
@@ -109,16 +111,16 @@ const emit = defineEmits<{
       using `transform` (which would create a containing block that traps
       `position: sticky` children, breaking pinned columns).
     -->
-    <div class="adeo-grid-grid-sizer" :style="{ height: `${totalHeight}px` }">
+    <div class="grid-sizer" :style="{ height: `${totalHeight}px` }">
       <div
         v-if="offsetY > 0"
-        class="adeo-grid-grid-top-spacer"
+        class="grid-top-spacer"
         :style="{ height: `${offsetY}px` }"
       />
 
       <template v-for="i in renderRange" :key="i">
         <template v-if="isGroupRow(getRenderRow(i))">
-          <AdeoGridGroupRow
+          <ad-grid-group-row
             :header-name="String(getRenderRow(i).__adgHeaderName)"
             :value="getRenderRow(i).__adgValue"
             :count="Number(getRenderRow(i).__adgCount)"
@@ -140,7 +142,7 @@ const emit = defineEmits<{
           />
         </template>
         <template v-else>
-          <AdeoGridRow
+          <ad-grid-row
             :row="getRenderRow(i)"
             :row-index="i"
             :columns="columns"
@@ -177,13 +179,13 @@ const emit = defineEmits<{
             <template v-if="$slots.cell" #cell="cellSlot">
               <slot name="cell" v-bind="cellSlot" />
             </template>
-          </AdeoGridRow>
-          <AdeoGridDetailRow
+          </ad-grid-row>
+          <ad-grid-detail-row
             v-if="expandable && isExpanded(i)"
             @measure="(h: number) => emit('detailRowMeasured', h)"
           >
             <slot name="expand-row" :row="getRenderRow(i)" :index="i" />
-          </AdeoGridDetailRow>
+          </ad-grid-detail-row>
         </template>
       </template>
     </div>
@@ -192,12 +194,12 @@ const emit = defineEmits<{
   <!-- Non-virtual body (plain flex list, no sizer) -->
   <div
     v-else
-    class="adeo-grid-grid-body"
+    class="grid-body"
     :style="{ minWidth: gridContentWidth ? `max(100%, ${gridContentWidth})` : '100%' }"
   >
     <template v-for="i in renderRange" :key="i">
       <template v-if="isGroupRow(getRenderRow(i))">
-        <AdeoGridGroupRow
+        <ad-grid-group-row
           :header-name="String(getRenderRow(i).__adgHeaderName)"
           :value="getRenderRow(i).__adgValue"
           :count="Number(getRenderRow(i).__adgCount)"
@@ -219,7 +221,7 @@ const emit = defineEmits<{
         />
       </template>
       <template v-else>
-        <AdeoGridRow
+        <ad-grid-row
           :row="getRenderRow(i)"
           :row-index="i"
           :columns="columns"
@@ -255,10 +257,10 @@ const emit = defineEmits<{
           <template v-if="$slots.cell" #cell="cellSlot">
             <slot name="cell" v-bind="cellSlot" />
           </template>
-        </AdeoGridRow>
-        <AdeoGridDetailRow v-if="expandable && isExpanded(i)">
+        </ad-grid-row>
+        <ad-grid-detail-row v-if="expandable && isExpanded(i)">
           <slot name="expand-row" :row="getRenderRow(i)" :index="i" />
-        </AdeoGridDetailRow>
+        </ad-grid-detail-row>
       </template>
     </template>
   </div>

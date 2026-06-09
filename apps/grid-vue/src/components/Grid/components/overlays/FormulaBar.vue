@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { computed, inject, ref, watch } from 'vue'
 import { GRID_STATE_KEY } from '../../state/GridContext'
-import { injectAdeoGridSlots } from '../../state/AdeoGridSlots'
+import { injectGridSlots } from '../../state/GridSlots'
+
+defineOptions({ name: 'AdGridFormulaBar' })
 
 /**
  * Formula bar — single-line editor that reflects the active cell value or the
@@ -16,7 +18,7 @@ import { injectAdeoGridSlots } from '../../state/AdeoGridSlots'
  * draft is initialised with the **A1 source string** (`displayFormula`) so
  * the user sees and edits the formula, not its evaluated value. Commits
  * starting with `=` are routed through `formula.set(addr, ...)` by the
- * grid's `flushEdit` (see `AdeoGrid.vue`); this component is unaware of
+ * grid's `flushEdit` (see `Grid.vue`); this component is unaware of
  * the storage path and just emits `commit` with the typed value.
  */
 
@@ -32,11 +34,11 @@ const emit = defineEmits<{
   cancel: []
 }>()
 
-// Tolerant inject — when the bar is mounted outside `<AdeoGrid>` (above it
+// Tolerant inject — when the bar is mounted outside `<ad-grid-vue>` (above it
 // in the toolbar) provide/inject does not reach across siblings. Render an
 // empty disabled bar in that case rather than throwing.
 const gridState = inject(GRID_STATE_KEY, null)
-const _gridSlots = injectAdeoGridSlots()
+const _gridSlots = injectGridSlots()
 const draft = ref<string>('')
 
 const activeCell = computed(() => {
@@ -140,7 +142,7 @@ const cellLabel = computed(() => {
 })
 
 // ─── Imperative API ──────────────────────────────────────────────────────
-// Used by `AdeoFormulaReferenceDrawer` to insert a function name at the
+// Used by `AdGridFormulaReferenceDrawer` to insert a function name at the
 // caret while the bar has focus, e.g. clicking SUM in the reference drawer
 // inserts `SUM(` at the cursor position. The caller is responsible for
 // keeping the bar focused (or refocusing) — we don't steal focus here.
@@ -227,9 +229,9 @@ defineExpose({ insertText, focusInput })
     min-width: 60px;
     padding: 2px 8px;
     border: 1px solid var(--color-border-primary, #ddd);
-    border-radius: 3px;
-    font-family: ui-monospace, SFMono-Regular, monospace;
-    font-size: 12px;
+    border-radius: var(--border-radius-xs, 2px);
+    font-family: var(--font-family-monospace, ui-monospace, SFMono-Regular, monospace);
+    font-size: var(--font-size-50, 12px);
     color: var(--color-text-primary, #222);
     text-align: center;
   }
@@ -237,14 +239,14 @@ defineExpose({ insertText, focusInput })
   &__fx {
     flex: 0 0 auto;
     font-style: italic;
-    font-family: serif;
+    font-family: serif; /* intentional: italic fx math symbol, no Mozaic token */
     color: var(--color-text-secondary, #666);
     user-select: none;
   }
 
   &__fx--active {
     color: var(--color-state-info-strong, #2374b9);
-    font-weight: 700;
+    font-weight: var(--font-weight-bold, 700);
   }
 
   &--formula {
@@ -258,7 +260,7 @@ defineExpose({ insertText, focusInput })
     border: none;
     outline: none;
     font: inherit;
-    font-size: 13px;
+    font-size: var(--font-size-100, 13px);
     color: var(--color-text-primary, #222);
     background: transparent;
 

@@ -1,13 +1,13 @@
 import type { Meta, StoryObj } from '@storybook/vue3-vite'
 import { onMounted, ref } from 'vue'
-import { AdeoGrid } from '@/components/AdeoGrid'
+import { AdGridVue } from '@/components/Grid'
 import { lmColumns, lmProducts, datasets, type DatasetId } from './_fixtures'
 
 type IntroArgs = { dataset?: DatasetId }
 
 const meta: Meta<IntroArgs> = {
   title: 'Stories/Introduction/Overview',
-  component: AdeoGrid,
+  component: AdGridVue,
   tags: ['autodocs'],
   parameters: {
     docs: {
@@ -15,14 +15,14 @@ const meta: Meta<IntroArgs> = {
         component: `
 # Introduction
 
-AdeoGrid est une data grid Vue 3 + Mozaic pour des datasets jusqu'à 100k+ rows × 150+ colonnes. Construit sur le design system Mozaic (\`@mozaic-ds/vue\`), virtualisée sur les deux axes, avec support natif de l'édition inline, des formules, du grouping, des filtres composés et de la persistance.
+Grid est une data grid Vue 3 + Mozaic pour des datasets jusqu'à 100k+ rows × 150+ colonnes. Construit sur le design system Mozaic (\`@mozaic-ds/vue\`), virtualisée sur les deux axes, avec support natif de l'édition inline, des formules, du grouping, des filtres composés et de la persistance.
 
 ### Quick start
 
 \`\`\`vue
 <script setup lang="ts">
-import { AdeoGrid } from '@/components/AdeoGrid'
-import type { ColumnDef, RowData } from '@/components/AdeoGrid'
+import { AdGridVue } from '@/components/Grid'
+import type { ColumnDef, RowData } from '@/components/Grid'
 
 const columns: ColumnDef[] = [
   { field: 'sku',   headerName: 'Référence', width: '120px', pinned: 'start', sortable: true, filterable: true, filterType: 'text' },
@@ -37,13 +37,13 @@ const rows: RowData[] = [
 </script>
 
 <template>
-  <AdeoGrid :columns="columns" :rows="rows" />
+  <ad-grid-vue :columns="columns" :rows="rows" />
 </template>
 \`\`\`
 
 ### Features (one-liners)
 
-- Virtualisation \`virtual-scroll\` (vertical) et \`virtual-columns\` (horizontal)
+- Virtualisation 2D (vertical + horizontal) toujours active — aucun input à brancher
 - Sort multi-colonne (Shift+click), filter inline + drawer multi-conditions, grouping multi-niveaux
 - Sélection rows (checkbox) ou cells (range Excel-style) avec floating action bar
 - Édition inline avec validators, fill handle drag, undo/redo
@@ -51,7 +51,7 @@ const rows: RowData[] = [
 - Formules \`=A1+B2\` style Excel avec DAG topologique
 - Pinned columns, expandable rows, pagination, lazy loading
 - Persistance auto en \`localStorage\` via \`persist-key\`
-- Plugins (\`AdeoGridPlugin\`) pour les comportements cross-cutting
+- Plugins (\`GridPlugin\`) pour les comportements cross-cutting
 
 ### Switch theme
 
@@ -92,22 +92,22 @@ Un grid minimal avec les colonnes Mozaic Design : Référence, Produit, Rayon, M
 
 ### Ce qui n'est PAS activé
 
-\`selectable\`, \`expandable\`, \`virtual-scroll\`, \`pagination\` — voir leurs stories dédiées.
+\`selectable\`, \`expandable\`, \`pagination\` — voir leurs stories dédiées.
         `,
       },
     },
   },
   render: (args) => ({
-    components: { AdeoGrid },
+    components: { AdGridVue },
     setup() {
       return { datasets, args }
     },
     template: `
-      <div class="sb-adeo-grid-shell">
+      <div class="sb-grid-shell">
         <h2>Default · Leroy Merlin · 20 produits</h2>
         <p>Ouvre le menu kebab d'une colonne pour Sort / Pin / Hide / Filter. Les colonnes Référence + Magasin sont épinglées.</p>
-        <div class="sb-adeo-grid-frame">
-          <AdeoGrid :height="560" :columns="datasets[args.dataset || 'leroymerlin'].columns" :rows="datasets[args.dataset || 'leroymerlin'].rows" />
+        <div class="sb-grid-frame">
+          <ad-grid-vue :height="560" :columns="datasets[args.dataset || 'leroymerlin'].columns" :rows="datasets[args.dataset || 'leroymerlin'].rows" />
         </div>
       </div>
     `,
@@ -126,7 +126,7 @@ Quand \`rows\` est vide ET aucun filtre actif, la grille affiche le slot \`#empt
 ### Implémentation
 
 \`\`\`vue
-<AdeoGrid :columns="columns" :rows="[]">
+<ad-grid-vue :columns="columns" :rows="[]">
   <template #empty="{ hasFilters, clearFilters }">
     <div class="my-empty-state">
       <h3>Aucun produit</h3>
@@ -134,7 +134,7 @@ Quand \`rows\` est vide ET aucun filtre actif, la grille affiche le slot \`#empt
       <button @click="onImport">Importer un CSV</button>
     </div>
   </template>
-</AdeoGrid>
+</ad-grid-vue>
 \`\`\`
 
 ### Slot props
@@ -144,13 +144,13 @@ Quand \`rows\` est vide ET aucun filtre actif, la grille affiche le slot \`#empt
 
 ### Default fallback
 
-Sans slot, la grille affiche \`<AdeoGridEmptyState>\` qui distingue les deux variants (filtered vs pristine) avec un message + un bouton "Reset filters" si applicable.
+Sans slot, la grille affiche \`<ad-grid-empty-state>\` qui distingue les deux variants (filtered vs pristine) avec un message + un bouton "Reset filters" si applicable.
         `,
       },
     },
   },
   render: () => ({
-    components: { AdeoGrid },
+    components: { AdGridVue },
     setup() {
       function onAdd() {
         window.alert?.('Ajouter une ligne…')
@@ -161,16 +161,16 @@ Sans slot, la grille affiche \`<AdeoGridEmptyState>\` qui distingue les deux var
       return { lmColumns, onAdd, onImport }
     },
     template: `
-      <div class="sb-adeo-grid-shell">
+      <div class="sb-grid-shell">
         <h2>Empty state — variante <code>pristine</code></h2>
         <p>Carte centrée avec icône Mozaic + zone d'actions custom via le slot <code>#empty-actions</code>.</p>
-        <div class="sb-adeo-grid-frame">
-          <AdeoGrid :height="560" :columns="lmColumns" :rows="[]">
+        <div class="sb-grid-frame">
+          <ad-grid-vue :height="560" :columns="lmColumns" :rows="[]">
             <template #empty-actions>
               <button type="button" class="sb-empty-btn sb-empty-btn--primary" @click="onAdd">+ Ajouter une ligne</button>
               <button type="button" class="sb-empty-btn" @click="onImport">⇪ Importer CSV</button>
             </template>
-          </AdeoGrid>
+          </ad-grid-vue>
         </div>
       </div>
     `,
@@ -198,9 +198,9 @@ Reset à la fois la filter row inline ET le filterModel du drawer. Pour reset un
     },
   },
   render: () => ({
-    components: { AdeoGrid },
+    components: { AdGridVue },
     setup() {
-      const gridRef = ref<InstanceType<typeof AdeoGrid>>()
+      const gridRef = ref<InstanceType<typeof AdGridVue>>()
       // After the grid mounts, push a quick filter that won't match any row
       // to demo the "filtered" variant. The user can clear it via the
       // built-in button on the empty card.
@@ -211,15 +211,15 @@ Reset à la fois la filter row inline ET le filterModel du drawer. Pour reset un
       return { lmColumns, lmProducts, gridRef }
     },
     template: `
-      <div class="sb-adeo-grid-shell">
+      <div class="sb-grid-shell">
         <h2>Empty state — variante <code>filtered</code></h2>
         <p>Quand des filtres sont actifs mais aucune ligne ne matche : variant ambré + bouton « Effacer les filtres » natif. Le slot <code>#empty-actions</code> reste disponible pour des actions complémentaires.</p>
-        <div class="sb-adeo-grid-frame">
-          <AdeoGrid :height="560" ref="gridRef" :columns="lmColumns" :rows="lmProducts">
+        <div class="sb-grid-frame">
+          <ad-grid-vue :height="560" ref="gridRef" :columns="lmColumns" :rows="lmProducts">
             <template #empty-actions="{ variant }">
               <button v-if="variant === 'filtered'" type="button" class="sb-empty-btn" @click="(e) => e.preventDefault()">↗ Voir tous les rayons</button>
             </template>
-          </AdeoGrid>
+          </ad-grid-vue>
         </div>
       </div>
     `,
@@ -238,17 +238,17 @@ export const Loading: Story = {
 ### Implémentation
 
 \`\`\`vue
-<AdeoGrid :columns="cols" :rows="rows" :loading="isFetching" />
+<ad-grid-vue :columns="cols" :rows="rows" :loading="isFetching" />
 \`\`\`
 
 ### Custom slot
 
 \`\`\`vue
-<AdeoGrid :loading="isFetching">
+<ad-grid-vue :loading="isFetching">
   <template #loading>
     <div class="my-spinner">Chargement…</div>
   </template>
-</AdeoGrid>
+</ad-grid-vue>
 \`\`\`
 
 ### Pattern stale-while-revalidate
@@ -271,14 +271,14 @@ async function refetch() {
     },
   },
   render: () => ({
-    components: { AdeoGrid },
+    components: { AdGridVue },
     setup: () => ({ lmColumns, lmProducts }),
     template: `
-      <div class="sb-adeo-grid-shell">
+      <div class="sb-grid-shell">
         <h2>Loading overlay</h2>
         <p>Le grid garde les lignes existantes visibles sous l'overlay pour ne pas perdre le contexte utilisateur.</p>
-        <div class="sb-adeo-grid-frame">
-          <AdeoGrid :height="560" :columns="lmColumns" :rows="lmProducts" :loading="true" />
+        <div class="sb-grid-frame">
+          <ad-grid-vue :height="560" :columns="lmColumns" :rows="lmProducts" :loading="true" />
         </div>
       </div>
     `,
@@ -312,14 +312,14 @@ async function load() {
 </script>
 
 <template>
-  <AdeoGrid :columns="cols" :rows="rows" :error="error" @retry="load">
+  <ad-grid-vue :columns="cols" :rows="rows" :error="error" @retry="load">
     <template #error="{ error, retry }">
       <div class="my-error-state">
         <h3>{{ error.message }}</h3>
         <button @click="retry">Réessayer</button>
       </div>
     </template>
-  </AdeoGrid>
+  </ad-grid-vue>
 </template>
 \`\`\`
 
@@ -329,23 +329,23 @@ async function load() {
 
 ### Default fallback
 
-Sans slot, la grille affiche \`<div class="adeo-grid-grid-error">\` avec \`{{ error.message }}\` + un bouton "Retry" qui émet \`@retry\`.
+Sans slot, la grille affiche \`<div class="grid-error">\` avec \`{{ error.message }}\` + un bouton "Retry" qui émet \`@retry\`.
         `,
       },
     },
   },
   render: () => ({
-    components: { AdeoGrid },
+    components: { AdGridVue },
     setup: () => ({
       lmColumns,
       err: new Error('Impossible de charger les produits — réessayer ?'),
     }),
     template: `
-      <div class="sb-adeo-grid-shell">
+      <div class="sb-grid-shell">
         <h2>Error state</h2>
         <p>Pass an Error to <code>:error</code> — le grid émet <code>retry</code> si l'utilisateur clique le bouton de relance.</p>
-        <div class="sb-adeo-grid-frame">
-          <AdeoGrid :height="560" :columns="lmColumns" :rows="[]" :error="err" />
+        <div class="sb-grid-frame">
+          <ad-grid-vue :height="560" :columns="lmColumns" :rows="[]" :error="err" />
         </div>
       </div>
     `,

@@ -1,5 +1,5 @@
 /**
- * Clipboard engine — Angular parity (moz-grid / `ClipboardEngine`).
+ * Clipboard engine — Angular parity (ad-grid / `ClipboardEngine`).
  *
  * Handles every cell-level mutation triggered by clipboard-ish actions:
  * copy extraction (TSV), cut outline (marching-ants), paste, fill-down,

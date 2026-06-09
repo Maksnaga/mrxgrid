@@ -1,5 +1,5 @@
 /**
- * Tree engine — Angular parity (moz-grid / `TreeEngine`).
+ * Tree engine — Angular parity (ad-grid / `TreeEngine`).
  *
  * Flattens a hierarchical data structure (e.g. file trees, org charts) into
  * an index-based `TreeDisplayRow<T>[]` suitable for the virtualizer. Node

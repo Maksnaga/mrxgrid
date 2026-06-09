@@ -20,7 +20,7 @@ import type {
   ServerGroupingOptions,
 } from './types'
 import type { SelectionModel } from '@/composables/useRowSelection'
-import type { DataDensity } from './components/overlays/AdeoTableMenuDrawer.vue'
+import type { DataDensity } from './components/overlays/TableMenuDrawer.vue'
 import { isGroupRow, cellRangeToSelectionRange } from './types'
 import type { SelectionRange } from './types'
 import { useRowSelection } from '@/composables/useRowSelection'
@@ -44,11 +44,11 @@ import { useFiltering } from '@/composables/useFiltering'
 
 import { GRID_STATE_KEY, useGridState } from './state/useGridState'
 import {
-  ADEO_GRID_COLUMN_REGISTRY_KEY,
-  type AdeoColumnRegistration,
-  type AdeoColumnRegistry,
-} from './state/AdeoColumnRegistry'
-import { ADEO_GRID_SLOTS_KEY, type AdeoGridSlotsContext } from './state/AdeoGridSlots'
+  GRID_COLUMN_REGISTRY_KEY,
+  type ColumnRegistration,
+  type ColumnRegistry,
+} from './state/ColumnRegistry'
+import { GRID_SLOTS_KEY, type GridSlotsContext } from './state/GridSlots'
 import { useGridEngine } from './engine/useGridEngine'
 import { useRefHighlight } from './features/formula/useRefHighlight'
 import { columnIndexToLetters } from './features/formula/formula-ast'
@@ -56,19 +56,21 @@ import { extractEditorRefTokens, tokenizeFormulaEditor } from './features/formul
 import type { GridDensity, GroupEvent } from './models/grid-events.model'
 import type { SortEvent } from './models/sort.model'
 
-import AdeoGridHeader from './components/header/AdeoGridHeader.vue'
-import AdeoGridSpreadsheetHeader from './components/header/AdeoGridSpreadsheetHeader.vue'
-import AdeoGridFilterRow from './components/header/AdeoGridFilterRow.vue'
-import AdeoGridFooter from './components/footer/AdeoGridFooter.vue'
-import AdeoGridBody from './components/body/AdeoGridBody.vue'
-import AdeoGridSkeletonBody from './components/body/AdeoGridSkeletonBody.vue'
-import AdeoGridEmptyState from './components/body/AdeoGridEmptyState.vue'
-import AdeoGridTagBar from './components/header/AdeoGridTagBar.vue'
-import AdeoGridSelectionBar from './components/overlays/AdeoGridSelectionBar.vue'
-import AdeoGridSmartToolbar from './components/overlays/AdeoGridSmartToolbar.vue'
-import type { GroupingItem } from './components/overlays/AdeoGroupingDrawer.vue'
+import AdGridHeader from './components/header/GridHeader.vue'
+import AdGridSpreadsheetHeader from './components/header/GridSpreadsheetHeader.vue'
+import AdGridFilterRow from './components/header/GridFilterRow.vue'
+import AdGridFooter from './components/footer/GridFooter.vue'
+import AdGridBody from './components/body/GridBody.vue'
+import AdGridSkeletonBody from './components/body/GridSkeletonBody.vue'
+import AdGridEmptyState from './components/body/GridEmptyState.vue'
+import AdGridTagBar from './components/header/GridTagBar.vue'
+import AdGridSelectionBar from './components/overlays/GridSelectionBar.vue'
+import AdGridToolbar from './components/overlays/GridToolbar.vue'
+import type { GroupingItem } from './components/overlays/GroupingDrawer.vue'
 import { OPERATOR_LABELS, VALUELESS_OPERATORS, RANGE_OPERATORS } from './models/filter.model'
 import type { FilterCondition, FilterEvent, FilterMode, FilterModel } from './models/filter.model'
+
+defineOptions({ name: 'AdGridVue' })
 
 const UTILITY_COL_WIDTH = 50
 
@@ -91,7 +93,7 @@ const props = withDefaults(
   defineProps<{
     /**
      * Imperative column list. Optional when using the declarative
-     * `<AdeoColumn>` children API (Phase 3.2). When both are provided the
+     * `<ad-grid-column>` children API (Phase 3.2). When both are provided the
      * registered columns override the prop on matching `field`.
      */
     columns?: ColumnDef[]
@@ -125,11 +127,7 @@ const props = withDefaults(
      * Defaults to using the row index as string.
      */
     rowId?: (row: RowData, index: number) => string
-    /** Enable vertical virtual scrolling for large row counts. */
-    virtualScroll?: boolean
-    /** Enable horizontal virtual scrolling for many columns. */
-    virtualColumns?: boolean
-    /** Visible viewport height in px when virtualScroll is enabled. Default 600. */
+    /** Visible viewport height in px. Default 600. */
     containerHeight?: number
     /** Rows rendered above/below viewport as buffer. Default 5. */
     overscan?: number
@@ -186,6 +184,18 @@ const props = withDefaults(
      */
     filterMode?: FilterMode
     serverGrouping?: ServerGroupingOptions
+    /**
+     * Grouping evaluation mode — Angular parity (`groupMode` input).
+     * `'client'` (default) routes group toggles to the in-memory `useGroupEngine`.
+     * `'server'` configures `useServerGroupEngine` with the `serverGrouping`
+     * options and replaces the displayRows source with its `flatRows`. The
+     * grid then emits `serverGroupingExpand` / `serverGroupingCollapse` and
+     * exposes an imperative API (`setServerGroupRoots`,
+     * `setServerGroupChildren`) via the template ref. The legacy
+     * `useServerGrouping` flat-row path (`__adg`-prefixed metadata) is
+     * preserved for back-compat when this prop is left at its default.
+     */
+    groupMode?: 'client' | 'server'
     /**
      * Enable pagination with virtual scroll.
      * Pass `true` for defaults or a PaginationConfig for custom page sizes.
@@ -245,8 +255,14 @@ const props = withDefaults(
     persistKey?: string
     /**
      * Optional history attachment id. When set, the undo/redo stacks are
-     * mirrored to `localStorage` under `adeo-grid-history:<historyId>` so
+     * mirrored to `localStorage` under `grid-history:<historyId>` so
      * undo/redo survive a reload.
+     *
+     * @deprecated Use `persistKey` instead — `historyId` will be removed in
+     * v2.0. The history engine now derives its storage namespace from
+     * `persistKey` via an internal `historyEngine.attach(persistKey)` call,
+     * matching Angular parity. Setting `historyId` keeps working for
+     * back-compat and wins over `persistKey` when both are provided.
      */
     historyId?: string
     /**
@@ -254,7 +270,7 @@ const props = withDefaults(
      * on mount; its return value (if any) is called on unmount as cleanup.
      * Use plugins for cross-cutting behaviour the core grid doesn't ship.
      */
-    plugins?: import('./models/plugin.model').AdeoGridPlugin[]
+    plugins?: import('./models/plugin.model').GridPlugin[]
     /**
      * Disable the FLIP slide animation when columns reorder during drag.
      * Mirrors AG Grid's `suppressColumnMoveAnimation`. Disable if you have
@@ -262,7 +278,7 @@ const props = withDefaults(
      */
     suppressColumnMoveAnimation?: boolean
     /**
-     * Height applied to `.adeo-grid-grid-root` as inline CSS. Accepts any CSS
+     * Height applied to `.grid-root` as inline CSS. Accepts any CSS
      * length (`'560px'`, `'80vh'`) or a number (interpreted as px).
      * Default `'auto'` — the grid grows to its content. Pass a fixed value
      * when embedding in a layout that doesn't constrain height itself.
@@ -296,6 +312,14 @@ const emit = defineEmits<{
    * The consumer is expected to apply the changes in one batch — e.g.
    * one bulk API call + a single `refreshing` re-sync, rather than
    * `withCellPending` per cell (which would queue 1 M Promises).
+   *
+   * Angular parity — matches the `bulkEdit` output on `ad-grid`.
+   */
+  bulkEdit: [event: { changes: ReadonlyArray<{ rowIndex: number; field: string; oldValue: unknown; newValue: unknown }> }]
+  /**
+   * @deprecated Use `bulkEdit` instead — `bulkCellEdit` is kept as an alias
+   * for back-compat and fires alongside `bulkEdit` for the same operation.
+   * Will be removed in v2.0. The payload shape is identical.
    */
   bulkCellEdit: [event: { changes: ReadonlyArray<{ rowIndex: number; field: string; oldValue: unknown; newValue: unknown }> }]
   fill: [event: FillEvent]
@@ -339,7 +363,7 @@ const emit = defineEmits<{
   /**
    * Emitted whenever the formal filter model changes — from the per-column
    * overlay, the filter drawer, programmatic `setFilterModel`, or any tag-bar
-   * remove. Wire `v-model:filter-model="filterModel"` on `<AdeoGrid>` to keep
+   * remove. Wire `v-model:filter-model="filterModel"` on `<ad-grid-vue>` to keep
    * a consumer-owned `filterModel` ref in sync with what the grid actually
    * filters on.
    */
@@ -366,6 +390,17 @@ const emit = defineEmits<{
   sortChange: [event: SortEvent]
   /** Emitted whenever the active group columns change (add/remove/clear group). */
   groupChange: [event: GroupEvent]
+  /**
+   * Emitted when a server-side group root is expanded. Consumers fetch
+   * children for `groupKey` and call `setServerGroupChildren(groupKey, rows)`
+   * via the grid ref. Only fired when `group-mode === 'server'`.
+   */
+  serverGroupingExpand: [payload: { groupKey: string; field: string; value: unknown }]
+  /**
+   * Emitted when a server-side group root is collapsed. Mirror of
+   * `serverGroupingExpand`. Only fired when `group-mode === 'server'`.
+   */
+  serverGroupingCollapse: [payload: { groupKey: string; field: string; value: unknown }]
   /**
    * Emitted whenever the set of hidden columns changes (via the settings
    * drawer, `hiddenFields` prop, or programmatic column visibility toggle).
@@ -404,11 +439,11 @@ const refHighlight = useRefHighlight()
 const movingField = ref<string | null>(null)
 provide(GRID_STATE_KEY, gridState)
 
-// --- Declarative column registry (<AdeoColumn> children) ---
+// --- Declarative column registry (<ad-grid-column> children) ---
 // Children call register/unregister on mount/dispose. The grid combines
 // these with the imperative `:columns` prop in `mergedColumns` below.
-const declarativeColumns = ref<Map<string, AdeoColumnRegistration>>(new Map())
-const columnRegistry: AdeoColumnRegistry = {
+const declarativeColumns = ref<Map<string, ColumnRegistration>>(new Map())
+const columnRegistry: ColumnRegistry = {
   register(reg) {
     const next = new Map(declarativeColumns.value)
     next.set(reg.id, reg)
@@ -424,13 +459,13 @@ const columnRegistry: AdeoColumnRegistry = {
     return [...declarativeColumns.value.values()].sort((a, b) => a.order - b.order)
   },
 }
-provide(ADEO_GRID_COLUMN_REGISTRY_KEY, columnRegistry)
+provide(GRID_COLUMN_REGISTRY_KEY, columnRegistry)
 
 // --- Provide root slots (Phase 3.3) so deeply nested components can resolve
 // `#cell-{field}` / `#header-{field}` / `#filter-{field}` / `#edit-{field}`
 // without prop-drilling.
 const _rootSlots = useSlots()
-const _slotsContext: AdeoGridSlotsContext = {
+const _slotsContext: GridSlotsContext = {
   get cell() {
     return _rootSlots.cell
   },
@@ -474,14 +509,14 @@ const _slotsContext: AdeoGridSlotsContext = {
   },
   refHighlight,
 }
-provide(ADEO_GRID_SLOTS_KEY, _slotsContext)
+provide(GRID_SLOTS_KEY, _slotsContext)
 
 // ─── Phase 6b — Ref-highlight activation hook ──────────────────────────
 // One shared `useRefHighlight()` instance per grid. Activates whenever an
 // edit starts on a formula-enabled column, deactivates on commit / cancel.
 // While active, the draft value is tokenised every keystroke and the
 // resulting refs become coloured highlights — cells render matching
-// `--moz-grid-ref-color` borders by reading `colorByCell`.
+// `--ad-grid-ref-color` borders by reading `colorByCell`.
 //
 // `formulaPickHandler` implements click-to-insert / drag-to-range behaviour :
 // while pick mode is on (i.e. while editing a formula cell), every cell
@@ -510,12 +545,12 @@ function refToA1(rowIndex0: number, colIndex0: number, absolute = false): string
 type FormulaEditorEl = HTMLInputElement | HTMLDivElement
 
 /** Find the live formula editor regardless of its underlying tag — either
- *  the contenteditable (`<div class="adeo-grid-formula-editor">` for `allowFormula`
- *  cells) or the legacy plain `<input class="adeo-grid-grid-cell__input">`. */
+ *  the contenteditable (`<div class="grid-formula-editor">` for `allowFormula`
+ *  cells) or the legacy plain `<input class="grid-cell__input">`. */
 function getActiveFormulaEditor(): FormulaEditorEl | null {
   if (typeof document === 'undefined') return null
   return document.querySelector(
-    '.adeo-grid-grid-cell--editing .adeo-grid-formula-editor, .adeo-grid-grid-cell--editing .adeo-grid-grid-cell__input',
+    '.grid-cell--editing .grid-formula-editor, .grid-cell--editing .grid-cell__input',
   ) as FormulaEditorEl | null
 }
 
@@ -783,7 +818,7 @@ watch(
 )
 
 /**
- * Merged column list: imperative `:columns` prop + declarative `<AdeoColumn>`
+ * Merged column list: imperative `:columns` prop + declarative `<ad-grid-column>`
  * registrations. Declarative wins on duplicate `field` (consumer expressed
  * slot intent more explicitly). Order: prop first, then any declarative
  * columns not already in the prop, in registration order.
@@ -901,7 +936,7 @@ watch(
 )
 
 // columns → columnDefs + columnStates (via initColumns).
-// Watches `mergedColumns` so declarative `<AdeoColumn>` registrations
+// Watches `mergedColumns` so declarative `<ad-grid-column>` registrations
 // also drive a re-init.
 watch(
   mergedColumns,
@@ -1004,29 +1039,43 @@ watch(
 )
 
 // Phase 1.0 — history attach: mirror undo/redo stacks to localStorage when
-// `historyId` is set. Detach on prop change.
+// `persistKey` (or the deprecated `historyId` alias) is set. Detach on prop
+// change.
 //
 // Angular parity: `grid.ts` calls `this.historyEngine.attach(this.persistKey())`.
-// We mirror that here: if `persistKey` is provided it serves as the history
-// storage key (one localStorage namespace per view). Fall back to `historyId`
-// for consumers that still use the dedicated prop, then to `null` (in-memory
-// only, no localStorage persistence).
+// We mirror that here: `historyEngine.attach(persistKey)` is the canonical
+// path. The deprecated `historyId` prop is honored when present (wins over
+// `persistKey` so existing consumers don't suddenly switch storage namespaces
+// on upgrade) and emits a dev-mode warning the first time it's seen. When
+// neither prop is set, the engine stays in-memory (no localStorage persist).
+let _historyIdDeprecationWarned = false
 watch(
-  () => props.persistKey ?? props.historyId,
-  (id) => {
-    gridEngine.history.attach(id ?? null)
+  () => ({ persistKey: props.persistKey, historyId: props.historyId }),
+  ({ persistKey, historyId }) => {
+    if (historyId && !_historyIdDeprecationWarned) {
+      _historyIdDeprecationWarned = true
+      if (typeof console !== 'undefined' && import.meta.env?.DEV) {
+        console.warn(
+          '[grid-vue] The `historyId` prop is deprecated and will be removed in v2.0. ' +
+            'Use `persistKey` instead — the grid now calls ' +
+            '`historyEngine.attach(persistKey)` internally for parity with the ' +
+            'Angular grid.',
+        )
+      }
+    }
+    const id = historyId ?? persistKey ?? null
+    gridEngine.history.attach(id)
   },
   { immediate: true },
 )
 
 // History emits cellEdit on every reverted / replayed change. The
-// engine's built-in `undo()` mutates `state.sourceData` via
-// `clipboard.applyChanges`, but the render pipeline
-// (`filteredRows` → `sortedRows` → `renderableRows`) reads `props.rows`,
-// not `state.sourceData`. So the engine's mutation is functionally a
-// no-op for the visible grid — what actually drives the revert is the
-// `cellEdit` emit going to the consumer, who mutates their `rows` ref;
-// Vue's per-cell reactivity then re-renders the affected cells.
+// Both undo and redo route through `applyFills` (for the `fill` op) or
+// emit `cellEdit` per change (for the `edit` op). `applyFills` mutates
+// `gridState.sourceData` directly through Vue's reactive array proxy,
+// so the visible grid updates regardless of whether the consumer wires
+// `@cell-edit`. The emit is now purely informational (persistence,
+// server roundtrip, undo stack telemetry).
 const _origUndo = gridEngine.history.undo.bind(gridEngine.history)
 const _origRedo = gridEngine.history.redo.bind(gridEngine.history)
 gridEngine.history.undo = () => {
@@ -1112,7 +1161,7 @@ onMounted(() => {
       const cleanup = p.init({ state: gridState, engine: gridEngine })
       if (typeof cleanup === 'function') _pluginCleanups.push(cleanup)
     } catch (err) {
-      console.error(`[adeo-grid] plugin "${p.name}" init failed:`, err)
+      console.error(`[grid] plugin "${p.name}" init failed:`, err)
     }
   }
 })
@@ -1121,7 +1170,7 @@ onBeforeUnmount(() => {
     try {
       c()
     } catch (err) {
-      console.error('[adeo-grid] plugin cleanup failed:', err)
+      console.error('[grid] plugin cleanup failed:', err)
     }
   }
   _pluginCleanups.length = 0
@@ -1191,7 +1240,7 @@ function showAllColumns() {
 // --- Filtering (first stage — before sort/group) ---
 // Phase 2.12 — `gridState.filterModel.conditions[]` is now the single source
 // of truth. `useFiltering` is a thin adapter: `filters` is a derived
-// `Record<field, value>` for `AdeoGridFilterRow`; `setFilter` writes new
+// `Record<field, value>` for `AdGridFilterRow`; `setFilter` writes new
 // conditions into the model. The mirror watch that converted Record → Conditions
 // (~70 LOC) is gone, and `gridEngine.filter.filterData` reads the same
 // conditions for row evaluation.
@@ -1215,17 +1264,27 @@ const isServerFilter = computed(
 // continue de marcher : on émet `filterChange` pour que le consumer
 // déclenche son refetch.
 //
-// Lecture explicite de `dataVersion` : c'est la dépendance manuelle
-// qu'`applyFills` bump après chaque mutation in-place d'une row. Sans
-// cette lecture, le computed ne dépend que de la référence du tableau
-// `props.rows` (parce que `filterEngine.filterData` court-circuite sur
-// "no filter" et retourne `data` sans itérer → aucun track sur les
-// propriétés des rows). Conséquence : tout en aval (sort, groupTree)
-// reste sur cache stale après une cell-edit / fill / bulk-clear.
+// **Source de vérité** : `gridState.sourceData` — alimenté par la watcher
+// `props.rows → sourceData` ci-dessus (L906). Lire `sourceData` (et non
+// `props.rows`) permet à `applyFills` de driver la mise à jour visuelle
+// en mutant la collection interne — sans dépendre du consumer pour qu'il
+// branche `@cell-edit`. La réactivité visuelle appartient à la lib ; le
+// consumer reçoit les events `cell-edit` / `fill` / `bulk-edit` pour
+// ses side-effects (persistance, undo serveur, etc.) mais n'a rien à
+// faire pour que l'écran soit à jour.
+//
+// Lecture explicite de `dataVersion` : dépendance manuelle qu'`applyFills`
+// bump après chaque mutation. Sans cette lecture, le computed ne dépend
+// que de la référence du tableau `sourceData` (parce que
+// `filterEngine.filterData` court-circuite sur "no filter" et retourne
+// `data` sans itérer → aucun track sur les propriétés des rows).
+// Conséquence : tout en aval (sort, groupTree) reste sur cache stale
+// après une cell-edit / fill / bulk-clear.
 const filteredRows = computed(() => {
   // eslint-disable-next-line @typescript-eslint/no-unused-expressions
   gridState.dataVersion.value
-  return isServerFilter.value ? props.rows : gridEngine.filter.filterData(props.rows)
+  const source = gridState.sourceData.value
+  return isServerFilter.value ? source : gridEngine.filter.filterData(source)
 })
 
 function setFilter(field: string, value: unknown) {
@@ -1266,7 +1325,7 @@ const toolbarFilterModel = computed<FilterModel>({
 })
 
 // --- Tag-bar helpers (Sprint 3 — REFONTE-PLAN-V2 §2.3) ---
-// Build the human-readable chips fed to the unified <AdeoGridTagBar> for
+// Build the human-readable chips fed to the unified <ad-grid-tag-bar> for
 // the FILTERED BY / GROUPED BY / HIDDEN COLUMNS bars. Filter labels reuse
 // `OPERATOR_LABELS` so the chip stays in sync with the filter drawer wording.
 
@@ -1407,7 +1466,7 @@ const preGroupRows = computed(() =>
 // --- Grouping (operates on paginated or full data) ---
 // Phase 2.7 — `useGrouping` reads/writes `gridState.groupColumns` +
 // `gridState.expandedGroups`. The legacy `RowData` output (with `__adg*`
-// metadata) is preserved for `AdeoGridBody` / `AdeoGridGroupRow`. Server-side
+// metadata) is preserved for `AdGridBody` / `AdGridGroupRow`. Server-side
 // grouping keeps its own state — different async lifecycle.
 const {
   groups: clientGroups,
@@ -1434,6 +1493,57 @@ const {
   isGroupExpanded: serverIsGroupExpanded,
   onVisibleRangeChange: serverGroupVisibleRangeChange,
 } = useServerGrouping(mergedColumns, serverGroupingRef)
+
+// --- Angular-parity server-group engine ---
+// `useServerGroupEngine` (under `gridEngine.serverGroup`) is the modern
+// twin of the legacy `useServerGrouping` composable above. It produces a
+// `DisplayRow<T>[]` discriminated union (instead of the `__adg`-flat
+// `RowData[]`) and owns its own summary/cache signals. We sync the
+// `serverGrouping` prop + `groupMode` prop into it, and emit
+// `serverGroupingExpand` / `serverGroupingCollapse` whenever the engine's
+// expanded-keys set changes — letting consumers reach the engine through
+// either the legacy event chain OR the new ref-exposed imperative API.
+watch(
+  () => props.groupMode ?? 'client',
+  (mode) => {
+    gridState.groupMode.value = mode
+  },
+  { immediate: true },
+)
+watch(
+  () => props.serverGrouping ?? null,
+  (opts) => {
+    gridEngine.serverGroup.configure(opts as never)
+  },
+  { immediate: true },
+)
+// Emit expand/collapse events when the engine's expandedKeys set changes.
+// We diff against the previous snapshot so a single watch covers both.
+let _prevServerExpanded: Set<string> = new Set()
+watch(
+  () => gridEngine.serverGroup.expandedKeys.value,
+  (next) => {
+    const field = gridState.groupColumns.value[0]?.field ?? ''
+    const summaries = gridEngine.serverGroup.groupSummaries.value
+    const findSummary = (groupKey: string): { field: string; value: unknown } | null => {
+      const s = summaries.find((x) => `${field}::${String(x.value ?? '')}` === groupKey)
+      return s ? { field, value: s.value } : { field, value: groupKey.split('::')[1] ?? '' }
+    }
+    for (const key of next) {
+      if (!_prevServerExpanded.has(key)) {
+        const m = findSummary(key)
+        if (m) emit('serverGroupingExpand', { groupKey: key, field: m.field, value: m.value })
+      }
+    }
+    for (const key of _prevServerExpanded) {
+      if (!next.has(key)) {
+        const m = findSummary(key)
+        if (m) emit('serverGroupingCollapse', { groupKey: key, field: m.field, value: m.value })
+      }
+    }
+    _prevServerExpanded = new Set(next)
+  },
+)
 
 // Server grouping is NOT used in pagination mode — pagination already slices
 // the data, so client-side grouping on the page is correct and cheaper.
@@ -1869,7 +1979,7 @@ async function pasteIntoSelectedRows() {
 
 // --- Expansion ---
 // Phase 2.4 — `gridState.expandedRowIds` (id-keyed) is now the single source
-// of truth. `useRowExpansion` is a thin index↔id adapter so `AdeoGridBody`
+// of truth. `useRowExpansion` is a thin index↔id adapter so `AdGridBody`
 // keeps its index-based API (`isExpanded(rowIndex)`, `toggleExpansion(...)`).
 const { expanded: expandedRowSet, isExpanded, toggleExpansion } = useRowExpansion(
   gridState,
@@ -1881,7 +1991,7 @@ const { expanded: expandedRowSet, isExpanded, toggleExpansion } = useRowExpansio
 // the value is available at `useVirtualGrid` call site.
 //
 /**
- * Live-measured detail row height (from `<AdeoGridDetailRow>`'s
+ * Live-measured detail row height (from `<ad-grid-detail-row>`'s
  * ResizeObserver — see that file's `emit('measure')` path). This is the
  * single source of truth fed to the virtual scroll, the row-position
  * math in `useActiveCell`, and the sizer height. The fallback `0` only
@@ -1965,10 +2075,9 @@ watch(
 /**
  * Sync the actual body height into the virtualizer on mount / resize.
  *
- * When virtualScroll is on AND containerHeight is explicitly provided,
- * the CSS sets a fixed height — but in fullscreen mode the consumer may
- * omit containerHeight, and the grid stretches via flex. In that case
- * (or when virtualScroll is off) we must measure the DOM element.
+ * When containerHeight is explicitly provided, CSS sets a fixed height —
+ * but in fullscreen mode the consumer may omit containerHeight and the
+ * grid stretches via flex. In that case we must measure the DOM element.
  *
  * We always accept measured values: this handles fullscreen toggle,
  * density changes that affect header height, and any other layout shift.
@@ -2016,8 +2125,13 @@ const {
   columns: centerColumns,
   rowHeight,
   containerHeight: containerHeightRef,
-  virtualizeRows: computed(() => (props.virtualScroll ?? false) || paginationEnabled.value),
-  virtualizeColumns: computed(() => props.virtualColumns ?? false),
+  // Virtualization is always on (both axes). The vertical engine streams
+  // visible rows via a height-spacer; the horizontal engine slices the
+  // center column range. For small datasets, both engines no-op cheaply.
+  // The libs trade a few computeds for unconditional scalability — there's
+  // no need for the consumer to opt in.
+  virtualizeRows: computed(() => true),
+  virtualizeColumns: computed(() => true),
   rowOverscan: props.overscan,
   columnOverscan: props.columnOverscan,
   getColumnWidth,
@@ -2172,24 +2286,29 @@ const cellSelHasSelection = computed(() => {
   return r.r1 !== r.r2 || r.c1 !== r.c2
 })
 
-/** Bottom-right corner of the last range — the cell that shows the fill-handle dot. */
-const cellSelFillHandleRow = computed<number>(() => {
-  const ranges = cellSel.allRanges.value
-  if (ranges.length > 0) {
-    const last = ranges[ranges.length - 1]!
-    return Math.max(last.start.row, last.end.row)
-  }
-  return cellSelActiveRow.value
-})
-
-const cellSelFillHandleCol = computed<number>(() => {
-  const ranges = cellSel.allRanges.value
-  if (ranges.length > 0) {
-    const last = ranges[ranges.length - 1]!
-    return Math.max(last.start.col, last.end.col)
-  }
-  return cellSelActiveCol.value
-})
+/** The cell that shows the fill-handle dot.
+ *
+ * **Always the active cell (the focus anchor).** This mirrors Excel's
+ * behavior : the fill handle stays glued to the active cell — even when
+ * the user has extended a multi-cell selection with Shift+Arrow or drag,
+ * the handle stays on the original anchor, not on the bottom-right
+ * corner of the range.
+ *
+ * Previous implementation tried to compute the bottom-right of the last
+ * range, with a fall-through to the active cell for single-cell ranges.
+ * That logic was brittle : `useMouseSelection.onMouseMove` can fire a
+ * single mousemove event even on perfectly still clicks (browsers
+ * sometimes emit one), which calls `cellSel.extendRangeTo(row, col)` and
+ * creates a single-cell range pinned to the clicked cell. Subsequent
+ * keyboard moves clear that range via `focusCell`, but reactive
+ * flush ordering occasionally leaves the previous range visible for one
+ * frame — long enough to keep the fill-handle anchored on a stale cell.
+ *
+ * Reading `cellSelActiveRow/Col` directly bypasses the whole range-based
+ * computation and gives a deterministic, single-source-of-truth position.
+ */
+const cellSelFillHandleRow = computed<number>(() => cellSelActiveRow.value)
+const cellSelFillHandleCol = computed<number>(() => cellSelActiveCol.value)
 
 /** Per-cell selection check against all ranges (frozen + live). */
 function isCellSelected(rowIndex: number, colIdx: number): boolean {
@@ -2322,24 +2441,69 @@ const {
 // --- Fill Handle ---
 
 function applyFills(fills: Array<{ rowIndex: number; field: string; value: unknown }>): void {
-  let mutated = 0
+  if (fills.length === 0) return
+
+  // Group fills by row index so we replace each mutated row with a SINGLE
+  // fresh object — instead of N successive writes if several cells on the
+  // same row are filled. Vue's `v-for` diffs `<ad-grid-row :row>` by reference,
+  // so a fresh object reference is what forces the re-render down to
+  // `<ad-grid-cell :value="row[field]">`. An in-place property mutation is
+  // invisible to that diff.
+  const fillsByRow = new Map<number, Map<string, unknown>>()
   for (const f of fills) {
-    const row = renderableRows.value[f.rowIndex]
-    if (row && !isGroupRow(row) && !(row as Record<string, unknown>).__adgSkeleton) {
-      ; (row as Record<string, unknown>)[f.field] = f.value
-      mutated++
+    let m = fillsByRow.get(f.rowIndex)
+    if (!m) {
+      m = new Map()
+      fillsByRow.set(f.rowIndex, m)
     }
+    m.set(f.field, f.value)
   }
-  // Bump the data version so the filter / sort / group cascade
-  // invalidates even when there's no active filter or sort. Without
-  // this, mutating `row[field]` in place updates the rendered cell
-  // (cell renderer tracks `row[field]` directly) but `filteredRows`
-  // and `sortedRows` short-circuit on "no filter / no sort" and
-  // return `props.rows` unchanged — Vue then sees no dep change and
-  // `buildGroupTree` never re-buckets the mutated row. Visible
-  // symptom : grouping by a field then editing an empty cell to a
-  // value leaves the row stuck in the original (empty) bucket.
-  if (mutated > 0) gridState.dataVersion.value++
+
+  // Mutate via INDEX ASSIGNMENT on `gridState.sourceData.value`. Two reasons :
+  //
+  // 1. The pipeline (`filteredRows` → `sortedRows` → `renderableRows`) reads
+  //    `gridState.sourceData.value`, not `props.rows`. Index writes go through
+  //    Vue's reactive array proxy → trigger downstream computeds → AdGridRow
+  //    re-renders with the new row reference. Visual reactivity is owned by
+  //    the lib — the consumer no longer has to wire `@cell-edit` for the
+  //    DOM to update.
+  //
+  // 2. The watcher on `props.rows` (L906) assigns `props.rows` directly to
+  //    `gridState.sourceData.value` on mount + every change of reference.
+  //    So initially `sourceData.value === props.rows` (same array). By
+  //    mutating via `source[i] = updated` instead of `sourceData.value = newArray`,
+  //    we KEEP that identity — which means `props.rows[i]` also points to
+  //    the new row. Consumers that read their own ref see the update too,
+  //    consistent with how AG Grid / Handsontable handle in-grid edits.
+  //
+  // The `cell-edit` / `fill` / `bulk-edit` events still fire so the consumer
+  // can persist the change server-side, push it on an undo stack, etc.
+  const source = gridState.sourceData.value
+  let mutated = 0
+  for (const [rowIndex, fieldsMap] of fillsByRow) {
+    const row = renderableRows.value[rowIndex]
+    if (!row || isGroupRow(row) || (row as Record<string, unknown>).__adgSkeleton) continue
+    const sourceIndex = source.indexOf(row as RowData)
+    if (sourceIndex < 0) continue
+    const updated = { ...(row as Record<string, unknown>) } as RowData
+    for (const [field, value] of fieldsMap) {
+      ;(updated as Record<string, unknown>)[field] = value
+    }
+    // Index write through Vue's reactive proxy — fires reactivity on
+    // dependents that read `sourceData.value[i]`. Identity of the array
+    // ref itself is preserved.
+    source[sourceIndex] = updated
+    mutated++
+  }
+
+  if (mutated > 0) {
+    // Bump dataVersion so the filter / sort / group cascade invalidates
+    // even when there's no active filter or sort. Without this,
+    // `filteredRows` and `sortedRows` short-circuit on "no filter / no
+    // sort" and return `sourceData` unchanged — Vue then sees no dep
+    // change and `buildGroupTree` never re-buckets the mutated row.
+    gridState.dataVersion.value++
+  }
 }
 
 // --- Fill Handle (engine-backed, DOM mouse tracking inlined) ---
@@ -2358,27 +2522,69 @@ const fillUtilityWidth = computed(
   () => (props.selectable ? UTILITY_COL_WIDTH : 0) + (props.expandable ? UTILITY_COL_WIDTH : 0),
 )
 
-/** Fill-target range as SelectionRange, for getCellFlags. */
+/** Fill-target range as SelectionRange, for getCellFlags.
+ *
+ * The source `lastSelectionRange` may span MULTIPLE columns (or rows). The
+ * target overlay covers ALL source columns extended into the drag
+ * direction (not just the anchor column = source.c2). It does NOT include
+ * the source rows themselves — that mirrors what `onFillMouseUp` does on
+ * commit (`src.r2 + 1` for down / `src.r1 - 1` for up). Without that
+ * exclusion, an upward drag visually paints the source row WITH the
+ * target highlight, which is what produces the "carré se place mal"
+ * symptom : the rectangle visually starts below the user's pointer
+ * because it spans both source and target.
+ */
 const fillTargetRange = computed<SelectionRange | null>(() => {
   const anchor = gridState.fillAnchor.value
   const target = gridState.fillTarget.value
   if (!anchor || !target) return null
   if (anchor.row === target.row && anchor.col === target.col) return null
+  const source = lastSelectionRange.value
   const vertical = target.col === anchor.col
+  const sourceR1 = source ? source.r1 : anchor.row
+  const sourceR2 = source ? source.r2 : anchor.row
+  const sourceC1 = source ? source.c1 : anchor.col
+  const sourceC2 = source ? source.c2 : anchor.col
   if (vertical) {
+    // Down drag: target rows are BELOW source range.
+    if (target.row > sourceR2) {
+      return {
+        r1: sourceR2 + 1,
+        c1: Math.min(sourceC1, sourceC2),
+        r2: target.row,
+        c2: Math.max(sourceC1, sourceC2),
+      }
+    }
+    // Up drag: target rows are ABOVE source range.
+    if (target.row < sourceR1) {
+      return {
+        r1: target.row,
+        c1: Math.min(sourceC1, sourceC2),
+        r2: sourceR1 - 1,
+        c2: Math.max(sourceC1, sourceC2),
+      }
+    }
+    // Target row sits inside the source range: nothing to fill.
+    return null
+  }
+  // Horizontal drag.
+  if (target.col > sourceC2) {
     return {
-      r1: Math.min(anchor.row, target.row),
-      c1: anchor.col,
-      r2: Math.max(anchor.row, target.row),
-      c2: anchor.col,
+      r1: Math.min(sourceR1, sourceR2),
+      c1: sourceC2 + 1,
+      r2: Math.max(sourceR1, sourceR2),
+      c2: target.col,
     }
   }
-  return {
-    r1: anchor.row,
-    c1: Math.min(anchor.col, target.col),
-    r2: anchor.row,
-    c2: Math.max(anchor.col, target.col),
+  if (target.col < sourceC1) {
+    return {
+      r1: Math.min(sourceR1, sourceR2),
+      c1: target.col,
+      r2: Math.max(sourceR1, sourceR2),
+      c2: sourceC1 - 1,
+    }
   }
+  return null
 })
 
 /** True while the user is dragging the fill handle. */
@@ -2478,7 +2684,7 @@ function mouseToFillCell(e: MouseEvent): { row: number; col: number } | null {
   const el = wrapperRef.value
   if (!el) return null
   const rect = el.getBoundingClientRect()
-  const headerEl = el.querySelector('.adeo-grid-grid-header')
+  const headerEl = el.querySelector('.grid-header')
   const headerH = headerEl ? headerEl.getBoundingClientRect().height : 0
   const x = e.clientX - rect.left - el.clientLeft + el.scrollLeft
   const y = e.clientY - rect.top - el.clientTop + el.scrollTop - headerH
@@ -2620,22 +2826,27 @@ const clipboard = useClipboard({
     // Bulk-clear path — Ctrl+A → Delete on a huge range can collect
     // hundreds of thousands of changes. Emitting `cellEdit` per change
     // would freeze the consumer (each emit triggers the consumer's
-    // sync handler before returning); we emit ONE `bulkCellEdit`
+    // sync handler before returning); we emit ONE `bulkEdit`
     // instead so the consumer can batch the API call + a single
     // `refreshing` re-sync. We only switch above ~1 K changes so
     // small clears keep the per-cell semantics — consumers that wired
     // `@cell-edit` per-cell logic (validation, optimistic update,
     // shimmer per field) keep working unchanged.
+    //
+    // `bulkCellEdit` is fired alongside `bulkEdit` as a deprecated alias
+    // for back-compat (see emit definition above).
     const BULK_THRESHOLD = 1000
     if (changes.length > BULK_THRESHOLD) {
-      emit('bulkCellEdit', {
+      const bulkPayload = {
         changes: changes.map((c) => ({
           rowIndex: c.rowIndex,
           field: c.field,
           oldValue: c.before,
-          newValue: '',
+          newValue: '' as unknown,
         })),
-      })
+      }
+      emit('bulkEdit', bulkPayload)
+      emit('bulkCellEdit', bulkPayload)
     } else {
       for (const c of changes) {
         emit('cellEdit', {
@@ -2796,11 +3007,9 @@ const { handleKeyDown: handleKeyboardKeyDown } = useKeyboard({
 function flushEdit() {
   const event = commitEdit()
   if (!event) return
-  // Record the edit in the history stack BEFORE emitting cellEdit. Order
-  // matters because the consumer's `cellEdit` handler may trigger a
-  // re-render that resets `gridState.sourceData` from the new
-  // `props.rows`, but the history op only references (rowIndex, field,
-  // before, after) by value so it stays valid either way.
+  // Record the edit in the history stack BEFORE applying it. The op
+  // captures (rowIndex, field, before, after) by value, so it's safe
+  // even if downstream reactivity rebuilds the row reference.
   if (event.oldValue !== event.newValue) {
     gridEngine.history.record('edit', [
       {
@@ -2868,7 +3077,7 @@ function onActivateCell(rowIndex: number, field: string, e?: MouseEvent) {
   }
 }
 
-// --- Cell edit event handlers (bubbled from AdeoGridCell → AdeoGridRow) ---
+// --- Cell edit event handlers (bubbled from AdGridCell → AdGridRow) ---
 
 function onEditStart(rowIndex: number, field: string) {
   const row = renderableRows.value[rowIndex]
@@ -2897,18 +3106,33 @@ function onEditCommit(direction: 'down' | 'right' | 'left' | 'stay') {
   }
 
   const { rowIndex, field } = state
+  // We must sync `cellSel.focusCell` synchronously alongside the
+  // legacy `activateCell` ref. Otherwise the `watch(activeCell, ...)`
+  // that syncs into `gridState.selectedCell` runs on the next tick,
+  // and during the intermediate frame :
+  //   - focus border (bound to `activeCell`) descends to row+1
+  //   - fill handle square (bound to `gridState.selectedCell` via
+  //     `cellSelFillHandleRow/Col` → `cellSelActiveRow/Col`) stays on
+  //     the OLD row because `selectedCell` hasn't updated yet
+  // Calling `cellSel.focusCell` sync closes the gap and both visuals
+  // descend together. Mirrors what `onActivateCell` does for click nav.
+  function moveBoth(nextRow: number, nextField: string): void {
+    const nextColIdx = fieldToColIndex(nextField)
+    if (nextColIdx >= 0) cellSel.focusCell(nextRow, nextColIdx)
+    activateCell(nextRow, nextField)
+  }
   if (direction === 'down') {
     const nextRow = rowIndex + 1
     if (nextRow < renderableRows.value.length) {
-      activateCell(nextRow, field)
+      moveBoth(nextRow, field)
     }
   } else {
     const cols = allColumnsFlat.value
     const idx = cols.findIndex((c) => c.field === field)
     if (direction === 'right' && idx < cols.length - 1) {
-      activateCell(rowIndex, cols[idx + 1]!.field)
+      moveBoth(rowIndex, cols[idx + 1]!.field)
     } else if (direction === 'left' && idx > 0) {
-      activateCell(rowIndex, cols[idx - 1]!.field)
+      moveBoth(rowIndex, cols[idx - 1]!.field)
     }
   }
 
@@ -3165,7 +3389,7 @@ function onColumnMenuAction(action: ColumnMenuAction) {
       break
     case 'filter-column':
       // Sprint 5 — the per-column filter overlay handles the actual write
-      // via the `column-filter-apply` event from `AdeoGridHeader`. We still
+      // via the `column-filter-apply` event from `AdGridHeader`. We still
       // forward the menu action so external listeners can react.
       break
     case 'group-by':
@@ -3287,13 +3511,13 @@ const fillField = computed<string | null>(() => {
 // in via either:
 //   • a built-in `filter` shape (legacy, text/select/date)
 //   • a Vue `filterRenderer` component (custom Mozaic input mix)
-//   • a `<AdeoColumn> #filter` slot or root `#filter-{field}` slot
+//   • a `<ad-grid-column> #filter` slot or root `#filter-{field}` slot
 // Other columns render an empty cell on that row but the row itself
 // stays hidden when nobody opts in (matches Angular's behaviour where
 // the filter row only renders if `filterTemplate` is declared).
 const hasFilterRow = computed(() => {
   const cols = mergedColumns.value
-  // `col.filter` is a union (inline FilterDef OR custom AdeoFilterConfig).
+  // `col.filter` is a union (inline FilterDef OR custom FilterConfig).
   // Only the FilterDef shape (`{ type, options, … }`) drives the inline
   // filter row; the custom-filter shape (`{ component, doesFilterPass }`)
   // is for the builder / column overlay and must NOT light up an empty
@@ -3304,9 +3528,10 @@ const hasFilterRow = computed(() => {
   return cols.some((c) => `filter-${c.field}` in _rootSlots)
 })
 
-const isVirtual = computed(
-  () => props.virtualScroll || props.virtualColumns || paginationEnabled.value,
-)
+// Virtualization is always on now — both axes. Kept as a `computed` so
+// downstream `watch([isVirtual, ...])` callers don't need to refactor;
+// it's a stable `true` ref.
+const isVirtual = computed(() => true)
 
 // Notify consumer when visible row range changes (for lazy data fetching).
 // Skip in pagination mode — paginated data is already loaded in full.
@@ -3347,7 +3572,7 @@ function onFillHandleMousedown(e: MouseEvent) {
 let resizeObserver: ResizeObserver | undefined
 
 function syncViewportWidth(width: number) {
-  wrapperRef.value?.style.setProperty('--adeo-grid-viewport-width', `${width}px`)
+  wrapperRef.value?.style.setProperty('--grid-viewport-width', `${width}px`)
 }
 
 onMounted(() => {
@@ -3410,7 +3635,7 @@ function getSelectedRows(): RowData[] {
 // Exposes engine methods to the consumer via `defineExpose`. The grid is
 // the public seam — engines stay private. Consumers acquire the ref:
 //
-//   const grid = ref<InstanceType<typeof AdeoGrid>>()
+//   const grid = ref<InstanceType<typeof Grid>>()
 //   grid.value.exportCsv({ filename: 'rows.csv' })
 //   grid.value.undo()
 //   grid.value.scrollToRow(1234)
@@ -3540,7 +3765,7 @@ function restoreView(storageKey: string): boolean {
 }
 
 // --- Default toolbar imperative API ---
-// Plain object handed to the built-in `AdeoGridSmartToolbar` as `:grid`.
+// Plain object handed to the built-in `AdGridToolbar` as `:grid`.
 // Getters keep the live selection counts flowing without extra refs.
 const toolbarGridApi = {
   exportCsv,
@@ -3571,7 +3796,7 @@ defineExpose({
   setFilter,
   getFilterModel,
   /** Replace the entire formal filter model in one shot — used by the
-   *  multi-condition `AdeoGridFilterDrawer` on Apply. */
+   *  multi-condition `AdGridFilterDrawer` on Apply. */
   setFilterModel: (model: { conditions: typeof gridState.filterModel.value.conditions }) =>
     gridEngine.filter.setModel(model, 'replace'),
   // Selection
@@ -3586,6 +3811,19 @@ defineExpose({
   clearSort: () => gridEngine.sort.clearSort(),
   getGroupModel,
   clearGroups,
+  // Server-side grouping (Angular parity — `useServerGroupEngine`).
+  // `setServerGroupRoots` replaces the summary list; `setServerGroupChildren`
+  // injects loaded children for an expanded group (and auto-expands it).
+  // Consumers respond to `serverGroupingExpand` by calling
+  // `setServerGroupChildren(groupKey, rows)` via this ref.
+  setServerGroupRoots: (summaries: { value: unknown; count: number }[]) =>
+    gridEngine.serverGroup.setGroupRoots(summaries),
+  setServerGroupChildren: (groupKey: string, children: RowData[], total?: number) =>
+    gridEngine.serverGroup.upsertChildren(groupKey, children, total),
+  expandServerGroup: (groupKey: string) =>
+    gridEngine.serverGroup.toggleGroupExpand(groupKey),
+  /** Direct access to the engine for advanced cases. */
+  serverGroupEngine: gridEngine.serverGroup,
   // Export
   exportCsv,
   exportJson,
@@ -3619,22 +3857,22 @@ defineExpose({
 </script>
 
 <template>
-  <div class="adeo-grid-grid-root" :class="{ 'adeo-grid-grid-root--fullscreen': fsState }" :style="fsState
+  <div class="grid-root" :class="{ 'grid-root--fullscreen': fsState }" :style="fsState
       ? undefined
       : { height: typeof props.height === 'number' ? `${props.height}px` : props.height }
     ">
     <slot name="toolbar">
-      <AdeoGridSmartToolbar :grid="toolbarGridApi" :columns="mergedColumns" v-model:fullscreen="fsState"
+      <ad-grid-toolbar :grid="toolbarGridApi" :columns="mergedColumns" v-model:fullscreen="fsState"
         v-model:density="densityState" v-model:hidden-fields="hiddenFieldsState" v-model:column-order="columnOrderState"
         v-model:active-groups="toolbarGroups" v-model:filter-model="toolbarFilterModel" :show-fullscreen="true"
         :show-settings="true" :show-filters="hasFilterableColumn" :show-group="hasGroupableColumn" :show-export="true"
         :show-keyboard="true" />
     </slot>
 
-    <!-- Hidden default slot — render-less <AdeoColumn> children live here.
+    <!-- Hidden default slot — render-less <ad-grid-column> children live here.
          They register themselves into the column registry on mount and
          contribute their definitions to `mergedColumns`. The slot has
-         `display: none` because <AdeoColumn> already renders no DOM, but
+         `display: none` because <ad-grid-column> already renders no DOM, but
          this guarantees Vue actually instantiates them. -->
     <div style="display: none" aria-hidden="true">
       <slot />
@@ -3642,7 +3880,7 @@ defineExpose({
 
     <!-- Error overlay — replaces the body entirely when set. -->
     <slot v-if="props.error" name="error" :error="props.error" :retry="() => emit('retry')">
-      <div class="adeo-grid-grid-error" role="alert">
+      <div class="grid-error" role="alert">
         <p>{{ props.error.message || 'An error occurred.' }}</p>
         <button type="button" @click="emit('retry')">Retry</button>
       </div>
@@ -3650,7 +3888,7 @@ defineExpose({
 
     <!-- Loading slot — la lib ne peint AUCUN visuel par défaut.
          • `loading=true`    → le squelette plein écran posé plus bas
-           dans `<AdeoGridSkeletonBody>` suffit comme signal "données
+           dans `<ad-grid-skeleton-body>` suffit comme signal "données
            vides / reload utilisateur".
          • `refreshing=true` → activation seule du slot, sans visuel
            default. Les consumers qui veulent une barre fine / spinner
@@ -3661,23 +3899,21 @@ defineExpose({
     <slot v-if="props.loading || props.refreshing" name="loading" />
 
     <!-- Sprint 3 — unified Mozaic tag bars (HIDDEN / GROUPED / FILTERED) -->
-    <AdeoGridTagBar v-if="!props.error && hiddenTags.length > 0" label="HIDDEN COLUMNS" :items="hiddenTags"
+    <ad-grid-tag-bar v-if="!props.error && hiddenTags.length > 0" label="HIDDEN COLUMNS" :items="hiddenTags"
       action-label="Restore all" @remove="onShowColumn" @action="showAllColumns" />
-    <AdeoGridTagBar v-if="!props.error && hasGroups" label="GROUPED BY" :items="groupTags" action-label="Remove all"
+    <ad-grid-tag-bar v-if="!props.error && hasGroups" label="GROUPED BY" :items="groupTags" action-label="Remove all"
       @remove="removeGroup" @action="clearGroups" />
-    <AdeoGridTagBar v-if="!props.error && activeFilterTags.length > 0" label="FILTERED BY" :items="activeFilterTags"
+    <ad-grid-tag-bar v-if="!props.error && activeFilterTags.length > 0" label="FILTERED BY" :items="activeFilterTags"
       action-label="Remove all" @remove="onRemoveFilter" @action="onRemoveAllFilters" />
 
-    <div ref="wrapperRef" class="adeo-grid-grid-wrapper" :class="{
-      'adeo-grid-grid-wrapper--virtual': isVirtual,
-      'adeo-grid-grid-wrapper--compact': densityState === 'compact',
-      'adeo-grid-grid-wrapper--comfortable': densityState === 'comfortable',
-      'adeo-grid-grid-wrapper--paginated': paginationEnabled,
+    <div ref="wrapperRef" class="grid-wrapper" :class="{
+      'grid-wrapper--virtual': isVirtual,
+      'grid-wrapper--compact': densityState === 'compact',
+      'grid-wrapper--comfortable': densityState === 'comfortable',
+      'grid-wrapper--paginated': paginationEnabled,
     }" :style="{
-        '--adeo-grid-row-height': `${rowHeight}px`,
-        ...((virtualScroll || paginationEnabled) && !fsState
-          ? { height: `${containerHeight}px` }
-          : {}),
+        '--grid-row-height': `${rowHeight}px`,
+        ...(!fsState ? { height: `${containerHeight}px` } : {}),
       }" tabindex="0" role="grid" @scroll="handleScroll" @keydown="onGridKeyDown">
       <!--
       The grid is structured as:
@@ -3696,9 +3932,9 @@ defineExpose({
            `<slot>` below, inverted. Headers stay visible during
            loading / error so the user keeps the column context. -->
       <div v-if="props.loading || props.error || (props.rows.length > 0 && renderableRows.length > 0)"
-        class="adeo-grid-grid-sticky-header" :class="{ 'adeo-grid-grid-sticky-header--with-filter-row': hasFilterRow }">
+        class="grid-sticky-header" :class="{ 'grid-sticky-header--with-filter-row': hasFilterRow }">
         <!-- A / B / C / … strip — auto-on when any column has `allowFormula`. -->
-        <AdeoGridSpreadsheetHeader v-if="hasFormulaColumns" :columns="renderCenterColumns"
+        <ad-grid-spreadsheet-header v-if="hasFormulaColumns" :columns="renderCenterColumns"
           :pinned-left-columns="leftColumns" :pinned-right-columns="rightColumns" :has-pinned="hasPinned"
           :show-row-numbers="hasFormulaColumns" :selectable="selectable" :expandable="expandable"
           :get-column-width="getColumnWidth" :get-pinned-style="getPinnedStyle" :get-utility-style="getUtilityStyle"
@@ -3706,7 +3942,7 @@ defineExpose({
           :content-min-width="gridContentWidth" :center-start-index="leftColumns.length + startColIndex"
           :center-total-count="centerColumns.length" :fill-field="fillField" />
 
-        <AdeoGridHeader :columns="renderCenterColumns" :pinned-left-columns="leftColumns"
+        <ad-grid-header :columns="renderCenterColumns" :pinned-left-columns="leftColumns"
           :pinned-right-columns="rightColumns" :has-pinned="hasPinned" :selectable="selectable" :expandable="expandable"
           :show-row-numbers="hasFormulaColumns" :selection-state="headerSelectionState"
           :get-column-width="getColumnWidth" :on-resize-start="onResizeStart" :get-pinned-style="getPinnedStyle"
@@ -3718,7 +3954,7 @@ defineExpose({
           @column-filter-remove="onColumnFilterRemove" @column-filter-reorder="onColumnFilterReorder"
           @column-sort="onColumnSort" />
 
-        <AdeoGridFilterRow v-if="hasFilterRow" :columns="renderCenterColumns" :pinned-left-columns="leftColumns"
+        <ad-grid-filter-row v-if="hasFilterRow" :columns="renderCenterColumns" :pinned-left-columns="leftColumns"
           :pinned-right-columns="rightColumns" :has-pinned="hasPinned" :selectable="selectable" :expandable="expandable"
           :show-row-numbers="hasFormulaColumns" :filters="filters" :get-column-width="getColumnWidth"
           :get-pinned-style="getPinnedStyle" :get-utility-style="getUtilityStyle" :left-spacer-width="leftSpacerWidth"
@@ -3730,7 +3966,7 @@ defineExpose({
            body et de l'empty state. On garde le header visible (cf. condition
            plus haut) pour conserver le contexte des colonnes. Ne s'affiche
            pas si le consumer a explicitement mis `skeletonRowCount = 0`. -->
-      <AdeoGridSkeletonBody v-if="props.loading && skeletonRowCountResolved > 0" :count="skeletonRowCountResolved"
+      <ad-grid-skeleton-body v-if="props.loading && skeletonRowCountResolved > 0" :count="skeletonRowCountResolved"
         :grid-content-width="gridContentWidth" :columns="renderCenterColumns" :left-columns="leftColumns"
         :right-columns="rightColumns" :has-pinned="hasPinned" :selectable="selectable" :expandable="expandable"
         :show-row-numbers="hasFormulaColumns" :get-column-width="getColumnWidth" :get-pinned-style="getPinnedStyle"
@@ -3744,17 +3980,17 @@ defineExpose({
       <slot v-else-if="
         !props.loading && !props.error && (props.rows.length === 0 || renderableRows.length === 0)
       " name="empty" :has-filters="hasActiveFilters" :clear-filters="clearFilters">
-        <AdeoGridEmptyState :has-filters="hasActiveFilters" @clear-filters="clearFilters">
+        <ad-grid-empty-state :has-filters="hasActiveFilters" @clear-filters="clearFilters">
           <template #actions="actionsScope">
             <!-- Consumer hook: drop "Add row" / "Import CSV" / etc. here.
                The scope exposes the variant ('filtered' | 'pristine') so
                actions can adapt their copy / icon to the situation. -->
             <slot name="empty-actions" v-bind="actionsScope" />
           </template>
-        </AdeoGridEmptyState>
+        </ad-grid-empty-state>
       </slot>
 
-      <AdeoGridBody v-else :virtual="virtualScroll || paginationEnabled" :grid-content-width="gridContentWidth"
+      <ad-grid-body v-else :virtual="true" :grid-content-width="gridContentWidth"
         :total-height="totalHeight" :offset-y="offsetY" :render-range="renderRange" :columns="renderCenterColumns"
         :left-columns="leftColumns" :right-columns="rightColumns" :has-pinned="hasPinned" :selectable="selectable"
         :expandable="expandable" :show-row-numbers="hasFormulaColumns" :get-render-row="getRenderRow"
@@ -3776,11 +4012,11 @@ defineExpose({
         <template v-if="$slots['expand-row']" #expand-row="slotProps">
           <slot name="expand-row" v-bind="slotProps" />
         </template>
-      </AdeoGridBody>
+      </ad-grid-body>
     </div>
 
     <!-- Floating selection bar -->
-    <AdeoGridSelectionBar v-if="showActionBar" :selected-count="actionBarCount" :mode="actionBarMode"
+    <ad-grid-selection-bar v-if="showActionBar" :selected-count="actionBarCount" :mode="actionBarMode"
       :selection-model="selectionModel" :total-count="selectionTotalCount" :page-count="visiblePageRowCount"
       :page-fully-selected="isPageFullySelected" :compact="props.selectionBarCompact" show-edit :show-copy="true"
       :show-paste="mergedColumns.some((c) => c.editable)"
@@ -3789,10 +4025,10 @@ defineExpose({
       <template v-if="$slots['selection-actions']" #actions="slotProps">
         <slot name="selection-actions" v-bind="slotProps" />
       </template>
-    </AdeoGridSelectionBar>
+    </ad-grid-selection-bar>
 
     <!-- Footer (pagination + async loading indicator) -->
-    <AdeoGridFooter :show-pagination="paginationEnabled" :current-page="paginationState.currentPage.value"
+    <ad-grid-footer :show-pagination="paginationEnabled" :current-page="paginationState.currentPage.value"
       :page-size="paginationState.pageSize.value" :total-pages="paginationState.totalPages.value"
       :total-rows="paginationState.totalRows.value" :range-start="paginationState.rangeStart.value"
       :range-end="paginationState.rangeEnd.value" :page-size-options="paginationState.pageSizeOptions"
@@ -3802,7 +4038,7 @@ defineExpose({
 </template>
 
 <style scoped lang="scss">
-.adeo-grid-grid-root {
+.grid-root {
   position: relative;
   font-family: var(--font-family), sans-serif;
   // Make the root flex-friendly so it can fill a constrained parent (e.g.
@@ -3823,7 +4059,7 @@ defineExpose({
 }
 
 
-.adeo-grid-grid-root--fullscreen {
+.grid-root--fullscreen {
   position: fixed;
   inset: 0;
   z-index: 1000;
@@ -3832,7 +4068,7 @@ defineExpose({
   background: var(--color-background-primary);
 }
 
-.adeo-grid-grid-root--fullscreen .adeo-grid-grid-wrapper {
+.grid-root--fullscreen .grid-wrapper {
   flex: 1;
   height: auto !important;
   border-radius: 0;
@@ -3841,16 +4077,16 @@ defineExpose({
   border-bottom: none;
 }
 
-.adeo-grid-grid-wrapper {
+.grid-wrapper {
   overflow: auto;
   background: var(--color-background-primary);
-  border-radius: 1rem;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  border-radius: var(--border-radius-l, 16px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08); /* custom shadow — no matching Mozaic token */
   font-size: m.get-font-size('100');
   color: var(--color-text-primary);
   outline: none;
   user-select: none;
-  // Fill remaining vertical space inside `.adeo-grid-grid-root` so the wrapper —
+  // Fill remaining vertical space inside `.grid-root` so the wrapper —
   // not the page — owns vertical scrolling whenever the host constrains
   // height (fullscreen, fixed card, paginated/virtualScroll). Without this
   // the wrapper would size to its intrinsic content and the parent would
@@ -3860,18 +4096,18 @@ defineExpose({
   min-height: 0;
 }
 
-.adeo-grid-grid-wrapper--virtual {
+.grid-wrapper--virtual {
   will-change: scroll-position;
 }
 
-.adeo-grid-grid-wrapper--paginated {
-  // Top 16px (= 1rem, matching the default wrapper) ; bottom plat parce
-  // que la barre de pagination Mozaic prend le relais juste en dessous.
-  border-radius: 1rem 1rem 0 0;
+.grid-wrapper--paginated {
+  // Top 16px (= --border-radius-l, matching the default wrapper) ; bottom
+  // flat because the Mozaic pagination bar takes over just below.
+  border-radius: var(--border-radius-l, 16px) var(--border-radius-l, 16px) 0 0;
   border-bottom: none;
 }
 
-.adeo-grid-grid-sticky-header {
+.grid-sticky-header {
   position: sticky;
   top: 0;
   z-index: 5;
@@ -3882,32 +4118,32 @@ defineExpose({
 // On supprime le `border-bottom` du header cell (sinon trait horizontal
 // entre LABEL et input) — seule la border-bottom de la filter cell
 // délimite alors la fin du bloc header complet.
-.adeo-grid-grid-sticky-header--with-filter-row :deep(.adeo-grid-grid-header-cell) {
+.grid-sticky-header--with-filter-row :deep(.grid-header-cell) {
   border-bottom: none;
 }
 
-.adeo-grid-grid-body {
+.grid-body {
   position: relative;
 }
 
-.adeo-grid-grid-sizer {
+.grid-sizer {
   position: relative;
 }
 
-.adeo-grid-grid-top-spacer {
+.grid-top-spacer {
   flex-shrink: 0;
 }
 
 // Density only affects body cells — the header height stays constant so
 // column controls (sort, kebab menu, filters) stay at the same vertical
 // position regardless of how dense the data rows are.
-.adeo-grid-grid-wrapper--compact :deep(.adeo-grid-grid-cell) {
+.grid-wrapper--compact :deep(.grid-cell) {
   padding-top: m.get-spacing('025');
   padding-bottom: m.get-spacing('025');
   font-size: m.get-font-size('50');
 }
 
-.adeo-grid-grid-wrapper--comfortable :deep(.adeo-grid-grid-cell) {
+.grid-wrapper--comfortable :deep(.grid-cell) {
   padding-top: m.get-spacing('150');
   padding-bottom: m.get-spacing('150');
 }
@@ -3919,22 +4155,22 @@ defineExpose({
  * Vue component's data-v hash). Override these on `:root` or any
  * scoping ancestor to rebrand the colours. */
 :root {
-  --moz-grid-ref-color-0: #1a73e8;
-  --moz-grid-ref-color-1: #34a853;
-  --moz-grid-ref-color-2: #fbbc04;
-  --moz-grid-ref-color-3: #ea4335;
-  --moz-grid-ref-color-4: #9c27b0;
-  --moz-grid-ref-color-5: #00838f;
-  --moz-grid-ref-color-6: #f06292;
-  --moz-grid-ref-color-7: #5e35b1;
+  --ad-grid-ref-color-0: #1a73e8;
+  --ad-grid-ref-color-1: #34a853;
+  --ad-grid-ref-color-2: #fbbc04;
+  --ad-grid-ref-color-3: #ea4335;
+  --ad-grid-ref-color-4: #9c27b0;
+  --ad-grid-ref-color-5: #00838f;
+  --ad-grid-ref-color-6: #f06292;
+  --ad-grid-ref-color-7: #5e35b1;
 }
 
 /* Column-move dim — applied to every cell of the column being dragged.
  * Reactive class binding from each cell (via the slot context) so it
  * applies/removes atomically with the Vue render. No transition: a
  * fade-in/out would flicker on every reorder commit during the drag. */
-.adeo-grid-grid-cell--moving,
-.adeo-grid-grid-header-cell--moving {
+.grid-cell--moving,
+.grid-header-cell--moving {
   opacity: 0.45;
   outline: 1px dashed var(--color-text-accent, #2563eb);
   outline-offset: -1px;
@@ -3946,8 +4182,8 @@ defineExpose({
  * body cells with their own cursor would override the document-level
  * grabbing — making the cursor icon flicker between grab / grabbing /
  * default as the pointer moves across cell boundaries. */
-.adeo-grid-grid-wrapper[data-moving-field],
-.adeo-grid-grid-wrapper[data-moving-field] * {
+.grid-wrapper[data-moving-field],
+.grid-wrapper[data-moving-field] * {
   cursor: grabbing !important;
 }
 
@@ -3956,7 +4192,7 @@ defineExpose({
  * composable mutates `style.transform` on cells directly (no Vue
  * re-render involved) so live reorders don't trigger the cascade that
  * caused the previous flicker. */
-.adeo-grid-grid-wrapper[data-moving-field]:not([data-col-drop-commit]) [data-field] {
+.grid-wrapper[data-moving-field]:not([data-col-drop-commit]) [data-field] {
   transition: transform 220ms cubic-bezier(0.2, 0.7, 0.4, 1);
   will-change: transform;
 }
@@ -3965,7 +4201,7 @@ defineExpose({
  * disable the transition so the transform-clear + DOM reorder happen
  * atomically with no visible animation. The combined effect is that
  * cells stay at their final visual position seamlessly. */
-.adeo-grid-grid-wrapper[data-col-drop-commit] [data-field] {
+.grid-wrapper[data-col-drop-commit] [data-field] {
   transition: none !important;
 }
 </style>

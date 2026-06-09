@@ -2,7 +2,7 @@ import type { StorybookConfig } from '@storybook/vue3-vite'
 import { fileURLToPath } from 'node:url'
 
 const config: StorybookConfig = {
-  stories: ['../src/**/*.mdx', '../src/**/*.stories.@(js|jsx|mjs|ts|tsx)'],
+  stories: ['../src/**/*.stories.@(js|jsx|mjs|ts|tsx)'],
   addons: ['@storybook/addon-docs'],
   // Serve the public/ directory at the dev-server root, so the
   // `/fonts/LeroyMerlinSans-Web-*.woff2` paths declared in

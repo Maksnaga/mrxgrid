@@ -225,8 +225,8 @@ export type FilterOperator =
 
 | Concept              | Angular                                | Vue                                       |
 |----------------------|----------------------------------------|-------------------------------------------|
-| Inline filter row    | `grid-filter-row.component.ts`         | `AdeoGridFilterRow.vue`                    |
-| Builder drawer       | `grid-filter-builder.component.ts`     | `AdeoGridFilterBuilder.vue`                |
+| Inline filter row    | `grid-filter-row.component.ts`         | `GridFilterRow.vue`                    |
+| Builder drawer       | `grid-filter-builder.component.ts`     | `GridFilterBuilder.vue`                |
 | Filter model state   | `GridStateManager.filterModel`         | `gridState.filterModel`                   |
 | Evaluation engine    | `FilterEngine.applyFilters()`          | `useFilterEngine.filterData()`            |
 
@@ -470,7 +470,7 @@ saigné.
    le squelette §3).
 3. Remplir `01-glossary.md` à partir du tableau §7.
 4. Remplir `11-columns.md` et `10-rows.md` à partir des sources
-   `adeo-grid/src/components/AdeoGrid/types.ts` et `mozaic-ng/.../grid/types`
+   `adeo-grid/src/components/Grid/types.ts` et `mozaic-ng/.../grid/types`
    — c'est l'union des deux qui devient la spec.
 5. Soumettre en review aux deux équipes Angular / Vue avant de
    continuer. Ces 4 chapitres servent de test : si on n'arrive pas à

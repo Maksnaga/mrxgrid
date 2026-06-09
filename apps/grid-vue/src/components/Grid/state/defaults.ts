@@ -23,12 +23,12 @@ export const DEFAULT_PAGE_SIZE = 25
 /**
  * Density → row height map.
  *
- * Unified vocabulary matching `AdeoGrid.vue` `DENSITY_ROW_HEIGHT` and the Vue
+ * Unified vocabulary matching `Grid.vue` `DENSITY_ROW_HEIGHT` and the Vue
  * `DataDensity` type (`'compact' | 'default' | 'comfortable'`). Previously used
  * the Angular-parity keys (`small / default / large`) with different pixel
  * values — reconciled here so a single canonical source of truth exists.
  *
- * Values must match the SCSS padding in `AdeoGrid.vue` body cell styles.
+ * Values must match the SCSS padding in `Grid.vue` body cell styles.
  */
 export const DENSITY_ROW_HEIGHT: Record<'compact' | 'default' | 'comfortable', number> = {
   compact: 32,

@@ -13,15 +13,15 @@
 
 import { computed, ref } from 'vue'
 import {
-  AdeoGrid,
-  AdeoGridToolbar,
-  AdeoFormulaBar,
-  AdeoFormulaReferenceDrawer,
-  AdeoKeyboardShortcutsDrawer,
-  AdeoTableMenuDrawer,
-  AdeoGroupingDrawer,
-  AdeoGridFilterDrawer,
-} from '@/components/AdeoGrid'
+  AdGridVue,
+  AdGridToolbar,
+  AdGridFormulaBar,
+  AdGridFormulaReferenceDrawer,
+  AdGridKeyboardShortcutsDrawer,
+  AdGridSettingsDrawer,
+  AdGridGroupingDrawer,
+  AdGridFilterDrawer,
+} from '@/components/Grid'
 import { defineStatusRenderer } from '@/app/renderers/defineStatusRenderer'
 import type {
   CellEditEvent,
@@ -30,14 +30,14 @@ import type {
   FillEvent,
   DataDensity,
   GroupingItem,
-} from '@/components/AdeoGrid'
+} from '@/components/Grid'
 import {
   DEFAULT_OPERATORS,
   DEFAULT_OPERATOR_PER_TYPE,
   type FilterColumnDescriptor,
   type FilterDataType,
   type FilterModel,
-} from '@/components/AdeoGrid/models/filter.model'
+} from '@/components/Grid/models/filter.model'
 
 // ─── Domain ───────────────────────────────────────────────────────────────
 
@@ -208,8 +208,8 @@ const rows = ref<Product[]>(
 
 // ─── Demo wiring ──────────────────────────────────────────────────────────
 
-const gridRef = ref<InstanceType<typeof AdeoGrid>>()
-const formulaBarRef = ref<InstanceType<typeof AdeoFormulaBar>>()
+const gridRef = ref<InstanceType<typeof AdGridVue>>()
+const formulaBarRef = ref<InstanceType<typeof AdGridFormulaBar>>()
 
 const formulaReferenceOpen = ref(false)
 const keyboardShortcutsOpen = ref(false)
@@ -238,7 +238,7 @@ const groupFields = computed(() => activeGroups.value.map((g) => g.field))
 const filterColumns = computed<FilterColumnDescriptor[]>(() =>
   columns.map((col) => {
     // Narrow `col.filter` to its inline shape before reading `type` /
-    // `options` — the union also covers custom AdeoFilterConfig
+    // `options` — the union also covers custom FilterConfig
     // (`component` / `doesFilterPass`) which doesn't carry those.
     const inline = col.filter && 'type' in col.filter ? col.filter : undefined
     const filterType: FilterDataType =
@@ -355,7 +355,7 @@ function onClearSelection() {
 <template>
   <div class="stock-demo">
     <header class="stock-demo__header">
-      <h1>AdeoGrid · Stock demo</h1>
+      <h1>Grid · Stock demo</h1>
       <p class="stock-demo__subtitle">
         1 000 produits · validations sur Nom + Prix · catégorie / fournisseur en MSelect ·
         statut rendu en MTag. Ouvre le menu kebab d'une colonne pour Sort / Pin / Hide /
@@ -363,10 +363,10 @@ function onClearSelection() {
       </p>
     </header>
 
-    <!-- Toolbar — full AdeoGridToolbar with MIconButton + MButton
+    <!-- Toolbar — full AdGridToolbar with MIconButton + MButton
          "Filters" + Help link. The selection banner is built-in (inline,
          replaces the floating SelectionBar when rows are selected). -->
-    <AdeoGridToolbar
+    <ad-grid-toolbar
       show-fullscreen
       show-export
       show-filters
@@ -391,16 +391,16 @@ function onClearSelection() {
       <template #toolbar-end>
         <a class="stock-demo__help-link" href="#" @click.prevent>Help</a>
       </template>
-    </AdeoGridToolbar>
+    </ad-grid-toolbar>
 
-    <AdeoFormulaBar ref="formulaBarRef" :all-columns="flatColumns" :rows="rows" />
+    <ad-grid-formula-bar ref="formulaBarRef" :all-columns="flatColumns" :rows="rows" />
 
-    <AdeoGrid
+    <ad-grid-vue
       ref="gridRef"
       :columns="columns"
       :rows="rows"
       :container-height="600"
-      virtual-scroll
+
       selectable
       selection-bar-compact
       expandable
@@ -454,10 +454,10 @@ function onClearSelection() {
           </dl>
         </div>
       </template>
-    </AdeoGrid>
+    </ad-grid-vue>
 
     <!-- Drawers own their MDrawer wrapper — consumers only pass `:open`. -->
-    <AdeoTableMenuDrawer
+    <ad-grid-settings-drawer
       :open="settingsOpen"
       :columns="columns"
       :hidden-fields="hiddenFields"
@@ -467,7 +467,7 @@ function onClearSelection() {
       @apply="onApplySettings"
       @reset="onResetSettings"
     />
-    <AdeoGroupingDrawer
+    <ad-grid-grouping-drawer
       :open="groupingOpen"
       :columns="columns"
       :active-groups="activeGroups"
@@ -475,7 +475,7 @@ function onClearSelection() {
       @apply="onApplyGrouping"
       @reset="onResetGrouping"
     />
-    <AdeoGridFilterDrawer
+    <ad-grid-filter-drawer
       :open="filtersOpen"
       :model="filterModel"
       :columns="filterColumns"
@@ -483,11 +483,11 @@ function onClearSelection() {
       @apply="onApplyFilters"
       @clear="onClearFilters"
     />
-    <AdeoKeyboardShortcutsDrawer
+    <ad-grid-keyboard-shortcuts-drawer
       :open="keyboardShortcutsOpen"
       @update:open="keyboardShortcutsOpen = $event"
     />
-    <AdeoFormulaReferenceDrawer
+    <ad-grid-formula-reference-drawer
       :open="formulaReferenceOpen"
       @update:open="formulaReferenceOpen = $event"
       @insert="onFormulaInsert"

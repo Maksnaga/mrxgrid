@@ -1,4 +1,4 @@
-# AdeoGrid
+# Grid
 
 A high-performance, feature-rich data grid component for Vue 3, built with the Composition API and TypeScript. Designed to handle **100,000+ rows** and **150+ columns** with smooth 60fps scrolling thanks to dual-axis virtual rendering.
 
@@ -18,9 +18,9 @@ Built on top of the [Mozaic Design System](https://mozaic.adeo.cloud/) (`@mozaic
   - [Data Pipeline](#data-pipeline)
   - [How Virtual Scrolling Works](#how-virtual-scrolling-works)
 - [API Reference](#api-reference)
-  - [AdeoGrid Props](#adeo-grid-props)
-  - [AdeoGrid Events](#adeo-grid-events)
-  - [AdeoGrid Slots](#adeo-grid-slots)
+  - [Grid Props](#adeo-grid-props)
+  - [Grid Events](#adeo-grid-events)
+  - [Grid Slots](#adeo-grid-slots)
   - [Column Definition (ColumnDef)](#column-definition-columndef)
 - [Core Concepts](#core-concepts)
   - [Virtual Scrolling](#virtual-scrolling)
@@ -78,14 +78,14 @@ the full rationale.
 |---|---|
 | **Formula engine** | Spreadsheet-style formulas (`=SUM(A1:A10)`, `=IF(...)`, …) on columns flagged `allowFormula: true`. Tokenizer / parser / evaluator / DAG / cycle detection / 30+ built-in functions. Auto-syncs from `=…` strings baked in `props.rows`. Custom functions via `useFormulaEngine.setFunctions(…)`. |
 | **Excel-style cut/paste** | `Ctrl+X` marks the source range with marching-ants outline; `Ctrl+V` then moves (clears the source after pasting). `Esc` cancels the pending cut. |
-| **`<AdeoColumn>` declarative API** | Alternative to `:columns` prop — `<AdeoColumn field="..." header-name="..."><template #cell="...">…</template></AdeoColumn>`. Slots wired via the registry. |
+| **`<Column>` declarative API** | Alternative to `:columns` prop — `<Column field="..." header-name="..."><template #cell="...">…</template></Column>`. Slots wired via the registry. |
 | **Per-field slots** | `#cell-{field}`, `#header-{field}`, `#filter-{field}`, `#edit-{field}` resolve before the generic ones. |
-| **`<AdeoFormulaBar>`** | A1-style cell label + `fx` indicator + edit input. Shows `displayFormula` when the active cell is formula-backed. Imperative `insertText()` for wiring with the reference drawer. |
-| **`<AdeoFormulaReferenceDrawer>`** | Categorised list of formula functions; emits `insert` with `name + '('` for direct wiring with the formula bar. |
-| **`<AdeoColumnVisibilityPanel>`** | Popover listing hidden columns with restore buttons. |
-| **`<AdeoKeyboardShortcutsDrawer>`** | Drawer with the full shortcut reference (FR-localised). |
+| **`<FormulaBar>`** | A1-style cell label + `fx` indicator + edit input. Shows `displayFormula` when the active cell is formula-backed. Imperative `insertText()` for wiring with the reference drawer. |
+| **`<FormulaReferenceDrawer>`** | Categorised list of formula functions; emits `insert` with `name + '('` for direct wiring with the formula bar. |
+| **`<ColumnVisibilityPanel>`** | Popover listing hidden columns with restore buttons. |
+| **`<KeyboardShortcutsDrawer>`** | Drawer with the full shortcut reference (FR-localised). |
 | **Variable-height virtual scroll** | `useVariableHeightVirtualScroll` engine for grids with detail rows / wrapped cells / rich group rows whose heights are unknown ahead of time. |
-| **Plugin model** | `<AdeoGrid :plugins="[useMyPlugin()]">` — plugins receive `{ state, engine }` on init, return a cleanup function. |
+| **Plugin model** | `<ad-grid-vue :plugins="[useMyPlugin()]">` — plugins receive `{ state, engine }` on init, return a cleanup function. |
 | **Imperative ref API** | `grid.value.exportCsv()`, `undo()`, `validateAll()`, `setFormula()`, `persistView()`, `tree.flatten()`, … See [Imperative ref API](#imperative-ref-api) below. |
 | **Auto-persist** | `persistKey` prop auto-saves columns + sorts + filters to `localStorage`; `historyId` mirrors undo/redo stacks. |
 | **Cell validation auto-run** | When any column declares `cellValidator`, the grid auto-validates on `rows`/`columns` change. |
@@ -94,8 +94,8 @@ the full rationale.
 ## Imperative ref API
 
 ```ts
-import type { AdeoGrid as AdeoGridType } from '@/components/AdeoGrid'
-const grid = ref<InstanceType<typeof AdeoGridType>>()
+import type { Grid as GridType } from '@/components/Grid'
+const grid = ref<InstanceType<typeof GridType>>()
 ```
 
 Methods exposed on the ref:
@@ -115,10 +115,10 @@ Methods exposed on the ref:
 ## Plugin example
 
 ```ts
-import type { AdeoGridPlugin } from '@/components/AdeoGrid'
+import type { GridPlugin } from '@/components/Grid'
 import { watch } from 'vue'
 
-export function useAuditPlugin(): AdeoGridPlugin {
+export function useAuditPlugin(): GridPlugin {
   return {
     name: 'audit',
     init({ state }) {
@@ -129,7 +129,7 @@ export function useAuditPlugin(): AdeoGridPlugin {
 }
 
 // usage
-<AdeoGrid :plugins="[useAuditPlugin()]" />
+<ad-grid-vue :plugins="[useAuditPlugin()]" />
 ```
 
 ## Formula example
@@ -196,8 +196,8 @@ npm install
 ```vue
 <script setup lang="ts">
 import { ref } from 'vue'
-import { AdeoGrid } from '@/components/AdeoGrid'
-import type { ColumnDef, RowData } from '@/components/AdeoGrid'
+import { AdGridVue } from '@/components/Grid'
+import type { ColumnDef, RowData } from '@/components/Grid'
 
 const columns: ColumnDef[] = [
   { field: 'id', headerName: 'ID', width: '80px' },
@@ -213,7 +213,7 @@ const rows = ref<RowData[]>([
 </script>
 
 <template>
-  <AdeoGrid :columns="columns" :rows="rows" />
+  <ad-grid-vue :columns="columns" :rows="rows" />
 </template>
 ```
 
@@ -226,29 +226,29 @@ For a fully-featured demo with 100k rows, lazy loading, sorting, grouping, editi
 ### Component Hierarchy
 
 ```
-AdeoGrid.vue                    <-- Root orchestrator (wires ~20 composables)
+Grid.vue                    <-- Root orchestrator (wires ~20 composables)
  |
- +-- AdeoGridGroupBar.vue        <-- "Grouped by: [Field] [x]" bar
- +-- AdeoGridHiddenBar.vue       <-- "N columns hidden [Show all]" bar
- +-- <slot #toolbar />          <-- Optional toolbar (AdeoGridToolbar)
+ +-- GridGroupBar.vue        <-- "Grouped by: [Field] [x]" bar
+ +-- GridHiddenBar.vue       <-- "N columns hidden [Show all]" bar
+ +-- <slot #toolbar />          <-- Optional toolbar (GridToolbar)
  |
- +-- AdeoGridHeader.vue          <-- Sticky column headers (sort, resize, menu)
- |    +-- AdeoColumnMenu.vue     <-- Per-column context menu (teleported to body)
+ +-- GridHeader.vue          <-- Sticky column headers (sort, resize, menu)
+ |    +-- ColumnMenu.vue     <-- Per-column context menu (teleported to body)
  |
- +-- AdeoGridGroupRow.vue        <-- Group header (when grouping is active)
- +-- AdeoGridRow.vue             <-- Data row container
- |    +-- AdeoGridCell.vue       <-- Individual cell (display + edit + validation)
- +-- AdeoGridExpandedRow.vue     <-- Expanded row detail (slot content)
+ +-- GridGroupRow.vue        <-- Group header (when grouping is active)
+ +-- GridRow.vue             <-- Data row container
+ |    +-- GridCell.vue       <-- Individual cell (display + edit + validation)
+ +-- GridExpandedRow.vue     <-- Expanded row detail (slot content)
 ```
 
 **Companion components** (imported separately):
-- `AdeoGridToolbar` -- Fullscreen, grouping, settings buttons
-- `AdeoGroupingDrawer` -- Side drawer to configure grouping
-- `AdeoTableMenuDrawer` -- Side drawer for density, column visibility, column order
+- `GridToolbar` -- Fullscreen, grouping, settings buttons
+- `GroupingDrawer` -- Side drawer to configure grouping
+- `TableMenuDrawer` -- Side drawer for density, column visibility, column order
 
 ### Data Pipeline
 
-Data flows through a transformation pipeline inside `AdeoGrid.vue`:
+Data flows through a transformation pipeline inside `Grid.vue`:
 
 ```
 props.rows
@@ -279,7 +279,7 @@ The grid uses a clever layout to support both virtual scrolling and sticky pinne
 <div class="adeo-grid-wrapper" @scroll="handleScroll">
 
   <!-- Sticky header: position: sticky; top: 0 -->
-  <AdeoGridHeader />
+  <GridHeader />
 
   <!-- Virtual body -->
   <div class="adeo-grid-body">
@@ -291,7 +291,7 @@ The grid uses a clever layout to support both virtual scrolling and sticky pinne
       <div :style="{ height: offsetY + 'px' }" />
 
       <!-- Only the visible rows are rendered here -->
-      <AdeoGridRow v-for="i in renderRange" :key="i" ... />
+      <GridRow v-for="i in renderRange" :key="i" ... />
 
     </div>
   </div>
@@ -308,7 +308,7 @@ All rows and the header have `min-width: totalContentWidth`. This gives sticky (
 
 ## API Reference
 
-### AdeoGrid Props
+### Grid Props
 
 | Prop | Type | Default | Description |
 |---|---|---|---|
@@ -333,7 +333,7 @@ All rows and the header have `min-width: totalContentWidth`. This gives sticky (
 | `density` | `'compact' \| 'default' \| 'comfortable'` | `'default'` | Row height preset |
 | `fullscreen` | `boolean` | `false` | Fullscreen mode |
 
-### AdeoGrid Events
+### Grid Events
 
 | Event | Payload | Description |
 |---|---|---|
@@ -343,23 +343,23 @@ All rows and the header have `min-width: totalContentWidth`. This gives sticky (
 | `fill` | `FillEvent` | Fill handle drag completed |
 | `columnMenuAction` | `ColumnMenuAction` | Column menu action triggered |
 
-### AdeoGrid Slots
+### Grid Slots
 
 #### `#toolbar`
 
-Place a toolbar above the grid header. Typically used with `AdeoGridToolbar`:
+Place a toolbar above the grid header. Typically used with `GridToolbar`:
 
 ```vue
-<AdeoGrid ...>
+<ad-grid-vue ...>
   <template #toolbar>
-    <AdeoGridToolbar
+    <GridToolbar
       :fullscreen="isFullscreen"
       @toggle-fullscreen="toggleFullscreen"
       @open-grouping="groupingDrawerOpen = true"
       @open-settings="settingsDrawerOpen = true"
     />
   </template>
-</AdeoGrid>
+</ad-grid-vue>
 ```
 
 #### `#cell`
@@ -367,7 +367,7 @@ Place a toolbar above the grid header. Typically used with `AdeoGridToolbar`:
 Customize how cells render and edit. Receives the full cell context:
 
 ```vue
-<AdeoGrid ...>
+<ad-grid-vue ...>
   <template #cell="{ value, field, editing, editValue, updateValue, commit, cancel }">
     <!-- Custom editor for the "role" column -->
     <template v-if="field === 'role'">
@@ -383,7 +383,7 @@ Customize how cells render and edit. Receives the full cell context:
 
     <!-- Default behavior for other columns (return nothing = built-in fallback) -->
   </template>
-</AdeoGrid>
+</ad-grid-vue>
 ```
 
 **Slot props:**
@@ -408,14 +408,14 @@ Customize how cells render and edit. Receives the full cell context:
 Custom content shown when a row is expanded:
 
 ```vue
-<AdeoGrid expandable ...>
+<ad-grid-vue expandable ...>
   <template #expand-row="{ row }">
     <div>
       <h3>Details for {{ row.name }}</h3>
       <p>{{ row.description }}</p>
     </div>
   </template>
-</AdeoGrid>
+</ad-grid-vue>
 ```
 
 ### Column Definition (ColumnDef)
@@ -614,7 +614,7 @@ Group headers show:
 
 ```typescript
 // Type guard to check if a row is a group header:
-import { isGroupRow } from '@/components/AdeoGrid'
+import { isGroupRow } from '@/components/Grid'
 
 if (isGroupRow(row)) {
   console.log(row.__adgField)   // "status"
@@ -661,7 +661,7 @@ A visual drop indicator shows where the column will land. The drag activates aft
 
 ### Column Visibility
 
-Hide columns via the column menu (right-click a header) or the settings drawer. A `AdeoGridHiddenBar` appears above the grid showing how many columns are hidden with a "Show all" button.
+Hide columns via the column menu (right-click a header) or the settings drawer. A `GridHiddenBar` appears above the grid showing how many columns are hidden with a "Show all" button.
 
 ### Row Selection
 
@@ -671,7 +671,7 @@ When `selectable` is true, each row gets a checkbox. The header checkbox has thr
 - **Checked:** All rows selected
 
 ```vue
-<AdeoGrid selectable v-model:selected-rows="selected" ...>
+<ad-grid-vue selectable v-model:selected-rows="selected" ...>
 ```
 
 ### Row Expansion
@@ -679,11 +679,11 @@ When `selectable` is true, each row gets a checkbox. The header checkbox has thr
 When `expandable` is true, each row gets an expand button. Provide the `#expand-row` slot to render custom detail content:
 
 ```vue
-<AdeoGrid expandable ...>
+<ad-grid-vue expandable ...>
   <template #expand-row="{ row }">
     <pre>{{ JSON.stringify(row, null, 2) }}</pre>
   </template>
-</AdeoGrid>
+</ad-grid-vue>
 ```
 
 ### Data Density
@@ -721,7 +721,7 @@ When density changes, scroll position is preserved proportionally (the first vis
 
 ## Composables Deep Dive
 
-The grid's features are split into focused composables, each owning one concern. They are all wired together in `AdeoGrid.vue`.
+The grid's features are split into focused composables, each owning one concern. They are all wired together in `Grid.vue`.
 
 ### useVirtualScroll
 
@@ -779,7 +779,7 @@ Architecture:
     5. Bump version counter -> rows recomputes
          |
          v
-  AdeoGrid (receives dense rows array)
+  Grid (receives dense rows array)
 ```
 
 The sparse cache (`Map<number, RowData>`) avoids making 100k entries reactive. A version counter (`shallowRef`) is bumped after each cache write, triggering the `rows` computed to rebuild from the cache.
@@ -894,7 +894,7 @@ Teleports dropdown listboxes to `<body>` with `position: fixed`. Used for combob
 
 ## Performance Patterns
 
-These are the key patterns that make AdeoGrid handle 100k+ rows at 60fps:
+These are the key patterns that make Grid handle 100k+ rows at 60fps:
 
 | Pattern | Why |
 |---|---|
@@ -906,7 +906,7 @@ These are the key patterns that make AdeoGrid handle 100k+ rows at 60fps:
 | **Binary search for columns** | O(log n) to find first visible column during horizontal scroll. |
 | **RAF throttling** | Multiple scroll events between paints collapse to one column recompute. |
 | **Group tree memoization** | Tree build runs O(n x d) only when rows/groupFields change. Flatten runs O(visible). |
-| **Single getCellFlags call** | AdeoGridRow calls `getCellFlags` once per cell, not 7x (once per visual flag). |
+| **Single getCellFlags call** | GridRow calls `getCellFlags` once per cell, not 7x (once per visual flag). |
 | **Max rendered cap (80)** | Prevents DOM overload when row height is very small (compact density). |
 | **`contain: layout style paint`** | CSS containment on each cell: browser can skip layout/paint for off-screen cells. |
 | **`contain: size layout style`** | On editing cells: prevents editor content (combobox, input) from expanding the row height. |

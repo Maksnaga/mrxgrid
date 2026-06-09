@@ -12,8 +12,10 @@ import {
 import { Danger24 } from '@mozaic-ds/icons-vue'
 import { MSelect, MTooltip } from '@mozaic-ds/vue'
 import type { ColumnDef, RowData } from '../../types'
-import { injectAdeoGridSlots, resolveCellSlot, resolveEditSlot } from '../../state/AdeoGridSlots'
-import AdeoGridFormulaEditor from './AdeoGridFormulaEditor.vue'
+import { injectGridSlots, resolveCellSlot, resolveEditSlot } from '../../state/GridSlots'
+import AdGridFormulaEditor from './GridFormulaEditor.vue'
+
+defineOptions({ name: 'AdGridCell' })
 
 /**
  * `<SlotInvoker>` — functional wrapper qui invoque une `Slot` (resolved
@@ -80,11 +82,11 @@ const emit = defineEmits<{
 }>()
 
 // --- Slot resolution (Phase 3.3) ---
-// Per-field slots from <AdeoGrid> root, or <AdeoColumn>-attached slots, are
-// resolved dynamically via the injected `AdeoGridSlots` context. The local
-// default slot (passed by AdeoGridRow) wins when present — that's how the
+// Per-field slots from <ad-grid-vue> root, or <ad-grid-column>-attached slots, are
+// resolved dynamically via the injected `GridSlots` context. The local
+// default slot (passed by AdGridRow) wins when present — that's how the
 // row forwards explicit overrides, and is the path used in tests today.
-const _gridSlots = injectAdeoGridSlots()
+const _gridSlots = injectGridSlots()
 const resolvedCellSlot = computed(() => resolveCellSlot(_gridSlots, props.field))
 const resolvedEditSlot = computed(() => resolveEditSlot(_gridSlots, props.field))
 
@@ -129,7 +131,7 @@ const rendererProps = computed(() => {
 /**
  * Ref-highlight CSS colour for this cell. Set whenever a formula is being
  * edited and this cell is referenced in the draft. Powers the
- * `--ref-highlight` border via the `--moz-grid-ref-color` CSS variable.
+ * `--ref-highlight` border via the `--ad-grid-ref-color` CSS variable.
  */
 const refHighlightColor = computed<string | undefined>(() => {
   const rh = _gridSlots?.refHighlight
@@ -163,7 +165,7 @@ const formulaDisplayValue = computed(() => {
 })
 
 /** Error code (`#REF!`, `#DIV/0!`, …) when the cell holds a formula whose
- *  evaluation failed. Drives the `.adeo-grid-grid-cell--formula-error` class so
+ *  evaluation failed. Drives the `.grid-cell--formula-error` class so
  *  the value renders in red with a hover tooltip explaining the cause. */
 const formulaError = computed<string | null>(() => {
   if (!props.column.allowFormula || !_gridSlots?.formula) return null
@@ -352,7 +354,7 @@ function isInsideCellOrOverlay(target: EventTarget | null): boolean {
   // inserts a ref into the editor, NOT a blur. Without this exception the
   // click-outside watchdog fires editBlur and the editor exits before the
   // pick handler runs.
-  if (_gridSlots?.refHighlight?.isPickMode.value && node.closest?.('.adeo-grid-grid-cell')) {
+  if (_gridSlots?.refHighlight?.isPickMode.value && node.closest?.('.grid-cell')) {
     return true
   }
   return !!node.closest?.(MOZAIC_OVERLAY_SELECTORS)
@@ -391,10 +393,10 @@ function onCellKeydown(e: KeyboardEvent) {
 // `MTooltip` paints its popover as an absolutely-positioned sibling of the
 // trigger. The cell normally has `overflow: hidden` + `contain: paint`,
 // which clip that popover (the only reason it appears in edit mode is that
-// `.adeo-grid-grid-cell--editing` sets `overflow: visible` + drops `paint`).
-// We mirror that escape on `.adeo-grid-grid-cell--invalid` so the tooltip is
+// `.grid-cell--editing` sets `overflow: visible` + drops `paint`).
+// We mirror that escape on `.grid-cell--invalid` so the tooltip is
 // visible on hover whether or not the cell is being edited.
-const tooltipId = computed(() => `adeo-grid-cell-error-${props.field}-${props.rowIndex}`)
+const tooltipId = computed(() => `grid-cell-error-${props.field}-${props.rowIndex}`)
 
 function onEditKeydown(e: KeyboardEvent) {
   // F4 cycles the ref token at the caret: A1 → $A$1 → A$1 → $A1 → A1.
@@ -429,25 +431,25 @@ function onEditKeydown(e: KeyboardEvent) {
 
 <template>
   <div
-    class="adeo-grid-grid-cell"
+    class="grid-cell"
     :class="{
-      'adeo-grid-grid-cell--active': active,
-      'adeo-grid-grid-cell--editing': editing,
-      'adeo-grid-grid-cell--selected': selected,
-      'adeo-grid-grid-cell--edge-top': edgeTop,
-      'adeo-grid-grid-cell--edge-bottom': edgeBottom,
-      'adeo-grid-grid-cell--edge-left': edgeLeft,
-      'adeo-grid-grid-cell--edge-right': edgeRight,
-      'adeo-grid-grid-cell--fill-target': fillTarget,
-      'adeo-grid-grid-cell--fill-target-invalid': fillTargetInvalid,
-      'adeo-grid-grid-cell--invalid': invalid,
-      'adeo-grid-grid-cell--formula-error': !!formulaError,
-      'adeo-grid-grid-cell--cut': cutSource,
-      'adeo-grid-grid-cell--ref-highlight': refHighlightColor,
-      'adeo-grid-grid-cell--moving': isMovingColumn,
-      'adeo-grid-grid-cell--pending': pending,
+      'grid-cell--active': active,
+      'grid-cell--editing': editing,
+      'grid-cell--selected': selected,
+      'grid-cell--edge-top': edgeTop,
+      'grid-cell--edge-bottom': edgeBottom,
+      'grid-cell--edge-left': edgeLeft,
+      'grid-cell--edge-right': edgeRight,
+      'grid-cell--fill-target': fillTarget,
+      'grid-cell--fill-target-invalid': fillTargetInvalid,
+      'grid-cell--invalid': invalid,
+      'grid-cell--formula-error': !!formulaError,
+      'grid-cell--cut': cutSource,
+      'grid-cell--ref-highlight': refHighlightColor,
+      'grid-cell--moving': isMovingColumn,
+      'grid-cell--pending': pending,
     }"
-    :style="refHighlightColor ? { '--moz-grid-ref-color': refHighlightColor } : undefined"
+    :style="refHighlightColor ? { '--ad-grid-ref-color': refHighlightColor } : undefined"
     ref="cellContentRef"
     role="gridcell"
     :data-field="field"
@@ -459,9 +461,9 @@ function onEditKeydown(e: KeyboardEvent) {
     @keydown="onCellKeydown"
   >
     <!-- Slot resolution (most specific → least specific):
-         1. Local <slot> override (forwarded explicitly by AdeoGridRow)
-         2. <AdeoColumn> #cell slot, or <AdeoGrid> #cell-{field} slot
-         3. <AdeoGrid> #cell generic slot
+         1. Local <slot> override (forwarded explicitly by AdGridRow)
+         2. <ad-grid-column> #cell slot, or <ad-grid-vue> #cell-{field} slot
+         3. <ad-grid-vue> #cell generic slot
          4. column.renderer
          5. column.valueFormatter / String(value)
     -->
@@ -506,11 +508,11 @@ function onEditKeydown(e: KeyboardEvent) {
         <!-- 2. Mozaic select editor (Sprint 1 — REFONTE-PLAN-V2 §2.7) -->
         <MSelect
           v-else-if="column.cellEditor === 'select'"
-          :id="`adeo-grid-cell-select-${field}-${rowIndex}`"
+          :id="`grid-cell-select-${field}-${rowIndex}`"
           :options="selectOptions"
           :model-value="(localEditValue as string | number | undefined) ?? ''"
           size="s"
-          class="adeo-grid-grid-cell__editor-select"
+          class="grid-cell__editor-select"
           @update:modelValue="
             (v: string | number) => {
               onInput({ target: { value: v } } as unknown as Event)
@@ -526,13 +528,13 @@ function onEditKeydown(e: KeyboardEvent) {
              hérité de `.mc-text-input__control`). Le `<input type="date">`
              natif marche directement, montre la valeur dans le format
              locale du browser, et ouvre le picker calendrier system au
-             clic sur l'icône. Même classe `.adeo-grid-grid-cell__input` que le
+             clic sur l'icône. Même classe `.grid-cell__input` que le
              text/number fallback pour un styling consistent (inset 0,
              fond transparent, sans bordure double). -->
         <input
           v-else-if="column.cellEditor === 'date'"
           ref="editInputRef"
-          class="adeo-grid-grid-cell__input"
+          class="grid-cell__input"
           type="date"
           :value="localEditValue"
           @input="onInput"
@@ -541,7 +543,7 @@ function onEditKeydown(e: KeyboardEvent) {
           @blur="emit('editBlur')"
         />
         <!-- 4. Spreadsheet-style editor for formula columns -->
-        <AdeoGridFormulaEditor
+        <ad-grid-formula-editor
           v-else-if="column.allowFormula"
           :model-value="(localEditValue as string) ?? ''"
           :field-order="formulaFieldOrder"
@@ -554,7 +556,7 @@ function onEditKeydown(e: KeyboardEvent) {
         <input
           v-else
           ref="editInputRef"
-          class="adeo-grid-grid-cell__input"
+          class="grid-cell__input"
           :type="column.cellEditor === 'number' ? 'number' : 'text'"
           :value="localEditValue"
           @input="onInput"
@@ -588,7 +590,7 @@ function onEditKeydown(e: KeyboardEvent) {
              item — text-overflow only works on real block / inline-block
              boxes, so without the wrapper long values get hard-clipped
              at the cell edge with no "…" indicator. -->
-        <span v-else class="adeo-grid-grid-cell__text">{{ displayText }}</span>
+        <span v-else class="grid-cell__text">{{ displayText }}</span>
       </template>
     </slot>
 
@@ -597,7 +599,7 @@ function onEditKeydown(e: KeyboardEvent) {
          the fill so the affordance is hidden to avoid misleading users. -->
     <div
       v-if="fillHandle && column.editable"
-      class="adeo-grid-grid-cell__fill-handle"
+      class="grid-cell__fill-handle"
       @mousedown="emit('fillHandleMousedown', $event)"
     />
 
@@ -607,22 +609,22 @@ function onEditKeydown(e: KeyboardEvent) {
     <template v-if="cutSource">
       <div
         v-if="cutEdgeTop"
-        class="adeo-grid-grid-cell__cut-mark adeo-grid-cell__cut-mark--top"
+        class="grid-cell__cut-mark grid-cell__cut-mark--top"
         aria-hidden="true"
       />
       <div
         v-if="cutEdgeBottom"
-        class="adeo-grid-grid-cell__cut-mark adeo-grid-cell__cut-mark--bottom"
+        class="grid-cell__cut-mark grid-cell__cut-mark--bottom"
         aria-hidden="true"
       />
       <div
         v-if="cutEdgeLeft"
-        class="adeo-grid-grid-cell__cut-mark adeo-grid-cell__cut-mark--left"
+        class="grid-cell__cut-mark grid-cell__cut-mark--left"
         aria-hidden="true"
       />
       <div
         v-if="cutEdgeRight"
-        class="adeo-grid-grid-cell__cut-mark adeo-grid-cell__cut-mark--right"
+        class="grid-cell__cut-mark grid-cell__cut-mark--right"
         aria-hidden="true"
       />
     </template>
@@ -633,7 +635,7 @@ function onEditKeydown(e: KeyboardEvent) {
       :id="tooltipId"
       :text="invalidMessage"
       position="top"
-      class="adeo-grid-grid-cell__error-wrapper"
+      class="grid-cell__error-wrapper"
     >
       <Danger24 color="var(--color-status-icon-error)" />
     </MTooltip>
@@ -641,7 +643,7 @@ function onEditKeydown(e: KeyboardEvent) {
 </template>
 
 <style scoped lang="scss">
-.adeo-grid-grid-cell {
+.grid-cell {
   padding: m.get-spacing('100') m.get-spacing('150');
   border-bottom: m.get-token('border-width', 's') solid var(--color-border-primary);
   border-right: m.get-token('border-width', 's') solid var(--color-border-primary);
@@ -650,7 +652,7 @@ function onEditKeydown(e: KeyboardEvent) {
   cursor: pointer;
   // Multi-line wrap so values longer than the column width go to the
   // next line. `overflow: hidden` still clips anything past the row's
-  // (fixed) virtual-scroll height to keep row positions stable.
+  // (fixed) height to keep row positions stable.
   white-space: normal;
   word-break: break-word;
   overflow: hidden;
@@ -667,11 +669,11 @@ function onEditKeydown(e: KeyboardEvent) {
 
 // Pinned columns at the grid extremity carry no border on their outer
 // edge — the table boundary itself is the visual separator.
-.adeo-grid-grid-cell.adeo-grid-grid-cell--pinned-row-end {
+.grid-cell.grid-cell--pinned-row-end {
   border-right: none;
 }
 
-.adeo-grid-grid-cell.adeo-grid-grid-cell--pinned-row-start {
+.grid-cell.grid-cell--pinned-row-start {
   border-left: none;
 }
 
@@ -681,7 +683,7 @@ function onEditKeydown(e: KeyboardEvent) {
 // is required to let the flex item shrink below its content's
 // intrinsic size — without it the item refuses to shrink and overflow
 // hidden hard-clips the last character with no ellipsis.
-.adeo-grid-grid-cell__text {
+.grid-cell__text {
   flex: 1 1 auto;
   min-width: 0;
   line-height: 1.25;
@@ -707,27 +709,27 @@ function onEditKeydown(e: KeyboardEvent) {
 // With `flex-basis: 0` the cell starts at zero, then `min-width` clamps
 // it to `declaredWidth` and `flex-grow: 1` distributes extra row space.
 // Content over `declaredWidth` is clipped with ellipsis as expected.
-.adeo-grid-grid-cell--fill {
+.grid-cell--fill {
   flex: 1 1 0;
 }
 
-.adeo-grid-grid-cell--active {
+.grid-cell--active {
   z-index: 1;
 }
 
-.adeo-grid-grid-cell--active::after {
+.grid-cell--active::after {
   content: '';
   position: absolute;
   inset: 0;
   border: m.get-token('border-width', 'm') solid var(--color-text-accent);
-  border-radius: 4px;
+  border-radius: var(--border-radius-s, 4px);
   pointer-events: none;
 }
 
 // When the active cell is also part of a selected range, the range edges
 // already draw the accent border around the rectangle. Suppress the
 // per-cell active ring to avoid a doubled outline on the anchor cell.
-.adeo-grid-grid-cell--active.adeo-grid-grid-cell--selected::after {
+.grid-cell--active.grid-cell--selected::after {
   display: none;
 }
 
@@ -735,18 +737,18 @@ function onEditKeydown(e: KeyboardEvent) {
 // just a single-cell focus. The strip box-shadows can't render rounded
 // corners, so swap them off and re-enable the rounded `::after` outline
 // so the focus ring keeps its 4px radius.
-.adeo-grid-grid-cell--active.adeo-grid-grid-cell--selected.adeo-grid-grid-cell--edge-top.adeo-grid-grid-cell--edge-bottom.adeo-grid-grid-cell--edge-left.adeo-grid-grid-cell--edge-right {
-  --adeo-grid-range-edge-top: 0 0 0 0 transparent;
-  --adeo-grid-range-edge-bottom: 0 0 0 0 transparent;
-  --adeo-grid-range-edge-left: 0 0 0 0 transparent;
-  --adeo-grid-range-edge-right: 0 0 0 0 transparent;
+.grid-cell--active.grid-cell--selected.grid-cell--edge-top.grid-cell--edge-bottom.grid-cell--edge-left.grid-cell--edge-right {
+  --grid-range-edge-top: 0 0 0 0 transparent;
+  --grid-range-edge-bottom: 0 0 0 0 transparent;
+  --grid-range-edge-left: 0 0 0 0 transparent;
+  --grid-range-edge-right: 0 0 0 0 transparent;
 }
 
-.adeo-grid-grid-cell--active.adeo-grid-grid-cell--selected.adeo-grid-grid-cell--edge-top.adeo-grid-grid-cell--edge-bottom.adeo-grid-grid-cell--edge-left.adeo-grid-grid-cell--edge-right::after {
+.grid-cell--active.grid-cell--selected.grid-cell--edge-top.grid-cell--edge-bottom.grid-cell--edge-left.grid-cell--edge-right::after {
   display: revert;
 }
 
-.adeo-grid-grid-cell--selected {
+.grid-cell--selected {
   background-color: var(--color-background-accent);
 }
 
@@ -756,58 +758,58 @@ function onEditKeydown(e: KeyboardEvent) {
 // accent line, so a cell on a corner draws two segments and a cell in
 // the middle draws none.
 //
-// The 5th slot (`--adeo-grid-cell-outer-shadow`) is reserved for cell-level
-// outer shadows (set by `.adeo-grid-grid-cell--pinned-left-edge` /
-// `--pinned-right-edge` in `AdeoGridRow.vue`). Composing all five in a
+// The 5th slot (`--grid-cell-outer-shadow`) is reserved for cell-level
+// outer shadows (set by `.grid-cell--pinned-left-edge` /
+// `--pinned-right-edge` in `AdGridRow.vue`). Composing all five in a
 // single `box-shadow` declaration is what lets the pinned drop-shadow
 // and the selection range outline coexist — declaring them in separate
 // rules used to clobber each other.
-.adeo-grid-grid-cell--selected,
-.adeo-grid-grid-cell--pinned-left-edge,
-.adeo-grid-grid-cell--pinned-right-edge {
-  --adeo-grid-range-edge-top: 0 0 0 0 transparent;
-  --adeo-grid-range-edge-bottom: 0 0 0 0 transparent;
-  --adeo-grid-range-edge-left: 0 0 0 0 transparent;
-  --adeo-grid-range-edge-right: 0 0 0 0 transparent;
-  --adeo-grid-cell-outer-shadow: 0 0 0 0 transparent;
+.grid-cell--selected,
+.grid-cell--pinned-left-edge,
+.grid-cell--pinned-right-edge {
+  --grid-range-edge-top: 0 0 0 0 transparent;
+  --grid-range-edge-bottom: 0 0 0 0 transparent;
+  --grid-range-edge-left: 0 0 0 0 transparent;
+  --grid-range-edge-right: 0 0 0 0 transparent;
+  --grid-cell-outer-shadow: 0 0 0 0 transparent;
   box-shadow:
-    inset var(--adeo-grid-range-edge-top),
-    inset var(--adeo-grid-range-edge-bottom),
-    inset var(--adeo-grid-range-edge-left),
-    inset var(--adeo-grid-range-edge-right),
-    var(--adeo-grid-cell-outer-shadow);
+    inset var(--grid-range-edge-top),
+    inset var(--grid-range-edge-bottom),
+    inset var(--grid-range-edge-left),
+    inset var(--grid-range-edge-right),
+    var(--grid-cell-outer-shadow);
 }
 
-.adeo-grid-grid-cell--selected.adeo-grid-grid-cell--edge-top {
-  --adeo-grid-range-edge-top: 0 2px 0 0 var(--color-text-accent);
+.grid-cell--selected.grid-cell--edge-top {
+  --grid-range-edge-top: 0 2px 0 0 var(--color-text-accent);
 }
 
-.adeo-grid-grid-cell--selected.adeo-grid-grid-cell--edge-bottom {
-  --adeo-grid-range-edge-bottom: 0 -2px 0 0 var(--color-text-accent);
+.grid-cell--selected.grid-cell--edge-bottom {
+  --grid-range-edge-bottom: 0 -2px 0 0 var(--color-text-accent);
 }
 
-.adeo-grid-grid-cell--selected.adeo-grid-grid-cell--edge-left {
-  --adeo-grid-range-edge-left: 2px 0 0 0 var(--color-text-accent);
+.grid-cell--selected.grid-cell--edge-left {
+  --grid-range-edge-left: 2px 0 0 0 var(--color-text-accent);
 }
 
-.adeo-grid-grid-cell--selected.adeo-grid-grid-cell--edge-right {
-  --adeo-grid-range-edge-right: -2px 0 0 0 var(--color-text-accent);
+.grid-cell--selected.grid-cell--edge-right {
+  --grid-range-edge-right: -2px 0 0 0 var(--color-text-accent);
 }
 
 // Pinned drop-shadow lives on the same `box-shadow` slot stack so it
-// composes with the selection edges. Declared here (in `AdeoGridCell.vue`)
-// rather than in the parent `AdeoGridRow.vue` to keep the cascade order
+// composes with the selection edges. Declared here (in `AdGridCell.vue`)
+// rather than in the parent `AdGridRow.vue` to keep the cascade order
 // deterministic — the variable defaults above are overridden by these
 // rules within the same stylesheet.
-.adeo-grid-grid-cell--pinned-left-edge {
-  --adeo-grid-cell-outer-shadow: 2px 0 4px rgba(0, 0, 0, 0.06);
+.grid-cell--pinned-left-edge {
+  --grid-cell-outer-shadow: 2px 0 4px rgba(0, 0, 0, 0.06);
 }
 
-.adeo-grid-grid-cell--pinned-right-edge {
-  --adeo-grid-cell-outer-shadow: -2px 0 4px rgba(0, 0, 0, 0.06);
+.grid-cell--pinned-right-edge {
+  --grid-cell-outer-shadow: -2px 0 4px rgba(0, 0, 0, 0.06);
 }
 
-.adeo-grid-grid-cell--fill-target {
+.grid-cell--fill-target {
   background-color: var(--color-background-accent);
   border: m.get-token('border-width', 's') dashed var(--color-text-accent);
 }
@@ -815,37 +817,37 @@ function onEditKeydown(e: KeyboardEvent) {
 // Cell that lies inside the fill-target range but whose column refuses
 // the fill (non-editable). Use red dashed so it visually clashes with
 // the regular blue dashed accept-target — easy to spot during drag.
-.adeo-grid-grid-cell--fill-target-invalid {
+.grid-cell--fill-target-invalid {
   background-color: var(--color-status-background-error, #fdecec);
   outline: m.get-token('border-width', 's') dashed var(--color-status-border-error, #d11717);
   outline-offset: -1px;
 }
 
 /* Sprint 8 §2.9 — invalid cell shows a 2px rounded red ring matching the
-   focus ring (`.adeo-grid-grid-cell--active::after`). A `::before` pseudo-element
+   focus ring (`.grid-cell--active::after`). A `::before` pseudo-element
    lets us paint the ring on top of cell content without shifting layout
    and without conflicting with active's `::after` ring. */
-.adeo-grid-grid-cell--invalid {
+.grid-cell--invalid {
   z-index: 1;
   // Release the cell's clipping (overflow + paint contain) so MTooltip's
   // absolutely-positioned popover can escape on hover. Without this, the
   // tooltip is only visible in edit mode (which already sets
-  // `overflow: visible`) — see `.adeo-grid-grid-cell--editing`.
+  // `overflow: visible`) — see `.grid-cell--editing`.
   overflow: visible;
   contain: layout style;
 }
 
 // While hovered/focused, lift the invalid cell above the sticky header
-// (`z-index: 4` on `.adeo-grid-grid-sticky-header`) so MTooltip's popover —
+// (`z-index: 4` on `.grid-sticky-header`) so MTooltip's popover —
 // which lives inside the cell's stacking context — is not occluded by
 // the header. We only do this on hover/focus to avoid the cell painting
 // over the header during regular scroll.
-.adeo-grid-grid-cell--invalid:hover,
-.adeo-grid-grid-cell--invalid:focus-within {
+.grid-cell--invalid:hover,
+.grid-cell--invalid:focus-within {
   z-index: 5;
 }
 
-.adeo-grid-grid-cell--invalid::before {
+.grid-cell--invalid::before {
   content: '';
   position: absolute;
   inset: 0;
@@ -858,26 +860,26 @@ function onEditKeydown(e: KeyboardEvent) {
 // Formula evaluation error (#REF!, #DIV/0!, etc.) — render the code in
 // red with an italic prefix so it stands out against numeric values, plus
 // a hint tooltip via the cell's `title` attribute.
-.adeo-grid-grid-cell--formula-error {
+.grid-cell--formula-error {
   color: var(--color-status-text-error, #d11717);
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 11.5px;
-  font-weight: 600;
+  font-family: var(--font-family-monospace, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-size: 11.5px; /* custom value — no matching Mozaic token (between 11px and 12px) */
+  font-weight: var(--font-weight-semi-bold, 600);
   letter-spacing: 0.02em;
 }
 
-.adeo-grid-grid-cell--invalid.adeo-grid-grid-cell--active {
+.grid-cell--invalid.grid-cell--active {
   background-color: var(--color-status-background-error);
 }
 
-.adeo-grid-grid-cell--editing {
+.grid-cell--editing {
   padding: 0;
   z-index: 3;
   contain: size layout style;
   overflow: visible;
 }
 
-.adeo-grid-grid-cell__input {
+.grid-cell__input {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -891,7 +893,7 @@ function onEditKeydown(e: KeyboardEvent) {
 }
 
 
-.adeo-grid-grid-cell__fill-handle {
+.grid-cell__fill-handle {
   position: absolute;
   bottom: -3px;
   right: -3px;
@@ -906,7 +908,7 @@ function onEditKeydown(e: KeyboardEvent) {
 /* Sprint 8 §2.9 — flush right, vertically centered, no spacing gap.
    `MTooltip` is the wrapper element so we apply absolute positioning
    directly to it via this class. */
-.adeo-grid-grid-cell__error-wrapper {
+.grid-cell__error-wrapper {
   position: absolute;
   top: 50%;
   right: 8px;
@@ -918,64 +920,64 @@ function onEditKeydown(e: KeyboardEvent) {
 }
 
 /* --- Cut / marching-ants (Excel-style Ctrl+X) --- */
-.adeo-grid-grid-cell--cut {
-  background: rgba(26, 115, 232, 0.06);
+.grid-cell--cut {
+  background: var(--color-background-accent, rgba(26, 115, 232, 0.06));
 }
 
-.adeo-grid-grid-cell__cut-mark {
+.grid-cell__cut-mark {
   position: absolute;
   pointer-events: none;
   z-index: 5;
   --cut-color: var(--color-background-accent-inverse, #1a73e8);
 }
 
-.adeo-grid-cell__cut-mark--top,
-.adeo-grid-cell__cut-mark--bottom {
+.grid-cell__cut-mark--top,
+.grid-cell__cut-mark--bottom {
   left: 0;
   right: 0;
   height: 2px;
   background-image: linear-gradient(90deg, var(--cut-color) 50%, transparent 50%);
   background-size: 8px 2px;
   background-repeat: repeat-x;
-  animation: moz-grid-marching-ants-x 0.5s linear infinite;
+  animation: ad-grid-marching-ants-x 0.5s linear infinite;
 }
 
-.adeo-grid-cell__cut-mark--top {
+.grid-cell__cut-mark--top {
   top: 0;
 }
-.adeo-grid-cell__cut-mark--bottom {
+.grid-cell__cut-mark--bottom {
   bottom: 0;
 }
 
-.adeo-grid-cell__cut-mark--left,
-.adeo-grid-cell__cut-mark--right {
+.grid-cell__cut-mark--left,
+.grid-cell__cut-mark--right {
   top: 0;
   bottom: 0;
   width: 2px;
   background-image: linear-gradient(180deg, var(--cut-color) 50%, transparent 50%);
   background-size: 2px 8px;
   background-repeat: repeat-y;
-  animation: moz-grid-marching-ants-y 0.5s linear infinite;
+  animation: ad-grid-marching-ants-y 0.5s linear infinite;
 }
 
-.adeo-grid-cell__cut-mark--left {
+.grid-cell__cut-mark--left {
   left: 0;
 }
-.adeo-grid-cell__cut-mark--right {
+.grid-cell__cut-mark--right {
   right: 0;
 }
 
 /* --- Ref-highlight (formula edit, Phase 6b) --- */
-.adeo-grid-grid-cell--ref-highlight {
+.grid-cell--ref-highlight {
   z-index: 2;
 }
 
-.adeo-grid-grid-cell--ref-highlight::after {
+.grid-cell--ref-highlight::after {
   content: '';
   position: absolute;
   inset: 0;
-  border: 2px solid var(--moz-grid-ref-color, transparent);
-  border-radius: 4px;
+  border: 2px solid var(--ad-grid-ref-color, transparent);
+  border-radius: var(--border-radius-s, 4px);
   pointer-events: none;
   z-index: 3;
 }
@@ -989,17 +991,17 @@ function onEditKeydown(e: KeyboardEvent) {
 // que l'opacity est < 1, mais l'overlay domine visuellement.
 // --- Pending shimmer (granular skeleton) ----------------------------------
 // On change DIRECTEMENT le background-color de la cellule (pas un `::after`
-// qui peut se faire clipper par `contain: paint` côté `.adeo-grid-grid-cell`).
+// qui peut se faire clipper par `contain: paint` côté `.grid-cell`).
 // Le shimmer vient d'un `background-image` gradient animé + `background-size:
 // 200% 100%` qui scrolle. Pas de pseudo-element, pas de stacking context
 // à gérer — visible quelle que soit la config du parent.
 //
-// `!important` parce que `.adeo-grid-grid-cell` set `background-color` côté
+// `!important` parce que `.grid-cell` set `background-color` côté
 // classes pinned / selected qui ont la même spécificité — sans ça, le
 // background "pending" se ferait écraser par `--selected` quand l'user
 // vient juste de cliquer / commit.
-.adeo-grid-grid-cell--pending {
-  background-color: #d9dde3 !important;
+.grid-cell--pending {
+  background-color: var(--color-border-primary, #d9dde3) !important;
   background-image: linear-gradient(
     90deg,
     transparent 0%,
@@ -1008,19 +1010,19 @@ function onEditKeydown(e: KeyboardEvent) {
   ) !important;
   background-size: 200% 100% !important;
   background-repeat: no-repeat !important;
-  animation: adeo-grid-skeleton-shimmer 1.4s ease-in-out infinite !important;
+  animation: grid-skeleton-shimmer 1.4s ease-in-out infinite !important;
 }
 
 // Pendant le pending on rend le texte de la cellule transparent — comme ça
 // la valeur est "remplacée" par le shimmer (vrai effet skeleton) plutôt
 // que d'avoir un texte qui scintille à travers.
-.adeo-grid-grid-cell--pending > * {
+.grid-cell--pending > * {
   opacity: 0.25 !important;
   transition: opacity 200ms ease;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .adeo-grid-grid-cell--pending {
+  .grid-cell--pending {
     animation: none !important;
   }
 }
@@ -1029,7 +1031,7 @@ function onEditKeydown(e: KeyboardEvent) {
 <!-- Global @keyframes — must be unscoped so the animation names resolve
      across the cells that reference them. -->
 <style lang="scss">
-@keyframes moz-grid-marching-ants-x {
+@keyframes ad-grid-marching-ants-x {
   from {
     background-position-x: 0;
   }
@@ -1037,7 +1039,7 @@ function onEditKeydown(e: KeyboardEvent) {
     background-position-x: 8px;
   }
 }
-@keyframes moz-grid-marching-ants-y {
+@keyframes ad-grid-marching-ants-y {
   from {
     background-position-y: 0;
   }
@@ -1046,13 +1048,13 @@ function onEditKeydown(e: KeyboardEvent) {
   }
 }
 
-/* Skeleton shimmer — partagée entre le full-skeleton (`AdeoGridSkeletonRow`)
- * et le cell-level pending (`.adeo-grid-grid-cell--pending::after`). Unscoped
+/* Skeleton shimmer — partagée entre le full-skeleton (`AdGridSkeletonRow`)
+ * et le cell-level pending (`.grid-cell--pending::after`). Unscoped
  * pour rester accessible aux scoped styles des autres SFC qui réfèrent
- * `animation: adeo-grid-skeleton-shimmer ...` par nom. (`_animations.scss`
+ * `animation: grid-skeleton-shimmer ...` par nom. (`_animations.scss`
  * existe mais n'est branchée dans aucun chemin d'import au runtime, c'est
  * de la doc — d'où la duplication ici comme pour les marching-ants.) */
-@keyframes adeo-grid-skeleton-shimmer {
+@keyframes grid-skeleton-shimmer {
   0% {
     background-position: 100% 0;
   }

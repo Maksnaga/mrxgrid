@@ -1,0 +1,20 @@
+{
+  "extends": "../projects/grid-angular/tsconfig.lib.json",
+  "compilerOptions": {
+    "types": ["node"],
+    "jsx": "react-jsx",
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+    "sourceMap": true
+  },
+  "exclude": [
+    "../projects/grid-angular/src/test.ts",
+    "../projects/grid-angular/src/**/*.spec.ts"
+  ],
+  "include": [
+    "../projects/grid-angular/src/**/*.stories.*",
+    "../projects/grid-angular/src/**/*.mdx",
+    "./preview.ts"
+  ],
+  "files": ["./typings.d.ts"]
+}

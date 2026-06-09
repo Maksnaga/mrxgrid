@@ -2,10 +2,10 @@
 
 ## Objectif
 
-**Une seule page**, avec **CRUD complet en mémoire**, qui exerce **toutes** les features de AdeoGrid dans un contexte applicatif réaliste. La cible est double :
+**Une seule page**, avec **CRUD complet en mémoire**, qui exerce **toutes** les features de Grid dans un contexte applicatif réaliste. La cible est double :
 
 1. **Vitrine commerciale** — quelqu'un qui ouvre l'URL voit immédiatement "tiens, ce grid sait faire tout ça".
-2. **Code de référence** — un dev qui veut intégrer AdeoGrid trouve un exemple propre, commenté, copier-collable, qui couvre les patterns courants.
+2. **Code de référence** — un dev qui veut intégrer Grid trouve un exemple propre, commenté, copier-collable, qui couvre les patterns courants.
 
 ---
 
@@ -172,7 +172,7 @@ src/
 │  Stock     │ │ CA mois │ Stock │ Ruptures │ Promos              ││
 │  Cmds      │ └──────────────────────────────────────────────────┘│
 │  Clients   │                                                     │
-│  Params    │ ┌─ AdeoGrid (5000 lignes, server-side mocké) ──────┐│
+│  Params    │ ┌─ Grid (5000 lignes, server-side mocké) ──────┐│
 │            │ │ Toolbar : search + filters + group + density…   ││
 │            │ │ Filter row : text/select/date + slot prix       ││
 │            │ │ Header : pinned, drag, resize, sort, kebab      ││
@@ -192,7 +192,7 @@ src/
 
 ```ts
 // src/app/mock/store.ts
-import { generateLMProducts, type LMProduct } from '@/components/AdeoGrid/__stories__/_fixtures'
+import { generateLMProducts, type LMProduct } from '@/components/Grid/__stories__/_fixtures'
 
 // Le store. Volontairement non-réactif (pas de ref/reactive) — c'est de la
 // donnée mockée serveur, pas du state UI. La réactivité côté UI vient des
@@ -298,11 +298,11 @@ MTextInput / MSelect / MDatepicker sous le header. Aucun code custom.
 
 ### Style 2 — Custom slot `#filter-{field}`
 ```vue
-<AdeoGrid>
+<ad-grid-vue>
   <template #filter-price="{ value, setValue }">
     <PriceRangeSlider :value="value" @update="setValue" />
   </template>
-</AdeoGrid>
+</ad-grid-vue>
 ```
 On garde la filter row inline, mais UI maison pour une colonne.
 
@@ -440,6 +440,6 @@ Scripts :
 
 ## TL;DR
 
-> **Une page, CRUD complet en mémoire, qui exerce toutes les features de AdeoGrid.** Server-side pagination/filtres/sort, 3 styles de filtres (inline natif / slot template / AG-Grid custom), cell renderers, row expansion, bulk actions (cell + row), group, drag, pin, persist, undo/redo, density, fullscreen. Mock API avec store JS local + latence + slow network toggle. Toasts partout. Au refresh, retour au seed (zéro complexité localStorage). Code écrit pour servir d'inspiration : TS strict, Composition API, `<script setup>`, composables single-responsibility, commentaires WHY.
+> **Une page, CRUD complet en mémoire, qui exerce toutes les features de Grid.** Server-side pagination/filtres/sort, 3 styles de filtres (inline natif / slot template / AG-Grid custom), cell renderers, row expansion, bulk actions (cell + row), group, drag, pin, persist, undo/redo, density, fullscreen. Mock API avec store JS local + latence + slow network toggle. Toasts partout. Au refresh, retour au seed (zéro complexité localStorage). Code écrit pour servir d'inspiration : TS strict, Composition API, `<script setup>`, composables single-responsibility, commentaires WHY.
 
 5 PRs, ~5 jours. Go ?

@@ -1,5 +1,5 @@
 /**
- * Plugin API — Angular parity (moz-grid) §9.3.
+ * Plugin API — Angular parity (ad-grid) §9.3.
  *
  * A plugin is an extension point that can read/write `GridState` and the
  * engines, register cleanup, and react to grid lifecycle. Use this when
@@ -8,7 +8,7 @@
  *
  * Example:
  *
- *   function useAuditPlugin(): AdeoGridPlugin {
+ *   function useAuditPlugin(): GridPlugin {
  *     return {
  *       name: 'audit',
  *       init(ctx) {
@@ -18,7 +18,7 @@
  *     }
  *   }
  *
- *   <AdeoGrid :plugins="[useAuditPlugin()]" />
+ *   <ad-grid-vue :plugins="[useAuditPlugin()]" />
  *
  * The `init` return value is the disposer — called when the grid unmounts
  * or the plugin is removed. May be omitted if the plugin needs no cleanup.
@@ -28,14 +28,14 @@ import type { GridState } from '../state/useGridState'
 import type { GridEngine } from '../engine/useGridEngine'
 import type { RowData } from '../types'
 
-export interface AdeoGridPluginContext<T extends RowData = RowData> {
+export interface GridPluginContext<T extends RowData = RowData> {
   state: GridState<T>
   engine: GridEngine<T>
 }
 
-export interface AdeoGridPlugin<T extends RowData = RowData> {
+export interface GridPlugin<T extends RowData = RowData> {
   /** Stable plugin name — used for dedup + debugging. */
   name: string
   /** Called once on grid mount. Return a cleanup function or `void`. */
-  init(ctx: AdeoGridPluginContext<T>): (() => void) | void
+  init(ctx: GridPluginContext<T>): (() => void) | void
 }

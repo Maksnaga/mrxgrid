@@ -41,7 +41,7 @@ adeo-grid-monorepo/
 │   │   ├── angular.json
 │   │   └── package.json              ← `@adeo/grid-angular`
 │   ├── grid-vue/                     ← ex-`adeo-grid`
-│   │   ├── src/components/AdeoGrid/
+│   │   ├── src/components/Grid/
 │   │   ├── .storybook/
 │   │   ├── vite.config.ts
 │   │   └── package.json              ← `@adeo/grid-vue`
@@ -431,7 +431,7 @@ git commit -m "feat(monorepo): migrate grid-vue into apps/"
 ### 6.1 `packages/types/` — `@adeo/types`
 
 Les contrats TypeScript partagés entre Angular et Vue. C'est le code
-qu'on a déjà côté `adeo-grid/src/components/AdeoGrid/types.ts` — on le
+qu'on a déjà côté `adeo-grid/src/components/Grid/types.ts` — on le
 remonte en package.
 
 ```bash
@@ -507,7 +507,7 @@ export * from './selection'
 ```
 
 `packages/types/src/column.ts` (extrait — copier depuis
-`adeo-grid/src/components/AdeoGrid/types.ts`) :
+`adeo-grid/src/components/Grid/types.ts`) :
 
 ```ts
 export interface ColumnDef<T = unknown> {
@@ -940,9 +940,9 @@ comme en dev.
 
 Avec Turbo Remote Cache activé :
 
-- PR #1 d'Alice touche `apps/grid-vue/AdeoGridCell.vue` → build complet
+- PR #1 d'Alice touche `apps/grid-vue/GridCell.vue` → build complet
   cache miss (~2 min).
-- PR #2 de Bob touche `apps/grid-vue/AdeoGridHeader.vue` → cache hit
+- PR #2 de Bob touche `apps/grid-vue/GridHeader.vue` → cache hit
   sur `@adeo/types`, `@adeo/mocks`, `@adeo/grid-angular`, `@adeo/storybook-portal`.
   Build seulement `@adeo/grid-vue` (~30 sec).
 - PR #3 de Charlie modifie un .md de `@adeo/spec` → cache hit total

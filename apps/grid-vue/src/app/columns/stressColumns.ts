@@ -15,7 +15,7 @@
  * l'utilisateur n'édite pas, la valeur est calculée à la volée.
  */
 
-import type { ColumnDef } from '@/components/AdeoGrid'
+import type { ColumnDef } from '@/components/Grid'
 import type { LMProduct } from '../mock/seed'
 import { useStressOverrides } from '../composables/useStressOverrides'
 
@@ -130,7 +130,7 @@ function makeNumberCol(
     sortable: true,
     editable: opts.editable ?? true,
     cellEditor: 'number',
-    cellClass: 'adeo-grid-cell-num',
+    cellClass: 'grid-cell-num',
     valueGetter: (row) => {
       const over = overrides.getOverride((row as LMProduct).id, field)
       if (over !== undefined) return over

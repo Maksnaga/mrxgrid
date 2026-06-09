@@ -1,0 +1,24 @@
+<div
+  class="grid-empty-state"
+  [class.grid-empty-state--no-results]="kind() === 'no-results'"
+  role="status"
+  aria-live="polite"
+>
+  <div class="grid-empty-state__icon" aria-hidden="true">
+    @if (kind() === 'no-results') {
+    <Search48 />
+    } @else {
+    <Folder48 />
+    }
+  </div>
+
+  <p class="grid-empty-state__title">{{ resolvedTitle() }}</p>
+
+  @if (resolvedDescription()) {
+  <p class="grid-empty-state__description">{{ resolvedDescription() }}</p>
+  } @if (actionLabel()) {
+  <button moz-button [outlined]="true" size="s" (click)="action.emit()">
+    {{ actionLabel() }}
+  </button>
+  }
+</div>

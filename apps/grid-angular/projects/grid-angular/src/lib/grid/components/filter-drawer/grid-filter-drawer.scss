@@ -1,0 +1,12 @@
+.filter-drawer {
+  padding-bottom: var(--spacing-200, 16px);
+
+  &__subtitle {
+    margin: 0 var(--spacing-200, 16px) var(--spacing-100, 8px);
+    font-size: var(--font-size-50, 12px);
+    font-weight: var(--font-weight-semi-bold, 600);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-text-secondary, #555);
+  }
+}

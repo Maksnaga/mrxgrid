@@ -1,5 +1,5 @@
 /**
- * Grid-level events + ancillary drawer payloads — Angular parity (moz-grid).
+ * Grid-level events + ancillary drawer payloads — Angular parity (ad-grid).
  */
 
 import type {

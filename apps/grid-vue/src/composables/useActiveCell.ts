@@ -1,7 +1,7 @@
 import { computed, isRef, watch, type Ref, type WritableComputedRef } from 'vue'
-import type { CellPosition, ColumnDef, RowData } from '@/components/AdeoGrid/types'
-import { isGroupRow } from '@/components/AdeoGrid/types'
-import type { GridState } from '@/components/AdeoGrid/state/useGridState'
+import type { CellPosition, ColumnDef, RowData } from '@/components/Grid/types'
+import { isGroupRow } from '@/components/Grid/types'
+import type { GridState } from '@/components/Grid/state/useGridState'
 
 export interface ActiveCellOptions {
   /** Central grid state — owns the canonical `focusedCell` `{row, col}` shape. */
@@ -94,14 +94,31 @@ export function useActiveCell(options: ActiveCellOptions) {
     set: (next) => {
       if (!next) {
         gridState.focusedCell.value = null
+        // Also clear `selectedCell` — `useCellSelectionEngine` reads
+        // `selectedCell` to compute the fill-handle position. Leaving
+        // `selectedCell` non-null while `focusedCell` is null would pin
+        // the fill-handle square on a phantom cell that no longer has
+        // the focus border.
+        gridState.selectedCell.value = null
         return
       }
       const col = allColumns.value.findIndex((c) => c.field === next.field)
       if (col < 0) {
         gridState.focusedCell.value = null
+        gridState.selectedCell.value = null
         return
       }
-      gridState.focusedCell.value = { row: next.rowIndex, col }
+      const pos = { row: next.rowIndex, col }
+      gridState.focusedCell.value = pos
+      // Sync `selectedCell` with `focusedCell`. The cell-selection engine's
+      // `cellSelFillHandleRow/Col` computed reads `selectedCell.value.row/col`
+      // to position the fill handle. If we update only `focusedCell` (which
+      // drives the focus border), the handle stays anchored on the
+      // previously-clicked cell. The cell-selection engine's own `focusCell`
+      // does this exact sync — replicating it here ensures every caller of
+      // `activate()` (onEditCommit, useActiveCell.move(), etc.) gets the
+      // same coherence guarantee without going through `cellSel.focusCell`.
+      gridState.selectedCell.value = pos
     },
   })
 
@@ -328,12 +345,12 @@ export function useActiveCell(options: ActiveCellOptions) {
 
     // Sticky chunk height at the top of the scroll container — the grid
     // wraps the header + (optional) filter row in a single
-    // `.adeo-grid-grid-sticky-header` block that sits sticky-top inside the
+    // `.grid-sticky-header` block that sits sticky-top inside the
     // scroll viewport. Without subtracting its height from the visible
     // body region, the comfort math thinks rows behind the chunk are
     // "visible" when they're actually occluded.
     const stickyTop =
-      el.querySelector<HTMLElement>('.adeo-grid-grid-sticky-header')?.offsetHeight ??
+      el.querySelector<HTMLElement>('.grid-sticky-header')?.offsetHeight ??
       0
 
     // Trigger vs. target — the comfort margin only pads the scroll

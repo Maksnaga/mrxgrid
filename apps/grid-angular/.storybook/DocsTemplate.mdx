@@ -1,0 +1,128 @@
+import { Meta, Source, useOf, Title, Subtitle, Description, Primary, Controls, Stories, Heading } from '@storybook/addon-docs/blocks';
+import { background } from 'storybook/theming';
+
+export const LocalImport = ({ of }) => {
+  const resolvedOf = useOf(of || 'story', ['story', 'meta']);
+  const story = resolvedOf.story;
+  const componentExport = story?.component ?? resolvedOf.meta?.component;
+  const rawComponentName =
+    componentExport?.name ??
+    componentExport?.__name ??
+    componentExport?.displayName ??
+    story?.name ??
+    'Component';
+  const componentName = rawComponentName.replace(/^_+/, '');
+
+  const importCode = `import { ${componentName} } from '@mozaic-ds/angular';
+ `;
+  if (resolvedOf.type === 'story') {
+    if (componentName.includes('Release32')) {
+      return (
+
+        <>
+          <div>The icons are available as a named export from the <code>@mozaic-ds/icons-angular</code> package.<br />
+            So first install the package :</div>
+          <Source dark language='bash' code={`npm install @mozaic-ds/icons-angular`} />
+          <div>Use the following import to include an icon in your project.</div>
+          <Source dark language='tsx' code={`
+import { Search24, Close16 } from '@mozaic-ds/icons-angular';
+<Search24/>
+<Close16/>
+          `} />
+        </>
+      );
+    } else {
+      return (
+        <>
+          <div>Use the following import to include the component in your project.<br />
+            The component is available as a named export from the `@mozaic-ds/angular` package.</div>
+          <Source dark code={`${importCode}`} />
+        </>
+      );
+    }
+
+  }
+  return null;
+};
+
+<Meta isTemplate />
+
+<Title />
+<Subtitle />
+<Description />
+
+<Primary />
+
+<Controls />
+
+export const ConditionalImport = ({ of }) => {
+  const resolvedOf = useOf(of || 'story', ['story', 'meta']);
+  const parameters = resolvedOf.story?.parameters ?? resolvedOf.meta?.parameters ?? {};
+
+  if (parameters?.hideImport) {
+    return null;
+  }
+  return (
+    <>
+      <Heading>Import</Heading>
+      <LocalImport of={of} />
+    </>
+  );
+};
+
+<ConditionalImport />
+
+<Stories />
+
+---
+
+<br />
+
+<footer>
+  <h1 className="mt-title--l">We're listening.</h1>
+  <div className="mt-body-l">We'd love to hear your thoughts about ADEO Design system!</div>
+  <div
+    style={{
+      display: 'flex',
+      alignItems: 'center',
+      gap: '1rem',
+    }}
+  >
+    <a
+      style={{ flex: '1' }}
+      className="mc-tile mc-tile--clickable mc-tile--bordered mc-tile--external-link"
+      href="https://github.com/adeo/mozaic-angular/issues/new/choose"
+      target="_blank"
+    >
+      <div className="mc-tile__body">
+        <div style={{ padding: '1rem' }}>
+          <h2 className="mt-title--s" style={{ margin: '0 0 0.5rem 0', border: '0' }}>
+            Bug report
+          </h2>
+          <div className="mt-body-s" style={{ margin: '0', color: '#666' }}>
+            Report a bug on our production.
+          </div>
+        </div>
+      </div>
+      <div className="mc-tile__action"></div>
+    </a>
+    <a
+      style={{ flex: '1' }}
+      className="mc-tile mc-tile--clickable mc-tile--bordered mc-tile--external-link"
+      href="https://app.slack.com/client/T4R6RCZFA/CN4K3A99R/"
+      target="_blank"
+    >
+      <div className="mc-tile__body">
+        <div style={{ padding: '1rem' }}>
+          <h2 className="mt-title--s" style={{ margin: '0 0 0.5rem 0', border: '0' }}>
+            General contact
+          </h2>
+          <div className="mt-body-s" style={{ margin: '0', color: '#666' }}>
+            General question, feature requests, ideas, etc.
+          </div>
+        </div>
+      </div>
+      <div className="mc-tile__action"></div>
+    </a>
+  </div>
+</footer>

@@ -1,12 +1,12 @@
 import type { Meta, StoryObj } from '@storybook/vue3-vite'
-import { computed, ref } from 'vue'
-import { AdeoGrid, AdeoGridToolbar } from '@/components/AdeoGrid'
-import type { SelectionModel } from '@/components/AdeoGrid'
+import { ref } from 'vue'
+import { AdGridVue } from '@/components/Grid'
+import type { SelectionModel } from '@/components/Grid'
 import { lmColumns, lmProducts } from './_fixtures'
 
 const meta = {
   title: 'Stories/Selection/Row · Cell · Bulk',
-  component: AdeoGrid,
+  component: AdGridVue,
   tags: ['autodocs'],
   args: { rows: [] },
   parameters: {
@@ -39,7 +39,7 @@ Cette représentation supporte le pattern Gmail "select all + uncheck a few" san
 Pour afficher "X rows selected · Select all N rows · Clear" dans la toolbar :
 
 \`\`\`vue
-<AdeoGridToolbar
+<ad-grid-toolbar
   :selected-count="grid?.selectedCount ?? 0"
   :total-count="grid?.selectionTotalCount ?? 0"
   :all-selected="grid?.selectionModel?.allSelected ?? false"
@@ -48,7 +48,7 @@ Pour afficher "X rows selected · Select all N rows · Clear" dans la toolbar :
 />
 \`\`\`
 
-Combinez avec \`<AdeoGrid selection-bar-compact>\` pour que la barre flottante n'affiche plus que les boutons d'action (Edit / Copy / Paste / Delete) sans le compteur.
+Combinez avec \`<ad-grid-vue selection-bar-compact>\` pour que la barre flottante n'affiche plus que les boutons d'action (Edit / Copy / Paste / Delete) sans le compteur.
 
 ### API impérative
 
@@ -61,7 +61,7 @@ Combinez avec \`<AdeoGrid selection-bar-compact>\` pour que la barre flottante n
       },
     },
   },
-} satisfies Meta<typeof AdeoGrid>
+} satisfies Meta<typeof AdGridVue>
 
 export default meta
 type Story = StoryObj<typeof meta>
@@ -80,7 +80,7 @@ export const RowSelection: Story = {
 \`\`\`vue
 <script setup lang="ts">
 import { ref } from 'vue'
-import type { SelectionModel } from '@/components/AdeoGrid'
+import type { SelectionModel } from '@/components/Grid'
 
 const selection = ref<SelectionModel>({
   allSelected: false,
@@ -90,7 +90,7 @@ const selection = ref<SelectionModel>({
 </script>
 
 <template>
-  <AdeoGrid
+  <ad-grid-vue
     :columns="columns"
     :rows="rows"
     selectable
@@ -122,52 +122,21 @@ Toujours pointer vers une clé domain (\`sku\`, \`uuid\`, \`id\`).
     },
   },
   render: () => ({
-    components: { AdeoGrid, AdeoGridToolbar },
+    components: { AdGridVue },
     setup() {
-      const gridRef = ref<InstanceType<typeof AdeoGrid> | null>(null)
       const selection = ref<SelectionModel>({
         allSelected: false,
         selectedIds: new Set<string>(),
         deselectedIds: new Set<string>(),
       })
-      const selectedCount = computed(() => gridRef.value?.selectedCount ?? 0)
-      const totalCount = computed(() => gridRef.value?.selectionTotalCount ?? 0)
-      const allSelected = computed(() => gridRef.value?.selectionModel?.allSelected ?? false)
-      function onSelectAllRows() {
-        gridRef.value?.selectAll()
-      }
-      function onClearSelection() {
-        gridRef.value?.clearSelection()
-      }
-      return {
-        lmColumns,
-        lmProducts,
-        gridRef,
-        selection,
-        selectedCount,
-        totalCount,
-        allSelected,
-        onSelectAllRows,
-        onClearSelection,
-      }
+      return { lmColumns, lmProducts, selection }
     },
     template: `
-      <div class="sb-adeo-grid-shell">
+      <div class="sb-grid-shell">
         <h2>Row checkbox selection</h2>
-        <p>Active <code>:selectable</code>. La case master du header gère <code>none / some / all</code>. Le banner de sélection est géré dans la toolbar via <code>:selected-count</code> / <code>:total-count</code> / <code>:all-selected</code> + <code>@select-all-rows</code> / <code>@clear-selection</code>.</p>
-        <AdeoGridToolbar
-          show-filters
-          show-settings
-          show-keyboard
-          :selected-count="selectedCount"
-          :total-count="totalCount"
-          :all-selected="allSelected"
-          @select-all-rows="onSelectAllRows"
-          @clear-selection="onClearSelection"
-        />
-        <div class="sb-adeo-grid-frame">
-          <AdeoGrid
-            ref="gridRef"
+        <p>Active <code>:selectable</code>. La case master du header gère <code>none / some / all</code>. Le bandeau "X rows selected · Select all N · Clear" apparaît automatiquement dans la toolbar (gérée par <code>&lt;ad-grid-toolbar&gt;</code> par défaut).</p>
+        <div class="sb-grid-frame">
+          <ad-grid-vue
             :height="560"
             :columns="lmColumns"
             :rows="lmProducts"
@@ -211,20 +180,20 @@ grid.cellSelection.allRanges   // ReadonlyArray<Range>
 
 ### Désactiver
 
-Pas de prop pour off — si vous ne voulez pas de cell selection, ne fournissez pas de \`@cell-edit\`/\`@fill\` listeners et n'utilisez pas \`<AdeoGridSelectionBar>\`. Les ranges restent calculées mais sans effet visible si vous ne stylez rien.
+Pas de prop pour off — si vous ne voulez pas de cell selection, ne fournissez pas de \`@cell-edit\`/\`@fill\` listeners et n'utilisez pas \`<ad-grid-selection-bar>\`. Les ranges restent calculées mais sans effet visible si vous ne stylez rien.
         `,
       },
     },
   },
   render: () => ({
-    components: { AdeoGrid },
+    components: { AdGridVue },
     setup: () => ({ lmColumns, lmProducts }),
     template: `
-      <div class="sb-adeo-grid-shell">
+      <div class="sb-grid-shell">
         <h2>Cell range selection</h2>
         <p>Comme Excel : click → cellule active, drag → range, <kbd>Shift</kbd>+click → étend, <kbd>Ctrl</kbd>+<kbd>A</kbd> → tout. Le sélecteur range est natif.</p>
-        <div class="sb-adeo-grid-frame">
-          <AdeoGrid :height="560" :columns="lmColumns" :rows="lmProducts" />
+        <div class="sb-grid-frame">
+          <ad-grid-vue :height="560" :columns="lmColumns" :rows="lmProducts" />
         </div>
       </div>
     `,
@@ -270,7 +239,7 @@ function onBulkDelete(payload: {
 </script>
 
 <template>
-  <AdeoGrid
+  <ad-grid-vue
     :columns="columns"
     :rows="rows"
     selectable
@@ -284,7 +253,7 @@ function onBulkDelete(payload: {
 Quand vous voulez que le compteur + Select all + Clear vivent dans la toolbar (pas dans la barre flottante), ajoutez \`selection-bar-compact\` :
 
 \`\`\`vue
-<AdeoGrid selectable selection-bar-compact ... />
+<ad-grid-vue selectable selection-bar-compact ... />
 \`\`\`
 
 La barre flottante ne montre alors plus que les boutons d'action.
@@ -292,20 +261,19 @@ La barre flottante ne montre alors plus que les boutons d'action.
 ### Custom actions (#actions slot)
 
 \`\`\`vue
-<AdeoGrid selectable>
+<ad-grid-vue selectable>
   <template #selection-actions="{ selectedCount, mode, clearSelection, close }">
     <button @click="archive(); clearSelection(); close()">Archive {{ selectedCount }}</button>
   </template>
-</AdeoGrid>
+</ad-grid-vue>
 \`\`\`
         `,
       },
     },
   },
   render: () => ({
-    components: { AdeoGrid, AdeoGridToolbar },
+    components: { AdGridVue },
     setup() {
-      const gridRef = ref<InstanceType<typeof AdeoGrid> | null>(null)
       const rows = ref([...lmProducts])
       const lastBulk = ref<string>('—')
       function onBulkDelete(payload: { fills: Array<{ rowIndex: number; field: string; oldValue: unknown }> }) {
@@ -315,51 +283,15 @@ La barre flottante ne montre alors plus que les boutons d'action.
         }
         lastBulk.value = `${payload.fills.length} cellule(s) effacée(s)`
       }
-      // Toolbar-managed selection: read state from the grid ref so the
-      // banner ("X rows selected · Select all N rows · Clear") renders
-      // inline in the toolbar instead of the floating selection bar.
-      const selectedCount = computed(() => gridRef.value?.selectedCount ?? 0)
-      const totalCount = computed(() => gridRef.value?.selectionTotalCount ?? 0)
-      const allSelected = computed(() => gridRef.value?.selectionModel?.allSelected ?? false)
-      function onSelectAllRows() {
-        gridRef.value?.selectAll()
-      }
-      function onClearSelection() {
-        gridRef.value?.clearSelection()
-      }
-      return {
-        lmColumns,
-        gridRef,
-        rows,
-        onBulkDelete,
-        lastBulk,
-        selectedCount,
-        totalCount,
-        allSelected,
-        onSelectAllRows,
-        onClearSelection,
-      }
+      return { lmColumns, rows, onBulkDelete, lastBulk }
     },
     template: `
-      <div class="sb-adeo-grid-shell">
+      <div class="sb-grid-shell">
         <h2>Bulk delete via action bar</h2>
         <p>Sélectionne plusieurs cellules ou lignes puis <kbd>Delete</kbd>. L'évent <code>bulkDelete</code> remonte le payload pour appliquer le clear côté state.</p>
-        <div class="sb-adeo-grid-toolbar">Dernière action : <code>{{ lastBulk }}</code></div>
-        <AdeoGridToolbar
-          show-fullscreen
-          show-export
-          show-filters
-          show-settings
-          show-keyboard
-          :selected-count="selectedCount"
-          :total-count="totalCount"
-          :all-selected="allSelected"
-          @select-all-rows="onSelectAllRows"
-          @clear-selection="onClearSelection"
-        />
-        <div class="sb-adeo-grid-frame">
-          <AdeoGrid
-            ref="gridRef"
+        <div class="sb-grid-toolbar">Dernière action : <code>{{ lastBulk }}</code></div>
+        <div class="sb-grid-frame">
+          <ad-grid-vue
             :height="560"
             :columns="lmColumns"
             :rows="rows"

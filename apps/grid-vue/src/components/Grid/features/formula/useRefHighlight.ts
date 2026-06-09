@@ -6,7 +6,7 @@
  *   - Owns the list of `RefHighlight`s describing which cells are
  *     referenced by the formula currently being edited.
  *   - Exposes a per-cell colour lookup (`colorByCell`) consumed by
- *     `AdeoGridCell` to render coloured borders.
+ *     `AdGridCell` to render coloured borders.
  *   - Acts as a message bus for click-to-pick: cells emit `pickCell` /
  *     `pickRange*` events, the active editor receives them through a
  *     registered `PickHandler`.
@@ -28,7 +28,7 @@ export interface RefHighlight {
   /** Resolved cells covered by the ref (1 entry for a simple ref). */
   readonly cells: readonly CellAddress[]
   readonly colorIndex: number
-  /** `var(--moz-grid-ref-color-N)` — ready to use in `[style]` bindings. */
+  /** `var(--ad-grid-ref-color-N)` — ready to use in `[style]` bindings. */
   readonly cssVar: string
 }
 

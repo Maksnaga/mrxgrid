@@ -1,6 +1,6 @@
 /**
  * Undo / Redo plugin — persists the grid's history stacks to
- * `localStorage` under `adeo-grid-history:<storageKey>` and binds the
+ * `localStorage` under `grid-history:<storageKey>` and binds the
  * <kbd>⌘Z</kbd> / <kbd>⌘⇧Z</kbd> / <kbd>⌘Y</kbd> shortcuts at the
  * document level as a fallback. The grid itself also handles the
  * shortcut on its own `@keydown` (when the wrapper has focus); this
@@ -16,7 +16,7 @@
  *
  * Usage:
  *
- *   <AdeoGrid
+ *   <ad-grid-vue
  *     :plugins="[useUndoRedoPlugin({ storageKey: 'lm-products-v1' })]"
  *     history-id="lm-products-v1"
  *     @cell-edit="onCellEdit"
@@ -26,12 +26,12 @@
  * the same localStorage entry.)
  */
 
-import type { AdeoGridPlugin } from '@/components/AdeoGrid/models/plugin.model'
+import type { GridPlugin } from '@/components/Grid/models/plugin.model'
 
 export interface UndoRedoPluginOptions {
   /**
    * `localStorage` namespace. When provided, undo/redo stacks are
-   * mirrored to `adeo-grid-history:<storageKey>` and restored on next
+   * mirrored to `grid-history:<storageKey>` and restored on next
    * mount. Pass `null` (or omit) to keep history in memory only.
    */
   storageKey?: string | null
@@ -45,7 +45,7 @@ export interface UndoRedoPluginOptions {
   bindKeyboardShortcuts?: boolean
 }
 
-export function useUndoRedoPlugin(options: UndoRedoPluginOptions = {}): AdeoGridPlugin {
+export function useUndoRedoPlugin(options: UndoRedoPluginOptions = {}): GridPlugin {
   const { storageKey = null, bindKeyboardShortcuts = true } = options
 
   return {

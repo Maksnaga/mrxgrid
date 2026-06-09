@@ -1,7 +1,7 @@
 /**
- * AdeoGridSlots — provides the root `<AdeoGrid>` scoped slots to deeply nested
- * subcomponents (`AdeoGridCell`, `AdeoGridHeaderCell`, `AdeoGridGroupRow`,
- * `AdeoGridDetailRow`, `AdeoGridFilterRow`) without prop-drilling slot through
+ * GridSlots — provides the root `<ad-grid-vue>` scoped slots to deeply nested
+ * subcomponents (`AdGridCell`, `AdGridHeaderCell`, `AdGridGroupRow`,
+ * `AdGridDetailRow`, `AdGridFilterRow`) without prop-drilling slot through
  * 4–5 levels of nesting.
  *
  * Resolution order — Phase 3.3 — for each rendered cell, the consumer can
@@ -14,19 +14,19 @@
  *   5. `String(value)`
  *
  * Same pattern for `#header-{field}` / `#header`, `#filter-{field}` /
- * `#filter`, `#edit-{field}` / `#edit`. The grid-level `<AdeoColumn>` slots
+ * `#filter`, `#edit-{field}` / `#edit`. The grid-level `<ad-grid-column>` slots
  * (Phase 3.2) are merged in and take priority over both per-field and
- * generic slots from `<AdeoGrid>` itself, since the consumer expressed slot
+ * generic slots from `<ad-grid-vue>` itself, since the consumer expressed slot
  * intent against a specific column.
  */
 
 import { inject, type InjectionKey, type Slot } from 'vue'
-import type { AdeoColumnRegistry } from './AdeoColumnRegistry'
+import type { ColumnRegistry } from './ColumnRegistry'
 import type { FormulaEngine } from '../features/formula/useFormulaEngine'
 import type { RefHighlightApi } from '../features/formula/useRefHighlight'
 
-export interface AdeoGridSlotsContext {
-  /** Generic `#cell` slot from the `<AdeoGrid>` root, or `undefined`. */
+export interface GridSlotsContext {
+  /** Generic `#cell` slot from the `<ad-grid-vue>` root, or `undefined`. */
   cell?: Slot
   /** Generic `#header` slot. */
   header?: Slot
@@ -36,12 +36,12 @@ export interface AdeoGridSlotsContext {
   edit?: Slot
   /** Per-field slot map: `cell-status`, `header-status`, etc. */
   perField: Record<string, Slot>
-  /** The column registry — slots declared on a `<AdeoColumn>` win over
-   *  matching generic / per-field slots from `<AdeoGrid>`. */
-  registry: AdeoColumnRegistry | null
+  /** The column registry — slots declared on a `<ad-grid-column>` win over
+   *  matching generic / per-field slots from `<ad-grid-vue>`. */
+  registry: ColumnRegistry | null
   /** Formula engine — exposed so cells can substitute raw `=…` source values
    *  with the evaluated `FormulaValue` at render time without prop-drilling
-   *  the engine through AdeoGridBody → AdeoGridRow → AdeoGridCell. */
+   *  the engine through AdGridBody → AdGridRow → AdGridCell. */
   formula?: FormulaEngine | null
   /** Resolve a stable row id for an index — used to build a `CellAddress`
    *  (`{ rowId, field }`) when looking up formula values. Returns `undefined`
@@ -49,7 +49,7 @@ export interface AdeoGridSlotsContext {
   resolveRowId?: (rowIndex: number) => string | undefined
   /** Ref-highlight bridge — drives the coloured borders on cells referenced
    *  by the formula being edited. Cells read `colorByCell.value.get(key)`
-   *  per render to apply `--moz-grid-ref-color`. Undefined when no formula
+   *  per render to apply `--ad-grid-ref-color`. Undefined when no formula
    *  edit is active. */
   refHighlight?: RefHighlightApi | null
   /** Field name of the column currently being dragged for reorder, or
@@ -74,29 +74,29 @@ export interface AdeoGridSlotsContext {
   }
 }
 
-export const ADEO_GRID_SLOTS_KEY: InjectionKey<AdeoGridSlotsContext> = Symbol(
-  'AdeoGridSlots',
+export const GRID_SLOTS_KEY: InjectionKey<GridSlotsContext> = Symbol(
+  'GridSlots',
 )
 
-export function injectAdeoGridSlots(): AdeoGridSlotsContext | null {
-  return inject(ADEO_GRID_SLOTS_KEY, null)
+export function injectGridSlots(): GridSlotsContext | null {
+  return inject(GRID_SLOTS_KEY, null)
 }
 
 /**
  * Resolve the cell slot for a given field — checks (in order):
- * 1. `<AdeoColumn field={field}>` `#cell` slot via the registry
- * 2. `<AdeoGrid>` `#cell-{field}` slot
- * 3. `<AdeoGrid>` `#cell` generic slot
+ * 1. `<ad-grid-column field={field}>` `#cell` slot via the registry
+ * 2. `<ad-grid-vue>` `#cell-{field}` slot
+ * 3. `<ad-grid-vue>` `#cell` generic slot
  * Returns `undefined` if none — caller falls back to `column.renderer` or text.
  */
 export function resolveCellSlot(
-  ctx: AdeoGridSlotsContext | null,
+  ctx: GridSlotsContext | null,
   field: string,
 ): Slot | undefined {
   if (!ctx) return undefined
-  // 1. Slot declared on <AdeoColumn> takes priority (slot lookup happens via
+  // 1. Slot declared on <ad-grid-column> takes priority (slot lookup happens via
   //    Vue's render context — registry only knows whether it exists).
-  //    The actual slot reference is stored on the registry by AdeoColumn.
+  //    The actual slot reference is stored on the registry by Column.
   const reg = ctx.registry?.list().find((r) => r.id === field)
   if (reg?.hasCellSlot && reg.cellSlot) return reg.cellSlot
   // 2. Per-field slot on the grid root.
@@ -107,7 +107,7 @@ export function resolveCellSlot(
 }
 
 export function resolveHeaderSlot(
-  ctx: AdeoGridSlotsContext | null,
+  ctx: GridSlotsContext | null,
   field: string,
 ): Slot | undefined {
   if (!ctx) return undefined
@@ -119,7 +119,7 @@ export function resolveHeaderSlot(
 }
 
 export function resolveFilterSlot(
-  ctx: AdeoGridSlotsContext | null,
+  ctx: GridSlotsContext | null,
   field: string,
 ): Slot | undefined {
   if (!ctx) return undefined
@@ -131,7 +131,7 @@ export function resolveFilterSlot(
 }
 
 export function resolveEditSlot(
-  ctx: AdeoGridSlotsContext | null,
+  ctx: GridSlotsContext | null,
   field: string,
 ): Slot | undefined {
   if (!ctx) return undefined

@@ -1,5 +1,5 @@
 /**
- * Column resize engine — Angular parity (moz-grid / `ColumnResizeEngine`).
+ * Column resize engine — Angular parity (ad-grid / `ColumnResizeEngine`).
  *
  * Drives the column drag-to-resize interaction by writing `currentWidth` into
  * `state.columnStates[field]`. Mirrors Angular's behavior:
@@ -21,7 +21,7 @@ export interface ColumnResizeEngine {
   getResizeEvent(field: string, previousWidth: number): ColumnResizeEvent
   /**
    * `performance.now()` timestamp of the last resize mouseup. Used by
-   * `AdeoGridHeaderCell` to suppress the synthetic click-after-mouseup that
+   * `AdGridHeaderCell` to suppress the synthetic click-after-mouseup that
    * would otherwise trigger a spurious sort. Mirror of the module-level
    * `_resizeEndedAt` flag in the legacy `composables/useColumnResize.ts`.
    */
@@ -35,7 +35,7 @@ export function useColumnResizeEngine<T = RowData>(state: GridState<T>): ColumnR
   let startWidth = 0
   let invertDelta = false
 
-  // Use the shared ref on GridState so AdeoGridHeaderCell can read it via
+  // Use the shared ref on GridState so AdGridHeaderCell can read it via
   // useGridContext() — no separate engine injection needed.
   const lastResizeEndedAt = state.lastResizeEndedAt
 

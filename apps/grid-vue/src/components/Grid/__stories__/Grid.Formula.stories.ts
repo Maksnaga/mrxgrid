@@ -1,11 +1,11 @@
 import type { Meta, StoryObj } from '@storybook/vue3-vite'
 import { ref } from 'vue'
-import { AdeoGrid, AdeoFormulaBar } from '@/components/AdeoGrid'
-import type { CellEditEvent, ColumnDef, RowData } from '@/components/AdeoGrid'
+import { AdGridVue, AdGridFormulaBar } from '@/components/Grid'
+import type { CellEditEvent, ColumnDef, RowData } from '@/components/Grid'
 
 const meta = {
   title: 'Stories/Formula Engine/Basics · Custom functions · Refs',
-  component: AdeoGrid,
+  component: AdGridVue,
   tags: ['autodocs'],
   args: { rows: [] },
   parameters: {
@@ -37,8 +37,8 @@ Quand le formula engine est actif, la grille bascule visuellement :
 
 ### Composants associés
 
-- \`<AdeoFormulaBar>\` — barre de formule type Excel, en haut de la grille
-- \`<AdeoFormulaReferenceDrawer>\` — popup help avec la liste des fonctions
+- \`<ad-grid-formula-bar>\` — barre de formule type Excel, en haut de la grille
+- \`<ad-grid-formula-reference-drawer>\` — popup help avec la liste des fonctions
 
 ### API impérative
 
@@ -51,7 +51,7 @@ grid.getFormulaValue(rowId, field)          // returns the evaluated value
       },
     },
   },
-} satisfies Meta<typeof AdeoGrid>
+} satisfies Meta<typeof AdGridVue>
 
 export default meta
 type Story = StoryObj<typeof meta>
@@ -121,7 +121,7 @@ Le DAG est indexé par \`(rowId, field)\` — sans \`rowId\`, le moteur perd le 
     },
   },
   render: () => ({
-    components: { AdeoGrid, AdeoFormulaBar },
+    components: { AdGridVue, AdGridFormulaBar },
     setup() {
       const cols: ColumnDef[] = [
         { field: 'id', headerName: 'ID', width: '60px', pinned: 'start' },
@@ -134,8 +134,8 @@ Le DAG est indexé par \`(rowId, field)\` — sans \`rowId\`, le moteur perd le 
       ]
       const rows = ref<OrderRow[]>(makeOrders())
 
-      const gridRef = ref<InstanceType<typeof AdeoGrid>>()
-      const barRef = ref<InstanceType<typeof AdeoFormulaBar>>()
+      const gridRef = ref<InstanceType<typeof AdGridVue>>()
+      const barRef = ref<InstanceType<typeof AdGridFormulaBar>>()
 
       function onCellEdit(e: CellEditEvent) {
         const row = rows.value[e.rowIndex] as Record<string, unknown> | undefined
@@ -151,7 +151,7 @@ Le DAG est indexé par \`(rowId, field)\` — sans \`rowId\`, le moteur perd le 
       return { cols, rows, gridRef, barRef, onCellEdit }
     },
     template: `
-      <div class="sb-adeo-grid-shell">
+      <div class="sb-grid-shell">
         <h2>Same-row formulas (<code>allowFormula: true</code>)</h2>
         <p>
           Dès qu'une colonne a <code>allowFormula: true</code>, le grid passe en
@@ -165,9 +165,9 @@ Le DAG est indexé par \`(rowId, field)\` — sans \`rowId\`, le moteur perd le 
           <li><strong>F4</strong> sur la ref au curseur → cycle <code>A1</code> → <code>$A$1</code> → <code>A$1</code> → <code>$A1</code></li>
           <li>Erreurs de calcul (<code>#DIV/0!</code>, <code>#REF!</code>…) rendues en rouge avec tooltip</li>
         </ul>
-        <AdeoFormulaBar ref="barRef" :all-columns="cols" :rows="rows" />
-        <div class="sb-adeo-grid-frame">
-          <AdeoGrid :height="560"
+        <ad-grid-formula-bar ref="barRef" :all-columns="cols" :rows="rows" />
+        <div class="sb-grid-frame">
+          <ad-grid-vue :height="560"
             ref="gridRef"
             :columns="cols"
             :rows="rows"
@@ -222,7 +222,7 @@ Pendant l'édition d'une formule, placez le curseur sur une ref et appuyez F4 �
     },
   },
   render: () => ({
-    components: { AdeoGrid, AdeoFormulaBar },
+    components: { AdGridVue, AdGridFormulaBar },
     setup() {
       const cols: ColumnDef[] = [
         { field: 'id', headerName: 'ID', width: '60px', pinned: 'start' },
@@ -251,11 +251,11 @@ Pendant l'édition d'une formule, placez le curseur sur une ref et appuyez F4 �
       return { cols, rows, onCellEdit }
     },
     template: `
-      <div class="sb-adeo-grid-shell">
+      <div class="sb-grid-shell">
         <h2>Cross-row references (<code>=A1</code>, <code>=B2+C3</code>…)</h2>
         <p>Le moteur supporte les références A1 entre lignes. Edite la cellule "Cumul" → la barre formule affiche la formule originale, le grid affiche la valeur évaluée.</p>
-        <div class="sb-adeo-grid-frame">
-          <AdeoGrid :height="560" :columns="cols" :rows="rows" :row-id="(r) => String(r.id)" @cell-edit="onCellEdit" />
+        <div class="sb-grid-frame">
+          <ad-grid-vue :height="560" :columns="cols" :rows="rows" :row-id="(r) => String(r.id)" @cell-edit="onCellEdit" />
         </div>
       </div>
     `,

@@ -1,5 +1,5 @@
 /**
- * Grid pipeline — Angular parity (moz-grid / `GridEngine`).
+ * Grid pipeline — Angular parity (ad-grid / `GridEngine`).
  *
  * Composes the data pipeline on top of the central `GridState`:
  *
@@ -59,6 +59,10 @@ import {
   type CellSelectionEngine,
 } from '../features/useCellSelectionEngine'
 import { useGroupEngine, type GroupEngine } from '../features/useGroupEngine'
+import {
+  useServerGroupEngine,
+  type ServerGroupEngine,
+} from '../features/useServerGroupEngine'
 import { useTreeEngine, type TreeEngine } from '../features/useTreeEngine'
 import { useExportEngine, type ExportEngine } from '../features/useExportEngine'
 import {
@@ -91,6 +95,7 @@ export interface GridEngine<T = RowData> {
   readonly keyboard: KeyboardEngine
   readonly cellSelection: CellSelectionEngine
   readonly group: GroupEngine<T>
+  readonly serverGroup: ServerGroupEngine<T>
   readonly tree: TreeEngine<T>
   readonly export: ExportEngine<T>
   readonly statePersistence: StatePersistenceEngine
@@ -182,6 +187,12 @@ export function useGridEngine<T = RowData>(state: GridState<T>): GridEngine<T> {
   const groupEngine = useGroupEngine<T>(state)
   const treeEngine = useTreeEngine<T>(state)
 
+  // Phase B9 — server-side grouping (Angular parity). Idle when
+  // `state.groupMode === 'client'` or no `ServerGroupingOptions` were
+  // wired via `Grid.vue` / `serverGroup.configure()`. Switches the
+  // `displayRows` source below.
+  const serverGroupEngine = useServerGroupEngine<T>(state)
+
   // Phase 7 — export (CSV / JSON) + state persistence (localStorage round-trip
   // of columns / sorts / filters). Stateless engines; both are safe to build
   // upfront regardless of whether the host grid opts in.
@@ -189,6 +200,14 @@ export function useGridEngine<T = RowData>(state: GridState<T>): GridEngine<T> {
   const statePersistenceEngine = useStatePersistenceEngine<T>(state)
 
   const displayRows = computed<DisplayRow<T>[]>(() => {
+    // Server-side grouping wins when active (`groupMode === 'server'` AND
+    // options configured AND at least one group field): the server is the
+    // single source of truth for both summaries and rows, so the
+    // filter/sort/pagination cascade above is bypassed and the engine's
+    // `flatRows` becomes the canonical row source.
+    if (state.groupMode.value === 'server' && serverGroupEngine.active.value) {
+      return serverGroupEngine.flatRows.value
+    }
     // When grouping is active, the group engine produces the flat group/data
     // stream itself — including nested group headers and collapsed subtrees.
     if (state.groupColumns.value.length > 0) {
@@ -240,6 +259,7 @@ export function useGridEngine<T = RowData>(state: GridState<T>): GridEngine<T> {
     keyboard: keyboardEngine,
     cellSelection: cellSelectionEngine,
     group: groupEngine,
+    serverGroup: serverGroupEngine,
     tree: treeEngine,
     export: exportEngine,
     statePersistence: statePersistenceEngine,

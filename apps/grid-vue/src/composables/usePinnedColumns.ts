@@ -1,5 +1,5 @@
 import { computed, isRef, unref, type CSSProperties, type MaybeRef, type Ref } from 'vue'
-import type { ColumnDef } from '@/components/AdeoGrid/types'
+import type { ColumnDef } from '@/components/Grid/types'
 
 const DEFAULT_WIDTH = 150
 

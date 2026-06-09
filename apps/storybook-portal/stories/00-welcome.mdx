@@ -1,0 +1,41 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+
+<Meta title="Welcome" />
+
+# Adeo Grid — Portail unifié
+
+Documentation transverse du datagrid Adeo (Vue et Angular).
+
+## Comment lancer
+
+```bash
+pnpm storybook
+```
+
+Les **3 Storybooks** démarrent en parallèle (Vue sur 6006, Angular sur 6007, portail sur 6008).
+
+## Navigation
+
+Tu es dans le portail (`:6008`). Pour accéder aux libs :
+
+- **Boutons toolbar** en haut à droite : `Grid (Vue) ↗` (vert) et `Grid (Angular) ↗` (rouge). Clic → ouvre la lib dans un **nouvel onglet navigateur**.
+- **Ou liens directs** : [`:6006`](http://localhost:6006) (Vue) et [`:6007`](http://localhost:6007) (Angular).
+
+Sidebar gauche :
+
+- **Welcome** — cette page
+- **Docs** — documentation transverse :
+  - Architecture monorepo
+  - Runbook quotidien
+  - Spec mutualisée (8 chapitres : Sommaire, Introduction, Données & colonnes, Pipeline de données, Interactions, Extensibilité, Theming/Performance/API, Annexe)
+
+## Standalone
+
+- `pnpm storybook:vue` — Vue Storybook seul
+- `pnpm storybook:angular` — Angular Storybook seul
+- `pnpm storybook:portal` — Portail seul (les boutons toolbar pointent vers `:6006/:6007` qui doivent tourner)
+
+## Liens externes
+
+- Source : [github.com/Maksnaga/adeo-grid-monorepo](https://github.com/Maksnaga/adeo-grid-monorepo)
+- Versioning : Changesets (`pnpm changeset`)

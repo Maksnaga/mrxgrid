@@ -1,0 +1,132 @@
+<div
+  class="grid-cell"
+  [class.grid-cell--focused]="isFocused()"
+  [class.grid-cell--in-range]="isInRange()"
+  [class.grid-cell--in-fill-range]="isInFillRange()"
+  [class.grid-cell--in-fill-reject-range]="isInFillRejectRange()"
+  [class.grid-cell--cut]="cutEdges().any"
+  [class.grid-cell--last]="isLast()"
+  [class.grid-cell--pinned-end]="pinnedEnd()"
+  [class.grid-cell--readonly]="!def().editable"
+  [class.grid-cell--error]="cellError()"
+  [class.grid-cell--formula-error]="hasFormulaError()"
+  [class.grid-cell--ref-highlight]="refHighlightColor()"
+  [class.ad-grid-cell--pending]="isPending()"
+  [style.--ad-grid-ref-color]="refHighlightColor()"
+  [attr.aria-invalid]="cellError() ? 'true' : null"
+  (click)="onCellClick($event)"
+  (dblclick)="onDoubleClick()"
+  (mousedown)="onMouseDown($event)"
+  (mouseenter)="onMouseEnter()"
+>
+  @if (isEditing()) {
+  <div class="grid-cell__editor" (focusout)="onEditorBlur($event)">
+    @if (isFormulaEditing()) {
+    <ad-grid-formula-editor
+      [value]="$any(editState().draftValue)"
+      (valueChange)="updateDraftFn($event)"
+      (commit)="commitEditFn()"
+      (cancel)="onFormulaCancel()"
+    />
+    } @else if (editTemplate()) {
+    <div class="grid-cell__editor-custom">
+      <ng-container
+        [ngTemplateOutlet]="editTemplate()!"
+        [ngTemplateOutletContext]="{
+          $implicit: value(),
+          row: row(),
+          field: def().field,
+          draft: editState().draftValue,
+          updateDraft: updateDraftFn,
+          commitEdit: commitEditFn
+        }"
+      />
+    </div>
+    } @else { @switch (editorType()) {  @case ('text') {
+    <input
+      class="grid-cell__input grid-cell__input--plain"
+      type="text"
+      [value]="editState().draftValue"
+      (input)="onEditorInput($event)"
+    />
+    } @case ('number') {
+    <input
+      class="grid-cell__input grid-cell__input--plain"
+      type="number"
+      [value]="editState().draftValue"
+      (input)="onEditorInput($event)"
+    />
+    } @case ('select') {
+    <moz-select
+      name="cell-editor"
+      [options]="def().cellEditorOptions ?? []"
+      [ngModel]="editState().draftValue"
+      (change)="onSelectChange($event)"
+      [size]="'s'"
+    />
+    } @case ('checkbox') {
+    <moz-checkbox
+      [id]="'grid-cell-editor-' + rowIndex() + '-' + colIndex()"
+      [ngModel]="!!editState().draftValue"
+      (change)="onCheckboxChange($event)"
+    />
+    } @case ('date') {
+    <moz-datepicker
+      [id]="'grid-cell-editor-' + rowIndex() + '-' + colIndex()"
+      size="s"
+      [ngModel]="editState().draftValue"
+      (ngModelChange)="onDateChange($event)"
+    />
+    } @default {
+    <input
+      class="grid-cell__input grid-cell__input--plain"
+      type="text"
+      [value]="editState().draftValue"
+      (input)="onEditorInput($event)"
+    />
+    } } }
+  </div>
+  } @else { @if (cellTemplate()) {
+  <div class="grid-cell__custom">
+    <ng-container
+      [ngTemplateOutlet]="cellTemplate()!"
+      [ngTemplateOutletContext]="{
+        $implicit: value(),
+        value: value(),
+        row: row(),
+        rowIndex: rowIndex(),
+        field: def().field,
+        column: def()
+      }"
+    />
+  </div>
+  } @else if (cellComponentType()) {
+  <div class="grid-cell__custom">
+    <ng-container
+      [ngComponentOutlet]="cellComponentType()!"
+      [ngComponentOutletInputs]="{ value: value() }"
+    />
+  </div>
+  } @else {
+  <span class="grid-cell__value">{{ displayValue() }}</span>
+  } } @if (cutEdges(); as edges) { @if (edges.top) {
+  <div class="grid-cell__cut-mark grid-cell__cut-mark--top"></div>
+  } @if (edges.bottom) {
+  <div class="grid-cell__cut-mark grid-cell__cut-mark--bottom"></div>
+  } @if (edges.left) {
+  <div class="grid-cell__cut-mark grid-cell__cut-mark--left"></div>
+  } @if (edges.right) {
+  <div class="grid-cell__cut-mark grid-cell__cut-mark--right"></div>
+  } } @if (isFocused() && !isEditing() && def().editable) {
+  <div class="grid-cell__fill-handle" (mousedown)="onFillHandleMouseDown($event)"></div>
+  } @if (cellError(); as error) {
+  <div
+    class="grid-cell__error-icon"
+    [mozTooltip]="error.message"
+    tooltipPosition="top"
+    aria-label="Erreur de validation"
+  >
+    <ErrorFilled24 />
+  </div>
+  }
+</div>
