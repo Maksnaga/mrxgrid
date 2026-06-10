@@ -487,7 +487,7 @@ Sélectionner des lignes efface le focus cellule, et inversement.
 
 ### Projection de contenu
 
-`AdeoGridColumnDef` (colonnes, avec templates `#cell` / `#edit` / `#filter`), `AdeoGridToolbarDef` (`slot="start|end"`), `AdeoGridEmptyDef` (`kind="no-data|no-results"`), `[mozGridFilterTags]`.
+`AdeoGridColumnDef` (colonnes, avec templates `#cell` / `#edit` / `#filter`), `AdeoGridToolbarDef` (`slot="start|end"`), `AdeoGridEmptyDef` (`kind="no-data|no-results"`), `[adGridFilterTags]`.
 
 ### Providers
 

@@ -8,15 +8,13 @@ import { Product, PRODUCTS_100, generateProducts, GRID_WRAPPER, baseMeta } from 
 
 const meta: Meta<AdGridAngularComponent<Product>> = {
   ...baseMeta,
-  title: 'Data Display/Grid/Rows & Grouping',
+  title: 'Stories/Grouping/Single, Nested, Server-side',
   parameters: {
     ...baseMeta.parameters,
     docs: {
       description: {
         component: `
-# Rows & Grouping
-
-### Grouping
+# Grouping
 
 Les colonnes \`[groupable]="true"\` peuvent être groupées via le menu colonne (« Group by this column ») ou le group drawer de la toolbar. La stack \`groupColumns\` accepte plusieurs niveaux (grouping imbriqué) ; le group bar au-dessus des headers permet de réordonner / retirer les niveaux. Chaque changement émet \`(groupChange)\` avec \`{ columns, groups }\`.
 
@@ -25,16 +23,7 @@ Deux modes :
 - \`groupMode="client"\` (défaut) — le \`GroupEngine\` matérialise les group rows en mémoire
 - \`groupMode="server"\` + \`[serverGroupingOptions]\` — résumés et lignes chargés lazy depuis l'API
 
-### Row expansion
-
-\`[expandable]="true"\` ajoute un chevron par ligne ; le contenu déplié est fourni par \`[detailTemplate]\` (sinon un détail par défaut). L'état d'expansion est keyé par \`rowIdField\` et émet \`(rowExpand)\`.
-
-\`\`\`html
-<ad-grid-angular [data]="rows" [expandable]="true" rowIdField="id" [detailTemplate]="detailTpl">
-  …colonnes…
-</ad-grid-angular>
-<ng-template #detailTpl let-row>…contenu du panneau…</ng-template>
-\`\`\`
+Le dépliage de lignes individuelles (detail rows) vit dans le chapitre **Row Expansion**.
         `,
       },
     },
@@ -82,7 +71,7 @@ export const WithGrouping: Story = {
 };
 
 @Component({
-  selector: 'moz-story-nested-groups',
+  selector: 'ad-story-nested-groups',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [AdGridAngularComponent, AdeoGridColumnDef],
   template: `
@@ -134,7 +123,7 @@ export const NestedGroups: Story = {
   },
   render: () => ({
     props: {},
-    template: `<moz-story-nested-groups />`,
+    template: `<ad-story-nested-groups />`,
     moduleMetadata: {
       imports: [NestedGroupsWrapperComponent],
     },
@@ -150,7 +139,7 @@ function delay(ms: number): Promise<void> {
 }
 
 @Component({
-  selector: 'moz-story-server-grouping',
+  selector: 'ad-story-server-grouping',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [AdGridAngularComponent, AdeoGridColumnDef],
   template: `
@@ -237,168 +226,9 @@ Le dataset complet ne transite jamais : seuls les résumés de groupes puis les 
   },
   render: () => ({
     props: {},
-    template: `<moz-story-server-grouping />`,
+    template: `<ad-story-server-grouping />`,
     moduleMetadata: {
       imports: [ServerGroupingWrapperComponent],
     },
-  }),
-};
-
-export const WithExpandableRows: Story = {
-  parameters: {
-    docs: {
-      description: {
-        story:
-          'Expansion minimale : `[expandable]="true"` + `rowIdField`. Sans `[detailTemplate]`, la grille rend un panneau de détail par défaut listant les champs de la ligne.',
-      },
-    },
-  },
-  render: () => ({
-    props: {
-      data: PRODUCTS_100,
-      gridWrapper: GRID_WRAPPER,
-    },
-    template: `
-      <div [style]="gridWrapper">
-        <p style="margin-bottom: 8px; color: var(--color-text-secondary); font-size: 14px;">
-          Click the chevron on the left of each row to expand it and show details.
-        </p>
-        <ad-grid-angular [data]="data" [pagination]="true" [pageSize]="20"
-                   [expandable]="true" rowIdField="id">
-          <ad-grid-column-def field="id" headerName="ID" width="80" [sortable]="true" />
-          <ad-grid-column-def field="name" headerName="Nom" width="200" [sortable]="true" />
-          <ad-grid-column-def field="reference" headerName="Référence" width="150" [sortable]="true" />
-          <ad-grid-column-def field="category" headerName="Catégorie" width="150" [sortable]="true" />
-          <ad-grid-column-def field="price" headerName="Prix (€)" width="120" [sortable]="true" />
-          <ad-grid-column-def field="stock" headerName="Stock" width="100" [sortable]="true" />
-        </ad-grid-angular>
-      </div>
-    `,
-  }),
-};
-
-export const FreezeAndExpand: Story = {
-  parameters: {
-    docs: {
-      description: {
-        story:
-          'Cas de stress : colonnes pinnées + expansion + sélection simultanées. Les detail rows s’étendent sur toute la largeur (elles ne scrollent pas avec les colonnes) et les colonnes pinnées restent sticky pendant le scroll horizontal.',
-      },
-    },
-  },
-  render: () => ({
-    props: {
-      data: PRODUCTS_100,
-      gridWrapper: GRID_WRAPPER,
-    },
-    template: `
-      <div [style]="gridWrapper">
-        <p style="margin-bottom: 8px; color: var(--color-text-secondary); font-size: 14px;">
-          Freeze columns (pin left/right via column menu) then expand rows — detail rows should span full width.
-          Scroll horizontally to verify pinned columns stay in place.
-        </p>
-        <ad-grid-angular [data]="data" [pagination]="true" [pageSize]="20"
-                   [expandable]="true" rowIdField="id" [rowSelection]="true" [detailTemplate]="detailTpl2">
-          <ad-grid-column-def field="id" headerName="ID" width="120" [sortable]="true" [freezable]="true" />
-          <ad-grid-column-def field="name" headerName="Nom" width="250" [sortable]="true" [freezable]="true" />
-          <ad-grid-column-def field="reference" headerName="Référence" width="220" [sortable]="true" [freezable]="true" />
-          <ad-grid-column-def field="category" headerName="Catégorie" width="200" [sortable]="true" [freezable]="true" />
-          <ad-grid-column-def field="price" headerName="Prix (€)" width="180" [sortable]="true" [freezable]="true" />
-          <ad-grid-column-def field="stock" headerName="Stock" width="150" [sortable]="true" [freezable]="true" />
-          <ad-grid-column-def field="supplier" headerName="Fournisseur" width="220" [sortable]="true" [freezable]="true" />
-          <ad-grid-column-def field="status" headerName="Statut" width="180" [sortable]="true" [freezable]="true" />
-        </ad-grid-angular>
-
-        <ng-template #detailTpl2 let-row>
-          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; padding: 16px; background: #f8f9fa; border-bottom: 1px solid #dee2e6;">
-            <div>
-              <div style="font-size: 11px; color: #6c757d; text-transform: uppercase; margin-bottom: 4px;">Produit</div>
-              <div style="font-weight: 600;">{{ row.name }}</div>
-              <div style="font-size: 13px; color: #6c757d;">{{ row.reference }}</div>
-            </div>
-            <div>
-              <div style="font-size: 11px; color: #6c757d; text-transform: uppercase; margin-bottom: 4px;">Catégorie & Fournisseur</div>
-              <div>{{ row.category }}</div>
-              <div style="font-size: 13px; color: #6c757d;">{{ row.supplier }}</div>
-            </div>
-            <div>
-              <div style="font-size: 11px; color: #6c757d; text-transform: uppercase; margin-bottom: 4px;">Prix & Stock</div>
-              <div style="font-weight: 600; color: #1a73e8;">{{ row.price.toFixed(2) }} €</div>
-              <div>{{ row.stock }} unités — {{ row.status }}</div>
-            </div>
-          </div>
-        </ng-template>
-      </div>
-    `,
-  }),
-};
-
-export const WithCustomExpandDetail: Story = {
-  parameters: {
-    docs: {
-      description: {
-        story: `
-\`[detailTemplate]\` remplace le panneau de détail par défaut. Le template reçoit la ligne en contexte implicite :
-
-\`\`\`html
-<ng-template #detailTpl let-row>
-  <div class="detail-grid">{{ row.name }} — {{ row.price }} €</div>
-</ng-template>
-\`\`\`
-        `,
-      },
-    },
-  },
-  render: () => ({
-    props: {
-      data: PRODUCTS_100,
-      gridWrapper: GRID_WRAPPER,
-    },
-    template: `
-      <div [style]="gridWrapper">
-        <p style="margin-bottom: 8px; color: var(--color-text-secondary); font-size: 14px;">
-          Click the chevron to expand a row and see a custom detail panel with product info.
-        </p>
-        <ad-grid-angular [data]="data" [pagination]="true" [pageSize]="20"
-                   [expandable]="true" rowIdField="id" [detailTemplate]="detailTpl">
-          <ad-grid-column-def field="id" headerName="ID" width="80" [sortable]="true" />
-          <ad-grid-column-def field="name" headerName="Nom" width="200" [sortable]="true" />
-          <ad-grid-column-def field="reference" headerName="Référence" width="150" [sortable]="true" />
-          <ad-grid-column-def field="category" headerName="Catégorie" width="150" [sortable]="true" />
-          <ad-grid-column-def field="price" headerName="Prix (€)" width="120" [sortable]="true" />
-          <ad-grid-column-def field="stock" headerName="Stock" width="100" [sortable]="true" />
-        </ad-grid-angular>
-
-        <ng-template #detailTpl let-row>
-          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; padding: 16px; background: #f8f9fa; border-bottom: 1px solid #dee2e6">
-            <div>
-              <div style="font-size: 11px; color: #6c757d; text-transform: uppercase; margin-bottom: 4px;">Produit</div>
-              <div style="font-weight: 600;">{{ row.name }}</div>
-              <div style="font-size: 13px; color: #6c757d;">{{ row.reference }}</div>
-            </div>
-            <div>
-              <div style="font-size: 11px; color: #6c757d; text-transform: uppercase; margin-bottom: 4px;">Catégorie & Fournisseur</div>
-              <div>{{ row.category }}</div>
-              <div style="font-size: 13px; color: #6c757d;">{{ row.supplier }}</div>
-            </div>
-            <div>
-              <div style="font-size: 11px; color: #6c757d; text-transform: uppercase; margin-bottom: 4px;">Prix & Stock</div>
-              <div style="font-weight: 600; color: #1a73e8;">{{ row.price.toFixed(2) }} €</div>
-              <div>
-                <span [style.color]="row.stock > 100 ? '#155724' : row.stock > 0 ? '#856404' : '#721c24'">
-                  {{ row.stock }} unités
-                </span>
-                —
-                <span [style.padding]="'1px 6px'" [style.border-radius]="'3px'" [style.font-size]="'11px'"
-                      [style.background]="row.status === 'En stock' ? '#d4edda' : row.status === 'Rupture' ? '#f8d7da' : '#fff3cd'"
-                      [style.color]="row.status === 'En stock' ? '#155724' : row.status === 'Rupture' ? '#721c24' : '#856404'">
-                  {{ row.status }}
-                </span>
-              </div>
-            </div>
-          </div>
-        </ng-template>
-      </div>
-    `,
   }),
 };

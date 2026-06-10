@@ -365,7 +365,7 @@ import { MozButtonComponent } from '@mozaic-ds/angular';
         </button>
       </div>
       }
-      <ng-content select="[mozGridFilterTags]" />
+      <ng-content select="[adGridFilterTags]" />
 
       <!-- Formula bar (spreadsheet-style preview & editor of the focused cell) -->
       @if (state.hasFormulaColumns()) {
@@ -481,7 +481,7 @@ import { MozButtonComponent } from '@mozaic-ds/angular';
              slot with a thin progress bar or spinner of their choice. This is
              distinct from [loading] which replaces rows with skeleton cells. -->
         @if (refreshing()) {
-        <ng-content select="[mozGridRefreshing]" />
+        <ng-content select="[adGridRefreshing]" />
         }
 
         <!-- Hidden measurement zone: renders detail rows for ids currently
@@ -940,7 +940,7 @@ export class AdGridAngularComponent<T = unknown> implements OnDestroy {
   /**
    * `refreshing` signals a background data refresh in progress. Unlike
    * `loading` (which shows the full skeleton), `refreshing` keeps the current
-   * rows visible and renders the `[mozGridRefreshing]` slot content (e.g. a
+   * rows visible and renders the `[adGridRefreshing]` slot content (e.g. a
    * thin progress bar) below the table. The grid itself shows nothing — it is
    * the consumer's responsibility to fill the slot.
    *
@@ -1055,7 +1055,7 @@ export class AdGridAngularComponent<T = unknown> implements OnDestroy {
     return 'no-results';
   });
 
-  /** Resolves the projected `<ng-template mozGridEmptyDef>` for the kind. */
+  /** Resolves the projected `<ng-template adGridEmptyDef>` for the kind. */
   protected readonly emptyTemplate = computed(() => {
     const kind = this.emptyStateKind();
     if (kind === 'none') return null;

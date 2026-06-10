@@ -7,7 +7,7 @@ import { Product, ProductWithTags, PRODUCTS_100, GRID_WRAPPER, baseMeta, TAG_LAB
 
 const meta: Meta<AdGridAngularComponent<Product>> = {
   ...baseMeta,
-  title: 'Data Display/Grid/Editing',
+  title: 'Stories/Editing/Inline, Editors, Validation, Fill',
   parameters: {
     ...baseMeta.parameters,
     docs: {
@@ -208,7 +208,7 @@ Combinez avec un template \`#cell\` pour soigner aussi le mode lecture (badge, Ã
 };
 
 @Component({
-  selector: 'moz-story-combobox-cell',
+  selector: 'ad-story-combobox-cell',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [AdGridAngularComponent, AdeoGridColumnDef, MozComboboxComponent],
   template: `
@@ -424,7 +424,7 @@ export const WithComboboxCell: Story = {
   },
   render: () => ({
     props: {},
-    template: `<moz-story-combobox-cell />`,
+    template: `<ad-story-combobox-cell />`,
     moduleMetadata: {
       imports: [ComboboxCellWrapperComponent],
     },

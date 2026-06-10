@@ -4,7 +4,7 @@ import { Product, PRODUCTS_100, GRID_WRAPPER, baseMeta } from './grid-stories.sh
 
 const meta: Meta<AdGridAngularComponent<Product>> = {
   ...baseMeta,
-  title: 'Data Display/Grid/Export',
+  title: 'Stories/Export/CSV — client & server',
   parameters: {
     ...baseMeta.parameters,
     docs: {

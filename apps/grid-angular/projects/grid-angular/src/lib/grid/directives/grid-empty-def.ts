@@ -17,11 +17,11 @@ export type GridEmptyKind = 'no-data' | 'no-results';
  *
  * ```html
  * <ad-grid-angular [data]="rows">
- *   <ng-template mozGridEmptyDef>
+ *   <ng-template adGridEmptyDef>
  *     <p>Aucune donnée pour le moment</p>
  *   </ng-template>
  *
- *   <ng-template mozGridEmptyDef="no-results" let-ctx>
+ *   <ng-template adGridEmptyDef="no-results" let-ctx>
  *     <p>Aucun résultat pour vos filtres ({{ ctx.activeFilterCount }})</p>
  *     <button (click)="ctx.clearFilters()">Réinitialiser</button>
  *   </ng-template>
@@ -31,14 +31,14 @@ export type GridEmptyKind = 'no-data' | 'no-results';
  * The implicit context (`let-ctx`) exposes `{ activeFilterCount, clearFilters }`.
  */
 @Directive({
-  selector: '[mozGridEmptyDef]',
+  selector: '[adGridEmptyDef]',
 })
 export class AdeoGridEmptyDef {
-  readonly kind = input<GridEmptyKind>('no-data', { alias: 'mozGridEmptyDef' });
+  readonly kind = input<GridEmptyKind>('no-data', { alias: 'adGridEmptyDef' });
   readonly template = inject<TemplateRef<GridEmptyContext>>(TemplateRef);
 }
 
-/** Context object passed to a `mozGridEmptyDef` template. */
+/** Context object passed to a `adGridEmptyDef` template. */
 export interface GridEmptyContext {
   /** Number of active filter conditions; `0` when called with `no-data`. */
   activeFilterCount: number;

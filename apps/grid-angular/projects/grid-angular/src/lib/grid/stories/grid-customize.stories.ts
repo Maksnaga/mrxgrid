@@ -5,7 +5,7 @@ import { Product, PRODUCTS_100, generateProducts, GRID_WRAPPER, baseMeta } from 
 
 const meta: Meta<AdGridAngularComponent<Product>> = {
   ...baseMeta,
-  title: 'Data Display/Grid/Customization',
+  title: 'Stories/Customization/Persist, Plugins, Undo-redo',
   parameters: {
     ...baseMeta.parameters,
     docs: {

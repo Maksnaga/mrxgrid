@@ -9,7 +9,7 @@ import { Product, generateProducts, PRODUCTS_100, PRODUCTS_1000, GRID_WRAPPER, b
 
 const meta: Meta<AdGridAngularComponent<Product>> = {
   ...baseMeta,
-  title: 'Data Display/Grid/Basics',
+  title: 'Stories/Basics/Density, Fullscreen, Row identity',
   parameters: {
     ...baseMeta.parameters,
     docs: {
@@ -34,9 +34,9 @@ Mise en route et réglages globaux de la grille.
 | \`rowIdField\` | \`'id'\` | Clé stable des lignes (sélection, expansion, persistance) |
 | \`[density]\` | \`'default'\` | Hauteur des lignes : compact 32px · default 48px · comfortable 64px |
 | \`[showToolbar]\` | \`true\` | Toolbar (settings, filtres, export, fullscreen, actions custom) |
-| \`[loading]\` / \`[refreshing]\` | \`false\` | États de chargement — voir **Empty States** |
+| \`[loading]\` / \`[refreshing]\` | \`false\` | États de chargement — voir **Introduction** |
 
-La toolbar accepte des actions projetées : \`<ng-template mozGridToolbarDef="start">\` / \`"end"\`.
+La toolbar accepte des actions projetées : \`<ng-template adGridToolbarDef="start">\` / \`"end"\`.
         `,
       },
     },
@@ -46,43 +46,12 @@ La toolbar accepte des actions projetées : \`<ng-template mozGridToolbarDef="st
 export default meta;
 type Story = StoryObj<AdGridAngularComponent<Product>>;
 
-export const Default: Story = {
-  parameters: {
-    docs: {
-      description: {
-        story:
-          'Configuration minimale : `[data]` + des `<ad-grid-column-def>` triables. Pagination par défaut (footer avec sélecteur de taille de page), toolbar visible.',
-      },
-    },
-  },
-  render: () => ({
-    props: {
-      data: PRODUCTS_100,
-      gridWrapper: GRID_WRAPPER,
-    },
-    template: `
-      <div [style]="gridWrapper">
-        <ad-grid-angular [data]="data" [pagination]="true" [pageSize]="20">
-          <ad-grid-column-def field="id" headerName="ID" width="80" [sortable]="true" />
-          <ad-grid-column-def field="name" headerName="Nom" width="200" [sortable]="true" />
-          <ad-grid-column-def field="reference" headerName="Référence" width="150" [sortable]="true" />
-          <ad-grid-column-def field="category" headerName="Catégorie" width="150" [sortable]="true" />
-          <ad-grid-column-def field="price" headerName="Prix (€)" width="120" [sortable]="true" />
-          <ad-grid-column-def field="stock" headerName="Stock" width="100" [sortable]="true" />
-          <ad-grid-column-def field="supplier" headerName="Fournisseur" width="150" [sortable]="true" />
-          <ad-grid-column-def field="status" headerName="Statut" width="130" [sortable]="true" />
-        </ad-grid-angular>
-      </div>
-    `,
-  }),
-};
-
 export const LargeDataset: Story = {
   parameters: {
     docs: {
       description: {
         story:
-          '1 000 lignes paginées par 50 : le tri et le filtrage restent instantanés car le pipeline est dérivé en mémoire (signals). Pour de gros volumes sans pagination, voir **Pagination & Scrolling / Vertical virtual scroll**.',
+          '1 000 lignes paginées par 50 : le tri et le filtrage restent instantanés car le pipeline est dérivé en mémoire (signals). Pour de gros volumes sans pagination, voir **Virtual Scroll**.',
       },
     },
   },
@@ -197,7 +166,7 @@ export const ManyColumns: Story = {
 };
 
 @Component({
-  selector: 'moz-story-full-featured',
+  selector: 'ad-story-full-featured',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     AdGridAngularComponent,
@@ -240,10 +209,10 @@ export const ManyColumns: Story = {
           (settingsChange)="logEvent('settingsChange', $event)"
         >
           <!-- Custom toolbar action -->
-          <ng-template mozGridToolbarDef="start">
+          <ng-template adGridToolbarDef="start">
             <button moz-button [outlined]="true" size="s">Custom action</button>
           </ng-template>
-          <ng-template mozGridToolbarDef="end">
+          <ng-template adGridToolbarDef="end">
             <button moz-button [ghost]="true" size="s">Help</button>
           </ng-template>
 
@@ -634,7 +603,7 @@ export const FullFeatured: Story = {
   },
   render: () => ({
     props: {},
-    template: `<moz-story-full-featured />`,
+    template: `<ad-story-full-featured />`,
     moduleMetadata: {
       imports: [FullFeaturedWrapperComponent],
     },
@@ -678,8 +647,40 @@ export const Density: Story = {
   }),
 };
 
+export const WithFullscreen: Story = {
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '`[fullscreen]="true"` expose le toggle plein écran dans la toolbar. En fullscreen, la grille occupe tout le viewport ; pagination, scroll et raccourcis restent identiques. `Esc` ou le bouton ressortent.',
+      },
+    },
+  },
+  render: () => ({
+    props: {
+      data: PRODUCTS_100,
+      gridWrapper: GRID_WRAPPER,
+    },
+    template: `
+      <div [style]="gridWrapper">
+        <p style="margin-bottom: 8px; color: var(--color-text-secondary); font-size: 14px;">
+          Click the "Fullscreen" button to toggle fullscreen mode.
+        </p>
+        <ad-grid-angular [data]="data" [pagination]="true" [pageSize]="20" [fullscreen]="true">
+          <ad-grid-column-def field="id" headerName="ID" width="80" [sortable]="true" />
+          <ad-grid-column-def field="name" headerName="Nom" width="200" [sortable]="true" />
+          <ad-grid-column-def field="reference" headerName="Référence" width="150" [sortable]="true" />
+          <ad-grid-column-def field="category" headerName="Catégorie" width="150" [sortable]="true" />
+          <ad-grid-column-def field="price" headerName="Prix (€)" width="120" [sortable]="true" />
+          <ad-grid-column-def field="stock" headerName="Stock" width="100" [sortable]="true" />
+        </ad-grid-angular>
+      </div>
+    `,
+  }),
+};
+
 @Component({
-  selector: 'moz-story-row-identity',
+  selector: 'ad-story-row-identity',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [AdGridAngularComponent, AdeoGridColumnDef, MozButtonComponent],
   template: `
@@ -738,7 +739,7 @@ export const RowIdentity: Story = {
   },
   render: () => ({
     props: {},
-    template: `<moz-story-row-identity />`,
+    template: `<ad-story-row-identity />`,
     moduleMetadata: {
       imports: [RowIdentityWrapperComponent],
     },

@@ -13,8 +13,8 @@ import { FilterColumnDescriptor, FilterModel } from '../models/filter.model';
  * and calling `filter.open(options)`.
  */
 @Directive({
-  selector: '[mozGridFilterOverlay]',
-  exportAs: 'mozGridFilterOverlay',
+  selector: '[adGridFilterOverlay]',
+  exportAs: 'adGridFilterOverlay',
 })
 export class AdeoGridFilterOverlayDirective implements OnDestroy {
   private readonly overlay = inject(Overlay);

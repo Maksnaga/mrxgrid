@@ -10,7 +10,7 @@ import { GridEmptyKind } from '../../directives/grid-empty-def';
  *  - `'no-results'` : filters/search produced zero rows (search icon, CTA).
  *
  * Consumers can fully replace this component by projecting a
- * `<ng-template mozGridEmptyDef>` into the grid; see `AdeoGridEmptyDef`.
+ * `<ng-template adGridEmptyDef>` into the grid; see `AdeoGridEmptyDef`.
  */
 @Component({
   selector: 'ad-grid-empty-state',

@@ -8,7 +8,7 @@ import { Product, generateProducts, PRODUCTS_100, PRODUCTS_1000, baseMeta, uniqu
 
 const meta: Meta<AdGridAngularComponent<Product>> = {
   ...baseMeta,
-  title: 'Data Display/Grid/Filtering',
+  title: 'Stories/Filtering/Inline, Builder, Server-side',
   parameters: {
     ...baseMeta.parameters,
     docs: {
@@ -56,7 +56,7 @@ export default meta;
 type Story = StoryObj<AdGridAngularComponent<Product>>;
 
 @Component({
-  selector: 'moz-story-filter-slot',
+  selector: 'ad-story-filter-slot',
   changeDetection: ChangeDetectionStrategy.Default,
   imports: [AdGridAngularComponent, AdeoGridColumnDef],
   template: `
@@ -186,7 +186,7 @@ Filter row inline : chaque colonne filtrable projette son propre input via le te
   },
   render: () => ({
     props: {},
-    template: `<moz-story-filter-slot />`,
+    template: `<ad-story-filter-slot />`,
     moduleMetadata: {
       imports: [FilterSlotWrapperComponent],
     },
@@ -198,7 +198,7 @@ Filter row inline : chaque colonne filtrable projette son propre input via le te
 // ---------------------------------------------------------------------------
 
 @Component({
-  selector: 'moz-story-filter-client',
+  selector: 'ad-story-filter-client',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [AdGridAngularComponent, AdeoGridColumnDef],
   template: `
@@ -344,7 +344,7 @@ export const FilterClient: Story = {
   name: 'Filters / Client mode',
   render: () => ({
     props: {},
-    template: `<moz-story-filter-client />`,
+    template: `<ad-story-filter-client />`,
     moduleMetadata: { imports: [FilterClientWrapperComponent] },
   }),
   parameters: {
@@ -364,7 +364,7 @@ export const FilterClient: Story = {
 // ------------------------------------------------------------------
 
 @Component({
-  selector: 'moz-story-filter-server',
+  selector: 'ad-story-filter-server',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [AdGridAngularComponent, AdeoGridColumnDef],
   template: `
@@ -553,7 +553,7 @@ export const FilterServer: Story = {
   name: 'Filters / Server mode',
   render: () => ({
     props: {},
-    template: `<moz-story-filter-server />`,
+    template: `<ad-story-filter-server />`,
     moduleMetadata: { imports: [FilterServerWrapperComponent] },
   }),
   parameters: {
@@ -575,7 +575,7 @@ export const FilterServer: Story = {
 // ------------------------------------------------------------------
 
 @Component({
-  selector: 'moz-story-custom-filter-autocomplete',
+  selector: 'ad-story-custom-filter-autocomplete',
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
   imports: [MozComboboxComponent],
@@ -632,7 +632,7 @@ class AutocompleteFilterComponent extends AdeoGridCustomFilter {
 }
 
 @Component({
-  selector: 'moz-story-filter-custom',
+  selector: 'ad-story-filter-custom',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [AdGridAngularComponent, AdeoGridColumnDef],
   template: `
@@ -787,7 +787,7 @@ export const FilterCustom: Story = {
   name: 'Filters / Custom component',
   render: () => ({
     props: {},
-    template: `<moz-story-filter-custom />`,
+    template: `<ad-story-filter-custom />`,
     moduleMetadata: { imports: [FilterCustomWrapperComponent] },
   }),
   parameters: {

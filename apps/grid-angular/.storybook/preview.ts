@@ -18,13 +18,29 @@ const preview: Preview = {
     options: {
       storySort: {
         method: 'alphabetical',
+        // Mirrors the grid-vue sidebar (apps/grid-vue/.storybook/preview.ts)
+        // so both Storybooks read the same way. Angular-only chapters
+        // (Columns, Export) are slotted where they fit thematically.
         order: [
-          'Welcome',
-          'Getting Started',
-          'Brand Presets',
-          'Contributing',
-          'Changelog',
-          'Foundations',
+          'Stories',
+          [
+            'Introduction',
+            'Basics',
+            'Selection',
+            'Editing',
+            'Filtering',
+            'Sorting',
+            'Grouping',
+            'Columns',
+            'Virtual Scroll',
+            'Pagination',
+            'Lazy Loading',
+            'Formula Engine',
+            'Row Expansion',
+            'Customization',
+            'Export',
+            'Devtools',
+          ],
           '*',
         ],
       },

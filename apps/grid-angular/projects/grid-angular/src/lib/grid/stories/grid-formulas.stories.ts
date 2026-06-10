@@ -6,7 +6,7 @@ import { Product, baseMeta, InvoiceLine, INVOICE_LINES } from './grid-stories.sh
 
 const meta: Meta<AdGridAngularComponent<Product>> = {
   ...baseMeta,
-  title: 'Data Display/Grid/Formulas',
+  title: 'Stories/Formula Engine/Basics, Editor',
   parameters: {
     ...baseMeta.parameters,
     docs: {
@@ -42,7 +42,7 @@ export default meta;
 type Story = StoryObj<AdGridAngularComponent<Product>>;
 
 @Component({
-  selector: 'moz-story-formulas-basics',
+  selector: 'ad-story-formulas-basics',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [AdGridAngularComponent, AdeoGridColumnDef],
   template: `
@@ -142,7 +142,7 @@ export const FormulasBasics: Story = {
   name: 'Formulas / Basics',
   render: () => ({
     props: {},
-    template: `<moz-story-formulas-basics />`,
+    template: `<ad-story-formulas-basics />`,
     moduleMetadata: {
       imports: [FormulasBasicsWrapperComponent],
     },
@@ -160,7 +160,7 @@ export const FormulasBasics: Story = {
 // ─── Formulas / Editor (Phase 2) ────────────────────────────────────────────
 
 @Component({
-  selector: 'moz-story-formulas-editor',
+  selector: 'ad-story-formulas-editor',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [AdGridAngularComponent, AdeoGridColumnDef],
   template: `
@@ -265,7 +265,7 @@ export const FormulasEditor: Story = {
   name: 'Formulas / Editor',
   render: () => ({
     props: {},
-    template: `<moz-story-formulas-editor />`,
+    template: `<ad-story-formulas-editor />`,
     moduleMetadata: {
       imports: [FormulasEditorWrapperComponent],
     },

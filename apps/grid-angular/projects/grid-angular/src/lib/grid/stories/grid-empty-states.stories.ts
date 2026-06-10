@@ -8,20 +8,20 @@ import { Product, generateProducts, PRODUCTS_100, GRID_WRAPPER, baseMeta } from 
 
 const meta: Meta<AdGridAngularComponent<Product>> = {
   ...baseMeta,
-  title: 'Data Display/Grid/Empty States',
+  title: 'Stories/Introduction/Overview, States',
   parameters: {
     ...baseMeta.parameters,
     docs: {
       description: {
         component: `
-# Empty & Loading States
+# Introduction
 
-La grille distingue quatre états « sans contenu », chacun personnalisable :
+La configuration minimale (\`[data]\` + colonnes déclaratives) et les états de la grille. Au-delà du rendu nominal, la grille distingue quatre états « sans contenu », chacun personnalisable :
 
 | État | Déclencheur | Personnalisation |
 |------|-------------|------------------|
-| **No data** | \`[data]\` vide, aucun filtre | \`[emptyDataTitle]\` / \`[emptyDataDescription]\` ou template \`mozGridEmptyDef\` |
-| **No results** | filtres actifs → 0 ligne | \`[noResultsTitle]\` / \`[noResultsDescription]\` / \`[noResultsActionLabel]\` (bouton « Clear filters ») ou \`mozGridEmptyDef="no-results"\` |
+| **No data** | \`[data]\` vide, aucun filtre | \`[emptyDataTitle]\` / \`[emptyDataDescription]\` ou template \`adGridEmptyDef\` |
+| **No results** | filtres actifs → 0 ligne | \`[noResultsTitle]\` / \`[noResultsDescription]\` / \`[noResultsActionLabel]\` (bouton « Clear filters ») ou \`adGridEmptyDef="no-results"\` |
 | **Loading initial** | \`[loading]="true"\` sans données | skeleton rows (\`[skeletonRowCount]\`) |
 | **Refreshing** | \`[refreshing]="true"\` avec données | indicateur non destructif, lignes visibles |
 
@@ -34,6 +34,37 @@ L'état « no results » garde le header visible (l'utilisateur doit pouvoir ret
 
 export default meta;
 type Story = StoryObj<AdGridAngularComponent<Product>>;
+
+export const Default: Story = {
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Configuration minimale : `[data]` + des `<ad-grid-column-def>` triables. Pagination par défaut (footer avec sélecteur de taille de page), toolbar visible.',
+      },
+    },
+  },
+  render: () => ({
+    props: {
+      data: PRODUCTS_100,
+      gridWrapper: GRID_WRAPPER,
+    },
+    template: `
+      <div [style]="gridWrapper">
+        <ad-grid-angular [data]="data" [pagination]="true" [pageSize]="20">
+          <ad-grid-column-def field="id" headerName="ID" width="80" [sortable]="true" />
+          <ad-grid-column-def field="name" headerName="Nom" width="200" [sortable]="true" />
+          <ad-grid-column-def field="reference" headerName="Référence" width="150" [sortable]="true" />
+          <ad-grid-column-def field="category" headerName="Catégorie" width="150" [sortable]="true" />
+          <ad-grid-column-def field="price" headerName="Prix (€)" width="120" [sortable]="true" />
+          <ad-grid-column-def field="stock" headerName="Stock" width="100" [sortable]="true" />
+          <ad-grid-column-def field="supplier" headerName="Fournisseur" width="150" [sortable]="true" />
+          <ad-grid-column-def field="status" headerName="Statut" width="130" [sortable]="true" />
+        </ad-grid-angular>
+      </div>
+    `,
+  }),
+};
 
 export const EmptyStateDefault: Story = {
   name: 'Empty State / Default (no-data)',
@@ -106,7 +137,7 @@ export const EmptyStateCustomCopy: Story = {
 };
 
 @Component({
-  selector: 'moz-story-empty-no-results',
+  selector: 'ad-story-empty-no-results',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [AdGridAngularComponent, AdeoGridColumnDef],
   template: `
@@ -154,7 +185,7 @@ export const EmptyStateNoResults: Story = {
   name: 'Empty State / No results (filters active)',
   render: () => ({
     props: {},
-    template: `<moz-story-empty-no-results />`,
+    template: `<ad-story-empty-no-results />`,
     moduleMetadata: {
       imports: [EmptyNoResultsWrapperComponent],
     },
@@ -170,7 +201,7 @@ export const EmptyStateNoResults: Story = {
 };
 
 @Component({
-  selector: 'moz-story-empty-custom-template',
+  selector: 'ad-story-empty-custom-template',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [AdGridAngularComponent, AdeoGridColumnDef, AdeoGridEmptyDef, MozButtonComponent],
   template: `
@@ -202,7 +233,7 @@ export const EmptyStateNoResults: Story = {
           />
 
           <!-- 1) Fully custom 'no-data' template -->
-          <ng-template mozGridEmptyDef>
+          <ng-template adGridEmptyDef>
             <div
               style="
               display: flex; flex-direction: column; align-items: center; gap: 12px;
@@ -229,7 +260,7 @@ export const EmptyStateNoResults: Story = {
           </ng-template>
 
           <!-- 2) Dedicated 'no-results' template using the implicit context -->
-          <ng-template mozGridEmptyDef="no-results" let-ctx>
+          <ng-template adGridEmptyDef="no-results" let-ctx>
             <div
               style="
               display: flex; flex-direction: column; align-items: center; gap: 12px;
@@ -266,7 +297,7 @@ export const EmptyStateCustomTemplates: Story = {
   name: 'Empty State / Custom templates',
   render: () => ({
     props: {},
-    template: `<moz-story-empty-custom-template />`,
+    template: `<ad-story-empty-custom-template />`,
     moduleMetadata: {
       imports: [EmptyCustomTemplateWrapperComponent],
     },
@@ -275,7 +306,7 @@ export const EmptyStateCustomTemplates: Story = {
     docs: {
       description: {
         story:
-          'Project up to two `<ng-template mozGridEmptyDef>` into the grid: a default one (used for `no-data` and as a fallback) and an optional `mozGridEmptyDef="no-results"` for the filtered case.',
+          'Project up to two `<ng-template adGridEmptyDef>` into the grid: a default one (used for `no-data` and as a fallback) and an optional `adGridEmptyDef="no-results"` for the filtered case.',
       },
     },
   },

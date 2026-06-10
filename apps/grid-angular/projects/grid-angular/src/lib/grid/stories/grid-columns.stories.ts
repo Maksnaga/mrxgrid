@@ -4,7 +4,7 @@ import { Product, PRODUCTS_100, GRID_WRAPPER, baseMeta } from './grid-stories.sh
 
 const meta: Meta<AdGridAngularComponent<Product>> = {
   ...baseMeta,
-  title: 'Data Display/Grid/Columns',
+  title: 'Stories/Columns/Resize, Reorder, Templates, Pinned',
   parameters: {
     ...baseMeta.parameters,
     docs: {

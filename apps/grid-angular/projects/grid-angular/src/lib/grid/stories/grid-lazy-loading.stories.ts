@@ -1,0 +1,153 @@
+import type { Meta, StoryObj } from '@storybook/angular';
+import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { AdGridAngularComponent } from '../grid';
+import { AdeoGridColumnDef } from '../directives/grid-column-def';
+import { LoadMoreEvent } from '../models/pagination.model';
+import { Product, generateProducts, baseMeta } from './grid-stories.shared';
+
+const meta: Meta<AdGridAngularComponent<Product>> = {
+  ...baseMeta,
+  title: 'Stories/Lazy Loading/Infinite scroll',
+  parameters: {
+    ...baseMeta.parameters,
+    docs: {
+      description: {
+        component: `
+# Lazy Loading
+
+Chargement progressif des données pour les flux append-only : \`loadingStrategy="infinite-scroll"\` remplace le footer de pagination par un déclencheur au scroll.
+
+\`\`\`ts
+interface LoadMoreEvent { offset: number; limit: number; }
+\`\`\`
+
+Quand le scroll approche du bas (\`[scrollThreshold]\` px), la grille émet \`(loadMore)\` ; le parent fetch la tranche suivante et **append** au tableau \`[data]\`. \`[totalItems]\` borne le flux — plus d'évent une fois tout chargé. Un \`offset\` à 0 signale un reset (tri ou filtre changé) : remplacez le tableau au lieu d'appender.
+
+Pour le chargement page-par-page classique, voir le chapitre **Pagination** (\`mode="server"\` + \`(pageChange)\`).
+        `,
+      },
+    },
+  },
+};
+
+export default meta;
+type Story = StoryObj<AdGridAngularComponent<Product>>;
+
+@Component({
+  selector: 'ad-story-infinite-scroll',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [AdGridAngularComponent, AdeoGridColumnDef],
+  template: `
+    <div style="display: flex; flex-direction: column; height: 600px; gap: 8px;">
+      <p style="margin-bottom: 8px; color: var(--color-text-secondary); font-size: 14px;">
+        Scroll down to load more data. The grid fetches 50 items at a time, simulating a 300ms
+        server delay. Total dataset: 500 items.
+      </p>
+      <div style="flex: 1; min-height: 0; display: flex; flex-direction: column;">
+        <ad-grid-angular
+          [data]="data()"
+          mode="server"
+          loadingStrategy="infinite-scroll"
+          [totalItems]="totalItems"
+          [loading]="loading()"
+          [pageSize]="50"
+          [scrollThreshold]="200"
+          (loadMore)="onLoadMore($event)"
+          (sortChange)="onSortChange($event)"
+        >
+          <ad-grid-column-def field="id" headerName="ID" width="80" [sortable]="true" />
+          <ad-grid-column-def field="name" headerName="Nom" width="200" [sortable]="true" />
+          <ad-grid-column-def
+            field="reference"
+            headerName="Référence"
+            width="150"
+            [sortable]="true"
+          />
+          <ad-grid-column-def
+            field="category"
+            headerName="Catégorie"
+            width="150"
+            [sortable]="true"
+          />
+          <ad-grid-column-def field="price" headerName="Prix (€)" width="120" [sortable]="true" />
+          <ad-grid-column-def field="stock" headerName="Stock" width="100" [sortable]="true" />
+          <ad-grid-column-def
+            field="supplier"
+            headerName="Fournisseur"
+            width="150"
+            [sortable]="true"
+          />
+          <ad-grid-column-def field="status" headerName="Statut" width="130" [sortable]="true" />
+        </ad-grid-angular>
+      </div>
+      <div style="font-size: 13px; color: var(--color-text-secondary);">
+        Loaded: {{ data().length }} / {{ totalItems }}
+      </div>
+    </div>
+  `,
+})
+class InfiniteScrollWrapperComponent {
+  private readonly allData = generateProducts(500);
+  readonly totalItems = this.allData.length;
+  readonly data = signal<Product[]>([]);
+  readonly loading = signal(false);
+  private sorts: { field: string; direction: string }[] = [];
+
+  constructor() {
+    // Initial load
+    this.data.set(this.getSortedData().slice(0, 50));
+  }
+
+  onLoadMore(event: LoadMoreEvent): void {
+    this.loading.set(true);
+    const sorted = this.getSortedData();
+
+    setTimeout(() => {
+      if (event.offset === 0) {
+        // Reset (sort/filter changed)
+        this.data.set(sorted.slice(0, event.limit));
+      } else {
+        // Append
+        const next = sorted.slice(event.offset, event.offset + event.limit);
+        this.data.update((current) => [...current, ...next]);
+      }
+      this.loading.set(false);
+    }, 300);
+  }
+
+  onSortChange(event: { sorts: { field: string; direction: string }[] }): void {
+    this.sorts = event.sorts || [];
+  }
+
+  private getSortedData(): Product[] {
+    const sorted = [...this.allData];
+    for (const sort of this.sorts) {
+      sorted.sort((a, b) => {
+        const aVal = (a as unknown as Record<string, unknown>)[sort.field];
+        const bVal = (b as unknown as Record<string, unknown>)[sort.field];
+        const cmp = String(aVal).localeCompare(String(bVal), undefined, { numeric: true });
+        return sort.direction === 'desc' ? -cmp : cmp;
+      });
+    }
+    return sorted;
+  }
+}
+
+export const InfiniteScroll: Story = {
+  parameters: {
+    docs: {
+      description: {
+        story: `
+\`loadingStrategy="infinite-scroll"\` remplace le footer de pagination : quand le scroll approche du bas (\`[scrollThreshold]\` px), la grille émet \`(loadMore)\` avec \`{ offset, limit }\`. Le parent fetch la tranche suivante et **append** au tableau \`[data]\`. \`[totalItems]\` borne le flux — plus d'évent une fois tout chargé.
+        `,
+      },
+    },
+  },
+  render: () => ({
+    props: {},
+    template: `<ad-story-infinite-scroll />`,
+    moduleMetadata: {
+      imports: [InfiniteScrollWrapperComponent],
+    },
+  }),
+};

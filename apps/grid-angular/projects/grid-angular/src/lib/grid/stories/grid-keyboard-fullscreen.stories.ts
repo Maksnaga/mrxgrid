@@ -2,19 +2,19 @@ import type { Meta, StoryObj } from '@storybook/angular';
 import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 import { AdGridAngularComponent } from '../grid';
 import { AdeoGridColumnDef } from '../directives/grid-column-def';
-import { Product, generateProducts, PRODUCTS_100, GRID_WRAPPER, baseMeta, EXCEL_SHORTCUTS } from './grid-stories.shared';
+import { Product, generateProducts, baseMeta, EXCEL_SHORTCUTS } from './grid-stories.shared';
 
 const meta: Meta<AdGridAngularComponent<Product>> = {
   ...baseMeta,
-  title: 'Data Display/Grid/Keyboard & Fullscreen',
+  title: 'Stories/Devtools/Excel keyboard & event log',
   parameters: {
     ...baseMeta.parameters,
     docs: {
       description: {
         component: `
-# Keyboard & Fullscreen
+# Devtools — clavier Excel & event log
 
-Le \`KeyboardEngine\` fournit une couche clavier complète type Excel — active dès qu'une cellule a le focus. Un panneau récapitulatif des raccourcis est accessible depuis la toolbar (\`?\`).
+Le \`KeyboardEngine\` fournit une couche clavier complète type Excel — active dès qu'une cellule a le focus. Un panneau récapitulatif des raccourcis est accessible depuis la toolbar (\`?\`). La démo affiche la légende complète et logge chaque évent émis par la grille.
 
 ### Navigation
 
@@ -27,10 +27,6 @@ Le \`KeyboardEngine\` fournit une couche clavier complète type Excel — active
 ### Édition & presse-papier
 
 \`F2\` / typing édite · \`Esc\` annule · \`Alt+Enter\` retour à la ligne · \`Ctrl+Enter\` commit + remplit la sélection · \`Backspace/Delete\` efface · \`Ctrl+C/X/V\` copie (TSV) / coupe (marching ants) / colle · \`Ctrl+D/R\` fill down / right · \`Ctrl+Z/Y\` undo / redo
-
-### Fullscreen
-
-\`[fullscreen]="true"\` ajoute le bouton plein écran à la toolbar : la grille passe en overlay plein viewport (la hauteur est resynchronisée via ResizeObserver), \`Esc\` ressort.
         `,
       },
     },
@@ -40,40 +36,8 @@ Le \`KeyboardEngine\` fournit une couche clavier complète type Excel — active
 export default meta;
 type Story = StoryObj<AdGridAngularComponent<Product>>;
 
-export const WithFullscreen: Story = {
-  parameters: {
-    docs: {
-      description: {
-        story:
-          '`[fullscreen]="true"` expose le toggle plein écran dans la toolbar. En fullscreen, la grille occupe tout le viewport ; pagination, scroll et raccourcis restent identiques. `Esc` ou le bouton ressortent.',
-      },
-    },
-  },
-  render: () => ({
-    props: {
-      data: PRODUCTS_100,
-      gridWrapper: GRID_WRAPPER,
-    },
-    template: `
-      <div [style]="gridWrapper">
-        <p style="margin-bottom: 8px; color: var(--color-text-secondary); font-size: 14px;">
-          Click the "Fullscreen" button to toggle fullscreen mode.
-        </p>
-        <ad-grid-angular [data]="data" [pagination]="true" [pageSize]="20" [fullscreen]="true">
-          <ad-grid-column-def field="id" headerName="ID" width="80" [sortable]="true" />
-          <ad-grid-column-def field="name" headerName="Nom" width="200" [sortable]="true" />
-          <ad-grid-column-def field="reference" headerName="Référence" width="150" [sortable]="true" />
-          <ad-grid-column-def field="category" headerName="Catégorie" width="150" [sortable]="true" />
-          <ad-grid-column-def field="price" headerName="Prix (€)" width="120" [sortable]="true" />
-          <ad-grid-column-def field="stock" headerName="Stock" width="100" [sortable]="true" />
-        </ad-grid-angular>
-      </div>
-    `,
-  }),
-};
-
 @Component({
-  selector: 'moz-story-excel-keyboard',
+  selector: 'ad-story-excel-keyboard',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [AdGridAngularComponent, AdeoGridColumnDef],
   template: `
@@ -228,7 +192,7 @@ export const ExcelKeyboard: Story = {
   name: 'Excel Keyboard Shortcuts',
   render: () => ({
     props: {},
-    template: `<moz-story-excel-keyboard />`,
+    template: `<ad-story-excel-keyboard />`,
     moduleMetadata: {
       imports: [ExcelKeyboardWrapperComponent],
     },

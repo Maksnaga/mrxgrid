@@ -7,7 +7,7 @@ import { Product, generateProducts, PRODUCTS_100, GRID_WRAPPER, baseMeta } from 
 
 const meta: Meta<AdGridAngularComponent<Product>> = {
   ...baseMeta,
-  title: 'Data Display/Grid/Selection',
+  title: 'Stories/Selection/Row, Cell, Bulk',
   parameters: {
     ...baseMeta.parameters,
     docs: {
@@ -86,7 +86,7 @@ export const WithCellSelection: Story = {
     docs: {
       description: {
         story:
-          'Navigation et sélection Excel-style : click pour focus, flèches pour naviguer, `Shift+flèches` ou `Shift+click` pour étendre la plage, `Ctrl+A` pour tout sélectionner, `Ctrl+C/X/V` pour copier/couper/coller en TSV. Voir le chapitre **Keyboard & Fullscreen** pour la liste complète des raccourcis.',
+          'Navigation et sélection Excel-style : click pour focus, flèches pour naviguer, `Shift+flèches` ou `Shift+click` pour étendre la plage, `Ctrl+A` pour tout sélectionner, `Ctrl+C/X/V` pour copier/couper/coller en TSV. Voir le chapitre **Devtools** pour la liste complète des raccourcis.',
       },
     },
   },
@@ -145,7 +145,7 @@ export const NoMultiCellSelection: Story = {
 };
 
 @Component({
-  selector: 'moz-story-bulk-delete',
+  selector: 'ad-story-bulk-delete',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [AdGridAngularComponent, AdeoGridColumnDef],
   template: `
@@ -196,7 +196,7 @@ export const BulkDelete: Story = {
   },
   render: () => ({
     props: {},
-    template: `<moz-story-bulk-delete />`,
+    template: `<ad-story-bulk-delete />`,
     moduleMetadata: {
       imports: [BulkDeleteWrapperComponent],
     },
