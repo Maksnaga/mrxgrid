@@ -362,7 +362,9 @@ export const baseMeta: Omit<Meta<AdGridAngularComponent<Product>>, 'title'> = {
     }),
   ],
   parameters: {
-    layout: 'fullscreen',
+    // 'padded' keeps a 1rem gutter around every story so the grid never
+    // touches the canvas edges (all story metas spread this baseMeta).
+    layout: 'padded',
     docs: {
       description: {
         component: `
