@@ -5,12 +5,44 @@ import { Product, PRODUCTS_100, GRID_WRAPPER, baseMeta } from './grid-stories.sh
 const meta: Meta<AdGridAngularComponent<Product>> = {
   ...baseMeta,
   title: 'Data Display/Grid/Export',
+  parameters: {
+    ...baseMeta.parameters,
+    docs: {
+      description: {
+        component: `
+# Export
+
+\`[exportable]="true"\` ajoute le bouton « Export CSV » à la toolbar. Deux modes :
+
+- **\`exportMode="client"\`** (défaut) — l'\`ExportEngine\` sérialise la vue courante (colonnes visibles, tri et filtres appliqués) en CSV et déclenche le téléchargement
+- **\`exportMode="server"\`** — la grille ne produit pas de fichier : elle émet \`(exportRequest)\` avec les descripteurs de la vue active, à transmettre à votre endpoint d'export
+
+\`\`\`ts
+interface GridExportEvent {
+  format: 'csv';
+  sorts: SortDef[];         // tris actifs au moment de l'export
+  filterModel: FilterModel; // filtres actifs
+  columns: string[];        // champs visibles, dans l'ordre d'affichage
+}
+\`\`\`
+        `,
+      },
+    },
+  },
 };
 
 export default meta;
 type Story = StoryObj<AdGridAngularComponent<Product>>;
 
 export const WithExport: Story = {
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Export client : le CSV reflète la **vue courante** — colonnes masquées exclues, lignes triées/filtrées comme à l’écran. La sélection de lignes peut aussi être exportée depuis la selection bar.',
+      },
+    },
+  },
   render: () => ({
     props: {
       data: PRODUCTS_100,

@@ -10,12 +10,51 @@ import { Product, generateProducts, PRODUCTS_100, PRODUCTS_1000, GRID_WRAPPER, b
 const meta: Meta<AdGridAngularComponent<Product>> = {
   ...baseMeta,
   title: 'Data Display/Grid/Basics',
+  parameters: {
+    ...baseMeta.parameters,
+    docs: {
+      description: {
+        component: `
+# Basics
+
+Mise en route et réglages globaux de la grille.
+
+\`\`\`html
+<ad-grid-angular [data]="rows" [pagination]="true" [pageSize]="20">
+  <ad-grid-column-def field="name" headerName="Nom" width="200" [sortable]="true" />
+</ad-grid-angular>
+\`\`\`
+
+### Inputs essentiels
+
+| Input | Défaut | Rôle |
+|-------|--------|------|
+| \`[data]\` | \`[]\` | Les lignes (le pipeline tri/filtre/pagination est dérivé) |
+| \`[pagination]\` / \`[pageSize]\` / \`[pageSizeOptions]\` | \`true\` / 25 / [10, 25, 50, 100] | Footer de pagination |
+| \`rowIdField\` | \`'id'\` | Clé stable des lignes (sélection, expansion, persistance) |
+| \`[density]\` | \`'default'\` | Hauteur des lignes : compact 32px · default 48px · comfortable 64px |
+| \`[showToolbar]\` | \`true\` | Toolbar (settings, filtres, export, fullscreen, actions custom) |
+| \`[loading]\` / \`[refreshing]\` | \`false\` | États de chargement — voir **Empty States** |
+
+La toolbar accepte des actions projetées : \`<ng-template mozGridToolbarDef="start">\` / \`"end"\`.
+        `,
+      },
+    },
+  },
 };
 
 export default meta;
 type Story = StoryObj<AdGridAngularComponent<Product>>;
 
 export const Default: Story = {
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Configuration minimale : `[data]` + des `<ad-grid-column-def>` triables. Pagination par défaut (footer avec sélecteur de taille de page), toolbar visible.',
+      },
+    },
+  },
   render: () => ({
     props: {
       data: PRODUCTS_100,
@@ -39,6 +78,14 @@ export const Default: Story = {
 };
 
 export const LargeDataset: Story = {
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '1 000 lignes paginées par 50 : le tri et le filtrage restent instantanés car le pipeline est dérivé en mémoire (signals). Pour de gros volumes sans pagination, voir **Pagination & Scrolling / Vertical virtual scroll**.',
+      },
+    },
+  },
   render: () => ({
     props: {
       data: PRODUCTS_1000,
@@ -62,6 +109,14 @@ export const LargeDataset: Story = {
 };
 
 export const NoPagination: Story = {
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '`[pagination]="false"` supprime le footer : toutes les lignes scrollent dans le viewport, rendues via le virtual scroll vertical.',
+      },
+    },
+  },
   render: () => ({
     props: {
       data: generateProducts(30),
@@ -83,6 +138,14 @@ export const NoPagination: Story = {
 };
 
 export const ManyColumns: Story = {
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '30 colonnes → scroll horizontal + virtualisation des colonnes, combinés avec la sélection de lignes, le reorder et le presse-papier bulk (`(bulkCopy)`/`(bulkPaste)`/`(bulkDelete)` loggés en console).',
+      },
+    },
+  },
   render: () => ({
     props: {
       data: PRODUCTS_100,
@@ -561,6 +624,14 @@ class FullFeaturedWrapperComponent {
 }
 
 export const FullFeatured: Story = {
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Vitrine « tout activé » : sélection, expansion + `[detailTemplate]`, export, fullscreen, reorder, grouping pré-configuré, filtres inline `#filter`, éditeurs (text/number/select/checkbox/date/custom), validateurs, actions toolbar custom — et une **console d’événements** qui logge chaque output de la grille (sort, page, édition, sélection, bulk, settings…). C’est la story de référence pour voir le payload réel de chaque évent.',
+      },
+    },
+  },
   render: () => ({
     props: {},
     template: `<moz-story-full-featured />`,
@@ -570,7 +641,119 @@ export const FullFeatured: Story = {
   }),
 };
 
+export const Density: Story = {
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Trois densités pilotées par `[density]` : `compact` (32px), `default` (48px), `comfortable` (64px). La densité est aussi réglable par l’utilisateur via le panneau Settings de la toolbar — `(densityChange)` notifie le parent.',
+      },
+    },
+  },
+  render: () => ({
+    props: {
+      data: generateProducts(30),
+      gridWrapper: GRID_WRAPPER,
+      density: 'default',
+      onDensityChange: (d: unknown) => console.log('densityChange:', d),
+    },
+    template: `
+      <div [style]="gridWrapper">
+        <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+          <button moz-button size="s" [outlined]="density !== 'compact'" (click)="density = 'compact'">Compact</button>
+          <button moz-button size="s" [outlined]="density !== 'default'" (click)="density = 'default'">Default</button>
+          <button moz-button size="s" [outlined]="density !== 'comfortable'" (click)="density = 'comfortable'">Comfortable</button>
+        </div>
+        <ad-grid-angular [data]="data" [pagination]="true" [pageSize]="20"
+                   [density]="density" (densityChange)="onDensityChange($event)">
+          <ad-grid-column-def field="id" headerName="ID" width="80" [sortable]="true" />
+          <ad-grid-column-def field="name" headerName="Nom" width="200" [sortable]="true" />
+          <ad-grid-column-def field="reference" headerName="Référence" width="150" [sortable]="true" />
+          <ad-grid-column-def field="category" headerName="Catégorie" width="150" [sortable]="true" />
+          <ad-grid-column-def field="price" headerName="Prix (€)" width="120" [sortable]="true" />
+          <ad-grid-column-def field="stock" headerName="Stock" width="100" [sortable]="true" />
+        </ad-grid-angular>
+      </div>
+    `,
+  }),
+};
+
+@Component({
+  selector: 'moz-story-row-identity',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [AdGridAngularComponent, AdeoGridColumnDef, MozButtonComponent],
+  template: `
+    <div style="height: 400px; display: flex; flex-direction: column;">
+      <p style="margin-bottom: 8px; color: var(--color-text-secondary); font-size: 14px;">
+        La sélection est keyée par <code>rowIdField="reference"</code>, pas par identité d'objet.
+        Sélectionne des lignes puis clique « Rafraîchir les données » : les objets sont recréés
+        (stocks et prix changent) mais la sélection survit.
+      </p>
+      <div style="margin-bottom: 8px;">
+        <button moz-button size="s" (click)="refresh()">Rafraîchir les données</button>
+      </div>
+      <ad-grid-angular
+        [data]="data()"
+        [pagination]="true"
+        [pageSize]="20"
+        [rowSelection]="true"
+        rowIdField="reference"
+        (selectionChange)="logSelection($event)"
+      >
+        <ad-grid-column-def field="reference" headerName="Référence" width="150" [sortable]="true" />
+        <ad-grid-column-def field="name" headerName="Nom" width="200" [sortable]="true" />
+        <ad-grid-column-def field="category" headerName="Catégorie" width="150" [sortable]="true" />
+        <ad-grid-column-def field="price" headerName="Prix (€)" width="120" [sortable]="true" />
+        <ad-grid-column-def field="stock" headerName="Stock" width="100" [sortable]="true" />
+      </ad-grid-angular>
+    </div>
+  `,
+})
+class RowIdentityWrapperComponent {
+  readonly data = signal(generateProducts(20));
+
+  refresh(): void {
+    this.data.update((rows) =>
+      rows.map((r) => ({
+        ...r,
+        price: Math.round((Math.random() * 500 + 5) * 100) / 100,
+        stock: Math.floor(Math.random() * 1000),
+      })),
+    );
+  }
+
+  logSelection(event: unknown): void {
+    console.log('selectionChange:', event);
+  }
+}
+
+export const RowIdentity: Story = {
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Avec `rowIdField`, la sélection (et l’expansion) est keyée par un champ stable plutôt que par référence d’objet : remplacer le tableau `data` par de nouvelles instances ne casse pas l’état des lignes.',
+      },
+    },
+  },
+  render: () => ({
+    props: {},
+    template: `<moz-story-row-identity />`,
+    moduleMetadata: {
+      imports: [RowIdentityWrapperComponent],
+    },
+  }),
+};
+
 export const NoToolbar: Story = {
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '`[showToolbar]="false"` retire la toolbar (settings, filtres, export, fullscreen) — utile en mode embarqué où le chrome est fourni par la page hôte.',
+      },
+    },
+  },
   render: () => ({
     props: {
       data: generateProducts(30),

@@ -30,9 +30,9 @@ import { FilterModel } from '../../models/filter.model';
     AdeoGridFilterOverlayDirective,
   ],
   host: {
-    '[style.flex]': 'isLast() ? "1 0 auto" : "0 0 auto"',
-    '[style.width.px]': 'isLast() ? undefined : columnState().currentWidth',
-    '[style.min-width.px]': 'isLast() ? columnState().currentWidth : resolvedMinWidth()',
+    '[style.flex]': 'fillsRemainingSpace() ? "1 0 auto" : "0 0 auto"',
+    '[style.width.px]': 'fillsRemainingSpace() ? undefined : columnState().currentWidth',
+    '[style.min-width.px]': 'fillsRemainingSpace() ? columnState().currentWidth : resolvedMinWidth()',
     '[style.position]': 'pinnedSticky() ? "sticky" : null',
     '[style.left.px]': 'pinnedSticky() === "left" ? pinnedOffset() : null',
     '[style.right.px]': 'pinnedSticky() === "right" ? pinnedOffset() : null',
@@ -85,6 +85,15 @@ export class AdeoGridHeaderCellComponent<T = unknown> {
     const def = this.def();
     return def.minWidth ? parseInt(def.minWidth, 10) || 50 : 50;
   });
+
+  /**
+   * Only the last *unpinned* column may stretch to fill leftover viewport
+   * width. A pinned-end column must keep its exact `currentWidth`: if it
+   * flex-grows, resizing it has no visible effect until the dragged width
+   * exceeds the stretched width. The pinned block is pushed to the right
+   * edge by an auto left margin instead (see scss).
+   */
+  readonly fillsRemainingSpace = computed(() => this.isLast() && !this.pinnedEnd());
 
   readonly isDragging = computed(() => this.state.draggingColumn() === this.columnState().field);
 

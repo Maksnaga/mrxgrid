@@ -18,6 +18,10 @@
 
 :host.grid-cell--pinned-right-edge {
   box-shadow: -4px 0 8px -2px rgba(0, 0, 0, 0.1);
+  // Pushes the pinned-end block flush to the right edge when the columns
+  // don't fill the viewport (resolves to 0 once content overflows). Pinned
+  // cells keep a fixed width so resizing stays 1:1 with the drag.
+  margin-left: auto;
 }
 
 .grid-cell {
@@ -32,6 +36,12 @@
   min-width: 0;
   background: inherit;
   cursor: pointer;
+  /* Contain the cell's internal z-indexes (hover overlay, fill handle, error
+     icon, cut marks…). Without this they escape into the scroll-container
+     stacking context — `.grid-row` is not a stacking context — and paint
+     over sticky pinned cells and the sticky header when the cell scrolls
+     underneath them. */
+  isolation: isolate;
 }
 
 .grid-cell--last {
@@ -222,6 +232,49 @@
 }
 
 .grid-cell--in-range {
+  background: var(--color-background-accent);
+}
+
+/* Selection-rectangle perimeter: each cell paints only the sides of the
+   range border it sits on, as stacked inset box-shadows. One CSS variable
+   per side keeps the four edges composable — a corner cell turns on two
+   of them, an interior cell none. */
+.grid-cell {
+  --grid-range-edge-top: 0 0 0 0 transparent;
+  --grid-range-edge-bottom: 0 0 0 0 transparent;
+  --grid-range-edge-left: 0 0 0 0 transparent;
+  --grid-range-edge-right: 0 0 0 0 transparent;
+  box-shadow:
+    inset var(--grid-range-edge-top),
+    inset var(--grid-range-edge-bottom),
+    inset var(--grid-range-edge-left),
+    inset var(--grid-range-edge-right);
+}
+
+.grid-cell--edge-top {
+  --grid-range-edge-top: 0 2px 0 0 var(--color-background-accent-inverse);
+}
+
+.grid-cell--edge-bottom {
+  --grid-range-edge-bottom: 0 -2px 0 0 var(--color-background-accent-inverse);
+}
+
+.grid-cell--edge-left {
+  --grid-range-edge-left: 2px 0 0 0 var(--color-background-accent-inverse);
+}
+
+.grid-cell--edge-right {
+  --grid-range-edge-right: -2px 0 0 0 var(--color-background-accent-inverse);
+}
+
+/* Focused anchor inside a multi-cell range: drop the individual focus ring
+   and take the range tint, so the block reads as one uniformly-tinted
+   rectangle with a single perimeter (matches the Vue grid). */
+.grid-cell--focused.grid-cell--in-multi-range::after {
+  display: none;
+}
+
+.grid-cell--focused.grid-cell--in-multi-range {
   background: var(--color-background-accent);
 }
 

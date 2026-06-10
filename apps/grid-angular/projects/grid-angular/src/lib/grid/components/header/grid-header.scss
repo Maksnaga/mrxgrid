@@ -100,4 +100,7 @@
 
 .grid-header__filter-cell--pinned-right-edge {
   box-shadow: -4px 0 8px -2px rgba(0, 0, 0, 0.1); // custom pinned shadow — no matching Mozaic token
+  // Keep the filter row aligned with the header/body pinned-end block,
+  // which is pushed to the right edge by the same auto margin.
+  margin-left: auto;
 }

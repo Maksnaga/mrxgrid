@@ -3,17 +3,86 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { AdGridAngularComponent } from '../grid';
 import { AdeoGridColumnDef } from '../directives/grid-column-def';
 import { MozComboboxComponent } from '@mozaic-ds/angular';
-import { Product, PRODUCTS_100, GRID_WRAPPER, baseMeta, TAG_LABELS, generateProductsWithTags } from './grid-stories.shared';
+import { Product, ProductWithTags, PRODUCTS_100, GRID_WRAPPER, baseMeta, TAG_LABELS, generateProductsWithTags } from './grid-stories.shared';
 
 const meta: Meta<AdGridAngularComponent<Product>> = {
   ...baseMeta,
   title: 'Data Display/Grid/Editing',
+  parameters: {
+    ...baseMeta.parameters,
+    docs: {
+      description: {
+        component: `
+# Editing
+
+Édition cellulaire inline avec validation, undo/redo et fill handle Excel-style.
+
+### Activation
+
+Une cellule est éditable quand sa colonne déclare \`[editable]="true"\`. Le \`cellEditor\` choisit l'input :
+
+| \`cellEditor\` | Input rendu |
+|---------------|-------------|
+| omis ou \`'text'\` | Input texte |
+| \`'number'\` | Input numérique (parse \`Number()\` au commit) |
+| \`'select'\` | \`<moz-select>\` peuplé depuis \`[cellEditorOptions]\` |
+| \`'date'\` | \`<moz-datepicker>\` |
+| \`'checkbox'\` | \`<moz-checkbox>\` |
+| \`'custom'\` + template \`#edit\` | Rendu libre |
+
+### Keyboard
+
+| Touche | Action |
+|--------|--------|
+| \`F2\` / \`Enter\` / double-click / typing | Entre en édition |
+| \`Enter\` | Commit + descend d'une ligne |
+| \`Tab\` / \`Shift+Tab\` | Commit + cellule suivante / précédente |
+| \`Esc\` | Annule (émet \`(cellEditCancel)\`) |
+| \`Ctrl+Enter\` | Commit + remplit toute la sélection |
+| \`Ctrl+Z\` / \`Ctrl+Y\` | Undo / redo (HistoryEngine) |
+
+### Évent \`(cellEdit)\`
+
+\`\`\`ts
+interface CellEditEvent<T> {
+  row: T;
+  rowIndex: number;
+  field: string;
+  oldValue: unknown;
+  newValue: unknown;
+}
+\`\`\`
+
+La grille applique la mutation sur la ligne et émet l'évent — à vous de persister côté serveur (l'op s'annule avec \`Ctrl+Z\` tant qu'elle n'est pas synchronisée).
+        `,
+      },
+    },
+  },
 };
 
 export default meta;
 type Story = StoryObj<AdGridAngularComponent<Product>>;
 
 export const WithInlineEditing: Story = {
+  parameters: {
+    docs: {
+      description: {
+        story: `
+Le pattern de base : \`[editable]="true"\` sur les colonnes, \`(cellEdit)\` pour persister.
+
+\`\`\`html
+<ad-grid-angular [data]="rows" (cellEdit)="save($event)">
+  <ad-grid-column-def field="name" [editable]="true" />
+  <ad-grid-column-def field="price" [editable]="true" cellEditor="number" />
+  <ad-grid-column-def field="category" [editable]="true" cellEditor="select" [cellEditorOptions]="options" />
+</ad-grid-angular>
+\`\`\`
+
+Pour les colonnes à valeurs discrètes, \`cellEditor="select"\` + \`[cellEditorOptions]\` (\`{ text, value }[]\` au format MozSelect) : la **value** (pas le label) arrive dans \`newValue\`.
+        `,
+      },
+    },
+  },
   render: () => ({
     props: {
       data: PRODUCTS_100,
@@ -49,6 +118,28 @@ export const WithInlineEditing: Story = {
 };
 
 export const WithCustomCellEdit: Story = {
+  parameters: {
+    docs: {
+      description: {
+        story: `
+Quand les éditeurs built-in ne suffisent pas, \`cellEditor="custom"\` + template \`#edit\` donnent la main sur le rendu d'édition :
+
+\`\`\`html
+<ad-grid-column-def field="status" [editable]="true" cellEditor="custom">
+  <ng-template #edit let-value let-updateDraft="updateDraft" let-commitEdit="commitEdit" let-cancelEdit="cancelEdit">
+    <!-- value: valeur courante · updateDraft(v): met à jour le draft · commitEdit(): valide · cancelEdit(): annule -->
+    @for (s of statuses; track s) {
+      <button (click)="updateDraft(s); commitEdit()">{{ s }}</button>
+    }
+  </ng-template>
+</ad-grid-column-def>
+\`\`\`
+
+Combinez avec un template \`#cell\` pour soigner aussi le mode lecture (badge, étoiles, jauge…) — l'un et l'autre sont indépendants.
+        `,
+      },
+    },
+  },
   render: () => ({
     props: {
       data: PRODUCTS_100,
@@ -167,7 +258,8 @@ export const WithCustomCellEdit: Story = {
             field="tags"
             headerName="Tags"
             width="260"
-            [sortable]="false"
+            [sortable]="true"
+            [sortComparator]="tagsComparator"
             [editable]="true"
             cellEditor="custom"
             [cellTemplate]="tagsCellTpl"
@@ -221,6 +313,19 @@ class ComboboxCellWrapperComponent {
     return TAG_LABELS[tag] ?? tag;
   }
 
+  /**
+   * `tags` holds a `string[]` — the default comparator can't order arrays,
+   * so the column provides its own: by tag count, then by the first tag's
+   * label so equal-sized sets order deterministically.
+   */
+  readonly tagsComparator = (a: ProductWithTags, b: ProductWithTags): number => {
+    const countDiff = a.tags.length - b.tags.length;
+    if (countDiff !== 0) return countDiff;
+    const firstA = this.labelOf(a.tags[0] ?? '');
+    const firstB = this.labelOf(b.tags[0] ?? '');
+    return firstA.localeCompare(firstB, 'fr');
+  };
+
   onCellEdit(event: unknown): void {
     console.log('cellEdit', event);
   }
@@ -231,6 +336,32 @@ class ComboboxCellWrapperComponent {
 }
 
 export const WithCellValidation: Story = {
+  parameters: {
+    docs: {
+      description: {
+        story: `
+\`[cellValidator]\` valide la valeur **avant** commit : \`(value, row) => CellError | null\`.
+
+\`\`\`ts
+priceValidator = (value: unknown): CellError | null => {
+  const n = Number(value);
+  if (isNaN(n) || n <= 0) return { message: 'Prix positif requis' };
+  if (n > 10000) return { message: 'Max 10 000 €' };
+  return null;
+};
+\`\`\`
+
+### Comportement
+
+- Retour \`{ message }\` → la cellule passe en état invalide (bordure rouge + icône), le message s'affiche en tooltip
+- L'utilisateur corrige ou \`Esc\` pour annuler
+- Le même validator s'applique aux écritures bulk (paste, fill) — les cellules rejetées ne sont pas écrites
+
+Le validator doit être **synchrone**. Pour une validation asynchrone (unicité serveur…), validez après coup dans \`(cellEdit)\` et revertez si besoin.
+        `,
+      },
+    },
+  },
   render: () => ({
     props: {
       data: PRODUCTS_100,
@@ -283,11 +414,61 @@ export const WithCellValidation: Story = {
 };
 
 export const WithComboboxCell: Story = {
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Éditeur custom complet : une `MozCombobox` (recherche + options asynchrones) montée dans le template `#edit`. Le composant wrapper pilote `updateDraft`/`commitEdit` depuis les événements du combobox — le pattern à suivre pour intégrer n’importe quel composant Mozaic comme éditeur de cellule.',
+      },
+    },
+  },
   render: () => ({
     props: {},
     template: `<moz-story-combobox-cell />`,
     moduleMetadata: {
       imports: [ComboboxCellWrapperComponent],
     },
+  }),
+};
+
+export const FillHandle: Story = {
+  parameters: {
+    docs: {
+      description: {
+        story: `
+Recopie de valeurs façon tableur :
+
+- **Drag du fill handle** — le carré en bas à droite de la sélection ; tirez vers le bas/la droite pour recopier la plage
+- **\`Ctrl+D\`** — fill down (recopie la première ligne de la sélection vers le bas)
+- **\`Ctrl+R\`** — fill right
+- **\`Ctrl+Enter\`** — valide l'édition en remplissant toute la sélection
+
+Chaque opération émet \`(fillDown)\` avec les changements appliqués et s'annule avec \`Ctrl+Z\`.
+        `,
+      },
+    },
+  },
+  render: () => ({
+    props: {
+      data: PRODUCTS_100,
+      gridWrapper: GRID_WRAPPER,
+      onFillDown: (event: unknown) => console.log('fillDown:', event),
+    },
+    template: `
+      <div [style]="gridWrapper">
+        <p style="margin-bottom: 8px; color: var(--color-text-secondary); font-size: 14px;">
+          Sélectionne une cellule éditable (Prix ou Stock), puis tire le carré en bas à droite
+          de la sélection vers le bas — ou sélectionne une plage et presse <kbd>Ctrl+D</kbd>.
+        </p>
+        <ad-grid-angular [data]="data" [pagination]="true" [pageSize]="20"
+                   (fillDown)="onFillDown($event)">
+          <ad-grid-column-def field="id" headerName="ID" width="80" [sortable]="true" />
+          <ad-grid-column-def field="name" headerName="Nom" width="200" [sortable]="true" [editable]="true" />
+          <ad-grid-column-def field="category" headerName="Catégorie" width="150" [sortable]="true" />
+          <ad-grid-column-def field="price" headerName="Prix (€)" width="120" [sortable]="true" [editable]="true" cellEditor="number" />
+          <ad-grid-column-def field="stock" headerName="Stock" width="100" [sortable]="true" [editable]="true" cellEditor="number" />
+        </ad-grid-angular>
+      </div>
+    `,
   }),
 };

@@ -354,7 +354,7 @@ export const ALL_CATEGORY_OPTIONS: MozComboboxOption<string>[] = [
  */
 
 export const baseMeta: Omit<Meta<AdGridAngularComponent<Product>>, 'title'> = {
-  tags: ['experimental'],
+  tags: ['experimental', 'autodocs'],
   component: AdGridAngularComponent,
   decorators: [
     moduleMetadata({
@@ -365,8 +365,26 @@ export const baseMeta: Omit<Meta<AdGridAngularComponent<Product>>, 'title'> = {
     layout: 'fullscreen',
     docs: {
       description: {
-        component:
-          'A high-performance, enterprise-grade data grid with virtual scrolling, sorting, pagination, column resize, inline editing, and a column header menu.',
+        component: `
+# ad-grid-angular
+
+Data grid haute performance (style AG-Grid) construit sur Mozaic Design System. Virtual scroll bi-axial, tri, filtres, grouping, édition inline, formules, sélection Excel-style.
+
+### Anatomie
+
+\`\`\`html
+<ad-grid-angular [data]="rows" [pagination]="true" [pageSize]="25" (cellEdit)="persist($event)">
+  <ad-grid-column-def field="name" headerName="Nom" width="200" [sortable]="true" [editable]="true" />
+  <ad-grid-column-def field="price" headerName="Prix" width="120" cellEditor="number" />
+</ad-grid-angular>
+\`\`\`
+
+Les colonnes sont **déclaratives** : chaque \`<ad-grid-column-def>\` projette une \`ColumnDef\` (tri, resize, pin, éditeur, validation, templates \`#cell\` / \`#edit\` / \`#filter\`).
+
+### Pipeline de données
+
+\`source → sorted → filtered → paginated → display\` — recalculé réactivement (signals) par le \`GridEngine\`. Chaque feature (sort, filter, group, selection…) vit dans un \`*Engine\` injectable qui lit/écrit le \`GridStateManager\` central.
+        `,
       },
     },
   },

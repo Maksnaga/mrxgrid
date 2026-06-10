@@ -41,13 +41,15 @@ import { ErrorFilled24 } from '@mozaic-ds/icons-angular';
     AdeoGridFormulaEditorComponent,
   ],
   host: {
-    '[style.flex]': 'isLast() ? "1 0 auto" : "0 0 auto"',
-    '[style.width.px]': 'isLast() ? undefined : colState().currentWidth',
-    '[style.min-width.px]': 'isLast() ? colState().currentWidth : resolvedMinWidth()',
+    '[style.flex]': 'fillsRemainingSpace() ? "1 0 auto" : "0 0 auto"',
+    '[style.width.px]': 'fillsRemainingSpace() ? undefined : colState().currentWidth',
+    '[style.min-width.px]': 'fillsRemainingSpace() ? colState().currentWidth : resolvedMinWidth()',
     '[style.position]': 'pinnedSticky() ? "sticky" : null',
     '[style.left.px]': 'pinnedSticky() === "left" ? pinnedOffset() : null',
     '[style.right.px]': 'pinnedSticky() === "right" ? pinnedOffset() : null',
-    '[style.zIndex]': 'pinnedSticky() ? 2 : null',
+    // 3 — above elevated scrollable cells (focused / fill-reject at z-index 2)
+    // so they slide UNDER the pinned column, below the sticky header (z 5).
+    '[style.zIndex]': 'pinnedSticky() ? 3 : null',
     '[class.grid-cell--pinned]': 'pinnedSticky() !== null',
     '[class.grid-cell--pinned-left-edge]': 'pinnedEdge() === "left"',
     '[class.grid-cell--pinned-right-edge]': 'pinnedEdge() === "right"',
@@ -123,6 +125,15 @@ export class AdeoGridCellComponent<T = unknown> {
     const def = this.def();
     return def.minWidth ? parseInt(def.minWidth, 10) || 50 : 50;
   });
+
+  /**
+   * Only the last *unpinned* column may stretch to fill leftover viewport
+   * width. A pinned-end column must keep its exact `currentWidth`: if it
+   * flex-grows, resizing it has no visible effect until the dragged width
+   * exceeds the stretched width. The pinned block is pushed to the right
+   * edge by an auto left margin instead (see scss).
+   */
+  readonly fillsRemainingSpace = computed(() => this.isLast() && !this.pinnedEnd());
 
   readonly commitEdit = output<void>();
   readonly cancelEdit = output<void>();
@@ -256,8 +267,35 @@ export class AdeoGridCellComponent<T = unknown> {
     );
   });
 
+  /** Sides of the selection-rectangle perimeter this cell must paint. */
+  readonly rangeEdges = computed(() => {
+    return this.cellSelectionEngine.getRangeEdges(this.rowIndex(), this.colIndex());
+  });
+
+  /**
+   * `true` when the cell belongs to a range bigger than 1×1. The focused
+   * anchor then drops its own ring/background and blends into the block —
+   * the range perimeter is the selection affordance (mirrors the Vue grid).
+   */
+  readonly isInMultiCellRange = computed(() => {
+    if (!this.cellSelectionEngine.isCellInAnyRange(this.rowIndex(), this.colIndex())) return false;
+    const edges = this.rangeEdges();
+    return !(edges.top && edges.bottom && edges.left && edges.right);
+  });
+
   readonly isInFillRange = computed(() => {
     return this.cellSelectionEngine.isCellInFillRange(this.rowIndex(), this.colIndex());
+  });
+
+  /**
+   * The fill handle sits on the bottom-right corner of the live range when a
+   * multi-cell selection exists (the whole block is the fill source), or on
+   * the focused cell otherwise.
+   */
+  readonly showFillHandle = computed(() => {
+    if (this.isEditing()) return false;
+    const handle = this.cellSelectionEngine.fillHandleCell();
+    return handle !== null && handle.row === this.rowIndex() && handle.col === this.colIndex();
   });
 
   readonly isInFillRejectRange = computed(() => {

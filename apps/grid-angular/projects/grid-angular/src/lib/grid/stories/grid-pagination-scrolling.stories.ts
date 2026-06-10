@@ -8,6 +8,34 @@ import { Product, generateProducts, GRID_WRAPPER, baseMeta, WIDE_COL_COUNT, WIDE
 const meta: Meta<AdGridAngularComponent<Product>> = {
   ...baseMeta,
   title: 'Data Display/Grid/Pagination & Scrolling',
+  parameters: {
+    ...baseMeta.parameters,
+    docs: {
+      description: {
+        component: `
+# Pagination & Scrolling
+
+Trois stratégies de consommation des données, combinables avec le virtual scroll :
+
+| Stratégie | Inputs | Quand |
+|-----------|--------|-------|
+| **Pagination client** | \`[pagination]="true"\` + \`[pageSize]\` / \`[pageSizeOptions]\` | dataset complet en mémoire |
+| **Pagination serveur** | \`+ mode="server"\` + \`[totalItems]\` + \`(pageChange)\` | le back-end pagine |
+| **Infinite scroll** | \`loadingStrategy="infinite-scroll"\` + \`[scrollThreshold]\` + \`(loadMore)\` | flux append-only |
+
+\`\`\`ts
+interface PageEvent { pageIndex; pageSize; previousPageIndex; previousPageSize; startIndex; endIndex; }
+interface LoadMoreEvent { offset: number; limit: number; }
+\`\`\`
+
+### Virtual scroll
+
+- **Vertical** — toujours actif : seules les lignes visibles (+ buffer) sont dans le DOM, un spacer height-based préserve la scrollbar (pas de \`translateY\`, qui piégerait les colonnes sticky)
+- **Horizontal** — activé automatiquement au-delà d'un seuil de colonnes : seules les colonnes du viewport sont rendues, des spacers comblent les côtés
+        `,
+      },
+    },
+  },
 };
 
 export default meta;
@@ -206,6 +234,27 @@ class ServerPaginatedWrapperComponent {
 }
 
 export const ServerPaginated: Story = {
+  parameters: {
+    docs: {
+      description: {
+        story: `
+\`mode="server"\` : la grille ne pagine pas elle-même — elle affiche \`[data]\` tel quel et pilote le footer avec \`[totalItems]\`. À chaque changement de page, \`(pageChange)\` fournit \`startIndex\`/\`endIndex\` pour la requête :
+
+\`\`\`ts
+onPageChange(e: PageEvent): void {
+  this.loading = true;
+  this.api.fetch(e.startIndex, e.pageSize).subscribe((page) => {
+    this.data = page.rows;
+    this.loading = false;
+  });
+}
+\`\`\`
+
+Ici l'API est simulée avec 500 ms de latence — le spinner \`[loading]\` couvre le round-trip.
+        `,
+      },
+    },
+  },
   render: () => ({
     props: {},
     template: `<moz-story-server-paginated />`,
@@ -316,6 +365,15 @@ class InfiniteScrollWrapperComponent {
 }
 
 export const InfiniteScroll: Story = {
+  parameters: {
+    docs: {
+      description: {
+        story: `
+\`loadingStrategy="infinite-scroll"\` remplace le footer de pagination : quand le scroll approche du bas (\`[scrollThreshold]\` px), la grille émet \`(loadMore)\` avec \`{ offset, limit }\`. Le parent fetch la tranche suivante et **append** au tableau \`[data]\`. \`[totalItems]\` borne le flux — plus d'évent une fois tout chargé.
+        `,
+      },
+    },
+  },
   render: () => ({
     props: {},
     template: `<moz-story-infinite-scroll />`,
@@ -326,6 +384,14 @@ export const InfiniteScroll: Story = {
 };
 
 export const HorizontalVirtualScroll: Story = {
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Au-delà d’un seuil de colonnes, le `HorizontalVirtualScrollEngine` ne rend que les colonnes visibles dans le viewport (+ buffer) ; des spacers dimensionnés comblent les colonnes hors-champ pour garder une scrollbar exacte. Les colonnes pinnées restent rendues en permanence. Resize, reorder, filtres et navigation clavier restent fonctionnels.',
+      },
+    },
+  },
   render: () => ({
     props: {
       data: WIDE_ROWS,
@@ -353,6 +419,41 @@ export const HorizontalVirtualScroll: Story = {
               [resizable]="true"
             />
           }
+        </ad-grid-angular>
+      </div>
+    `,
+  }),
+};
+
+export const VerticalVirtualScroll: Story = {
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Sans pagination, la grille rend uniquement les lignes visibles dans le viewport (+ buffer) via le `VerticalVirtualScrollEngine` — ici 5 000 lignes scrollent sans dégradation. Combine avec le scroll horizontal virtualisé pour les très larges datasets.',
+      },
+    },
+  },
+  render: () => ({
+    props: {
+      data: generateProducts(5000),
+      gridWrapper: GRID_WRAPPER,
+    },
+    template: `
+      <div [style]="gridWrapper">
+        <p style="margin-bottom: 8px; color: var(--color-text-secondary); font-size: 14px;">
+          5 000 lignes, pas de pagination : seules les lignes visibles sont dans le DOM.
+          Le scroll reste fluide et la sélection/édition fonctionnent normalement.
+        </p>
+        <ad-grid-angular [data]="data" [pagination]="false">
+          <ad-grid-column-def field="id" headerName="ID" width="80" [sortable]="true" />
+          <ad-grid-column-def field="name" headerName="Nom" width="200" [sortable]="true" />
+          <ad-grid-column-def field="reference" headerName="Référence" width="150" [sortable]="true" />
+          <ad-grid-column-def field="category" headerName="Catégorie" width="150" [sortable]="true" />
+          <ad-grid-column-def field="price" headerName="Prix (€)" width="120" [sortable]="true" />
+          <ad-grid-column-def field="stock" headerName="Stock" width="100" [sortable]="true" />
+          <ad-grid-column-def field="supplier" headerName="Fournisseur" width="150" [sortable]="true" />
+          <ad-grid-column-def field="status" headerName="Statut" width="130" [sortable]="true" />
         </ad-grid-angular>
       </div>
     `,

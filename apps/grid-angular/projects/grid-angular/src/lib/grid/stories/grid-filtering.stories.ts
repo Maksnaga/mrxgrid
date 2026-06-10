@@ -9,6 +9,47 @@ import { Product, generateProducts, PRODUCTS_100, PRODUCTS_1000, baseMeta, uniqu
 const meta: Meta<AdGridAngularComponent<Product>> = {
   ...baseMeta,
   title: 'Data Display/Grid/Filtering',
+  parameters: {
+    ...baseMeta.parameters,
+    docs: {
+      description: {
+        component: `
+# Filtering
+
+Le filtrage est piloté par un \`FilterModel\` central — une liste de conditions combinées :
+
+\`\`\`ts
+interface FilterCondition {
+  id: string;                    // stable, pour trackBy / réordonnancement
+  combinator: 'and' | 'or';      // ignoré pour la première condition
+  field: string;
+  operator: FilterOperator;      // contains, equals, gt, between, in, blank…
+  value: { value?: unknown; valueTo?: unknown };
+}
+\`\`\`
+
+### Trois surfaces UI, un seul modèle
+
+| Surface | Activation | Usage |
+|---------|-----------|-------|
+| **Filter row inline** | template \`#filter\` sur la colonne (ou \`[showQuickFilters]\`) | filtre rapide par colonne, sous le header |
+| **Builder overlay** | menu colonne → « Filter in this column » | conditions avancées ancrées sur la colonne |
+| **Filter drawer** | bouton Filters de la toolbar | vue d'ensemble : ajout, réordonnancement, combinators |
+
+Les conditions actives s'affichent dans la barre « FILTERED BY » (tags supprimables). Chaque mutation émet \`(filterChange)\` avec \`{ model, condition, reason }\`.
+
+### Typage des opérateurs
+
+\`filterType\` (\`text · number · date · set · boolean · custom\`) choisit les opérateurs proposés ; s'il est omis, il est dérivé du \`cellEditor\` (\`number → number\`, \`date → date\`, \`select → set\`, sinon \`text\`).
+
+### Client vs serveur
+
+- \`filterMode="client"\` (défaut) — évaluation en mémoire par le \`FilterEngine\`
+- \`filterMode="server"\` — la grille n'évalue rien ; écoutez \`(filterChange)\` et réinjectez les lignes filtrées dans \`[data]\`
+        `,
+      },
+    },
+  },
 };
 
 export default meta;
@@ -124,6 +165,25 @@ class FilterSlotWrapperComponent {
 }
 
 export const WithFilterSlot: Story = {
+  parameters: {
+    docs: {
+      description: {
+        story: `
+Filter row inline : chaque colonne filtrable projette son propre input via le template \`#filter\`, rendu dans une rangée sous les headers. Le wrapper applique le filtre côté parent (la grille ne fait que projeter l'UI) :
+
+\`\`\`html
+<ad-grid-column-def field="name" [filterable]="true">
+  <ng-template #filter>
+    <input type="text" placeholder="Rechercher…" (input)="onNameFilter($event)" />
+  </ng-template>
+</ad-grid-column-def>
+\`\`\`
+
+À combiner avec le builder overlay (menu colonne) : les deux surfaces sont complémentaires — quick filter vs conditions avancées.
+        `,
+      },
+    },
+  },
   render: () => ({
     props: {},
     template: `<moz-story-filter-slot />`,

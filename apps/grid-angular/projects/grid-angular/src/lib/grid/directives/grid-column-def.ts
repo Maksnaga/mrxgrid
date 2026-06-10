@@ -21,6 +21,7 @@ export class AdeoGridColumnDef<T = unknown> {
   readonly flex = input<number>();
 
   readonly sortable = input<boolean>(true);
+  readonly sortComparator = input<((a: T, b: T) => number) | undefined>(undefined);
   readonly resizable = input<boolean>(true);
   readonly reorderable = input<boolean>(true);
   readonly groupable = input<boolean>(false);
@@ -76,6 +77,7 @@ export class AdeoGridColumnDef<T = unknown> {
       maxWidth: this.maxWidth(),
       flex: this.flex(),
       sortable: this.sortable(),
+      sortComparator: this.sortComparator(),
       resizable: this.resizable(),
       reorderable: this.reorderable(),
       groupable: this.groupable(),

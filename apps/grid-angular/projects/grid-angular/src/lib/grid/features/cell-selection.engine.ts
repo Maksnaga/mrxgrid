@@ -63,6 +63,34 @@ export class CellSelectionEngine<T = unknown> {
     return false;
   }
 
+  /**
+   * Edge flags for the selection-rectangle border: each cell paints only the
+   * sides of the range perimeter it sits on (2px accent box-shadow in the
+   * view). Cells in the interior of a range get all-false flags.
+   */
+  getRangeEdges(
+    row: number,
+    col: number,
+  ): { top: boolean; bottom: boolean; left: boolean; right: boolean } {
+    let top = false;
+    let bottom = false;
+    let left = false;
+    let right = false;
+    for (const range of this.allRanges()) {
+      const minRow = Math.min(range.start.row, range.end.row);
+      const maxRow = Math.max(range.start.row, range.end.row);
+      const minCol = Math.min(range.start.col, range.end.col);
+      const maxCol = Math.max(range.start.col, range.end.col);
+      if (row >= minRow && row <= maxRow && col >= minCol && col <= maxCol) {
+        if (row === minRow) top = true;
+        if (row === maxRow) bottom = true;
+        if (col === minCol) left = true;
+        if (col === maxCol) right = true;
+      }
+    }
+    return { top, bottom, left, right };
+  }
+
   focusCell(row: number, col: number, source: 'click' | 'keyboard' = 'click'): void {
     this.state.focusSource.set(source);
     this.state.focusedCell.set({ row, col });
@@ -452,6 +480,57 @@ export class CellSelectionEngine<T = unknown> {
 
   // --- Fill Handle (Google Sheets style) — supports vertical and horizontal fills ---
 
+  /**
+   * The cell that hosts the fill-handle square: the bottom-right corner of the
+   * live range when one exists (multi-cell fill, Sheets-style), otherwise the
+   * focused cell. Null when no column of the prospective source is editable —
+   * dragging could never write anything, so the affordance is hidden.
+   */
+  readonly fillHandleCell = computed<{ row: number; col: number } | null>(() => {
+    const range = this.state.cellRange();
+    if (range) {
+      const maxRow = Math.max(range.start.row, range.end.row);
+      const minCol = Math.min(range.start.col, range.end.col);
+      const maxCol = Math.max(range.start.col, range.end.col);
+      for (let c = minCol; c <= maxCol; c++) {
+        if (this.isColEditable(c)) return { row: maxRow, col: maxCol };
+      }
+      return null;
+    }
+    const focused = this.state.focusedCell();
+    if (!focused) return null;
+    return this.isColEditable(focused.col) ? focused : null;
+  });
+
+  /**
+   * Source block of a fill: the live range when the given anchor is one of its
+   * corners (the handle sits on the bottom-right corner of the range),
+   * otherwise the single anchor cell. Normalized (start ≤ end on both axes).
+   *
+   * Takes the anchor as a parameter instead of reading `fillAnchor` so it
+   * stays usable after `endFill()` has cleared the fill signals.
+   */
+  getFillSourceRangeFor(anchor: { row: number; col: number }): CellRange {
+    const range = this.state.cellRange();
+    if (range) {
+      const start = {
+        row: Math.min(range.start.row, range.end.row),
+        col: Math.min(range.start.col, range.end.col),
+      };
+      const end = {
+        row: Math.max(range.start.row, range.end.row),
+        col: Math.max(range.start.col, range.end.col),
+      };
+      const anchorInside =
+        anchor.row >= start.row &&
+        anchor.row <= end.row &&
+        anchor.col >= start.col &&
+        anchor.col <= end.col;
+      if (anchorInside) return { start, end };
+    }
+    return { start: { ...anchor }, end: { ...anchor } };
+  }
+
   startFill(row: number, col: number): void {
     this.state.fillAnchor.set({ row, col });
     this.state.fillTarget.set({ row, col });
@@ -494,51 +573,97 @@ export class CellSelectionEngine<T = unknown> {
     this.state.fillTarget.set(null);
   }
 
-  isCellInFillRange(row: number, col: number): boolean {
+  /**
+   * Bounding box of the cells targeted by the current fill drag: the source
+   * columns extended past the source rows (vertical) or the source rows
+   * extended past the source columns (horizontal). Excludes the source block
+   * itself, mirroring what `applyFill` writes on commit. Null when the drag
+   * hasn't left the source block.
+   */
+  private fillTargetRect(): CellRange | null {
     const anchor = this.state.fillAnchor();
     const target = this.state.fillTarget();
-    if (!anchor || !target) return false;
-    if (row === anchor.row && col === anchor.col) return false; // skip anchor
+    if (!anchor || !target) return null;
+    if (anchor.row === target.row && anchor.col === target.col) return null;
+    const src = this.getFillSourceRangeFor(anchor);
 
     const vertical = target.col === anchor.col;
     if (vertical) {
-      if (col !== anchor.col) return false;
-      const minRow = Math.min(anchor.row, target.row);
-      const maxRow = Math.max(anchor.row, target.row);
-      return row >= minRow && row <= maxRow;
+      if (target.row > src.end.row) {
+        return {
+          start: { row: src.end.row + 1, col: src.start.col },
+          end: { row: target.row, col: src.end.col },
+        };
+      }
+      if (target.row < src.start.row) {
+        return {
+          start: { row: target.row, col: src.start.col },
+          end: { row: src.start.row - 1, col: src.end.col },
+        };
+      }
+      return null; // drag ended inside the source rows — nothing to fill
     }
 
-    // Horizontal fill: single row, col range — skip non-editable columns and
-    // type-incompatible columns so the highlight mirrors exactly which cells
-    // will actually be written.
-    if (row !== anchor.row) return false;
-    const minCol = Math.min(anchor.col, target.col);
-    const maxCol = Math.max(anchor.col, target.col);
-    if (col < minCol || col > maxCol) return false;
-    return this.isColEditable(col) && this.isColTypeCompatible(anchor.col, col);
+    if (target.col > src.end.col) {
+      return {
+        start: { row: src.start.row, col: src.end.col + 1 },
+        end: { row: src.end.row, col: target.col },
+      };
+    }
+    if (target.col < src.start.col) {
+      return {
+        start: { row: src.start.row, col: target.col },
+        end: { row: src.end.row, col: src.start.col - 1 },
+      };
+    }
+    return null;
   }
 
   /**
-   * During a horizontal fill, cells that sit inside the drag bounding box but
-   * belong to a non-editable column cannot receive the filled value. We expose
-   * them here so the view can paint a red dashed outline — a visual cue that
-   * the fill is skipping that column.
+   * `true` when the cell will actually be written by the pending fill:
+   * inside the target rect AND its column accepts the value (editable, and —
+   * for horizontal fills — type-compatible with the source column it copies
+   * from).
+   */
+  isCellInFillRange(row: number, col: number): boolean {
+    const rect = this.fillTargetRect();
+    if (!rect) return false;
+    if (row < rect.start.row || row > rect.end.row) return false;
+    if (col < rect.start.col || col > rect.end.col) return false;
+    return this.isFillColWritable(col, rect);
+  }
+
+  /**
+   * Cells that sit inside the drag bounding box but cannot receive the filled
+   * value (non-editable column, or type-incompatible on a horizontal fill).
+   * The view paints them with a red dashed outline — a visual cue that the
+   * fill is skipping that column.
    */
   isCellInFillRejectRange(row: number, col: number): boolean {
+    const rect = this.fillTargetRect();
+    if (!rect) return false;
+    if (row < rect.start.row || row > rect.end.row) return false;
+    if (col < rect.start.col || col > rect.end.col) return false;
+    return !this.isFillColWritable(col, rect);
+  }
+
+  private isFillColWritable(col: number, rect: CellRange): boolean {
     const anchor = this.state.fillAnchor();
     const target = this.state.fillTarget();
     if (!anchor || !target) return false;
-    if (anchor.row === target.row && anchor.col === target.col) return false;
+    if (!this.isColEditable(col)) return false;
 
     const vertical = target.col === anchor.col;
-    if (vertical) return false; // vertical fills stay on the anchor column
+    if (vertical) return true; // values stay in their own column
 
-    if (row !== anchor.row) return false;
-    const minCol = Math.min(anchor.col, target.col);
-    const maxCol = Math.max(anchor.col, target.col);
-    if (col < minCol || col > maxCol) return false;
-    // Reject if non-editable OR editable but type-incompatible with anchor
-    return !this.isColEditable(col) || !this.isColTypeCompatible(anchor.col, col);
+    // Horizontal fill: the value comes from the source column the modulo
+    // pattern maps this target column to — types must match.
+    const src = this.getFillSourceRangeFor(anchor);
+    const srcCols = src.end.col - src.start.col + 1;
+    const right = rect.start.col > src.end.col;
+    const offset = right ? (col - rect.start.col) % srcCols : (rect.end.col - col) % srcCols;
+    const srcColIdx = right ? src.start.col + offset : src.end.col - offset;
+    return this.isColTypeCompatible(srcColIdx, col);
   }
 
   private isColEditable(colIndex: number): boolean {

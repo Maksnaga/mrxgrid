@@ -1988,73 +1988,115 @@ export class AdGridAngularComponent<T = unknown> implements OnDestroy {
     return this.state.sourceData().indexOf(match.data);
   }
 
+  /**
+   * Applies a fill-handle drop. The source is the live selection range when
+   * the handle was dragged from its bottom-right corner (multi-row /
+   * multi-column block, Sheets-style), or the single anchor cell otherwise.
+   * Vertical drags repeat the source rows below/above the block; horizontal
+   * drags repeat the source columns to the right/left.
+   */
   private applyFill(
     anchor: { row: number; col: number },
     target: { row: number; col: number }
   ): void {
-    const cols = this.state.visibleColumns();
-    const sourceField = cols[anchor.col]?.field;
-    if (!sourceField) return;
-
-    const sourceDef = this.state.columnDefMap().get(sourceField);
-    if (!sourceDef?.editable) return;
-
-    const anchorSourceIdx = this.displayIndexToSourceIndex(anchor.row);
-    if (anchorSourceIdx < 0) return;
-
-    const data = this.state.sourceData();
-    const sourceRow = data[anchorSourceIdx];
-    if (!sourceRow) return;
-
-    const sourceValue = sourceDef.valueGetter
-      ? sourceDef.valueGetter(sourceRow)
-      : (sourceRow as Record<string, unknown>)[sourceField];
-
+    const src = this.cellSelectionEngine.getFillSourceRangeFor(anchor);
     const vertical = target.col === anchor.col;
     if (vertical) {
-      this.applyVerticalFill(anchor, target, sourceField, sourceValue);
+      this.applyVerticalFill(src, target, anchor);
     } else {
-      this.applyHorizontalFill(anchor, target, sourceValue, anchorSourceIdx);
+      this.applyHorizontalFill(src, target, anchor);
     }
   }
 
-  private applyVerticalFill(
-    anchor: { row: number; col: number },
-    target: { row: number; col: number },
-    field: string,
-    sourceValue: unknown
-  ): void {
-    const minRow = Math.min(anchor.row, target.row);
-    const maxRow = Math.max(anchor.row, target.row);
-    const affected = maxRow - minRow;
-    if (affected === 0) return;
+  /** Reads a cell value (through `valueGetter` when defined) at display coords. */
+  private readCellValueAt(displayRow: number, col: number): unknown {
+    const field = this.state.visibleColumns()[col]?.field;
+    if (!field) return undefined;
+    const idx = this.displayIndexToSourceIndex(displayRow);
+    if (idx < 0) return undefined;
+    const row = this.state.sourceData()[idx];
+    if (!row) return undefined;
+    const def = this.state.columnDefMap().get(field);
+    return def?.valueGetter ? def.valueGetter(row) : (row as Record<string, unknown>)[field];
+  }
 
-    const allowFormula = this.state.columnDefMap().get(field)?.allowFormula === true;
-    // Build a map of display index → sourceData index for the fill range
-    const indexMap = new Map<number, number>();
-    for (let r = minRow; r <= maxRow; r++) {
-      if (r === anchor.row) continue;
-      const srcIdx = this.displayIndexToSourceIndex(r);
-      if (srcIdx >= 0) indexMap.set(r, srcIdx);
+  private applyVerticalFill(
+    src: CellRange,
+    target: { row: number; col: number },
+    anchor: { row: number; col: number }
+  ): void {
+    const cols = this.state.visibleColumns();
+    const defMap = this.state.columnDefMap();
+
+    const down = target.row > src.end.row;
+    // Released inside the source rows — nothing to fill.
+    if (!down && target.row >= src.start.row) return;
+    const firstTargetRow = down ? src.end.row + 1 : target.row;
+    const lastTargetRow = down ? target.row : src.start.row - 1;
+    const srcRowCount = src.end.row - src.start.row + 1;
+
+    // Editable source columns — each keeps its values in its own column.
+    const fields: { col: number; field: string; allowFormula: boolean }[] = [];
+    for (let c = src.start.col; c <= src.end.col; c++) {
+      const field = cols[c]?.field;
+      if (!field) continue;
+      const def = defMap.get(field);
+      if (!def?.editable) continue;
+      fields.push({ col: c, field, allowFormula: def.allowFormula === true });
     }
+    if (fields.length === 0) return;
+
+    const sourceValue = this.readCellValueAt(anchor.row, anchor.col);
+
+    // Display index → sourceData index, for source and target rows.
+    const srcIdxByDisplay = new Map<number, number>();
+    for (let r = src.start.row; r <= src.end.row; r++) {
+      const idx = this.displayIndexToSourceIndex(r);
+      if (idx >= 0) srcIdxByDisplay.set(r, idx);
+    }
+    const targetIdxByDisplay = new Map<number, number>();
+    for (let r = firstTargetRow; r <= lastTargetRow; r++) {
+      const idx = this.displayIndexToSourceIndex(r);
+      if (idx >= 0) targetIdxByDisplay.set(r, idx);
+    }
+    if (targetIdxByDisplay.size === 0) return;
 
     const changes: { rowIndex: number; field: string; before: unknown; after: unknown }[] = [];
     this.state.sourceData.update((d) => {
       const updated = [...d];
-      for (const [displayIdx, srcIdx] of indexMap) {
-        if (!updated[srcIdx]) continue;
-        const after = this.shiftFormulaForFill(
-          sourceValue,
-          allowFormula,
-          displayIdx - anchor.row,
-          0
-        );
-        const before = (updated[srcIdx] as Record<string, unknown>)[field];
-        if (before === after) continue;
-        const rowCopy = { ...updated[srcIdx] } as Record<string, unknown>;
-        rowCopy[field] = after;
-        updated[srcIdx] = rowCopy as T;
-        changes.push({ rowIndex: srcIdx, field, before, after });
+      for (const [displayIdx, tgtIdx] of targetIdxByDisplay) {
+        // The source pattern repeats over the target rows (Sheets-style):
+        // dragging a 2-row block over 6 rows writes A B A B A B.
+        const offset = down
+          ? (displayIdx - firstTargetRow) % srcRowCount
+          : (lastTargetRow - displayIdx) % srcRowCount;
+        const srcDisplayRow = down ? src.start.row + offset : src.end.row - offset;
+        const srcIdx = srcIdxByDisplay.get(srcDisplayRow);
+        if (srcIdx === undefined) continue;
+        const sourceRow = updated[srcIdx];
+        const targetRow = updated[tgtIdx];
+        if (!sourceRow || !targetRow) continue;
+
+        const rowCopy = { ...targetRow } as Record<string, unknown>;
+        let mutated = false;
+        for (const f of fields) {
+          const def = defMap.get(f.field);
+          const raw = def?.valueGetter
+            ? def.valueGetter(sourceRow)
+            : (sourceRow as Record<string, unknown>)[f.field];
+          const after = this.shiftFormulaForFill(
+            raw,
+            f.allowFormula,
+            displayIdx - srcDisplayRow,
+            0
+          );
+          const before = rowCopy[f.field];
+          if (before === after) continue;
+          rowCopy[f.field] = after;
+          mutated = true;
+          changes.push({ rowIndex: tgtIdx, field: f.field, before, after });
+        }
+        if (mutated) updated[tgtIdx] = rowCopy as T;
       }
       return updated;
     });
@@ -2067,66 +2109,96 @@ export class AdGridAngularComponent<T = unknown> implements OnDestroy {
       sourceCell: anchor,
       sourceValue,
       direction: 'vertical',
-      affectedCellCount: affected,
-      field,
-      targetRange: { startRow: minRow, endRow: maxRow },
-      affectedRowCount: affected,
+      affectedCellCount: changes.length,
+      field: fields.length === 1 ? fields[0].field : undefined,
+      targetFields: fields.map((f) => f.field),
+      targetRange: { startRow: firstTargetRow, endRow: lastTargetRow },
+      affectedRowCount: targetIdxByDisplay.size,
     });
   }
 
   private applyHorizontalFill(
-    anchor: { row: number; col: number },
+    src: CellRange,
     target: { row: number; col: number },
-    sourceValue: unknown,
-    anchorSourceIdx: number
+    anchor: { row: number; col: number }
   ): void {
     const cols = this.state.visibleColumns();
     const defMap = this.state.columnDefMap();
-    const minCol = Math.min(anchor.col, target.col);
-    const maxCol = Math.max(anchor.col, target.col);
 
-    // Collect editable target fields, skipping the anchor, non-editable columns,
-    // and columns with incompatible editor types.
-    const sourceColEntry = cols[anchor.col];
-    const sourceDef2 = sourceColEntry ? defMap.get(sourceColEntry.field) : undefined;
-    const sourceEditorType = sourceDef2?.cellEditor ?? 'text';
+    const right = target.col > src.end.col;
+    // Released inside the source columns — nothing to fill.
+    if (!right && target.col >= src.start.col) return;
+    const firstTargetCol = right ? src.end.col + 1 : target.col;
+    const lastTargetCol = right ? target.col : src.start.col - 1;
+    const srcColCount = src.end.col - src.start.col + 1;
 
-    const targetFields: string[] = [];
-    for (let c = minCol; c <= maxCol; c++) {
-      if (c === anchor.col) continue;
-      const colEntry = cols[c];
-      if (!colEntry) continue;
-      const def = defMap.get(colEntry.field);
-      if (!def?.editable) continue;
-      // Skip type-incompatible columns
-      const targetEditorType = def.cellEditor ?? 'text';
-      if (targetEditorType !== sourceEditorType) continue;
-      targetFields.push(colEntry.field);
+    // Map each target column to the source column the repeating pattern
+    // copies from, keeping only editable + type-compatible targets.
+    const colPairs: {
+      targetCol: number;
+      targetField: string;
+      srcCol: number;
+      srcField: string;
+      allowFormula: boolean;
+    }[] = [];
+    for (let c = firstTargetCol; c <= lastTargetCol; c++) {
+      const targetField = cols[c]?.field;
+      if (!targetField) continue;
+      const targetDef = defMap.get(targetField);
+      if (!targetDef?.editable) continue;
+      const offset = right ? (c - firstTargetCol) % srcColCount : (lastTargetCol - c) % srcColCount;
+      const srcCol = right ? src.start.col + offset : src.end.col - offset;
+      const srcField = cols[srcCol]?.field;
+      if (!srcField) continue;
+      const srcDef = defMap.get(srcField);
+      if ((targetDef.cellEditor ?? 'text') !== (srcDef?.cellEditor ?? 'text')) continue;
+      colPairs.push({
+        targetCol: c,
+        targetField,
+        srcCol,
+        srcField,
+        allowFormula: targetDef.allowFormula === true,
+      });
     }
-    if (targetFields.length === 0) return;
+    if (colPairs.length === 0) return;
+
+    const sourceValue = this.readCellValueAt(anchor.row, anchor.col);
+
+    const rowIdxByDisplay = new Map<number, number>();
+    for (let r = src.start.row; r <= src.end.row; r++) {
+      const idx = this.displayIndexToSourceIndex(r);
+      if (idx >= 0) rowIdxByDisplay.set(r, idx);
+    }
+    if (rowIdxByDisplay.size === 0) return;
 
     const changes: { rowIndex: number; field: string; before: unknown; after: unknown }[] = [];
     this.state.sourceData.update((d) => {
       const updated = [...d];
-      const src = updated[anchorSourceIdx];
-      if (!src) return updated;
-      const rowCopy = { ...src } as Record<string, unknown>;
-      for (const f of targetFields) {
-        const before = (src as Record<string, unknown>)[f];
-        const targetColIdx = cols.findIndex((c) => c.field === f);
-        const targetDef = defMap.get(f);
-        const allowFormula = targetDef?.allowFormula === true;
-        const after = this.shiftFormulaForFill(
-          sourceValue,
-          allowFormula,
-          0,
-          targetColIdx - anchor.col
-        );
-        if (before === after) continue;
-        rowCopy[f] = after;
-        changes.push({ rowIndex: anchorSourceIdx, field: f, before, after });
+      for (const [, rowIdx] of rowIdxByDisplay) {
+        const row = updated[rowIdx];
+        if (!row) continue;
+        const rowCopy = { ...row } as Record<string, unknown>;
+        let mutated = false;
+        for (const p of colPairs) {
+          const srcDef = defMap.get(p.srcField);
+          // Read from the unmutated row: source columns are never targets.
+          const raw = srcDef?.valueGetter
+            ? srcDef.valueGetter(row)
+            : (row as Record<string, unknown>)[p.srcField];
+          const after = this.shiftFormulaForFill(
+            raw,
+            p.allowFormula,
+            0,
+            p.targetCol - p.srcCol
+          );
+          const before = rowCopy[p.targetField];
+          if (before === after) continue;
+          rowCopy[p.targetField] = after;
+          mutated = true;
+          changes.push({ rowIndex: rowIdx, field: p.targetField, before, after });
+        }
+        if (mutated) updated[rowIdx] = rowCopy as T;
       }
-      updated[anchorSourceIdx] = rowCopy as T;
       return updated;
     });
     if (changes.length > 0) {
@@ -2138,8 +2210,8 @@ export class AdGridAngularComponent<T = unknown> implements OnDestroy {
       sourceCell: anchor,
       sourceValue,
       direction: 'horizontal',
-      affectedCellCount: targetFields.length,
-      targetFields,
+      affectedCellCount: changes.length,
+      targetFields: colPairs.map((p) => p.targetField),
     });
   }
 

@@ -2,6 +2,11 @@
   class="grid-cell"
   [class.grid-cell--focused]="isFocused()"
   [class.grid-cell--in-range]="isInRange()"
+  [class.grid-cell--edge-top]="rangeEdges().top"
+  [class.grid-cell--edge-bottom]="rangeEdges().bottom"
+  [class.grid-cell--edge-left]="rangeEdges().left"
+  [class.grid-cell--edge-right]="rangeEdges().right"
+  [class.grid-cell--in-multi-range]="isInMultiCellRange()"
   [class.grid-cell--in-fill-range]="isInFillRange()"
   [class.grid-cell--in-fill-reject-range]="isInFillRejectRange()"
   [class.grid-cell--cut]="cutEdges().any"
@@ -117,7 +122,7 @@
   <div class="grid-cell__cut-mark grid-cell__cut-mark--left"></div>
   } @if (edges.right) {
   <div class="grid-cell__cut-mark grid-cell__cut-mark--right"></div>
-  } } @if (isFocused() && !isEditing() && def().editable) {
+  } } @if (showFillHandle()) {
   <div class="grid-cell__fill-handle" (mousedown)="onFillHandleMouseDown($event)"></div>
   } @if (cellError(); as error) {
   <div

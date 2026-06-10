@@ -7,6 +7,35 @@ import { Product, baseMeta, InvoiceLine, INVOICE_LINES } from './grid-stories.sh
 const meta: Meta<AdGridAngularComponent<Product>> = {
   ...baseMeta,
   title: 'Data Display/Grid/Formulas',
+  parameters: {
+    ...baseMeta.parameters,
+    docs: {
+      description: {
+        component: `
+# Formula engine
+
+Moteur de formules type tableur, activé par \`[formulas]="true"\` sur la grille + \`[allowFormula]="true"\` par colonne.
+
+### Syntaxe
+
+| Forme | Exemple | Sémantique |
+|-------|---------|------------|
+| A1 relative | \`=C1*D1\` | Sans \`$\`, stockée en ref « même ligne » — la formule suit chaque ligne |
+| A1 absolue | \`=$C$1*$D$1\` | \`$\`-locked : cible toujours la ligne 1 |
+| Raccourci champ | \`=[price]*[qty]\` | Ref même-ligne explicite, lisible |
+| Plage | \`=SUM(E1:E4)\` | Agrégat sur une plage |
+
+Fonctions built-in : \`SUM\`, \`AVERAGE\`, \`MIN/MAX\`, \`IF\`, \`IFERROR\`, \`CONCAT\`, \`LEFT/RIGHT/MID\`, …
+
+### Évaluation
+
+Les formules forment un **DAG de dépendances** évalué topologiquement : modifier une cellule source ré-évalue automatiquement toutes les dépendantes. Le stockage interne est field-keyé (\`REF(COLUMN("price"),ROW(1))\`) — les formules survivent au reorder/renommage de colonnes, et l'éditeur reconvertit en A1 à l'affichage.
+
+Pendant l'édition, les lettres de colonnes \`A B C…\` s'affichent au-dessus des headers et les cellules référencées sont surlignées de la couleur de leur token.
+        `,
+      },
+    },
+  },
 };
 
 export default meta;

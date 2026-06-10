@@ -7,12 +7,48 @@ import { Product, generateProducts, PRODUCTS_100, GRID_WRAPPER, baseMeta, EXCEL_
 const meta: Meta<AdGridAngularComponent<Product>> = {
   ...baseMeta,
   title: 'Data Display/Grid/Keyboard & Fullscreen',
+  parameters: {
+    ...baseMeta.parameters,
+    docs: {
+      description: {
+        component: `
+# Keyboard & Fullscreen
+
+Le \`KeyboardEngine\` fournit une couche clavier complète type Excel — active dès qu'une cellule a le focus. Un panneau récapitulatif des raccourcis est accessible depuis la toolbar (\`?\`).
+
+### Navigation
+
+\`← ↑ → ↓\` cellule · \`Ctrl+flèche\` saut au bord du bloc · \`Home/End\` ligne · \`Ctrl+Home/End\` tableau · \`PageUp/Down\` page · \`Tab\` / \`Enter\` cellule suivante / ligne suivante
+
+### Sélection
+
+\`Shift+flèche\` étend · \`Shift+Ctrl+flèche\` étend au bloc · \`Ctrl+A\` tout · \`Shift+Space\` ligne · \`Ctrl+Space\` colonne
+
+### Édition & presse-papier
+
+\`F2\` / typing édite · \`Esc\` annule · \`Alt+Enter\` retour à la ligne · \`Ctrl+Enter\` commit + remplit la sélection · \`Backspace/Delete\` efface · \`Ctrl+C/X/V\` copie (TSV) / coupe (marching ants) / colle · \`Ctrl+D/R\` fill down / right · \`Ctrl+Z/Y\` undo / redo
+
+### Fullscreen
+
+\`[fullscreen]="true"\` ajoute le bouton plein écran à la toolbar : la grille passe en overlay plein viewport (la hauteur est resynchronisée via ResizeObserver), \`Esc\` ressort.
+        `,
+      },
+    },
+  },
 };
 
 export default meta;
 type Story = StoryObj<AdGridAngularComponent<Product>>;
 
 export const WithFullscreen: Story = {
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '`[fullscreen]="true"` expose le toggle plein écran dans la toolbar. En fullscreen, la grille occupe tout le viewport ; pagination, scroll et raccourcis restent identiques. `Esc` ou le bouton ressortent.',
+      },
+    },
+  },
   render: () => ({
     props: {
       data: PRODUCTS_100,

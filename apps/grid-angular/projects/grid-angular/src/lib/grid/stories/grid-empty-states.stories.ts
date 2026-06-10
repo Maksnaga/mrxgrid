@@ -9,6 +9,27 @@ import { Product, generateProducts, PRODUCTS_100, GRID_WRAPPER, baseMeta } from 
 const meta: Meta<AdGridAngularComponent<Product>> = {
   ...baseMeta,
   title: 'Data Display/Grid/Empty States',
+  parameters: {
+    ...baseMeta.parameters,
+    docs: {
+      description: {
+        component: `
+# Empty & Loading States
+
+La grille distingue quatre états « sans contenu », chacun personnalisable :
+
+| État | Déclencheur | Personnalisation |
+|------|-------------|------------------|
+| **No data** | \`[data]\` vide, aucun filtre | \`[emptyDataTitle]\` / \`[emptyDataDescription]\` ou template \`mozGridEmptyDef\` |
+| **No results** | filtres actifs → 0 ligne | \`[noResultsTitle]\` / \`[noResultsDescription]\` / \`[noResultsActionLabel]\` (bouton « Clear filters ») ou \`mozGridEmptyDef="no-results"\` |
+| **Loading initial** | \`[loading]="true"\` sans données | skeleton rows (\`[skeletonRowCount]\`) |
+| **Refreshing** | \`[refreshing]="true"\` avec données | indicateur non destructif, lignes visibles |
+
+L'état « no results » garde le header visible (l'utilisateur doit pouvoir retirer ses filtres) ; l'action « Clear filters » vide le \`FilterModel\`.
+        `,
+      },
+    },
+  },
 };
 
 export default meta;
@@ -261,5 +282,64 @@ export const EmptyStateCustomTemplates: Story = {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Formulas (Phase 1)
+// Loading states
 // ─────────────────────────────────────────────────────────────────────────────
+
+export const LoadingState: Story = {
+  name: 'Loading / Initial load',
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Avec `[loading]="true"` et aucune donnée, la grille affiche des skeleton rows (nombre réglable via `[skeletonRowCount]`). À utiliser pendant le premier fetch.',
+      },
+    },
+  },
+  render: () => ({
+    props: {
+      gridWrapper: GRID_WRAPPER,
+    },
+    template: `
+      <div [style]="gridWrapper">
+        <ad-grid-angular [data]="[]" [loading]="true" [skeletonRowCount]="8" [pagination]="true" [pageSize]="20">
+          <ad-grid-column-def field="id" headerName="ID" width="80" [sortable]="true" />
+          <ad-grid-column-def field="name" headerName="Nom" width="200" [sortable]="true" />
+          <ad-grid-column-def field="reference" headerName="Référence" width="150" [sortable]="true" />
+          <ad-grid-column-def field="category" headerName="Catégorie" width="150" [sortable]="true" />
+          <ad-grid-column-def field="price" headerName="Prix (€)" width="120" [sortable]="true" />
+          <ad-grid-column-def field="stock" headerName="Stock" width="100" [sortable]="true" />
+        </ad-grid-angular>
+      </div>
+    `,
+  }),
+};
+
+export const RefreshingState: Story = {
+  name: 'Loading / Refreshing',
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Avec `[refreshing]="true"`, les données restent visibles pendant le re-fetch (pas de skeleton destructif) — à utiliser pour un refresh en arrière-plan après le premier chargement.',
+      },
+    },
+  },
+  render: () => ({
+    props: {
+      data: PRODUCTS_100,
+      gridWrapper: GRID_WRAPPER,
+    },
+    template: `
+      <div [style]="gridWrapper">
+        <ad-grid-angular [data]="data" [refreshing]="true" [pagination]="true" [pageSize]="20">
+          <ad-grid-column-def field="id" headerName="ID" width="80" [sortable]="true" />
+          <ad-grid-column-def field="name" headerName="Nom" width="200" [sortable]="true" />
+          <ad-grid-column-def field="reference" headerName="Référence" width="150" [sortable]="true" />
+          <ad-grid-column-def field="category" headerName="Catégorie" width="150" [sortable]="true" />
+          <ad-grid-column-def field="price" headerName="Prix (€)" width="120" [sortable]="true" />
+          <ad-grid-column-def field="stock" headerName="Stock" width="100" [sortable]="true" />
+        </ad-grid-angular>
+      </div>
+    `,
+  }),
+};
