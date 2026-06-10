@@ -22,7 +22,7 @@
 
     &__title {
       margin: 0;
-      font-size: var(--font-size-300, 16px);
+      font-size: var(--font-size-200, 16px);
       font-weight: var(--font-weight-semi-bold, 600);
       color: var(--color-text-primary, #222);
     }
@@ -30,7 +30,7 @@
     &__description {
       margin: 0;
       max-width: 360px;
-      font-size: var(--font-size-200, 14px);
+      font-size: var(--font-size-100, 14px);
       line-height: 1.4;
     }
 

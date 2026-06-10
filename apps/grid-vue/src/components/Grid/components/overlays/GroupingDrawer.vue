@@ -108,77 +108,54 @@ function onReset() {
 <template>
   <!-- See AdGridFilterDrawer.vue for why we Teleport to <body>. -->
   <Teleport to="body">
-  <!-- `close-on-overlay` MUST be explicitly false. Mozaic's MDrawer
+    <!-- `close-on-overlay` MUST be explicitly false. Mozaic's MDrawer
        defaults the prop to true AND mis-handles inner-body whitespace
        clicks as "overlay" clicks — the user clicks between list items
        inside the dialog and the panel shuts. The user dismisses via
        the close button or Apply / Reset in the footer instead. -->
-  <MDrawer
-    :open="open"
-    title="Group by"
-    :extended="true"
-    :close-on-overlay="false"
-    position="right"
-    @update:open="emit('update:open', $event)"
-  >
-    <div class="grid-grouping-drawer">
-      <!-- Active groups -->
-      <div v-if="draftGroups.length" class="grid-grouping-drawer__section">
-        <div
-          v-for="(group, index) in draftGroups"
-          :key="group.field"
-          class="grid-grouping-drawer__active-item"
-          draggable="true"
-          @dragstart="onDragStart(index, $event)"
-          @dragover.prevent="onDragOver(index)"
-          @drop.prevent="onDrop(index)"
-          @dragend="onDragEnd"
-        >
-          <span class="grid-grouping-drawer__drag-handle">
-            <Drag24 aria-hidden="true" />
-          </span>
-          <span class="grid-grouping-drawer__field-name">{{ group.headerName || group.field }}</span>
-          <MSelect
-            :id="`group-dir-${group.field}`"
-            size="s"
-            :options="sortOptions"
-            :model-value="group.direction"
-            class="grid-grouping-drawer__sort-select"
-            @update:model-value="updateDirection(group.field, $event)"
-          />
-          <MIconButton size="s" :ghost="true" @click="removeColumn(group.field)">
-            <template #icon>
-              <Cross20 aria-hidden="true" />
-            </template>
-          </MIconButton>
+    <MDrawer :open="open" title="Group by" :extended="true" :close-on-overlay="false" position="right"
+      @update:open="emit('update:open', $event)">
+      <div class="grid-grouping-drawer">
+        <!-- Active groups -->
+        <div v-if="draftGroups.length" class="grid-grouping-drawer__section">
+          <div v-for="(group, index) in draftGroups" :key="group.field" class="grid-grouping-drawer__active-item"
+            draggable="true" @dragstart="onDragStart(index, $event)" @dragover.prevent="onDragOver(index)"
+            @drop.prevent="onDrop(index)" @dragend="onDragEnd">
+            <span class="grid-grouping-drawer__drag-handle">
+              <Drag24 aria-hidden="true" />
+            </span>
+            <span class="grid-grouping-drawer__field-name">{{ group.headerName || group.field }}</span>
+            <MSelect :id="`group-dir-${group.field}`" size="s" :options="sortOptions" :model-value="group.direction"
+              class="grid-grouping-drawer__sort-select" @update:model-value="updateDirection(group.field, $event)" />
+            <MIconButton size="s" :ghost="true" @click="removeColumn(group.field)">
+              <template #icon>
+                <Cross20 aria-hidden="true" />
+              </template>
+            </MIconButton>
+          </div>
+        </div>
+
+        <!-- Available columns -->
+        <div class="grid-grouping-drawer__section">
+          <h3 class="grid-grouping-drawer__section-title">AVAILABLE COLUMNS</h3>
+          <div v-for="col in availableColumns" :key="col.field" class="grid-grouping-drawer__available-item">
+            <span class="grid-grouping-drawer__field-name">{{ col.headerName }}</span>
+            <MIconButton size="s" :ghost="true" @click="addColumn(col)">
+              <template #icon>
+                <ListAdd24 aria-hidden="true" />
+              </template>
+            </MIconButton>
+          </div>
         </div>
       </div>
 
-      <!-- Available columns -->
-      <div class="grid-grouping-drawer__section">
-        <h3 class="grid-grouping-drawer__section-title">AVAILABLE COLUMNS</h3>
-        <div
-          v-for="col in availableColumns"
-          :key="col.field"
-          class="grid-grouping-drawer__available-item"
-        >
-          <span class="grid-grouping-drawer__field-name">{{ col.headerName }}</span>
-          <MIconButton size="s" :ghost="true" @click="addColumn(col)">
-            <template #icon>
-              <ListAdd24 aria-hidden="true" />
-            </template>
-          </MIconButton>
+      <template #footer>
+        <div class="grid-grouping-drawer__footer">
+          <MButton appearance="accent" @click="onApply">Apply</MButton>
+          <MButton :outlined="true" @click="onReset">Reset</MButton>
         </div>
-      </div>
-    </div>
-
-    <template #footer>
-      <div class="grid-grouping-drawer__footer">
-        <MButton appearance="accent" @click="onApply">Apply</MButton>
-        <MButton :outlined="true" @click="onReset">Reset</MButton>
-      </div>
-    </template>
-  </MDrawer>
+      </template>
+    </MDrawer>
   </Teleport>
 </template>
 
@@ -188,7 +165,6 @@ function onReset() {
   flex-direction: column;
   gap: 16px;
   padding: 8px 0;
-  font-family: var(--font-family, system-ui, -apple-system, sans-serif);
 }
 
 .grid-grouping-drawer__section-title {
@@ -218,7 +194,7 @@ function onReset() {
 
 .grid-grouping-drawer__field-name {
   flex: 1 1 0%;
-  font-size: var(--font-size-200, 14px);
+  font-size: var(--font-size-100, 14px);
   font-weight: var(--font-weight-semi-bold, 600);
   color: var(--color-text-primary, #1e293b);
   min-width: 250px;

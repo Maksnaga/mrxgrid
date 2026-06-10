@@ -30,25 +30,16 @@ const emit = defineEmits<{
   <div v-if="conditions.length" class="grid-filter-tags-bar">
     <span class="grid-filter-tags-bar__label">FILTERED BY</span>
     <div class="grid-filter-tags-bar__tags">
-      <span
-        v-for="condition in conditions"
-        :key="condition.id"
-        class="grid-filter-tags-bar__tag"
-        :class="{
-          'grid-filter-tags-bar__tag--or':
-            condition !== conditions[0] && condition.combinator === 'or',
-        }"
-      >
+      <span v-for="condition in conditions" :key="condition.id" class="grid-filter-tags-bar__tag" :class="{
+        'grid-filter-tags-bar__tag--or':
+          condition !== conditions[0] && condition.combinator === 'or',
+      }">
         <span v-if="condition !== conditions[0]" class="grid-filter-tags-bar__combinator">
           {{ condition.combinator === 'or' ? 'OR' : 'AND' }}
         </span>
         <span class="grid-filter-tags-bar__tag-label">{{ toLabel(condition) }}</span>
-        <button
-          type="button"
-          class="grid-filter-tags-bar__tag-remove"
-          :aria-label="`Remove filter ${toLabel(condition)}`"
-          @click="emit('removeCondition', condition.id)"
-        >
+        <button type="button" class="grid-filter-tags-bar__tag-remove"
+          :aria-label="`Remove filter ${toLabel(condition)}`" @click="emit('removeCondition', condition.id)">
           &times;
         </button>
       </span>
@@ -68,7 +59,6 @@ const emit = defineEmits<{
   align-items: center;
   gap: 10px;
   padding: 8px 12px;
-  font-family: var(--font-family, system-ui, -apple-system, sans-serif);
   font-size: var(--font-size-100, 13px);
 }
 
@@ -94,7 +84,8 @@ const emit = defineEmits<{
   gap: 6px;
   padding: 4px 8px;
   background-color: var(--color-background-accent-inverse, #1e293b);
-  color: #fff; /* white on dark tag — intentional, no Mozaic token */
+  color: #fff;
+  /* white on dark tag — intentional, no Mozaic token */
   border-radius: var(--border-radius-s, 4px);
   font-size: var(--font-size-50, 12px);
   font-weight: var(--font-weight-medium, 500);

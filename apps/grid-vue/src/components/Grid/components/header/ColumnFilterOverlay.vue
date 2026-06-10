@@ -641,68 +641,33 @@ onBeforeUnmount(() => {
 
 <template>
   <Teleport to="body">
-    <div
-      ref="overlayRef"
-      class="grid-column-filter-overlay"
-      :style="{
-        top: `${position.top}px`,
-        left: `${position.left}px`,
-      }"
-      role="dialog"
-      :aria-label="`Filter ${column.headerName}`"
-    >
-      <div
-        class="grid-column-filter-overlay__header"
-        title="Drag to move"
-        @mousedown="onHeaderMouseDown"
-      >
+    <div ref="overlayRef" class="grid-column-filter-overlay" :style="{
+      top: `${position.top}px`,
+      left: `${position.left}px`,
+    }" role="dialog" :aria-label="`Filter ${column.headerName}`">
+      <div class="grid-column-filter-overlay__header" title="Drag to move" @mousedown="onHeaderMouseDown">
         <div class="grid-column-filter-overlay__title">Filter</div>
         <div class="grid-column-filter-overlay__subtitle">Show rows</div>
       </div>
 
-      <div
-        v-for="(draft, idx) in drafts"
-        :key="draft.id"
-        class="grid-column-filter-overlay__row"
-        :class="{ 'grid-column-filter-overlay__row--dragging': dragFromIndex === idx }"
-        draggable="true"
-        @dragstart="onDragStart(idx, $event)"
-        @dragover="onDragOver(idx, $event)"
-        @drop.prevent="onDrop(idx)"
-        @dragend="onDragEnd"
-      >
+      <div v-for="(draft, idx) in drafts" :key="draft.id" class="grid-column-filter-overlay__row"
+        :class="{ 'grid-column-filter-overlay__row--dragging': dragFromIndex === idx }" draggable="true"
+        @dragstart="onDragStart(idx, $event)" @dragover="onDragOver(idx, $event)" @drop.prevent="onDrop(idx)"
+        @dragend="onDragEnd">
         <span v-if="idx === 0" class="grid-column-filter-overlay__where">Where</span>
         <div v-else class="grid-column-filter-overlay__combinator-slot">
-          <MSelect
-            :id="`grid-col-filter-comb-${draft.id}`"
-            size="s"
-            :options="COMBINATOR_OPTIONS"
-            :model-value="draft.combinator"
-            @update:modelValue="(v: string | number) => onCombinatorChange(draft, v)"
-          />
+          <MSelect :id="`grid-col-filter-comb-${draft.id}`" size="s" :options="COMBINATOR_OPTIONS"
+            :model-value="draft.combinator" @update:modelValue="(v: string | number) => onCombinatorChange(draft, v)" />
         </div>
 
         <div class="grid-column-filter-overlay__field-slot">
-          <MSelect
-            :id="`grid-col-filter-field-${draft.id}`"
-            size="s"
-            :options="fieldOptions"
-            :model-value="draft.field"
-            @update:modelValue="(v: string | number) => onFieldChange(draft, v)"
-          />
+          <MSelect :id="`grid-col-filter-field-${draft.id}`" size="s" :options="fieldOptions" :model-value="draft.field"
+            @update:modelValue="(v: string | number) => onFieldChange(draft, v)" />
         </div>
 
-        <div
-          v-if="!customFilterFor(getColumn(draft.field))"
-          class="grid-column-filter-overlay__operator-slot"
-        >
-          <MSelect
-            :id="`grid-col-filter-op-${draft.id}`"
-            size="s"
-            :options="getOperatorOptions(draft.field)"
-            :model-value="draft.operator"
-            @update:modelValue="(v: string | number) => onOperatorChange(draft, v)"
-          />
+        <div v-if="!customFilterFor(getColumn(draft.field))" class="grid-column-filter-overlay__operator-slot">
+          <MSelect :id="`grid-col-filter-op-${draft.id}`" size="s" :options="getOperatorOptions(draft.field)"
+            :model-value="draft.operator" @update:modelValue="(v: string | number) => onOperatorChange(draft, v)" />
         </div>
 
         <!-- Custom filter component — `col.filter = { component, doesFilterPass }`.
@@ -710,73 +675,42 @@ onBeforeUnmount(() => {
              filterParams, getValue, onModelChange }). The component calls
              `params.onModelChange(newModel)` on user interaction; the
              builder hooks `refresh()` / `afterGuiAttached()` via the ref. -->
-        <div
-          v-if="customFilterFor(getColumn(draft.field))"
-          class="grid-column-filter-overlay__value-slot"
-        >
-          <component
-            :is="customFilterFor(getColumn(draft.field))!.component"
-            :ref="bindRefFor(draft)"
-            :params="buildFilterParams(draft)"
-          />
+        <div v-if="customFilterFor(getColumn(draft.field))" class="grid-column-filter-overlay__value-slot">
+          <component :is="customFilterFor(getColumn(draft.field))!.component" :ref="bindRefFor(draft)"
+            :params="buildFilterParams(draft)" />
         </div>
 
         <div v-else-if="!isValueless(draft.operator)" class="grid-column-filter-overlay__value-slot">
-          <MSelect
-            v-if="getValueOptions(draft.field)"
-            :id="`grid-col-filter-val-${draft.id}`"
-            size="s"
-            :options="getValueOptions(draft.field)!"
-            :model-value="selectValue(draft.value)"
-            @update:modelValue="(v: string | number) => onValueSelect(draft, v)"
-          />
+          <MSelect v-if="getValueOptions(draft.field)" :id="`grid-col-filter-val-${draft.id}`" size="s"
+            :options="getValueOptions(draft.field)!" :model-value="selectValue(draft.value)"
+            @update:modelValue="(v: string | number) => onValueSelect(draft, v)" />
           <template v-else>
-            <MTextInput
-              :id="`grid-col-filter-val-${draft.id}`"
-              size="s"
-              :type="getInputType(draft.field)"
+            <MTextInput :id="`grid-col-filter-val-${draft.id}`" size="s" :type="getInputType(draft.field)"
               :model-value="draft.value == null ? '' : String(draft.value)"
-              @input="(e: Event) => onTextInput(draft, e)"
-            />
-            <MTextInput
-              v-if="isRange(draft.operator)"
-              :id="`grid-col-filter-val-to-${draft.id}`"
-              size="s"
-              :type="getInputType(draft.field)"
-              :model-value="draft.valueTo == null ? '' : String(draft.valueTo)"
-              @input="(e: Event) => onTextInputTo(draft, e)"
-            />
+              @input="(e: Event) => onTextInput(draft, e)" />
+            <MTextInput v-if="isRange(draft.operator)" :id="`grid-col-filter-val-to-${draft.id}`" size="s"
+              :type="getInputType(draft.field)" :model-value="draft.valueTo == null ? '' : String(draft.valueTo)"
+              @input="(e: Event) => onTextInputTo(draft, e)" />
           </template>
         </div>
 
-        <MIconButton
-          ghost
-          size="s"
-          :aria-label="`Remove condition`"
-          class="grid-column-filter-overlay__remove"
-          @click="onRemoveDraft(draft)"
-        >
-          <template #icon><Trash24 /></template>
+        <MIconButton ghost size="s" :aria-label="`Remove condition`" class="grid-column-filter-overlay__remove"
+          @click="onRemoveDraft(draft)">
+          <template #icon>
+            <Trash24 />
+          </template>
         </MIconButton>
 
-        <span
-          class="grid-column-filter-overlay__drag-handle"
-          aria-hidden="true"
-          title="Drag to reorder"
-        >
+        <span class="grid-column-filter-overlay__drag-handle" aria-hidden="true" title="Drag to reorder">
           <Drag24 />
         </span>
       </div>
 
       <div class="grid-column-filter-overlay__add-wrapper">
-        <MButton
-          ghost
-          size="s"
-          appearance="accent"
-          iconPosition="left"
-          @click="onAddCondition"
-        >
-          <template #icon><ListAdd24 /></template>
+        <MButton ghost size="s" appearance="accent" iconPosition="left" @click="onAddCondition">
+          <template #icon>
+            <ListAdd24 />
+          </template>
           Add condition
         </MButton>
       </div>
@@ -792,8 +726,8 @@ onBeforeUnmount(() => {
   background: var(--color-background-primary, #fff);
   border: 1px solid var(--color-border-primary, #e2e8f0);
   border-radius: var(--border-radius-l, 16px);
-  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12); /* custom shadow — no matching Mozaic token */
-  font-family: var(--font-family, system-ui, -apple-system, sans-serif);
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12);
+  /* custom shadow — no matching Mozaic token */
   padding: 14px 16px 12px;
 }
 
@@ -811,7 +745,7 @@ onBeforeUnmount(() => {
 }
 
 .grid-column-filter-overlay__title {
-  font-size: var(--font-size-300, 16px);
+  font-size: var(--font-size-200, 16px);
   font-weight: var(--font-weight-semi-bold, 600);
   color: var(--color-text-primary, #0f172a);
   line-height: 1.3;
@@ -833,7 +767,7 @@ onBeforeUnmount(() => {
   padding: 4px;
 }
 
-.grid-column-filter-overlay__row + .grid-column-filter-overlay__row {
+.grid-column-filter-overlay__row+.grid-column-filter-overlay__row {
   margin-top: 4px;
 }
 
@@ -868,7 +802,7 @@ onBeforeUnmount(() => {
   gap: 6px;
 }
 
-.grid-column-filter-overlay__value-slot > * {
+.grid-column-filter-overlay__value-slot>* {
   flex: 1 1 0;
   min-width: 0;
 }

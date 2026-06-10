@@ -23,7 +23,7 @@
     border-radius: var(--border-radius-m, 8px);
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12); /* custom shadow — no matching Mozaic token */
     white-space: nowrap;
-    font-size: var(--font-size-200, 14px);
+    font-size: var(--font-size-100, 14px);
     color: var(--color-text-primary);
   }
 
@@ -62,7 +62,7 @@
     cursor: pointer;
     padding: 6px 12px;
     border-radius: var(--border-radius-s, 4px);
-    font-size: var(--font-size-200, 14px);
+    font-size: var(--font-size-100, 14px);
     font-weight: var(--font-weight-medium, 500);
     color: var(--color-text-primary);
   }

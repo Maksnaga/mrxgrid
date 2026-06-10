@@ -176,24 +176,11 @@ function onCancel(): void {
          overlay clicks — the panel would shut while the user clicks
          between filter rows / fields. The user dismisses via the close
          button. -->
-    <MDrawer
-      :open="open"
-      title="Filters"
-      :extended="true"
-      :close-on-overlay="false"
-      position="right"
-      @update:open="emit('update:open', $event)"
-    >
+    <MDrawer :open="open" title="Filters" :extended="true" :close-on-overlay="false" position="right"
+      @update:open="emit('update:open', $event)">
       <div class="grid-filter-drawer">
-        <ad-grid-filter-builder
-          :conditions="draft"
-          :columns="columns"
-          @add="onAdd"
-          @update="onUpdate"
-          @remove="onRemove"
-          @reorder="onReorder"
-          @clear="onClear"
-        />
+        <ad-grid-filter-builder :conditions="draft" :columns="columns" @add="onAdd" @update="onUpdate"
+          @remove="onRemove" @reorder="onReorder" @clear="onClear" />
       </div>
 
       <template v-if="mode === 'manual'" #footer>
@@ -209,7 +196,6 @@ function onCancel(): void {
 <style scoped>
 .grid-filter-drawer {
   padding: 8px 0;
-  font-family: var(--font-family, system-ui, -apple-system, sans-serif);
 }
 
 .grid-filter-drawer__footer {

@@ -16,23 +16,13 @@ const emit = defineEmits<{
   <div v-if="hiddenColumns.length > 0" class="grid-hidden-bar">
     <span class="grid-hidden-bar__label">HIDDEN</span>
     <div class="grid-hidden-bar__tags">
-      <span
-        v-for="col in hiddenColumns"
-        :key="col.field"
-        class="grid-hidden-bar__tag"
-      >
+      <span v-for="col in hiddenColumns" :key="col.field" class="grid-hidden-bar__tag">
         {{ col.headerName }}
-        <button
-          class="grid-hidden-bar__tag-remove"
-          @click="emit('show', col.field)"
-        >
+        <button class="grid-hidden-bar__tag-remove" @click="emit('show', col.field)">
           &times;
         </button>
       </span>
-      <button
-        class="grid-hidden-bar__action"
-        @click="emit('showAll')"
-      >
+      <button class="grid-hidden-bar__action" @click="emit('showAll')">
         Show all
       </button>
     </div>
@@ -45,7 +35,6 @@ const emit = defineEmits<{
   align-items: center;
   gap: 10px;
   padding: 8px 12px;
-  font-family: var(--font-family, system-ui, -apple-system, sans-serif);
   font-size: var(--font-size-100, 13px);
 }
 
@@ -71,7 +60,8 @@ const emit = defineEmits<{
   gap: 4px;
   padding: 4px 8px;
   background-color: var(--color-text-secondary, #64748b);
-  color: #fff; /* white on neutral-dark tag — intentional */
+  color: #fff;
+  /* white on neutral-dark tag — intentional */
   border-radius: var(--border-radius-s, 4px);
   font-size: var(--font-size-50, 12px);
   font-weight: var(--font-weight-medium, 500);

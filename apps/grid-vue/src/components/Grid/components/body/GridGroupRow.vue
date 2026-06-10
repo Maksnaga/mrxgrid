@@ -9,6 +9,7 @@
  * right edge, so the eye doesn't have to travel the full row width.
  */
 import type { CSSProperties } from 'vue'
+import { MNumberBadge } from '@mozaic-ds/vue'
 import { ChevronDown20, ChevronRight20 } from '@mozaic-ds/icons-vue'
 import type { ColumnDef } from '../../types'
 
@@ -61,7 +62,7 @@ const INDENT_PX = 24
         <span class="grid-group-row__field">{{ headerName }}</span>
         <span class="grid-group-row__value">{{ value ?? '(empty)' }}</span>
       </div>
-      <span class="grid-group-row__count">{{ count }}</span>
+      <MNumberBadge class="grid-group-row__count" :label="count" />
     </div>
   </div>
 </template>
@@ -135,7 +136,8 @@ const INDENT_PX = 24
 }
 
 .grid-group-row__value {
-  font-size: var(--font-size-300, 16px); /* 18px has no matching Mozaic token — using --font-size-300 (16px) */
+  font-size: var(--font-size-200, 16px);
+  /* 18px has no matching Mozaic token — using --font-size-300 (16px) */
   font-weight: var(--font-weight-bold, 700);
   color: var(--color-text-primary, #1e293b);
   line-height: 1.2;
@@ -144,20 +146,10 @@ const INDENT_PX = 24
   text-overflow: ellipsis;
 }
 
-// Inline pill sitting right next to the group title — soft neutral
-// background so it reads as a count, not a tappable element. Lives
+// Mozaic MNumberBadge sitting right next to the group title. Lives
 // inside `__label`, so it inherits the sticky-left anchoring during
 // horizontal scroll.
 .grid-group-row__count {
   flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  padding: 2px 10px;
-  border-radius: var(--border-radius-full, 50%);
-  background-color: var(--color-border-secondary, #e2e8f0);
-  font-size: var(--font-size-50, 12px);
-  font-weight: var(--font-weight-semi-bold, 600);
-  color: var(--color-text-secondary, #475569);
-  line-height: 1.2;
 }
 </style>

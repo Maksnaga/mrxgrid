@@ -61,13 +61,4 @@
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-
-  .grid-group-row__count {
-    align-self: center;
-    font-size: var(--font-size-s, 14px);
-    color: var(--color-text-secondary);
-    font-weight: var(--font-weight-regular, 400);
-    padding-right: 16px;
-    padding-left: 12px;
-  }
 }

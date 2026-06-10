@@ -274,164 +274,97 @@ function onDrop(index: number): void {
       No filters yet. Click <strong>Add filter</strong> to build one.
     </div>
 
-    <div
-      v-for="(condition, index) in conditions"
-      :key="condition.id"
-      class="grid-filter-builder__row"
-      draggable="true"
-      @dragstart="onDragStart(index, $event)"
-      @dragover.prevent
-      @drop.prevent="onDrop(index)"
-    >
+    <div v-for="(condition, index) in conditions" :key="condition.id" class="grid-filter-builder__row" draggable="true"
+      @dragstart="onDragStart(index, $event)" @dragover.prevent @drop.prevent="onDrop(index)">
       <!-- Combinator: "Where" for first row, AND/OR picker otherwise -->
       <span v-if="index === 0" class="grid-filter-builder__where">Where</span>
       <div v-else class="grid-filter-builder__slot grid-filter-builder__slot--combinator">
-        <MSelect
-          :id="`grid-filter-builder-comb-${condition.id}`"
-          size="s"
-          :options="COMBINATOR_OPTIONS"
+        <MSelect :id="`grid-filter-builder-comb-${condition.id}`" size="s" :options="COMBINATOR_OPTIONS"
           :model-value="condition.combinator"
-          @update:modelValue="(v: string | number) => onCombinatorChange(condition.id, String(v))"
-        />
+          @update:modelValue="(v: string | number) => onCombinatorChange(condition.id, String(v))" />
       </div>
 
       <!-- Field picker -->
       <div class="grid-filter-builder__slot grid-filter-builder__slot--field">
-        <MSelect
-          :id="`grid-filter-builder-field-${condition.id}`"
-          size="s"
-          :options="fieldOptions()"
+        <MSelect :id="`grid-filter-builder-field-${condition.id}`" size="s" :options="fieldOptions()"
           :model-value="condition.field"
-          @update:modelValue="(v: string | number) => onFieldChange(condition.id, String(v))"
-        />
+          @update:modelValue="(v: string | number) => onFieldChange(condition.id, String(v))" />
       </div>
 
       <!-- Operator picker — hidden for 'custom' filters, which own their semantics -->
-      <div
-        v-if="descriptorFor(condition.field)?.filterType !== 'custom'"
-        class="grid-filter-builder__slot grid-filter-builder__slot--operator"
-      >
-        <MSelect
-          :id="`grid-filter-builder-op-${condition.id}`"
-          size="s"
-          :options="operatorOptions(condition.field)"
+      <div v-if="descriptorFor(condition.field)?.filterType !== 'custom'"
+        class="grid-filter-builder__slot grid-filter-builder__slot--operator">
+        <MSelect :id="`grid-filter-builder-op-${condition.id}`" size="s" :options="operatorOptions(condition.field)"
           :model-value="condition.operator"
-          @update:modelValue="(v: string | number) => onOperatorChange(condition.id, String(v))"
-        />
+          @update:modelValue="(v: string | number) => onOperatorChange(condition.id, String(v))" />
       </div>
 
       <!-- Custom filter component. Receives a single bundled `params` prop
            ({ model, column, filterParams, getValue, onModelChange }); the
            operator picker and value editors are hidden because the
            component covers both. -->
-      <component
-        v-if="
-          descriptorFor(condition.field)?.filterType === 'custom' &&
-          descriptorFor(condition.field)?.filter
-        "
-        :is="descriptorFor(condition.field)!.filter!.component"
-        :ref="bindRefFor(condition)"
-        class="grid-filter-builder__custom"
-        :params="buildFilterParams(condition)"
-      />
+      <component v-if="
+        descriptorFor(condition.field)?.filterType === 'custom' &&
+        descriptorFor(condition.field)?.filter
+      " :is="descriptorFor(condition.field)!.filter!.component" :ref="bindRefFor(condition)"
+        class="grid-filter-builder__custom" :params="buildFilterParams(condition)" />
       <template v-else-if="!isValueless(condition.operator)">
         <!-- set / multi-select — MCheckbox-per-option -->
-        <div
-          v-if="descriptorFor(condition.field)?.filterType === 'set'"
-          class="grid-filter-builder__set"
-        >
-          <MCheckbox
-            v-for="opt in descriptorFor(condition.field)?.options ?? []"
-            :key="String(opt.value)"
+        <div v-if="descriptorFor(condition.field)?.filterType === 'set'" class="grid-filter-builder__set">
+          <MCheckbox v-for="opt in descriptorFor(condition.field)?.options ?? []" :key="String(opt.value)"
             :id="`grid-filter-builder-set-${condition.id}-${String(opt.value)}`"
-            :model-value="isSetChecked(condition, opt.value)"
-            :label="opt.label"
-            @update:modelValue="(v: boolean) => onSetToggle(condition, opt.value, v)"
-          />
+            :model-value="isSetChecked(condition, opt.value)" :label="opt.label"
+            @update:modelValue="(v: boolean) => onSetToggle(condition, opt.value, v)" />
         </div>
 
         <!-- boolean -->
-        <div
-          v-else-if="descriptorFor(condition.field)?.filterType === 'boolean'"
-          class="grid-filter-builder__slot grid-filter-builder__slot--value"
-        >
-          <MSelect
-            :id="`grid-filter-builder-bool-${condition.id}`"
-            size="s"
-            :options="BOOLEAN_OPTIONS"
+        <div v-else-if="descriptorFor(condition.field)?.filterType === 'boolean'"
+          class="grid-filter-builder__slot grid-filter-builder__slot--value">
+          <MSelect :id="`grid-filter-builder-bool-${condition.id}`" size="s" :options="BOOLEAN_OPTIONS"
             :model-value="booleanSelectValue(condition)"
-            @update:modelValue="(v: string | number) => onBooleanSelect(condition.id, v)"
-          />
+            @update:modelValue="(v: string | number) => onBooleanSelect(condition.id, v)" />
         </div>
 
         <!-- range: value + valueTo -->
         <template v-else-if="isRange(condition.operator)">
           <div class="grid-filter-builder__slot grid-filter-builder__slot--value">
-            <MTextInput
-              :id="`grid-filter-builder-val-${condition.id}`"
-              size="s"
-              :type="inputTypeFor(descriptorFor(condition.field))"
-              :model-value="asString(condition.value.value)"
-              placeholder="from"
-              @input="(e: Event) => onTextInput(condition.id, e, condition.field)"
-            />
+            <MTextInput :id="`grid-filter-builder-val-${condition.id}`" size="s"
+              :type="inputTypeFor(descriptorFor(condition.field))" :model-value="asString(condition.value.value)"
+              placeholder="from" @input="(e: Event) => onTextInput(condition.id, e, condition.field)" />
           </div>
           <span class="grid-filter-builder__range-sep">–</span>
           <div class="grid-filter-builder__slot grid-filter-builder__slot--value">
-            <MTextInput
-              :id="`grid-filter-builder-val-to-${condition.id}`"
-              size="s"
-              :type="inputTypeFor(descriptorFor(condition.field))"
-              :model-value="asString(condition.value.valueTo)"
-              placeholder="to"
-              @input="(e: Event) => onTextInputTo(condition.id, e, condition.field)"
-            />
+            <MTextInput :id="`grid-filter-builder-val-to-${condition.id}`" size="s"
+              :type="inputTypeFor(descriptorFor(condition.field))" :model-value="asString(condition.value.valueTo)"
+              placeholder="to" @input="(e: Event) => onTextInputTo(condition.id, e, condition.field)" />
           </div>
         </template>
 
         <!-- scalar -->
         <div v-else class="grid-filter-builder__slot grid-filter-builder__slot--value">
-          <MTextInput
-            :id="`grid-filter-builder-val-${condition.id}`"
-            size="s"
-            :type="inputTypeFor(descriptorFor(condition.field))"
-            :model-value="asString(condition.value.value)"
-            placeholder="value"
-            @input="(e: Event) => onTextInput(condition.id, e, condition.field)"
-          />
+          <MTextInput :id="`grid-filter-builder-val-${condition.id}`" size="s"
+            :type="inputTypeFor(descriptorFor(condition.field))" :model-value="asString(condition.value.value)"
+            placeholder="value" @input="(e: Event) => onTextInput(condition.id, e, condition.field)" />
         </div>
       </template>
 
-      <MIconButton
-        ghost
-        size="s"
-        class="grid-filter-builder__remove"
-        aria-label="Remove condition"
-        @click="emit('remove', condition.id)"
-      >
-        <template #icon><Trash24 /></template>
+      <MIconButton ghost size="s" class="grid-filter-builder__remove" aria-label="Remove condition"
+        @click="emit('remove', condition.id)">
+        <template #icon>
+          <Trash24 />
+        </template>
       </MIconButton>
     </div>
 
     <div class="grid-filter-builder__footer">
-      <MButton
-        ghost
-        size="s"
-        appearance="accent"
-        iconPosition="left"
-        @click="emit('add')"
-      >
-        <template #icon><ListAdd24 /></template>
+      <MButton ghost size="s" appearance="accent" iconPosition="left" @click="emit('add')">
+        <template #icon>
+          <ListAdd24 />
+        </template>
         Add condition
       </MButton>
-      <MButton
-        v-if="conditions.length"
-        ghost
-        size="s"
-        appearance="danger"
-        class="grid-filter-builder__clear"
-        @click="emit('clear')"
-      >
+      <MButton v-if="conditions.length" ghost size="s" appearance="danger" class="grid-filter-builder__clear"
+        @click="emit('clear')">
         Clear all
       </MButton>
     </div>
@@ -443,7 +376,6 @@ function onDrop(index: number): void {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  font-family: var(--font-family, system-ui, -apple-system, sans-serif);
 }
 
 .grid-filter-builder__empty {
@@ -504,7 +436,7 @@ function onDrop(index: number): void {
   min-width: 120px;
 }
 
-.grid-filter-builder__slot--value > * {
+.grid-filter-builder__slot--value>* {
   flex: 1 1 0;
   min-width: 0;
 }

@@ -133,11 +133,13 @@ const subtitle = computed(() => {
 .grid-empty[data-variant='filtered'] .grid-empty__halo {
   background:
     radial-gradient(circle at 30% 30%,
-      /* amber tint — custom value, no matching Mozaic token */ #fef3c7,
+      /* amber tint — custom value, no matching Mozaic token */
+      #fef3c7,
       var(--color-background-secondary, #f3f4f6));
 
   &::after {
-    background: #d97706; /* amber glow — custom value, no matching Mozaic token */
+    background: #d97706;
+    /* amber glow — custom value, no matching Mozaic token */
     opacity: 0.12;
   }
 }
@@ -149,12 +151,14 @@ const subtitle = computed(() => {
 }
 
 .grid-empty[data-variant='filtered'] .grid-empty__icon {
-  color: #b45309; /* amber icon — custom value, no matching Mozaic token */
+  color: #b45309;
+  /* amber icon — custom value, no matching Mozaic token */
 }
 
 .grid-empty__title {
   margin: 0 0 8px;
-  font-size: var(--font-size-300, 16px); /* 18px has no matching Mozaic token — using --font-size-300 (16px) */
+  font-size: var(--font-size-200, 16px);
+  /* 18px has no matching Mozaic token — using --font-size-300 (16px) */
   font-weight: var(--font-weight-bold, 700);
   letter-spacing: -0.01em;
   color: var(--color-text-primary, #0f172a);
@@ -163,7 +167,8 @@ const subtitle = computed(() => {
 .grid-empty__subtitle {
   margin: 0 0 24px;
   max-width: 380px;
-  font-size: var(--font-size-100, 13px); /* 13.5px has no exact Mozaic token — using --font-size-100 (13px) */
+  font-size: var(--font-size-100, 13px);
+  /* 13.5px has no exact Mozaic token — using --font-size-100 (13px) */
   line-height: 1.55;
   color: var(--color-text-secondary, #475569);
 }

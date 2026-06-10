@@ -216,12 +216,8 @@ function onClearFilters() {
             <Filter24 />
           </template>
         </MIconButton>
-        <MNumberBadge
-          v-if="activeFilterCount > 0"
-          class="ad-grid__toolbar-filter-badge"
-          :label="activeFilterCount"
-          appearance="accent"
-        />
+        <MNumberBadge v-if="activeFilterCount > 0" class="ad-grid__toolbar-filter-badge" :label="activeFilterCount"
+          appearance="accent" />
       </div>
 
       <MIconButton v-if="showSettings" id="grid-settings" ghost size="s" aria-label="Settings"
@@ -245,8 +241,8 @@ function onClearFilters() {
         </template>
       </MIconButton>
 
-      <MIconButton v-if="showFormulaReference" id="grid-formula-reference" ghost size="s"
-        aria-label="Formula reference" @click="emit('formula-reference')">
+      <MIconButton v-if="showFormulaReference" id="grid-formula-reference" ghost size="s" aria-label="Formula reference"
+        @click="emit('formula-reference')">
         <template #icon>
           <Calculator24 />
         </template>
@@ -276,40 +272,14 @@ function onClearFilters() {
   </div>
 
   <!-- Drawers — auto-mounted when the corresponding feature is enabled. -->
-  <ad-grid-settings-drawer
-    v-if="showSettings"
-    :open="settingsOpen"
-    :columns="columns"
-    :hidden-fields="hiddenFields"
-    :density="density"
-    :column-order="columnOrder"
-    @update:open="settingsOpen = $event"
-    @apply="onApplySettings"
-    @reset="onResetSettings"
-  />
-  <ad-grid-grouping-drawer
-    v-if="showGroup"
-    :open="groupingOpen"
-    :columns="columns"
-    :active-groups="activeGroups"
-    @update:open="groupingOpen = $event"
-    @apply="onApplyGrouping"
-    @reset="onResetGrouping"
-  />
-  <ad-grid-filter-drawer
-    v-if="showFilters"
-    :open="filtersOpen"
-    :model="filterModel"
-    :columns="filterColumns"
-    @update:open="filtersOpen = $event"
-    @apply="onApplyFilters"
-    @clear="onClearFilters"
-  />
-  <ad-grid-keyboard-shortcuts-drawer
-    v-if="showKeyboard"
-    :open="keyboardOpen"
-    @update:open="keyboardOpen = $event"
-  />
+  <ad-grid-settings-drawer v-if="showSettings" :open="settingsOpen" :columns="columns" :hidden-fields="hiddenFields"
+    :density="density" :column-order="columnOrder" @update:open="settingsOpen = $event" @apply="onApplySettings"
+    @reset="onResetSettings" />
+  <ad-grid-grouping-drawer v-if="showGroup" :open="groupingOpen" :columns="columns" :active-groups="activeGroups"
+    @update:open="groupingOpen = $event" @apply="onApplyGrouping" @reset="onResetGrouping" />
+  <ad-grid-filter-drawer v-if="showFilters" :open="filtersOpen" :model="filterModel" :columns="filterColumns"
+    @update:open="filtersOpen = $event" @apply="onApplyFilters" @clear="onClearFilters" />
+  <ad-grid-keyboard-shortcuts-drawer v-if="showKeyboard" :open="keyboardOpen" @update:open="keyboardOpen = $event" />
 </template>
 
 <style scoped lang="scss">
@@ -358,7 +328,7 @@ function onClearFilters() {
   border: m.get-token('border-width', 's') solid var(--color-border-primary, #e2e8f0);
   border-radius: m.get-radius('s');
   background: var(--color-background-primary, #fff);
-  font-size: var(--font-size-200, 14px);
+  font-size: var(--font-size-100, 14px);
   color: var(--color-text-primary);
   padding: 0 8px 0 16px;
   min-width: 0;

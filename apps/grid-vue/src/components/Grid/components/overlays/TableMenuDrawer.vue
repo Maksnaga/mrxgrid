@@ -180,7 +180,7 @@ function onDragOver(field: string, e: DragEvent) {
       })
     }
     dragOverField = field
-    ;(e.currentTarget as HTMLElement).classList.add('grid-settings__column-item--drag-over')
+      ; (e.currentTarget as HTMLElement).classList.add('grid-settings__column-item--drag-over')
   }
 }
 
@@ -225,109 +225,81 @@ function onDrop(field: string, e: DragEvent) {
 <template>
   <!-- See AdGridFilterDrawer.vue for why we Teleport to <body>. -->
   <Teleport to="body">
-  <!-- See AdGridGroupingDrawer.vue for why `close-on-overlay` stays
+    <!-- See AdGridGroupingDrawer.vue for why `close-on-overlay` stays
        disabled (Mozaic's MDrawer fires it on dialog-body whitespace). -->
-  <MDrawer
-    :open="open"
-    :title="drawerTitle"
-    :back="showBack"
-    position="right"
-    :close-on-overlay="false"
-    @update:open="emit('update:open', $event)"
-    @back="onBack"
-  >
-    <!-- Main view -->
-    <div v-if="currentView === 'main'" class="grid-settings">
-      <div class="grid-settings__menu">
-        <button class="grid-settings__menu-item" @click="currentView = 'density'">
-          <div class="grid-settings__menu-item-text">
-            <span class="grid-settings__menu-item-label">Data density</span>
-            <span class="grid-settings__menu-item-value">{{ densityLabel }}</span>
-          </div>
-          <ChevronRight24 aria-hidden="true" />
-        </button>
-        <button class="grid-settings__menu-item" @click="currentView = 'columns'">
-          <div class="grid-settings__menu-item-text">
-            <span class="grid-settings__menu-item-label">Display columns</span>
-            <span class="grid-settings__menu-item-value">
-              {{ visibleCount }}/{{ columns.length }} displayed
-            </span>
-          </div>
-          <ChevronRight24 aria-hidden="true" />
-        </button>
-      </div>
-    </div>
-
-    <!-- Density subview -->
-    <div v-else-if="currentView === 'density'" class="grid-settings">
-      <div class="grid-settings__field">
-        <label class="grid-settings__field-label" for="grid-settings-density">Density</label>
-        <MSelect
-          id="grid-settings-density"
-          :options="densityOptions"
-          :model-value="draftDensity"
-          @update:model-value="(v: string | number) => (draftDensity = v as DataDensity)"
-        />
-      </div>
-    </div>
-
-    <!-- Columns subview -->
-    <div v-else-if="currentView === 'columns'" class="grid-settings">
-      <MTextInput
-        id="grid-settings-column-search"
-        size="s"
-        input-type="search"
-        placeholder="Find a column"
-        :model-value="columnSearch"
-        class="grid-settings__search"
-        @input="(e: Event) => (columnSearch = (e.target as HTMLInputElement).value)"
-      >
-        <template #icon><Search24 /></template>
-      </MTextInput>
-
-      <div class="grid-settings__columns-list">
-        <div
-          v-for="col in filteredColumns"
-          :key="col.field"
-          class="grid-settings__column-item"
-          draggable="true"
-          @dragstart="onDragStart(col.field, $event)"
-          @dragend="onDragEnd"
-          @dragover="onDragOver(col.field, $event)"
-          @dragleave="onDragLeave"
-          @drop="onDrop(col.field, $event)"
-        >
-          <span class="grid-settings__column-drag-handle">&#8942;&#8942;</span>
-          <!-- Sprint 7 §2.11 — switch from MCheckbox to MToggle so the
-               visibility list reads as on/off switches (matches Angular). -->
-          <MToggle
-            :id="`col-vis-${col.field}`"
-            :label="col.headerName"
-            :model-value="!draftHidden.has(col.field)"
-            @update:model-value="toggleColumnVisibility(col.field)"
-          />
+    <MDrawer :open="open" :title="drawerTitle" :back="showBack" position="right" :close-on-overlay="false"
+      @update:open="emit('update:open', $event)" @back="onBack">
+      <!-- Main view -->
+      <div v-if="currentView === 'main'" class="grid-settings">
+        <div class="grid-settings__menu">
+          <button class="grid-settings__menu-item" @click="currentView = 'density'">
+            <div class="grid-settings__menu-item-text">
+              <span class="grid-settings__menu-item-label">Data density</span>
+              <span class="grid-settings__menu-item-value">{{ densityLabel }}</span>
+            </div>
+            <ChevronRight24 aria-hidden="true" />
+          </button>
+          <button class="grid-settings__menu-item" @click="currentView = 'columns'">
+            <div class="grid-settings__menu-item-text">
+              <span class="grid-settings__menu-item-label">Display columns</span>
+              <span class="grid-settings__menu-item-value">
+                {{ visibleCount }}/{{ columns.length }} displayed
+              </span>
+            </div>
+            <ChevronRight24 aria-hidden="true" />
+          </button>
         </div>
       </div>
 
-      <div class="grid-settings__columns-actions">
-        <MButton :outlined="true" @click="hideAll">Hide all</MButton>
-        <MButton :outlined="true" @click="showAll">Show all</MButton>
+      <!-- Density subview -->
+      <div v-else-if="currentView === 'density'" class="grid-settings">
+        <div class="grid-settings__field">
+          <label class="grid-settings__field-label" for="grid-settings-density">Density</label>
+          <MSelect id="grid-settings-density" :options="densityOptions" :model-value="draftDensity"
+            @update:model-value="(v: string | number) => (draftDensity = v as DataDensity)" />
+        </div>
       </div>
-    </div>
 
-    <template #footer>
-      <div class="grid-settings__footer">
-        <MButton appearance="accent" @click="onApply">Apply</MButton>
-        <MButton :outlined="true" @click="onReset">Reset</MButton>
+      <!-- Columns subview -->
+      <div v-else-if="currentView === 'columns'" class="grid-settings">
+        <MTextInput id="grid-settings-column-search" size="s" input-type="search" placeholder="Find a column"
+          :model-value="columnSearch" class="grid-settings__search"
+          @input="(e: Event) => (columnSearch = (e.target as HTMLInputElement).value)">
+          <template #icon>
+            <Search24 />
+          </template>
+        </MTextInput>
+
+        <div class="grid-settings__columns-list">
+          <div v-for="col in filteredColumns" :key="col.field" class="grid-settings__column-item" draggable="true"
+            @dragstart="onDragStart(col.field, $event)" @dragend="onDragEnd" @dragover="onDragOver(col.field, $event)"
+            @dragleave="onDragLeave" @drop="onDrop(col.field, $event)">
+            <span class="grid-settings__column-drag-handle">&#8942;&#8942;</span>
+            <!-- Sprint 7 §2.11 — switch from MCheckbox to MToggle so the
+               visibility list reads as on/off switches (matches Angular). -->
+            <MToggle :id="`col-vis-${col.field}`" :label="col.headerName" :model-value="!draftHidden.has(col.field)"
+              @update:model-value="toggleColumnVisibility(col.field)" />
+          </div>
+        </div>
+
+        <div class="grid-settings__columns-actions">
+          <MButton :outlined="true" @click="hideAll">Hide all</MButton>
+          <MButton :outlined="true" @click="showAll">Show all</MButton>
+        </div>
       </div>
-    </template>
-  </MDrawer>
+
+      <template #footer>
+        <div class="grid-settings__footer">
+          <MButton appearance="accent" @click="onApply">Apply</MButton>
+          <MButton :outlined="true" @click="onReset">Reset</MButton>
+        </div>
+      </template>
+    </MDrawer>
   </Teleport>
 </template>
 
 <style scoped>
 .grid-settings {
-  font-family: var(--font-family, system-ui, -apple-system, sans-serif);
   padding: 8px 0;
 }
 
@@ -366,7 +338,7 @@ function onDrop(field: string, e: DragEvent) {
 }
 
 .grid-settings__menu-item-label {
-  font-size: var(--font-size-200, 14px);
+  font-size: var(--font-size-100, 14px);
   font-weight: var(--font-weight-bold, 700);
   color: var(--color-text-primary, #1e293b);
 }
@@ -384,7 +356,7 @@ function onDrop(field: string, e: DragEvent) {
 }
 
 .grid-settings__field-label {
-  font-size: var(--font-size-200, 14px);
+  font-size: var(--font-size-100, 14px);
   font-weight: var(--font-weight-bold, 700);
   color: var(--color-text-primary, #1e293b);
 }
@@ -407,7 +379,7 @@ function onDrop(field: string, e: DragEvent) {
   border-top: 1px solid var(--color-border-primary, #e2e8f0);
 }
 
-.grid-settings__columns-actions > * {
+.grid-settings__columns-actions>* {
   flex: 1;
 }
 

@@ -17,23 +17,13 @@ const emit = defineEmits<{
   <div class="grid-group-bar">
     <span class="grid-group-bar__label">GROUPED BY</span>
     <div class="grid-group-bar__tags">
-      <span
-        v-for="group in groups"
-        :key="group.field"
-        class="grid-group-bar__tag"
-      >
+      <span v-for="group in groups" :key="group.field" class="grid-group-bar__tag">
         {{ group.headerName }}
-        <button
-          class="grid-group-bar__tag-remove"
-          @click="emit('removeGroup', group.field)"
-        >
+        <button class="grid-group-bar__tag-remove" @click="emit('removeGroup', group.field)">
           &times;
         </button>
       </span>
-      <button
-        class="grid-group-bar__action"
-        @click="emit('clearGroups')"
-      >
+      <button class="grid-group-bar__action" @click="emit('clearGroups')">
         Remove all
       </button>
     </div>
@@ -46,7 +36,6 @@ const emit = defineEmits<{
   align-items: center;
   gap: 10px;
   padding: 8px 12px;
-  font-family: var(--font-family, system-ui, -apple-system, sans-serif);
   font-size: var(--font-size-100, 13px);
 }
 
@@ -72,7 +61,8 @@ const emit = defineEmits<{
   gap: 4px;
   padding: 4px 8px;
   background-color: var(--color-background-accent-inverse, #1e293b);
-  color: #fff; /* white on dark accent — intentional */
+  color: #fff;
+  /* white on dark accent — intentional */
   border-radius: var(--border-radius-s, 4px);
   font-size: var(--font-size-50, 12px);
   font-weight: var(--font-weight-medium, 500);

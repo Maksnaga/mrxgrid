@@ -194,36 +194,27 @@ function close() {
 <template>
   <!-- See AdGridFilterDrawer.vue for why we Teleport to <body>. -->
   <Teleport to="body">
-  <!-- See AdGridGroupingDrawer.vue for why `close-on-overlay` stays
+    <!-- See AdGridGroupingDrawer.vue for why `close-on-overlay` stays
        disabled (Mozaic's MDrawer fires it on dialog-body whitespace). -->
-  <MDrawer
-    :open="open"
-    title="Formula reference"
-    position="right"
-    :close-on-overlay="false"
-    @update:open="(v) => (v ? null : close())"
-  >
-    <div class="formula-reference__body">
-      <section v-for="cat in categories" :key="cat" class="formula-reference__category">
-        <h4 class="formula-reference__category-title">{{ cat }}</h4>
-        <ul class="formula-reference__list">
-          <li v-for="fn in grouped[cat]" :key="fn.name" class="formula-reference__item">
-            <button
-              type="button"
-              class="formula-reference__name"
-              :title="`Insert ${fn.name}(`"
-              @click="onInsert(fn.name)"
-            >
-              {{ fn.name }}
-            </button>
-            <code class="formula-reference__signature">{{ fn.signature }}</code>
-            <p class="formula-reference__description">{{ fn.description }}</p>
-            <code v-if="fn.example" class="formula-reference__example">{{ fn.example }}</code>
-          </li>
-        </ul>
-      </section>
-    </div>
-  </MDrawer>
+    <MDrawer :open="open" title="Formula reference" position="right" :close-on-overlay="false"
+      @update:open="(v) => (v ? null : close())">
+      <div class="formula-reference__body">
+        <section v-for="cat in categories" :key="cat" class="formula-reference__category">
+          <h4 class="formula-reference__category-title">{{ cat }}</h4>
+          <ul class="formula-reference__list">
+            <li v-for="fn in grouped[cat]" :key="fn.name" class="formula-reference__item">
+              <button type="button" class="formula-reference__name" :title="`Insert ${fn.name}(`"
+                @click="onInsert(fn.name)">
+                {{ fn.name }}
+              </button>
+              <code class="formula-reference__signature">{{ fn.signature }}</code>
+              <p class="formula-reference__description">{{ fn.description }}</p>
+              <code v-if="fn.example" class="formula-reference__example">{{ fn.example }}</code>
+            </li>
+          </ul>
+        </section>
+      </div>
+    </MDrawer>
   </Teleport>
 </template>
 
@@ -240,7 +231,7 @@ function close() {
 
   &__title {
     margin: 0;
-    font-size: var(--font-size-200, 14px);
+    font-size: var(--font-size-100, 14px);
     font-weight: var(--font-weight-semi-bold, 600);
   }
 
